@@ -3,6 +3,12 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
 @import "../../scss/main";
 
+
+/* Styles for the Manage Media Files page */
+.settings-layout {
+  padding: 4rem 5rem
+}
+
 /* Media grid styles */
 .media-box {
   width: 200px;
@@ -68,8 +74,8 @@
   gap: 10px;
 }
 
-.filter-dropdown {
-  min-width: 160px;
+.filter-dropdown .dropdown {
+  margin: 0 !important;
 }
 
 @media (width <= 992px) {
@@ -87,6 +93,16 @@
   .filter-dropdown {
     width: 100%;
   }
+}
+
+/* Search Input */
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* Checkerboard backgrounds for transparency visualization */
