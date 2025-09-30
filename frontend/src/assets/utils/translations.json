@@ -156,16 +156,22 @@
     "da": "Ingen wayfinding systemer fundet"
   },
   "Media Management": {
-    "da": "Medieadministration"
+    "da": "Administrér medier"
+  },
+  "Media Library": {
+    "da":"Mediebibliotek"
   },
   "Upload New Media": {
-    "da": "Upload Ny Medie"
+    "da": "Upload ny mediefil"
   },
   "Title": {
     "da": "Titel"
   },
   "Search by Title": {
     "da": "Søg efter Titel"
+  },
+  "Search for media file" : {
+    "da": "Søg efter mediefil"
   },
   "Manage Fonts and Color Scheme": {
     "da": "Administrér skrifttyper og farver"
@@ -894,7 +900,7 @@
     "da": "Ingen"
   },
   "File extensions": {
-    "da": "Fil udvidelser"
+    "da": "Filtyper"
   },
   "Error fetching tags": {
     "da": "Fejl ved hentning af tags"
