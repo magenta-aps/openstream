@@ -2,6 +2,68 @@
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/containers/html-container title="Media Management" script-src="/src/assets/pages/manage-media-files/main.js" }}
     {{> base/navbar/navbar_global_settings }}
+    <!-- Main Container -->
+    {{#> base/containers/main-container }}
+        {{#> base/containers/sidebar-and-content-container pageTitle="Media Management" }}
+            {{#*inline "sidebarContent"}}
+                <p>{% trans "Global media files are files that are available throughout the whole organization and in templates. Here files such as logos will be uploaded." %}</p>
+                <hr>
+                {{> base/buttons/icon-button id="uploadNewMediaBtn" class="w-100 justify-content-center" type="button" variant="primary" icon="add" text="{% trans 'Upload New Media' %}" }}
+                <hr>
+                <!-- Search Field -->
+                <div class="position-relative">
+                    <label for="titleSearchInput" class="search-icon" aria-label="Search for media file">
+                        <i class="material-symbols-outlined text-darkest-gray">search</i>
+                    </label>
+                    {{> base/form/input type="text" id="titleSearchInput" placeholder="Search for media file" extraClass="ps-5"}}
+                </div>
+                <div class="d-flex align-items-center justify-content-around mt-3">
+                    <p class="m-0">{% trans "Results per site:" %}</p>
+                    {{#> base/form/dropdown id="resultsPerPageDropdown" class="page-size-dropdown" }}
+                        {{> base/form/dropdown-option value="10" text="10" }}
+                        {{> base/form/dropdown-option value="15" text="15" }}
+                        {{> base/form/dropdown-option value="20" text="20" }}
+                        {{> base/form/dropdown-option value="25" text="25" }}
+                        {{> base/form/dropdown-option value="30" text="30" }}
+                        {{> base/form/dropdown-option value="35" text="35" }}
+                    {{/base/form/dropdown}}
+                </div>
+                <hr>
+                <h4>{% trans "Filters" %}</h4>
+                <div class="bg-white rounded p-2 mb-3">
+                    <div id="extension-select-wrapper" class="filter-dropdown mb-1"></div>
+                    <p class="ms-2 mb-0">+ .png</p>
+                    <p class="ms-2 mb-0">+ .webp</p>
+                </div>
+                <div class="bg-white rounded p-2 mb-3">
+                    <div id="media-category-wrapper" class="filter-dropdown mb-1"></div>
+                    <p class="ms-2 mb-0">+ .png</p>
+                    <p class="ms-2 mb-0">+ .webp</p>
+                </div>
+                <div class="bg-white rounded p-2 mb-3">
+                    <div id="media-tags-wrapper" class="filter-dropdown mb-1"></div>
+                    <p class="ms-2 mb-0">+ .png</p>
+                    <p class="ms-2 mb-0">+ .webp</p>
+                </div>
+            {{/inline}}
+
+            {{#*inline "mainContent"}}
+                <div class="d-flex flex-column justify-content-between h-100">
+                    <!-- Media Grid -->
+                    <div id="mediaGrid" class="flex-grow-1 d-flex flex-wrap gap-3 checkerboard-light"></div>
+                    <!-- Pagination -->
+                    <div id="media-pagination-wrapper" class="mt-3"></div>
+                    <!-- Include the existing modals -->
+                    </div>
+                {{> base/content-engine/modals/media_submit_modal }}
+            {{/inline}}
+        {{/base/containers/sidebar-and-content-container}}
+    {{/base/containers/main-container}}
+{{/base/containers/html-container}}
+
+
+<!-- Solution before new sidebar ux design-->
+{{!-- 
     {{#> base/containers/main-container }}
         <section class="settings-layout">
             <h1 class="mb-4">{% trans "Media Management" %}</h1>
@@ -25,8 +87,8 @@
                         </label>
                         {{> base/form/input type="text" id="titleSearchInput" placeholder="Search for media file" extraClass="ps-5"}}
                     </div>
-                    {{!-- <input type="text" class="form-control" id="titleSearchInput" placeholder="{% trans 'Title' %}">
-                    <label for="titleSearchInput">🔎 {% trans "Search by Title" %}</label> --}}
+                    <!-- <input type="text" class="form-control" id="titleSearchInput" placeholder="{% trans 'Title' %}"> -->
+                    <!-- <label for="titleSearchInput">🔎 {% trans "Search by Title" %}</label> -->
                 </div>
                 <div class="">
                     <!-- Media Grid -->
@@ -36,7 +98,9 @@
                 </div>
             </div>
         </section>
-        {{!-- <div class="container-fluid m-2">
+
+        <!-- Previous layout - to be removed later -->
+        <div class="container-fluid m-2">
             <div class="row mb-4">
                 <div class="col">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -71,8 +135,8 @@
                     <div id="media-pagination-wrapper" class="mt-3"></div>
                 </div>
             </div>
-        </div> --}}
+        </div>
         <!-- Include the existing modals -->
         {{> base/content-engine/modals/media_submit_modal }}
-    {{/base/containers/main-container}}
-{{/base/containers/html-container}}
+    {{/base/containers/main-container}} 
+--}}
