@@ -691,7 +691,7 @@ function createOriginalDropdown(container, buttonText, options, checkAll) {
   const wrapper = document.createElement("div");
   wrapper.className = "dropdown m-3";
   wrapper.innerHTML = `
-    <button class="btn btn-outline-gray text-black dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="btn btn-outline-gray text-black dropdown-toggle w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
     ${buttonText}
     </button>
     <ul class="dropdown-menu p-2" id="extensionDropdown" style="max-height: 500px; overflow-y: auto;">
