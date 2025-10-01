@@ -161,6 +161,12 @@
   "Media Library": {
     "da":"Mediebibliotek"
   },
+  "Global media files are files that are available throughout the whole organization and in templates. Here files such as logos will be uploaded.":{
+    "da":"Globale mediefiler er filer som er tilgængelige i hele organisationen og i skabeloner. Her vil filer såsom logoer blive uploadet."
+  },
+  "Results per site:": {
+    "da":"Resultater per side:"
+  },
   "Upload New Media": {
     "da": "Upload ny mediefil"
   },
