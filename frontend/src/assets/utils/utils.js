@@ -475,7 +475,7 @@ export function createPageSelector(pageData, updateFunc) {
       <small class="text-muted">
         ${(pageData.current_page - 1) * pageData.items_per_page + 1}–
         ${Math.min(pageData.current_page * pageData.items_per_page, pageData.count)}
-        ${gettext("of")} ${pageData.count}
+        ${gettext("of")} ${pageData.count} ${gettext("files")}
       </small>
     </div>
     <nav aria-label="Page navigation">
