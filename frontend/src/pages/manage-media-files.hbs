@@ -48,11 +48,12 @@
             {{/inline}}
 
             {{#*inline "mainContent"}}
-                <div class="d-flex flex-column justify-content-between h-100">
+                <div class="d-flex flex-column justify-content-between h-100 p-4">
                     <!-- Media Grid -->
-                    <div id="mediaGrid" class="flex-grow-1 d-flex flex-wrap gap-3 checkerboard-light"></div>
+                    <div id="mediaGrid" class="flex-grow-1 checkerboard-light"></div>
                     <!-- Pagination -->
-                    <div id="media-pagination-wrapper" class="mt-3"></div>
+                    <hr>
+                    <div id="media-pagination-wrapper" class="mx-2 mb-2"></div>
                     <!-- Include the existing modals -->
                     </div>
                 {{> base/content-engine/modals/media_submit_modal }}
