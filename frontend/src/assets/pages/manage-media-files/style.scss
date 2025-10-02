@@ -29,6 +29,7 @@
   margin-right: 1rem;
   margin-bottom: 1rem;
   border-radius: 6px;
+  padding: 8px;
   overflow: hidden;
   border: 1px solid $gray;
   box-shadow: 0 2px 4px rgba($black, 0.05);
@@ -80,6 +81,22 @@
   display: flex;
   justify-content: flex-end;
   gap: 5px;
+}
+
+/* Base style for the element that will have the pattern */
+.checkerboard-bg {
+  background-size: 20px 20px;
+
+  /* Size of the squares */
+  background-position:
+    0 0,
+    10px 10px;
+
+  /* Offset for the second layer */
+  background-repeat: repeat;
+  padding: 5px;
+  border: 1px solid $light-gray;
+  border-radius: 4px;
 }
 
 /* Light theme for the checkerboard */

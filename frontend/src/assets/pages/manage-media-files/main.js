@@ -162,7 +162,7 @@ function renderMediaGrid(mediaFiles) {
     let previewHTML = "";
     if (videoExtensionsList.includes(file.file_type?.toLowerCase())) {
       previewHTML = `
-        <div class="preview-container">
+        <div class="preview-container checkerboard-bg">
           <video loop muted playsinline>
             <source src="${file.file_url}" type="video/${file.file_type?.toLowerCase()}">
             ${gettext("Your browser does not support the video tag.")}
@@ -170,7 +170,7 @@ function renderMediaGrid(mediaFiles) {
         </div>`;
     } else {
       previewHTML = `
-        <div class="preview-container">
+        <div class="preview-container checkerboard-bg">
           <img src="${file.file_url}" alt="${file.title}">
         </div>`;
     }
@@ -329,6 +329,26 @@ function initEventListeners() {
 
   // Filter inputs
   titleInput?.addEventListener("input", updateFilteringDebounce);
+
+  // Background Pattern on Media preview Toggle Buttons
+  const lightPatternBtn = document.getElementById("lightPattern");
+  const darkPatternBtn = document.getElementById("darkPattern");
+
+  if (lightPatternBtn && darkPatternBtn && mediaGrid) {
+    lightPatternBtn.addEventListener("change", () => {
+      if (lightPatternBtn.checked) {
+        mediaGrid.classList.remove("checkerboard-dark");
+        mediaGrid.classList.add("checkerboard-light");
+      }
+    });
+
+    darkPatternBtn.addEventListener("change", () => {
+      if (darkPatternBtn.checked) {
+        mediaGrid.classList.remove("checkerboard-light");
+        mediaGrid.classList.add("checkerboard-dark");
+      }
+    });
+  }
 }
 
 // ============ FILTER FUNCTIONS ============
