@@ -74,7 +74,7 @@ const mediaGrid = document.getElementById("mediaGrid");
 const bsSubmitModal = bootstrap.Modal.getOrCreateInstance(submitMediaModalEl);
 
 // Debounced filtering function
-const updateFilteringDebounce = debounce(() => loadMediaFiles(1));
+const updateFilteringDebounce = debounce((page_size=10) => loadMediaFiles(1, page_size));
 
 async function initPage() {
   // Initialize components
@@ -122,11 +122,11 @@ async function initPage() {
 
 // ============ MEDIA LOADING ============
 
-async function loadMediaFiles(page = 1) {
+async function loadMediaFiles(page = 1, page_size = 10) {
   showLoadingOverlay(true);
   try {
     const filters = getFilters();
-    const data = await fetchMedia(page, filters);
+    const data = await fetchMedia(page, filters, page_size);
     currentPage = data?.current_page ?? currentPage;
 
     renderMediaGrid(data.results);
@@ -313,6 +313,12 @@ function initEventListeners() {
   document.querySelector("#uploadNewMediaBtn").addEventListener("click", () => {
     currentlyEditingMedia = null;
     openEditMediaModal();
+  });
+
+  // Amount of media files shown
+  document.querySelector("#resultsPerPageDropdown").addEventListener("change", (e) => {
+    console.log(e.target.value);
+    updateFilteringDebounce(1, e.target.value);
   });
 
   // Submit form
@@ -569,9 +575,9 @@ async function refreshCategories() {
   }
 }
 
-async function fetchMedia(page, filters) {
+async function fetchMedia(page, filters, page_size) {
   return genericFetch(
-    `${BASE_URL}/api/documents/list/?page=${page}&branch_id=${selectedBranchID}`,
+    `${BASE_URL}/api/documents/list/?page=${page}&branch_id=${selectedBranchID}&page_size=${page_size}`,
     "POST",
     filters,
   );
