@@ -1921,7 +1921,6 @@ class BranchUpcomingContentAPIView(APIView):
 
 class DocumentListView(APIView):
     permission_classes = [IsAuthenticated]
-    page_size = 10
 
     def post(self, request):
         # Returns a filtered and paginated list of media files
@@ -1996,7 +1995,8 @@ class DocumentListView(APIView):
             docs = docs.filter(tags__id__in=tag_ids).distinct()
 
         # Paginate the results.
-        paginator = Paginator(docs, self.page_size)
+        page_size = request.query_params.get("page_size", 10)
+        paginator = Paginator(docs, page_size)
         page_number = request.query_params.get("page", 1)
         page_obj = paginator.get_page(page_number)
         serializer = DocumentSerializer(
