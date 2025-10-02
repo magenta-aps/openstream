@@ -15,6 +15,13 @@
 }
 
 /* Media grid styles */
+.dotted-light-bg {
+  background-color: $white;
+  background-image: radial-gradient($light-gray 10%, transparent 11%);
+  background-size: 20px 20px;
+  background-position: 0 0;
+}
+
 .media-box {
   width: 190px;
   height: fit-content;
@@ -75,6 +82,62 @@
   gap: 5px;
 }
 
+/* Light theme for the checkerboard */
+.checkerboard-light .checkerboard-bg {
+  background-image:
+    linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
+    linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
+    linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
+  background-color: $white;
+
+  /* Light background */
+}
+
+/* Dark theme for the checkerboard */
+.checkerboard-dark .checkerboard-bg {
+  background-image:
+    linear-gradient(45deg, $darkest-gray 25%, transparent 25%),
+    linear-gradient(-45deg, $darkest-gray 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, $darkest-gray 75%),
+    linear-gradient(-45deg, transparent 75%, $darkest-gray 75%);
+  background-color: $black;
+
+  /* Dark background */
+}
+
+/* Checkerboard backgrounds for transparency visualization */
+// .checkerboard-light {
+//   background-color: $white;
+//   background-image:
+//     linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
+//     linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
+//     linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
+//     linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
+//   background-size: 20px 20px;
+//   background-position:
+//     0 0,
+//     0 10px,
+//     10px -10px,
+//     -10px 0;
+// }
+
+
+// .checkerboard-dark {
+//   background-color: $darkest-gray;
+//   background-image:
+//     linear-gradient(45deg, $darker-gray 25%, transparent 25%),
+//     linear-gradient(-45deg, $darker-gray 25%, transparent 25%),
+//     linear-gradient(45deg, transparent 75%, $darker-gray 75%),
+//     linear-gradient(-45deg, transparent 75%, $darker-gray 75%);
+//   background-size: 20px 20px;
+//   background-position:
+//     0 0,
+//     0 10px,
+//     10px -10px,
+//     -10px 0;
+// }
+
 /* Filter section styles */
 .filter-controls {
   display: flex;
@@ -112,37 +175,6 @@
   transform: translateY(-50%);
   pointer-events: none;
   z-index: 5;
-}
-
-/* Checkerboard backgrounds for transparency visualization */
-// .checkerboard-light {
-//   background-color: $white;
-//   background-image:
-//     linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
-//     linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
-//     linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
-//     linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
-//   background-size: 20px 20px;
-//   background-position:
-//     0 0,
-//     0 10px,
-//     10px -10px,
-//     -10px 0;
-// }
-
-.checkerboard-dark {
-  background-color: $darkest-gray;
-  background-image:
-    linear-gradient(45deg, $darker-gray 25%, transparent 25%),
-    linear-gradient(-45deg, $darker-gray 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, $darker-gray 75%),
-    linear-gradient(-45deg, transparent 75%, $darker-gray 75%);
-  background-size: 20px 20px;
-  background-position:
-    0 0,
-    0 10px,
-    10px -10px,
-    -10px 0;
 }
 
 /* Spinner overlay */
