@@ -353,55 +353,23 @@ export function renderSlideElementsSidebar() {
         });
 
         const showPopover = () => {
-          // Position popover relative to the button but clamp to viewport.
-          // We compute available space above and below the button and choose
-          // the side with more space. We also set maxHeight and overflow so
-          // tall popovers stay within the viewport and become scrollable.
           const MARGIN = 8; // keep some breathing room from edges
-          const btnRect = settingsBtn.getBoundingClientRect();
-
-          // Prefer a conservative popover width but allow it to shrink if near edges
+          
           const preferredWidth = 320;
           const maxAllowedWidth = Math.min(preferredWidth, window.innerWidth - MARGIN * 2);
           const popoverComputedWidth = Math.max(200, maxAllowedWidth);
 
-          // Compute vertical space
-          const spaceAbove = btnRect.top - MARGIN;
-          const spaceBelow = window.innerHeight - btnRect.bottom - MARGIN;
-
-          // Choose whether to show below or above based on available space
-          const preferBelow = spaceBelow >= Math.min(300, spaceAbove);
-
-          // Compute top and maxHeight based on chosen side
-          let top;
-          let maxHeight;
-          const desiredHeight = 450; // UI desired size; used as guideline
-          if (preferBelow) {
-            top = btnRect.bottom + 6;
-            maxHeight = Math.max(80, spaceBelow - 6);
-            // If not enough space below, fallback to above positioning
-            if (maxHeight < Math.min(240, desiredHeight / 2) && spaceAbove > spaceBelow) {
-              top = Math.max(MARGIN, btnRect.top - Math.min(desiredHeight, spaceAbove) - 6);
-              maxHeight = Math.max(80, spaceAbove - 6);
-            }
-          } else {
-            // show above
-            const height = Math.min(desiredHeight, spaceAbove - 6);
-            top = Math.max(MARGIN, btnRect.top - height - 6);
-            maxHeight = Math.max(80, spaceAbove - 6);
-          }
-
-          // Compute left and clamp into viewport
-          let left = btnRect.right - popoverComputedWidth;
-          if (left < MARGIN) left = MARGIN;
-          if (left + popoverComputedWidth > window.innerWidth - MARGIN) left = window.innerWidth - popoverComputedWidth - MARGIN;
+          const popoverHeight = window.innerHeight - MARGIN * 2;
 
           popover.style.position = 'fixed';
-          popover.style.top = `${Math.round(top)}px`;
-          popover.style.left = `${Math.round(left)}px`;
+          popover.style.bottom = `${MARGIN}px`;
+          popover.style.right = `${MARGIN}px`;
           popover.style.width = `${Math.round(popoverComputedWidth)}px`;
-          popover.style.maxHeight = `${Math.round(maxHeight)}px`;
-          popover.style.overflow = 'auto';
+          popover.style.height = `${Math.round(popoverHeight)}px`;
+          popover.style.top = '';
+          popover.style.left = '';
+          popover.style.maxHeight = '';
+          popover.style.overflow = 'visible';
           popover.style.display = 'block';
         };
       
