@@ -69,12 +69,13 @@ const extensionSelectEl = document.querySelector("#extension-select-wrapper");
 const mediaTagsWrapperEl = document.querySelector("#media-tags-wrapper");
 const mediaEditTagsSelectEl = document.querySelector("#mediaEditTagsSelect");
 const mediaGrid = document.getElementById("mediaGrid");
+const pageSizeEl = document.querySelector("#resultsPerPageDropdown");
 
 // Initialize Bootstrap components
 const bsSubmitModal = bootstrap.Modal.getOrCreateInstance(submitMediaModalEl);
 
 // Debounced filtering function
-const updateFilteringDebounce = debounce((page_size=10) => loadMediaFiles(1, page_size));
+const updateFilteringDebounce = debounce(() => loadMediaFiles(1));
 
 async function initPage() {
   // Initialize components
@@ -122,9 +123,11 @@ async function initPage() {
 
 // ============ MEDIA LOADING ============
 
-async function loadMediaFiles(page = 1, page_size = 10) {
+async function loadMediaFiles(page = 1) {
   showLoadingOverlay(true);
   try {
+    const page_size = pageSizeEl.value || 10;
+
     const filters = getFilters();
     const data = await fetchMedia(page, filters, page_size);
     currentPage = data?.current_page ?? currentPage;
@@ -315,10 +318,9 @@ function initEventListeners() {
     openEditMediaModal();
   });
 
-  // Amount of media files shown
-  document.querySelector("#resultsPerPageDropdown").addEventListener("change", (e) => {
-    console.log(e.target.value);
-    updateFilteringDebounce(1, e.target.value);
+  // Amount of media files shown per page
+  pageSizeEl.addEventListener("change", () => {
+    updateFilteringDebounce(1);
   });
 
   // Submit form
