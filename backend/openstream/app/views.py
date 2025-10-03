@@ -2008,7 +2008,7 @@ class DocumentListView(APIView):
             page_size = DEFAULT_PAGE_SIZE  # Fallback for negative or zero page_size
         elif page_size > MAX_PAGE_SIZE:
             page_size = MAX_PAGE_SIZE
-        
+
         # Paginate the results.
         paginator = Paginator(docs, page_size)
         page_number = request.query_params.get("page", 1)
