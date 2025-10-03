@@ -1994,8 +1994,22 @@ class DocumentListView(APIView):
         if tag_ids:
             docs = docs.filter(tags__id__in=tag_ids).distinct()
 
+        # Pagination
+        DEFAULT_PAGE_SIZE = 10
+        MAX_PAGE_SIZE = 100
+
+        # Validate and sanitize page_size param
+        try:
+            page_size = int(request.query_params.get("page_size", DEFAULT_PAGE_SIZE))
+        except ValueError:
+            page_size = DEFAULT_PAGE_SIZE
+
+        if page_size < 1:
+            page_size = DEFAULT_PAGE_SIZE  # Fallback for negative or zero page_size
+        elif page_size > MAX_PAGE_SIZE:
+            page_size = MAX_PAGE_SIZE
+        
         # Paginate the results.
-        page_size = request.query_params.get("page_size", 10)
         paginator = Paginator(docs, page_size)
         page_number = request.query_params.get("page", 1)
         page_obj = paginator.get_page(page_number)
