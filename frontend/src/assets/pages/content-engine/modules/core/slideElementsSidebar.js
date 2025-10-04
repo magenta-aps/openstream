@@ -9,6 +9,11 @@ import { gettext } from "../../../../utils/locales.js";
 import { showToast } from "../../../../utils/utils.js";
 import { getNewZIndex } from "../utils/domUtils.js";
 import { isElementLocked } from "../element_formatting/lockElement.js";
+import {
+  replaceElementWithType,
+  getAvailableElementTypes,
+  isConversionSupported,
+} from "../utils/elementTypeConverter.js";
 import Sortable from "sortablejs";
 
 // Simple HTML escape for insertion into innerHTML
@@ -292,6 +297,12 @@ export function renderSlideElementsSidebar() {
           ` : ''}
           
           <hr class="my-3">
+          <div class="setting-item mb-3">
+            <label class="form-label fw-semibold">${gettext("Change element type")}</label>
+            <select id="change-element-type-select-${elData.id}" class="form-select form-select-sm">
+              <option value="">${gettext("Select new type...")}</option>
+            </select>
+          </div>
           <div class="setting-item">
             <button class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2" id="delete-element-btn-${elData.id}" type="button">
               <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -576,6 +587,75 @@ export function renderSlideElementsSidebar() {
       }
     }
 
+    // Wire up change element type select (in popover)
+    const changeTypeSelect = popover ? popover.querySelector(`#change-element-type-select-${elData.id}`) : null;
+    if (changeTypeSelect) {
+      // Populate select with available element types
+      const availableTypes = getAvailableElementTypes();
+      
+      // Determine current element type (handle iframe/dynamic-element mapping)
+      const currentElementType = 
+        elData.type === "iframe" && elData.isDynamic ? "dynamic-element" : elData.type;
+      
+      // Clear the default placeholder option and add current type as first option
+      changeTypeSelect.innerHTML = '';
+      
+      // Add current type as the first (selected) option
+      const currentTypeInfo = availableTypes.find(t => t.type === currentElementType);
+      if (currentTypeInfo) {
+        const currentOption = document.createElement('option');
+        currentOption.value = currentElementType;
+        currentOption.textContent = `${currentTypeInfo.name} (current)`;
+        currentOption.selected = true;
+        currentOption.disabled = true;
+        changeTypeSelect.appendChild(currentOption);
+      }
+      
+      // Add type options
+      availableTypes.forEach((typeInfo) => {
+        // Skip current type and placeholder type
+        if (typeInfo.type === currentElementType || typeInfo.type === "placeholder") return;
+        
+        // Check if conversion is supported
+        const sourceTypeForCheck = 
+          elData.type === "iframe" && elData.isDynamic ? "dynamic-element" : elData.type;
+        if (!isConversionSupported(sourceTypeForCheck, typeInfo.type)) return;
+        
+        const option = document.createElement('option');
+        option.value = typeInfo.type;
+        option.textContent = typeInfo.name;
+        changeTypeSelect.appendChild(option);
+      });
+      
+      // Handle selection change
+      changeTypeSelect.addEventListener('change', (e) => {
+        e.stopPropagation();
+        
+        const selectedType = changeTypeSelect.value;
+        if (!selectedType) return;
+        
+        try {
+          // Convert the element type
+          replaceElementWithType(elData, selectedType);
+          
+          // Close popover
+          if (popover) popover.style.display = 'none';
+          
+          const typeInfo = availableTypes.find(t => t.type === selectedType);
+          showToast(gettext(`Element converted to ${typeInfo?.name || selectedType}`), "Success");
+        } catch (error) {
+          console.error('Error converting element type:', error);
+          showToast(gettext('Failed to convert element type'), 'Error');
+          // Reset select to default
+          changeTypeSelect.value = '';
+        }
+      });
+      
+      window.__popoverCleanupFunctions.push(() => {
+        // Cleanup function will be called when sidebar is re-rendered
+      });
+    }
+    
     // Wire up delete button (in popover)
     const deleteBtn = popover ? popover.querySelector(`#delete-element-btn-${elData.id}`) : null;
     if (deleteBtn) {

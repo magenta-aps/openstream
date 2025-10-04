@@ -293,13 +293,6 @@ function createElementContextMenu(e, element, dataObj) {
         closeContextMenus();
       },
     },
-    {
-      label: gettext("Change Element Type"),
-      icon: "swap_horiz",
-      action: () => {
-        createElementTypeSubmenu(e, element, dataObj, menu);
-      },
-    },
   ];
 
   // Only add Delete Element option if the element is not locked
@@ -406,16 +399,6 @@ function createElementContextMenu(e, element, dataObj) {
     const text = document.createElement("span");
     text.textContent = opt.label;
     item.appendChild(text);
-
-    // Add arrow indicator for submenu items
-    if (opt.label === gettext("Change Element Type")) {
-      const arrow = document.createElement("i");
-      arrow.className = "material-symbols-outlined";
-      arrow.style.fontSize = "16px";
-      arrow.style.marginLeft = "auto";
-      arrow.textContent = "chevron_right";
-      item.appendChild(arrow);
-    }
 
     item.addEventListener("mouseenter", () => {
       item.style.backgroundColor = "#eee";

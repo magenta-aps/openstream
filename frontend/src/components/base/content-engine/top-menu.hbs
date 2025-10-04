@@ -36,20 +36,6 @@
                 </div>
             </div>
             <div class="vr"></div>
-            <div id="element-options-container" class="d-flex align-items-center ">
-                <div>
-                    <span id="slide-background-options" class="small">{% trans "Background" %}</span>
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="btn btn-secondary btn-sm d-flex align-items-center" data-bs-toggle="tooltip" data-bs-title='{% trans " Change Background Color For Slide" %}' data-type="change-background-color">
-                            <i class="material-symbols-outlined">format_color_fill</i>
-                        </button>
-                        <button class="btn btn-secondary btn-sm d-flex align-items-center" data-type="change-slide-background-image" data-bs-toggle="tooltip" data-bs-title='{% trans "Background Image Settings" %}'>
-                            <i class="material-symbols-outlined">wallpaper_slideshow</i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="vr"></div>
             <div id="add-elements-container" class="d-flex align-items-center">
                 <div>
                     <span id="add-elements-text" class="small">{% trans "Add Elements" %}</span>
@@ -116,13 +102,6 @@
             <button type="button" title='{% trans " Blur" %}' class="btn btn-secondary btn-sm d-flex align-items-center" id="blurBtn" data-bs-toggle="tooltip" data-bs-title='{% trans " Add Blur To Selected Element" %}'>
                 {% trans "Blur" %}
             </button>
-            <button class="btn btn-secondary btn-sm d-flex align-items-center" data-bs-toggle="tooltip" title='{% trans " Bring to Front" %}' id="bring-to-front-btn" data-bs-title='{% trans " Bring Selected Element To Front" %}'>
-                {% trans "Bring to front" %}
-            </button>
-            <button class="btn btn-secondary btn-sm d-flex align-items-center" data-bs-toggle="tooltip" title='{% trans " Send to Back" %}' id="send-to-back-btn" data-bs-title='{% trans " Send Selected Element To Back" %}'>
-                {% trans "Send To Back" %}
-            </button>
-            <div class="vr"></div>
             {{!-- Persist and Lock moved to sidebar; toolbar buttons removed. --}}
             <select id="elementLinkDropdown" class="form-select form-select-sm"></select>
         </div>

@@ -56,8 +56,6 @@ import {
   initActivationModal,
   openActivationModal,
 } from "./modules/modals/activationModal.js";
-import { initSlideBackgroundColor } from "./modules/slide_formatting/backgroundColor.js";
-import { initSlideBackgroundImage } from "./modules/slide_formatting/backgroundImage.js";
 import {
   initMediaAlignment,
   initMuteButtons,
@@ -91,7 +89,6 @@ initZoomController();
 const initCommonEditorFeatures = () => {
   initTextbox();
   initUndoRedo();
-  initSlideBackgroundColor();
   initDeleteElement();
   initImageElement();
   initVideoElement();
@@ -108,7 +105,6 @@ const initCommonEditorFeatures = () => {
   initSelectedElementOffset();
   initSelectedElementScale();
   initContextMenu();
-  initSlideBackgroundImage();
   initIframe();
   initMediaAlignment();
   initMuteButtons();

@@ -1965,7 +1965,6 @@ span {
   line-height: 1;
 }
 
-#slide-background-options,
 #undo-redo-text,
 #last-changed-text,
 #add-elements-text,
@@ -1988,8 +1987,7 @@ span {
   color: $secondary;
 }
 
-#add-elements-container i,
-#element-options-container i {
+#add-elements-container i {
   color: $secondary;
 }
 
