@@ -17,6 +17,7 @@ import {
 import Sortable from "sortablejs";
 
 const ALWAYS_ON_TOP_BASE = 100000;
+const ALWAYS_ON_TOP_PRIORITY_SPAN = 1000;
 const POPOVER_MARGIN = 8;
 const POPOVER_PREFERRED_WIDTH = 320;
 const POPOVER_MIN_WIDTH = 200;
@@ -73,6 +74,13 @@ function hasParentTemplateLock(elData) {
   return elData.lockedSettingsSubOrgTemplate == null;
 }
 
+function getAlwaysOnTopPriority(elData) {
+  if (!elData?.isAlwaysOnTop) return 0;
+  if (isSuborgTemplatesMode() && hasParentTemplateLock(elData)) return 3;
+  if (elData?.preventSettingsChanges) return 2;
+  return 1;
+}
+
 function isSettingsChangeLocked(elData) {
   if (isTemplateEditorMode()) return false;
   if (isSuborgTemplatesMode()) {
@@ -96,8 +104,8 @@ function guardSettingsChange(elData, revert) {
 function computeZOrderRanks(slideElements) {
   const withIndex = slideElements.map((el, idx) => ({ el, idx }));
   withIndex.sort((a, b) => {
-    if (a.el.isAlwaysOnTop && !b.el.isAlwaysOnTop) return -1;
-    if (!a.el.isAlwaysOnTop && b.el.isAlwaysOnTop) return 1;
+    const priorityDiff = getAlwaysOnTopPriority(b.el) - getAlwaysOnTopPriority(a.el);
+    if (priorityDiff) return priorityDiff;
     return (b.el.zIndex || 0) - (a.el.zIndex || 0);
   });
   const rankMap = {};
@@ -155,11 +163,12 @@ function collectSidebarElements() {
 
 function sortElementsForSidebar(elements) {
   return [...elements].sort((a, b) => {
-    if (a.isAlwaysOnTop && !b.isAlwaysOnTop) return -1;
-    if (!a.isAlwaysOnTop && b.isAlwaysOnTop) return 1;
+    const priorityDiff = getAlwaysOnTopPriority(b) - getAlwaysOnTopPriority(a);
+    if (priorityDiff) return priorityDiff;
     const aZ = typeof a.zIndex === "number" ? a.zIndex : 0;
     const bZ = typeof b.zIndex === "number" ? b.zIndex : 0;
-    return bZ - aZ;
+    if (bZ !== aZ) return bZ - aZ;
+    return 0;
   });
 }
 
@@ -954,21 +963,58 @@ function setupAlwaysOnTopToggle({ checkbox, elData, state }) {
   checkbox.checked = !!elData.isAlwaysOnTop;
 }
 
+function recalculateAlwaysOnTopZIndices(elements) {
+  if (!Array.isArray(elements)) return [];
+
+  const alwaysOnTopElements = elements
+    .map((element, index) => ({
+      element,
+      index,
+      priority: getAlwaysOnTopPriority(element),
+      currentZ: typeof element?.zIndex === "number" ? element.zIndex : 0,
+    }))
+    .filter(({ element }) => element?.isAlwaysOnTop)
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority - b.priority;
+      if (a.currentZ !== b.currentZ) return a.currentZ - b.currentZ;
+      return a.index - b.index;
+    });
+
+  const perPriorityOffsets = new Map();
+  const changedElements = [];
+
+  alwaysOnTopElements.forEach(({ element, priority }) => {
+    const tier = Math.max(priority, 1);
+    const base =
+      ALWAYS_ON_TOP_BASE + ALWAYS_ON_TOP_PRIORITY_SPAN * (tier - 1);
+    const offset = perPriorityOffsets.get(tier) || 0;
+    perPriorityOffsets.set(tier, offset + 1);
+    const newZIndex = base + offset + 1;
+
+    if ((Number(element.zIndex) || 0) !== newZIndex) {
+      element.zIndex = newZIndex;
+      changedElements.push(element);
+    }
+  });
+
+  return changedElements;
+}
+
 function adjustAlwaysOnTopZIndex(elData, elements, shouldBeAlwaysOnTop) {
-  if (shouldBeAlwaysOnTop) {
-    const offsets = elements
-      .filter((element) => element.isAlwaysOnTop && element.id !== elData.id)
-      .map((element) => (Number(element.zIndex) || 0) - ALWAYS_ON_TOP_BASE)
-      .filter((offset) => offset >= 0);
-    const nextOffset = offsets.length ? Math.max(...offsets) + 1 : 1;
-    elData.zIndex = ALWAYS_ON_TOP_BASE + nextOffset;
-  } else {
+  if (!shouldBeAlwaysOnTop) {
     try {
       elData.zIndex = getNewZIndex();
     } catch (err) {
       elData.zIndex = 1;
     }
   }
+
+  const updatedElements = recalculateAlwaysOnTopZIndices(elements);
+  updatedElements
+    .filter((element) => element.id !== elData.id)
+    .forEach((element) => {
+      safeUpdateSlideElement(element);
+    });
 }
 
 function setupTemplateLockToggle({ control, elData, state }) {
