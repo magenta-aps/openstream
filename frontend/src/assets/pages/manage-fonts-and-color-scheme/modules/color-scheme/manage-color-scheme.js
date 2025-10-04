@@ -82,10 +82,10 @@ function renderColors() {
     previewDiv.className = "color-preview";
     previewDiv.style.backgroundColor = color.hexValue;
     previewTd.appendChild(previewDiv);
-  // HEX value
-  const hexTd = document.createElement("td");
-  hexTd.textContent = color.hexValue;
-  // Actions
+    // HEX value
+    const hexTd = document.createElement("td");
+    hexTd.textContent = color.hexValue;
+    // Actions
     const actionsTd = document.createElement("td");
     actionsTd.className = "action-cell-td";
     // Edit
@@ -104,13 +104,13 @@ function renderColors() {
     delBtn.addEventListener("click", () => showDeleteConfirmation(color));
     actionsTd.appendChild(editBtn);
     actionsTd.appendChild(delBtn);
-  // Type column
+    // Type column
     const typeTd = document.createElement("td");
     typeTd.textContent = color.type;
     // Append
     row.appendChild(nameTd);
     row.appendChild(previewTd);
-  row.appendChild(hexTd);
+    row.appendChild(hexTd);
     row.appendChild(typeTd);
     row.appendChild(actionsTd);
     colorsTableBody.appendChild(row);
@@ -151,11 +151,13 @@ async function handleModalSave() {
   // Validate hex input before saving
   const hexValue = modalHexInput.value;
   if (!/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
-    modalHexInput.setCustomValidity(gettext("Please enter a valid hex color (e.g., #FF5733)"));
+    modalHexInput.setCustomValidity(
+      gettext("Please enter a valid hex color (e.g., #FF5733)"),
+    );
     modalHexInput.reportValidity();
     return;
   }
-  
+
   const payload = {
     name: modalNameInput.value,
     hexValue: hexValue,
@@ -232,12 +234,12 @@ function setupEventListeners() {
   openModalBtn.addEventListener("click", openAddModal);
   modalSaveBtn.addEventListener("click", handleModalSave);
   confirmDeleteBtn.addEventListener("click", deleteColor);
-  
+
   // Synchronize color picker and hex input
   modalColorPicker.addEventListener("input", (e) => {
     modalHexInput.value = e.target.value.toUpperCase();
   });
-  
+
   modalHexInput.addEventListener("input", (e) => {
     const hexValue = e.target.value;
     // Validate hex format
@@ -247,10 +249,12 @@ function setupEventListeners() {
     } else if (hexValue === "") {
       e.target.setCustomValidity(""); // Allow empty for now, required will handle it
     } else {
-      e.target.setCustomValidity(gettext("Please enter a valid hex color (e.g., #FF5733)"));
+      e.target.setCustomValidity(
+        gettext("Please enter a valid hex color (e.g., #FF5733)"),
+      );
     }
   });
-  
+
   // Ensure hex input starts with # when user starts typing
   modalHexInput.addEventListener("keydown", (e) => {
     if (e.target.value === "" && e.key.match(/[0-9A-Fa-f]/)) {

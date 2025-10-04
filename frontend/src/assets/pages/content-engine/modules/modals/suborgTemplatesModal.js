@@ -27,13 +27,18 @@ async function fetchGlobalTemplates() {
     );
 
     if (!resp.ok) {
-      throw new Error(`Failed to load global templates. Status: ${resp.status}`);
+      throw new Error(
+        `Failed to load global templates. Status: ${resp.status}`,
+      );
     }
 
     return await resp.json();
   } catch (err) {
     console.error("Error fetching global templates:", err);
-    showToast(gettext("Error loading global templates: ") + err.message, "Error");
+    showToast(
+      gettext("Error loading global templates: ") + err.message,
+      "Error",
+    );
     return [];
   }
 }
@@ -92,7 +97,10 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   const globalTemplates = await fetchGlobalTemplates();
 
   if (globalTemplates.length === 0) {
-    showToast(gettext("No global templates available to create from."), "Warning");
+    showToast(
+      gettext("No global templates available to create from."),
+      "Warning",
+    );
     return;
   }
 
@@ -112,7 +120,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
                 <label for="globalTemplateSelect">${gettext("Global Template")}</label>
                 <select class="form-select" id="globalTemplateSelect">
                   <option value="">${gettext("-- Select a template --")}</option>
-                  ${globalTemplates.map(t => `<option value="${t.id}">${t.name}</option>`).join("")}
+                  ${globalTemplates.map((t) => `<option value="${t.id}">${t.name}</option>`).join("")}
                 </select>
               </div>
               <div class="form-group mb-3">
@@ -144,9 +152,9 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     const templateId = e.target.value;
     const previewDiv = modal.querySelector("#templatePreview");
     const infoDiv = modal.querySelector("#templateInfo");
-    
+
     if (templateId) {
-      const template = globalTemplates.find(t => t.id == templateId);
+      const template = globalTemplates.find((t) => t.id == templateId);
       if (template && template.slideData) {
         // Show template info
         infoDiv.innerHTML = `
@@ -155,16 +163,16 @@ export async function openCreateSuborgTemplateModal(suborgId) {
               <h6>${gettext("Template Details")}</h6>
               <p class="mb-1"><strong>${gettext("Name")}:</strong> ${template.name}</p>
               ${template.category ? `<p class="mb-1"><strong>${gettext("Category")}:</strong> ${template.category.name}</p>` : ""}
-              ${template.tags && template.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${template.tags.map(t => t.name).join(", ")}</p>` : ""}
+              ${template.tags && template.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${template.tags.map((t) => t.name).join(", ")}</p>` : ""}
               ${template.accepted_aspect_ratios && template.accepted_aspect_ratios.length > 0 ? `<p class="mb-1"><strong>${gettext("Aspect Ratios")}:</strong> ${template.accepted_aspect_ratios.join(", ")}</p>` : ""}
             </div>
           </div>
         `;
-        
+
         // Show visual preview
         previewDiv.innerHTML = "";
         previewDiv.style.backgroundColor = "#f8f9fa";
-        
+
         const wrapper = document.createElement("div");
         wrapper.classList.add("template-preview-wrapper");
         wrapper.style.position = "relative";
@@ -173,25 +181,25 @@ export async function openCreateSuborgTemplateModal(suborgId) {
         wrapper.style.display = "flex";
         wrapper.style.alignItems = "center";
         wrapper.style.justifyContent = "center";
-        
+
         previewDiv.appendChild(wrapper);
-        
+
         const previewSlide = document.createElement("div");
         previewSlide.classList.add("preview-slide");
         previewSlide.id = "suborg-template-preview";
         previewSlide.style.transform = "";
         wrapper.appendChild(previewSlide);
-        
+
         // Create a proper slide object with the template data
         const slideObject = {
           ...template.slideData,
           previewWidth: template.previewWidth || 1920,
           previewHeight: template.previewHeight || 1080,
         };
-        
+
         // Load the slide content
         loadSlide(slideObject, "#suborg-template-preview", true);
-        
+
         // Scale the content after a brief delay to ensure rendering
         setTimeout(() => {
           scaleSlide(wrapper);
@@ -218,10 +226,14 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       createBtn.disabled = true;
       createBtn.textContent = gettext("Creating...");
 
-      await createSuborgTemplate(currentSuborgId, selectedTemplateId, newName || null);
-      
+      await createSuborgTemplate(
+        currentSuborgId,
+        selectedTemplateId,
+        newName || null,
+      );
+
       showToast(gettext("Template created successfully!"), "Success");
-      
+
       // Close modal
       const bsModal = bootstrap.Modal.getInstance(modal);
       if (bsModal) {

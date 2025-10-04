@@ -18,28 +18,34 @@ import { gettext } from "../../../../utils/locales.js";
 // options: { except: Element } - an element to keep open (typically a parent menu)
 function closeContextMenus(options = {}) {
   const { except } = options;
-  document.querySelectorAll('.custom-context-menu, .element-type-submenu').forEach((el) => {
-    if (except && (el === except || el.contains(except) || except.contains(el))) return;
-    if (el && el.parentElement) el.remove();
-  });
+  document
+    .querySelectorAll(".custom-context-menu, .element-type-submenu")
+    .forEach((el) => {
+      if (
+        except &&
+        (el === except || el.contains(except) || except.contains(el))
+      )
+        return;
+      if (el && el.parentElement) el.remove();
+    });
   // remove backdrop if present
-  const back = document.getElementById('context-menu-backdrop');
+  const back = document.getElementById("context-menu-backdrop");
   if (back && back.parentElement) back.parentElement.removeChild(back);
 }
 
 function addBackdrop() {
-  if (document.getElementById('context-menu-backdrop')) return;
-  const back = document.createElement('div');
-  back.id = 'context-menu-backdrop';
-  back.style.position = 'fixed';
-  back.style.top = '0';
-  back.style.left = '0';
-  back.style.width = '100%';
-  back.style.height = '100%';
-  back.style.background = 'transparent';
-  back.style.zIndex = '9999';
-  back.style.cursor = 'default';
-  back.addEventListener('click', (ev) => {
+  if (document.getElementById("context-menu-backdrop")) return;
+  const back = document.createElement("div");
+  back.id = "context-menu-backdrop";
+  back.style.position = "fixed";
+  back.style.top = "0";
+  back.style.left = "0";
+  back.style.width = "100%";
+  back.style.height = "100%";
+  back.style.background = "transparent";
+  back.style.zIndex = "9999";
+  back.style.cursor = "default";
+  back.addEventListener("click", (ev) => {
     ev.stopPropagation();
     closeContextMenus();
   });
@@ -51,14 +57,20 @@ let _globalContextClickHandlerAdded = false;
 function _globalContextClickHandler(ev) {
   // Ignore right-clicks (contextmenu) — only handle primary clicks
   if (ev.button === 2) return;
-  const menus = document.querySelectorAll('.custom-context-menu, .element-type-submenu');
+  const menus = document.querySelectorAll(
+    ".custom-context-menu, .element-type-submenu",
+  );
   if (!menus || menus.length === 0) return;
   // If click is inside any open menu, do nothing
   for (const m of menus) {
     if (m.contains(ev.target)) return;
   }
   // Fallback: check by coordinates in case propagation was stopped
-  if (typeof document !== 'undefined' && ev.clientX != null && ev.clientY != null) {
+  if (
+    typeof document !== "undefined" &&
+    ev.clientX != null &&
+    ev.clientY != null
+  ) {
     try {
       const el = document.elementFromPoint(ev.clientX, ev.clientY);
       for (const m of menus) {
@@ -80,14 +92,20 @@ let _globalPointerDownHandlerAdded = false;
 function _globalPointerDownHandler(ev) {
   // Ignore right-clicks
   if (ev.button === 2) return;
-  const path = ev.composedPath ? ev.composedPath() : (ev.path || []);
-  const menus = document.querySelectorAll('.custom-context-menu, .element-type-submenu');
+  const path = ev.composedPath ? ev.composedPath() : ev.path || [];
+  const menus = document.querySelectorAll(
+    ".custom-context-menu, .element-type-submenu",
+  );
   if (!menus || menus.length === 0) return;
   for (const m of menus) {
     if (path.includes(m) || m.contains(ev.target)) return;
   }
   // Fallback: check by coordinates in case composedPath doesn't include target
-  if (typeof document !== 'undefined' && ev.clientX != null && ev.clientY != null) {
+  if (
+    typeof document !== "undefined" &&
+    ev.clientX != null &&
+    ev.clientY != null
+  ) {
     try {
       const el = document.elementFromPoint(ev.clientX, ev.clientY);
       for (const m of menus) {
@@ -102,23 +120,25 @@ function _globalPointerDownHandler(ev) {
 }
 
 // Register global handlers at module load so they run before other handlers
-if (typeof document !== 'undefined') {
+if (typeof document !== "undefined") {
   if (!_globalContextClickHandlerAdded) {
-    document.addEventListener('click', _globalContextClickHandler, true);
+    document.addEventListener("click", _globalContextClickHandler, true);
     _globalContextClickHandlerAdded = true;
   }
   if (!_globalPointerDownHandlerAdded) {
-    document.addEventListener('pointerdown', _globalPointerDownHandler, true);
+    document.addEventListener("pointerdown", _globalPointerDownHandler, true);
     _globalPointerDownHandlerAdded = true;
   }
 }
 
 // Extra fallback: attach window-level capture handlers for mousedown/touchstart
 // to catch interactions that may not surface as pointerdown in some environments
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const _windowHandler = (ev) => {
     try {
-      const menus = document.querySelectorAll('.custom-context-menu, .element-type-submenu');
+      const menus = document.querySelectorAll(
+        ".custom-context-menu, .element-type-submenu",
+      );
       if (!menus || menus.length === 0) return;
       for (const m of menus) {
         if (m.contains(ev.target)) return;
@@ -128,8 +148,8 @@ if (typeof window !== 'undefined') {
       // ignore
     }
   };
-  window.addEventListener('mousedown', _windowHandler, true);
-  window.addEventListener('touchstart', _windowHandler, true);
+  window.addEventListener("mousedown", _windowHandler, true);
+  window.addEventListener("touchstart", _windowHandler, true);
 }
 function createElementTypeSubmenu(e, element, dataObj, parentMenu) {
   // Close any other open submenus/menus before opening this one
@@ -214,8 +234,8 @@ function createElementTypeSubmenu(e, element, dataObj, parentMenu) {
         // Convert the element type
         const newElement = replaceElementWithType(dataObj, typeInfo.type);
 
-  // Close menus
-  closeContextMenus();
+        // Close menus
+        closeContextMenus();
 
         // Additional handling for elements that need content
         if (typeInfo.type === "image" || typeInfo.type === "video") {
@@ -224,7 +244,7 @@ function createElementTypeSubmenu(e, element, dataObj, parentMenu) {
       } catch (error) {
         console.error("Error converting element type:", error);
         showToast(gettext("Failed to convert element type"), "Error");
-  closeContextMenus();
+        closeContextMenus();
       }
     });
 
@@ -298,10 +318,11 @@ function createElementContextMenu(e, element, dataObj) {
   // Only add Delete Element option if the element is not locked
   // Exception: Always show in template editor mode
   // In suborg_templates mode: don't allow deleting elements locked from parent template
-  const canDelete = !isElementLocked(dataObj) || 
-                    queryParams.mode === "template_editor" || 
-                    (queryParams.mode === "suborg_templates" && !dataObj.lockedFromParent);
-  
+  const canDelete =
+    !isElementLocked(dataObj) ||
+    queryParams.mode === "template_editor" ||
+    (queryParams.mode === "suborg_templates" && !dataObj.lockedFromParent);
+
   if (canDelete) {
     options.push({
       label: gettext("Delete Element"),
@@ -346,8 +367,8 @@ function createElementContextMenu(e, element, dataObj) {
         // No need to call loadSlide here as the element is directly removed
         // and store is updated. If loadSlide is essential for other reasons,
         // ensure it doesn't re-add the deleted element.
-  // loadSlide(store.slides[store.currentSlideIndex]);
-  closeContextMenus();
+        // loadSlide(store.slides[store.currentSlideIndex]);
+        closeContextMenus();
       },
     });
   }
@@ -380,7 +401,7 @@ function createElementContextMenu(e, element, dataObj) {
       if (newElementDom) {
         selectElement(newElementDom, newElement);
       }
-  closeContextMenus();
+      closeContextMenus();
     },
   });
 
@@ -459,7 +480,7 @@ function createPasteContextMenu(e) {
   pasteOption.addEventListener("click", () => {
     if (!window.copiedElementData) {
       showToast(gettext("No element has been copied."), "Warning");
-  closeContextMenus();
+      closeContextMenus();
       return;
     }
     pushCurrentSlideState();
@@ -482,7 +503,7 @@ function createPasteContextMenu(e) {
     if (newElementDom) {
       selectElement(newElementDom, newElement);
     }
-  closeContextMenus();
+    closeContextMenus();
   });
   menu.appendChild(pasteOption);
 
@@ -534,15 +555,21 @@ export function initContextMenu() {
   // clicks on slide elements (which might stop propagation) still trigger
   // menu closing. Register only once.
   if (!previewContainer.__contextMenuPointerRegistered) {
-    previewContainer.addEventListener('pointerdown', (ev) => {
-      // If the pointerdown target is inside a menu, ignore
-      const menus = document.querySelectorAll('.custom-context-menu, .element-type-submenu');
-      for (const m of menus) {
-        if (m.contains(ev.target)) return;
-      }
-      // otherwise close menus
-      closeContextMenus();
-    }, true);
+    previewContainer.addEventListener(
+      "pointerdown",
+      (ev) => {
+        // If the pointerdown target is inside a menu, ignore
+        const menus = document.querySelectorAll(
+          ".custom-context-menu, .element-type-submenu",
+        );
+        for (const m of menus) {
+          if (m.contains(ev.target)) return;
+        }
+        // otherwise close menus
+        closeContextMenus();
+      },
+      true,
+    );
     previewContainer.__contextMenuPointerRegistered = true;
   }
 }

@@ -268,7 +268,7 @@ export function loadSlide(
   if (!slide.elements) {
     slide.elements = [];
   }
-  
+
   slide.elements.forEach((el) => {
     if (!el.isPersistent) {
       _renderSlideElement(el, false, gridContainer);
@@ -324,25 +324,27 @@ export function renderPersistentElements() {
 /**
  * Update a single element by removing it and re-rendering it with updated data.
  * This is more efficient than reloading the entire slide when only one element changes.
- * 
+ *
  * @param {Object} elementData - The updated element data object
  */
 export function updateSlideElement(elementData) {
   if (!elementData || !elementData.id) {
-    console.error('updateSlideElement: Invalid element data');
+    console.error("updateSlideElement: Invalid element data");
     return;
   }
 
   // Find the grid container where this element should be rendered
-  const previewSlide = document.querySelector('.preview-slide');
+  const previewSlide = document.querySelector(".preview-slide");
   if (!previewSlide) {
-    console.error('updateSlideElement: Preview slide not found');
+    console.error("updateSlideElement: Preview slide not found");
     return;
   }
 
-  const gridContainer = previewSlide.querySelector('.zoom-wrapper .grid-container');
+  const gridContainer = previewSlide.querySelector(
+    ".zoom-wrapper .grid-container",
+  );
   if (!gridContainer) {
-    console.error('updateSlideElement: Grid container not found');
+    console.error("updateSlideElement: Grid container not found");
     return;
   }
 
@@ -619,7 +621,11 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   // Consider this an interactive playback render when we're not in the
   // editor or template editor modes. That covers slideshow and interactive
   // playback contexts where we shouldn't show editor-only indicators.
-  if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates") {
+  if (
+    queryParams.mode !== "edit" &&
+    queryParams.mode !== "template_editor" &&
+    queryParams.mode !== "suborg_templates"
+  ) {
     isInteractivePlayback = true;
   }
 
@@ -648,14 +654,14 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
   // If element blocks selection, mark visually and disable pointer events
   if (el.isSelectionBlocked) {
-    container.classList.add('is-selection-blocked');
+    container.classList.add("is-selection-blocked");
     // Prevent clicks and interactions that would select/edit the element
-    container.style.pointerEvents = 'none';
+    container.style.pointerEvents = "none";
   }
 
   // Add is-locked class if element is locked
   if (el.isLocked) {
-    container.classList.add('is-locked');
+    container.classList.add("is-locked");
   }
 
   if (el.rotation) {
@@ -703,7 +709,11 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   resizer.classList.add("resize-handle");
   container.appendChild(resizer);
 
-  if (queryParams.mode === "edit" || queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+  if (
+    queryParams.mode === "edit" ||
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates"
+  ) {
     if (!el.isSelectionBlocked) {
       container.addEventListener("click", (ev) => {
         ev.stopPropagation();

@@ -26,7 +26,10 @@ function toggleElementLock() {
     store.selectedElementData.preventSettingsChanges
   ) {
     try {
-      showToast(gettext("This element's settings are enforced by the template."), "Info");
+      showToast(
+        gettext("This element's settings are enforced by the template."),
+        "Info",
+      );
     } catch (err) {}
     return;
   }
@@ -87,23 +90,33 @@ function addLockIndicator(element) {
   // Prefer placing inside the indicators wrapper for consistent layout
   try {
     // Only show lock indicators in editor/template modes (not during playback)
-    if (queryParams.mode !== 'edit' && queryParams.mode !== 'template_editor') {
+    if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor") {
       return;
     }
 
     // Respect per-slide override if present, otherwise use global flag
-    const slide = (store && Array.isArray(store.slides)) ? store.slides[store.currentSlideIndex] : null;
-    const show = slide && typeof slide.showElementIndicators !== 'undefined' ? slide.showElementIndicators : (typeof window !== 'undefined' && window.store && typeof window.store.showElementIndicators !== 'undefined' ? window.store.showElementIndicators : true);
-    const wrapper = element.querySelector('.element-indicators-wrapper');
+    const slide =
+      store && Array.isArray(store.slides)
+        ? store.slides[store.currentSlideIndex]
+        : null;
+    const show =
+      slide && typeof slide.showElementIndicators !== "undefined"
+        ? slide.showElementIndicators
+        : typeof window !== "undefined" &&
+            window.store &&
+            typeof window.store.showElementIndicators !== "undefined"
+          ? window.store.showElementIndicators
+          : true;
+    const wrapper = element.querySelector(".element-indicators-wrapper");
     if (wrapper) {
       // rely on CSS for visuals; only adjust wrapper visibility from here
       wrapper.appendChild(lockIndicator);
-      if (!show) wrapper.style.visibility = 'hidden';
+      if (!show) wrapper.style.visibility = "hidden";
     } else {
       // Fallback: position absolutely but still use class-based visuals
-      lockIndicator.style.position = 'absolute';
-      lockIndicator.style.top = '8px';
-      lockIndicator.style.right = '8px';
+      lockIndicator.style.position = "absolute";
+      lockIndicator.style.top = "8px";
+      lockIndicator.style.right = "8px";
       element.appendChild(lockIndicator);
     }
   } catch (err) {

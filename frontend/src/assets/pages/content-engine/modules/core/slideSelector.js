@@ -51,7 +51,9 @@ function createSlideContextMenu(e, slideIndex) {
   menu.style.borderRadius = "4px";
 
   // Different labels based on editor mode
-  const isTemplateEditor = queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates";
+  const isTemplateEditor =
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates";
   const duplicateLabel = isTemplateEditor
     ? gettext("Duplicate Template")
     : gettext("Duplicate Slide");
@@ -236,7 +238,9 @@ export function updateSlideSelector() {
     slideNameDiv.appendChild(slideNameStrong);
 
     // Add aspect ratio display for templates
-    const isTemplateMode = queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates";
+    const isTemplateMode =
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates";
     if (
       isTemplateMode &&
       slide.accepted_aspect_ratios &&
@@ -260,7 +264,10 @@ export function updateSlideSelector() {
       suborgBadge.textContent = "SubOrg";
       suborgBadge.style.fontSize = "10px";
       slideNameDiv.appendChild(suborgBadge);
-    } else if (queryParams.mode === "suborg_templates" && slide.isGlobalTemplate) {
+    } else if (
+      queryParams.mode === "suborg_templates" &&
+      slide.isGlobalTemplate
+    ) {
       const globalBadge = document.createElement("span");
       globalBadge.classList.add("badge", "bg-secondary", "ms-2", "small");
       globalBadge.textContent = "Global";
@@ -419,7 +426,10 @@ export function updateSlideSelector() {
       openSaveAsTemplateModal(index);
     });
 
-    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+    if (
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates"
+    ) {
       saveAsTemplateBtn.innerHTML =
         '<i class="material-symbols-outlined" style="vertical-align:middle;">content_copy</i>';
       saveAsTemplateBtn.addEventListener("click", (e) => {
@@ -432,10 +442,15 @@ export function updateSlideSelector() {
 
     // Removed duplicate and delete buttons from here
 
-    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+    if (
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates"
+    ) {
       // Only show edit button for suborg templates in suborg_templates mode, or all templates in template_editor mode
-      const canEdit = queryParams.mode === "template_editor" || (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate);
-      
+      const canEdit =
+        queryParams.mode === "template_editor" ||
+        (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate);
+
       if (canEdit) {
         const editTemplateMetadataBtn = document.createElement("button");
         editTemplateMetadataBtn.classList.add(
@@ -455,8 +470,10 @@ export function updateSlideSelector() {
       }
 
       // Only show delete button for templates that can be deleted
-      const canDelete = queryParams.mode === "template_editor" || (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate);
-      
+      const canDelete =
+        queryParams.mode === "template_editor" ||
+        (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate);
+
       if (canDelete) {
         const deleteTemplateBtn = document.createElement("button");
         deleteTemplateBtn.classList.add(
@@ -541,7 +558,7 @@ export function updateSlideSelector() {
 
       store.currentSlideIndex = index;
       loadSlide(slide, undefined, undefined, true);
-      
+
       updateSlideSelector();
     });
 
@@ -658,7 +675,10 @@ export function reorderSlides(fromIndex, toIndex) {
 
 function duplicateSlide(slideIndex) {
   // If in template editor mode, use the backend API
-  if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+  if (
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates"
+  ) {
     const currentSlide = store.slides[slideIndex];
     if (!currentSlide || !currentSlide.templateId) {
       showToast(
@@ -717,7 +737,10 @@ function duplicateSlide(slideIndex) {
 
 function deleteSlide(index) {
   // If in template editor mode, use the backend API
-  if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+  if (
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates"
+  ) {
     const currentSlide = store.slides[index];
     if (!currentSlide || !currentSlide.templateId) {
       showToast(
@@ -757,7 +780,11 @@ function deleteSlide(index) {
     store.currentSlideIndex--;
   }
   updateSlideSelector();
-  if ((queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") && store.slides.length === 0) {
+  if (
+    (queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates") &&
+    store.slides.length === 0
+  ) {
     // If in template editor and all templates are deleted, re-init to show "No templates" message
     initTemplateEditor(parentOrgID);
   }

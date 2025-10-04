@@ -64,7 +64,7 @@ export function gettext(key) {
   if (!translated) {
     // don't log errors for keys that are just numbers
     if (!/^\s*\d+\s*$/.test(String(key))) {
-     /* console.error(
+      /* console.error(
         `Translation not found for key: "${key}" in language: "${lang}"`
       ); */
     }

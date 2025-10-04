@@ -200,7 +200,10 @@ export function initPlaceholderElement() {
   if (addPlaceholderBtn) {
     addPlaceholderBtn.addEventListener("click", addPlaceholderToSlide);
 
-    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+    if (
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates"
+    ) {
       addPlaceholderBtn.classList.remove("d-none");
     }
   }

@@ -18,16 +18,14 @@ import Sortable from "sortablejs";
 
 // Simple HTML escape for insertion into innerHTML
 function escapeHtml(str) {
-  if (typeof str !== 'string') return '';
+  if (typeof str !== "string") return "";
   return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
-
-
 
 function computeZOrderRanks(slideElements) {
   // slideElements is expected to be an array of element data objects with zIndex numeric
@@ -64,7 +62,11 @@ function elementSummary(dataObj) {
 function getLinkOptions(dataObj) {
   let options = `<option value="Open page by clicking ..">${gettext("Open page by clicking ..")}</option>`;
   store.slides.forEach((slide, index) => {
-    const selected = (typeof dataObj.goToSlideIndex === "number" && dataObj.goToSlideIndex === index) ? "selected" : "";
+    const selected =
+      typeof dataObj.goToSlideIndex === "number" &&
+      dataObj.goToSlideIndex === index
+        ? "selected"
+        : "";
     options += `<option value="${index}" ${selected}>${index + 1}: ${slide.name}</option>`;
   });
   return options;
@@ -81,8 +83,9 @@ export function renderSlideElementsSidebar() {
   // the re-render completes.
   const currentlyOpenPopovers = new Set();
   try {
-    document.querySelectorAll('.element-settings-popover').forEach(p => {
-      if (p && p.style && p.style.display === 'block') currentlyOpenPopovers.add(p.id);
+    document.querySelectorAll(".element-settings-popover").forEach((p) => {
+      if (p && p.style && p.style.display === "block")
+        currentlyOpenPopovers.add(p.id);
     });
   } catch (err) {
     // ignore DOM access errors in non-browser envs
@@ -90,7 +93,7 @@ export function renderSlideElementsSidebar() {
 
   // Clean up old popovers and event listeners
   if (window.__popoverCleanupFunctions) {
-    window.__popoverCleanupFunctions.forEach(fn => fn());
+    window.__popoverCleanupFunctions.forEach((fn) => fn());
     window.__popoverCleanupFunctions = [];
   }
 
@@ -139,42 +142,72 @@ export function renderSlideElementsSidebar() {
     const rank = rankMap[elData.id] || "-";
     const summary = elementSummary(elData);
     const row = document.createElement("div");
-    row.className = "list-group-item px-1 py-1 d-flex justify-content-between align-items-start my-1 border border-dark rounded";
-    
+    row.className =
+      "list-group-item px-1 py-1 d-flex justify-content-between align-items-start my-1 border border-dark rounded";
+
     // Add visual indicator if element is locked from template changes
     // In suborg_templates mode, also show if locked from parent template
-    if (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) {
+    if (
+      queryParams.mode !== "template_editor" &&
+      queryParams.mode !== "suborg_templates" &&
+      elData.preventSettingsChanges
+    ) {
       row.classList.add("element-locked-from-template");
     }
     if (queryParams.mode === "suborg_templates" && elData.lockedFromParent) {
       row.classList.add("element-locked-from-template");
     }
-    
+
     row.dataset.elId = elData.id;
-  // We'll render a checkbox with a pin icon in the right column to toggle persistence
+    // We'll render a checkbox with a pin icon in the right column to toggle persistence
 
     // Render a clear, semantic summary where each property is on its own line.
     // Name is editable in-place (defaults to type). Clicking the input should
     // not select the element; changes are applied to the element data and
     // the sidebar is re-rendered.
     const displayName = elData.name || summary.type;
-    
+
     // Build active icons display (only show icons for enabled settings)
     const activeIcons = [];
-    if (elData.isPersistent && queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates") activeIcons.push(`<span class="active-setting-icon" title="${gettext("Pinned")}"><i class="material-symbols-outlined">push_pin</i></span>`);
-    if (elData.isLocked) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Locked")}"><i class="material-symbols-outlined">lock</i></span>`);
-    if (elData.isSelectionBlocked) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Selection blocked")}"><i class="material-symbols-outlined">block</i></span>`);
-    if (elData.isAlwaysOnTop) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Always on top")}"><i class="material-symbols-outlined">vertical_align_top</i></span>`);
-    if ((queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") && elData.preventSettingsChanges) {
-      const lockTitle = (queryParams.mode === "suborg_templates" && elData.lockedFromParent) ? gettext("Settings locked by parent template") : gettext("Settings locked");
-      activeIcons.push(`<span class="active-setting-icon" title="${lockTitle}"><i class="material-symbols-outlined">lock_person</i></span>`);
+    if (
+      elData.isPersistent &&
+      queryParams.mode !== "template_editor" &&
+      queryParams.mode !== "suborg_templates"
+    )
+      activeIcons.push(
+        `<span class="active-setting-icon" title="${gettext("Pinned")}"><i class="material-symbols-outlined">push_pin</i></span>`,
+      );
+    if (elData.isLocked)
+      activeIcons.push(
+        `<span class="active-setting-icon" title="${gettext("Locked")}"><i class="material-symbols-outlined">lock</i></span>`,
+      );
+    if (elData.isSelectionBlocked)
+      activeIcons.push(
+        `<span class="active-setting-icon" title="${gettext("Selection blocked")}"><i class="material-symbols-outlined">block</i></span>`,
+      );
+    if (elData.isAlwaysOnTop)
+      activeIcons.push(
+        `<span class="active-setting-icon" title="${gettext("Always on top")}"><i class="material-symbols-outlined">vertical_align_top</i></span>`,
+      );
+    if (
+      (queryParams.mode === "template_editor" ||
+        queryParams.mode === "suborg_templates") &&
+      elData.preventSettingsChanges
+    ) {
+      const lockTitle =
+        queryParams.mode === "suborg_templates" && elData.lockedFromParent
+          ? gettext("Settings locked by parent template")
+          : gettext("Settings locked");
+      activeIcons.push(
+        `<span class="active-setting-icon" title="${lockTitle}"><i class="material-symbols-outlined">lock_person</i></span>`,
+      );
     }
-    
+
     row.innerHTML = `
       <div class="w-100">
         <div class="d-flex justify-content-between align-items-center mb-1">
           <div class="d-flex align-items-center gap-1">
-            ${activeIcons.join('')}
+            ${activeIcons.join("")}
           </div>
           <div class="d-flex align-items-center gap-1">
             <span class="rank-badge">${rank}</span>
@@ -190,7 +223,7 @@ export function renderSlideElementsSidebar() {
         <div class="text-muted small mb-1"><strong>${gettext("Type")}:</strong> ${summary.type}</div>
         <div class="text-muted small mb-1"><strong>${gettext("Size")}:</strong> ${summary.size}</div>
         <div class="text-muted small mb-1"><strong>${gettext("Position")}:</strong> ${summary.pos}</div>
-        ${store.slideshowMode === "interactive" && queryParams.mode === "edit" ? `<div class="text-muted small mb-1"><strong>${gettext("Link")}:</strong> <select id="link-select-${elData.id}" class="form-select form-select-sm">${getLinkOptions(elData)}</select></div>` : ''}
+        ${store.slideshowMode === "interactive" && queryParams.mode === "edit" ? `<div class="text-muted small mb-1"><strong>${gettext("Link")}:</strong> <select id="link-select-${elData.id}" class="form-select form-select-sm">${getLinkOptions(elData)}</select></div>` : ""}
       </div>
       
       <!-- Settings Popover -->
@@ -214,11 +247,11 @@ export function renderSlideElementsSidebar() {
             <div class="row g-2">
               <div class="col-6">
                 <label class="form-label small text-muted">${gettext("X Position")}</label>
-                <input id="position-x-${elData.id}" class="form-control form-control-sm" type="number" value="${typeof elData.gridX !== 'undefined' ? elData.gridX : (elData.x || 0)}" />
+                <input id="position-x-${elData.id}" class="form-control form-control-sm" type="number" value="${typeof elData.gridX !== "undefined" ? elData.gridX : elData.x || 0}" />
               </div>
               <div class="col-6">
                 <label class="form-label small text-muted">${gettext("Y Position")}</label>
-                <input id="position-y-${elData.id}" class="form-control form-control-sm" type="number" value="${typeof elData.gridY !== 'undefined' ? elData.gridY : (elData.y || 0)}" />
+                <input id="position-y-${elData.id}" class="form-control form-control-sm" type="number" value="${typeof elData.gridY !== "undefined" ? elData.gridY : elData.y || 0}" />
               </div>
               <div class="col-6">
                 <label class="form-label small text-muted">${gettext("Width")}</label>
@@ -233,7 +266,9 @@ export function renderSlideElementsSidebar() {
           
           <hr class="my-3">
           
-          ${queryParams.mode !== "template_editor" ? `
+          ${
+            queryParams.mode !== "template_editor"
+              ? `
           <div class="setting-item mb-3">
             <div class="d-flex align-items-start">
               <input type="checkbox" id="pin-checkbox-${elData.id}" class="form-check-input me-2 mt-1" ${elData.isPersistent ? "checked" : ""}>
@@ -246,14 +281,16 @@ export function renderSlideElementsSidebar() {
               </div>
             </div>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
           
           <div class="setting-item mb-3">
             <div class="d-flex align-items-start">
               <input type="checkbox" id="lock-checkbox-${elData.id}" class="form-check-input me-2 mt-1" ${elData.isLocked ? "checked" : ""}>
               <div class="flex-grow-1">
                 <label for="lock-checkbox-${elData.id}" class="form-check-label fw-semibold d-flex align-items-center gap-1">
-                  <span class="material-symbols-outlined small-icon">${elData.isLocked ? 'lock' : 'lock_open'}</span>
+                  <span class="material-symbols-outlined small-icon">${elData.isLocked ? "lock" : "lock_open"}</span>
                   ${gettext("Lock position & size")}
                 </label>
                 <div class="text-muted small">${gettext("Prevent moving or resizing this element")}</div>
@@ -287,7 +324,10 @@ export function renderSlideElementsSidebar() {
             </div>
           </div>
           
-          ${queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates" ? `
+          ${
+            queryParams.mode === "template_editor" ||
+            queryParams.mode === "suborg_templates"
+              ? `
           <hr class="my-3">
           <div class="setting-item template-lock-setting">
             <div class="d-flex align-items-start">
@@ -301,7 +341,9 @@ export function renderSlideElementsSidebar() {
               </div>
             </div>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
           
           <hr class="my-3">
           <div class="setting-item mb-3">
@@ -324,82 +366,87 @@ export function renderSlideElementsSidebar() {
     const settingsBtn = row.querySelector(`#settings-btn-${elData.id}`);
     const popover = row.querySelector(`#popover-${elData.id}`);
     const closePopoverBtn = row.querySelector(`#close-popover-${elData.id}`);
-    
+
     if (settingsBtn && popover) {
-        // Move popover to body to avoid z-index/overflow issues
-        document.body.appendChild(popover);
+      // Move popover to body to avoid z-index/overflow issues
+      document.body.appendChild(popover);
 
-        // Ensure interactions inside the popover do not bubble to global
-        // handlers that treat clicks as "outside" clicks (which close it).
-        const stopPropagationHandler = (ev) => {
-          ev.stopPropagation();
-        };
-        popover.addEventListener('click', stopPropagationHandler);
-        popover.addEventListener('pointerdown', stopPropagationHandler);
-        popover.addEventListener('focusin', stopPropagationHandler);
+      // Ensure interactions inside the popover do not bubble to global
+      // handlers that treat clicks as "outside" clicks (which close it).
+      const stopPropagationHandler = (ev) => {
+        ev.stopPropagation();
+      };
+      popover.addEventListener("click", stopPropagationHandler);
+      popover.addEventListener("pointerdown", stopPropagationHandler);
+      popover.addEventListener("focusin", stopPropagationHandler);
 
-        // Register cleanup to remove these listeners
-        window.__popoverCleanupFunctions.push(() => {
-          try {
-            popover.removeEventListener('click', stopPropagationHandler);
-            popover.removeEventListener('pointerdown', stopPropagationHandler);
-            popover.removeEventListener('focusin', stopPropagationHandler);
-          } catch (err) {}
-        });
+      // Register cleanup to remove these listeners
+      window.__popoverCleanupFunctions.push(() => {
+        try {
+          popover.removeEventListener("click", stopPropagationHandler);
+          popover.removeEventListener("pointerdown", stopPropagationHandler);
+          popover.removeEventListener("focusin", stopPropagationHandler);
+        } catch (err) {}
+      });
 
-        const showPopover = () => {
-          const MARGIN = 8; // keep some breathing room from edges
-          
-          const preferredWidth = 320;
-          const maxAllowedWidth = Math.min(preferredWidth, window.innerWidth - MARGIN * 2);
-          const popoverComputedWidth = Math.max(200, maxAllowedWidth);
+      const showPopover = () => {
+        const MARGIN = 8; // keep some breathing room from edges
 
-          const popoverHeight = window.innerHeight - MARGIN * 2;
+        const preferredWidth = 320;
+        const maxAllowedWidth = Math.min(
+          preferredWidth,
+          window.innerWidth - MARGIN * 2,
+        );
+        const popoverComputedWidth = Math.max(200, maxAllowedWidth);
 
-          popover.style.position = 'fixed';
-          popover.style.bottom = `${MARGIN}px`;
-          popover.style.right = `${MARGIN}px`;
-          popover.style.width = `${Math.round(popoverComputedWidth)}px`;
-          popover.style.height = `${Math.round(popoverHeight)}px`;
-          popover.style.top = '';
-          popover.style.left = '';
-          popover.style.maxHeight = '';
-          popover.style.overflow = 'visible';
-          popover.style.display = 'block';
-        };
-      
+        const popoverHeight = window.innerHeight - MARGIN * 2;
+
+        popover.style.position = "fixed";
+        popover.style.bottom = `${MARGIN}px`;
+        popover.style.right = `${MARGIN}px`;
+        popover.style.width = `${Math.round(popoverComputedWidth)}px`;
+        popover.style.height = `${Math.round(popoverHeight)}px`;
+        popover.style.top = "";
+        popover.style.left = "";
+        popover.style.maxHeight = "";
+        popover.style.overflow = "visible";
+        popover.style.display = "block";
+      };
+
       const openPopover = (e) => {
         e.stopPropagation();
         e.preventDefault();
 
         // Close all other popovers first
-        document.querySelectorAll('.element-settings-popover').forEach(p => {
+        document.querySelectorAll(".element-settings-popover").forEach((p) => {
           if (p !== popover) {
-            p.style.display = 'none';
+            p.style.display = "none";
           }
         });
 
         // Toggle this popover using helper
-        const isVisible = popover.style.display === 'block';
+        const isVisible = popover.style.display === "block";
         if (isVisible) {
-          popover.style.display = 'none';
+          popover.style.display = "none";
         } else {
           showPopover();
           // mark as previously open so a re-render can re-open it
-          if (window.__previouslyOpenPopovers) window.__previouslyOpenPopovers.add(popover.id);
+          if (window.__previouslyOpenPopovers)
+            window.__previouslyOpenPopovers.add(popover.id);
         }
       };
 
-      settingsBtn.addEventListener('click', openPopover);
-      
+      settingsBtn.addEventListener("click", openPopover);
+
       // Add right-click (context menu) support for opening popover
-      row.addEventListener('contextmenu', openPopover);
-      
+      row.addEventListener("contextmenu", openPopover);
+
       if (closePopoverBtn) {
-        closePopoverBtn.addEventListener('click', (e) => {
+        closePopoverBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          popover.style.display = 'none';
-          if (window.__previouslyOpenPopovers) window.__previouslyOpenPopovers.delete(popover.id);
+          popover.style.display = "none";
+          if (window.__previouslyOpenPopovers)
+            window.__previouslyOpenPopovers.delete(popover.id);
         });
       }
 
@@ -414,32 +461,34 @@ export function renderSlideElementsSidebar() {
         });
       }
     }
-    
+
     // Wire up popover name input
-    const popoverNameInput = popover ? popover.querySelector(`#popover-name-${elData.id}`) : null;
+    const popoverNameInput = popover
+      ? popover.querySelector(`#popover-name-${elData.id}`)
+      : null;
     if (popoverNameInput) {
-      popoverNameInput.addEventListener('click', (e) => e.stopPropagation());
-      
+      popoverNameInput.addEventListener("click", (e) => e.stopPropagation());
+
       const commitPopoverName = () => {
         const newName = popoverNameInput.value.trim();
         elData.name = newName || elData.type;
         renderSlideElementsSidebar();
       };
-      
-      popoverNameInput.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter') {
+
+      popoverNameInput.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") {
           ev.preventDefault();
           commitPopoverName();
-        } else if (ev.key === 'Escape') {
+        } else if (ev.key === "Escape") {
           popoverNameInput.value = elData.name || elData.type;
         }
       });
-      
-      popoverNameInput.addEventListener('blur', () => {
+
+      popoverNameInput.addEventListener("blur", () => {
         try {
           commitPopoverName();
         } catch (err) {
-          console.warn('Failed to commit element name from popover', err);
+          console.warn("Failed to commit element name from popover", err);
         }
       });
     }
@@ -447,104 +496,144 @@ export function renderSlideElementsSidebar() {
     // Ensure all inputs inside this popover stop propagation for click/pointer events
     try {
       if (popover) {
-        popover.querySelectorAll('input, select, textarea, button').forEach((inp) => {
-          inp.addEventListener('click', (e) => e.stopPropagation());
-          inp.addEventListener('pointerdown', (e) => e.stopPropagation());
-          inp.addEventListener('focusin', (e) => e.stopPropagation());
-        });
+        popover
+          .querySelectorAll("input, select, textarea, button")
+          .forEach((inp) => {
+            inp.addEventListener("click", (e) => e.stopPropagation());
+            inp.addEventListener("pointerdown", (e) => e.stopPropagation());
+            inp.addEventListener("focusin", (e) => e.stopPropagation());
+          });
       }
     } catch (err) {}
-    
+
     // Wire up position and size inputs
-    const positionXInput = popover ? popover.querySelector(`#position-x-${elData.id}`) : null;
-    const positionYInput = popover ? popover.querySelector(`#position-y-${elData.id}`) : null;
-    const sizeWidthInput = popover ? popover.querySelector(`#size-width-${elData.id}`) : null;
-    const sizeHeightInput = popover ? popover.querySelector(`#size-height-${elData.id}`) : null;
-    
-    [positionXInput, positionYInput, sizeWidthInput, sizeHeightInput].forEach(input => {
-      if (input) {
-        input.addEventListener('click', (e) => e.stopPropagation());
-        
-        const commitPositionSize = () => {
-          try {
-            pushCurrentSlideState();
-          } catch (err) {}
-          
-          // Prevent changes outside template editor when flagged
-          // In suborg_templates mode, respect parent template locks
-          const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
-                                   (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
-          if (isSettingsLocked) {
+    const positionXInput = popover
+      ? popover.querySelector(`#position-x-${elData.id}`)
+      : null;
+    const positionYInput = popover
+      ? popover.querySelector(`#position-y-${elData.id}`)
+      : null;
+    const sizeWidthInput = popover
+      ? popover.querySelector(`#size-width-${elData.id}`)
+      : null;
+    const sizeHeightInput = popover
+      ? popover.querySelector(`#size-height-${elData.id}`)
+      : null;
+
+    [positionXInput, positionYInput, sizeWidthInput, sizeHeightInput].forEach(
+      (input) => {
+        if (input) {
+          input.addEventListener("click", (e) => e.stopPropagation());
+
+          const commitPositionSize = () => {
             try {
-              showToast(gettext("This element's settings are enforced by the template."), "Info");
+              pushCurrentSlideState();
             } catch (err) {}
-            // Revert values
-            if (positionXInput) positionXInput.value = typeof elData.gridX !== 'undefined' ? elData.gridX : (elData.x || 0);
-            if (positionYInput) positionYInput.value = typeof elData.gridY !== 'undefined' ? elData.gridY : (elData.y || 0);
-            if (sizeWidthInput) sizeWidthInput.value = elData.gridWidth || elData.width || 0;
-            if (sizeHeightInput) sizeHeightInput.value = elData.gridHeight || elData.height || 0;
-            return;
-          }
-          
-          // Update element data
-          const newX = parseFloat(positionXInput?.value) || 0;
-          const newY = parseFloat(positionYInput?.value) || 0;
-          const newWidth = parseFloat(sizeWidthInput?.value) || 0;
-          const newHeight = parseFloat(sizeHeightInput?.value) || 0;
-          
-          // Update the appropriate position properties based on what exists
-          if (typeof elData.gridX !== 'undefined') {
-            elData.gridX = newX;
-            elData.gridY = newY;
-          } else {
-            elData.x = newX;
-            elData.y = newY;
-          }
-          
-          // Update the appropriate size properties
-          if (elData.gridWidth !== undefined || elData.gridHeight !== undefined) {
-            elData.gridWidth = newWidth;
-            elData.gridHeight = newHeight;
-          } else {
-            elData.width = newWidth;
-            elData.height = newHeight;
-          }
-          
-          // Update DOM element if present
-          try {
-            updateSlideElement(elData);
-          } catch (err) {
-            console.warn('Failed to update element after changing position/size', err);
-          }
-          
-          // Re-render sidebar to show updated values
-          renderSlideElementsSidebar();
-        };
-        
-        input.addEventListener('keydown', (ev) => {
-          if (ev.key === 'Enter') {
-            ev.preventDefault();
-            input.blur();
-          }
-        });
-        
-        input.addEventListener('blur', () => {
-          try {
-            commitPositionSize();
-          } catch (err) {
-            console.warn('Failed to commit position/size change', err);
-          }
-        });
-      }
-    });
-    
+
+            // Prevent changes outside template editor when flagged
+            // In suborg_templates mode, respect parent template locks
+            const isSettingsLocked =
+              (queryParams.mode !== "template_editor" &&
+                queryParams.mode !== "suborg_templates" &&
+                elData.preventSettingsChanges) ||
+              (queryParams.mode === "suborg_templates" &&
+                elData.lockedFromParent);
+            if (isSettingsLocked) {
+              try {
+                showToast(
+                  gettext(
+                    "This element's settings are enforced by the template.",
+                  ),
+                  "Info",
+                );
+              } catch (err) {}
+              // Revert values
+              if (positionXInput)
+                positionXInput.value =
+                  typeof elData.gridX !== "undefined"
+                    ? elData.gridX
+                    : elData.x || 0;
+              if (positionYInput)
+                positionYInput.value =
+                  typeof elData.gridY !== "undefined"
+                    ? elData.gridY
+                    : elData.y || 0;
+              if (sizeWidthInput)
+                sizeWidthInput.value = elData.gridWidth || elData.width || 0;
+              if (sizeHeightInput)
+                sizeHeightInput.value = elData.gridHeight || elData.height || 0;
+              return;
+            }
+
+            // Update element data
+            const newX = parseFloat(positionXInput?.value) || 0;
+            const newY = parseFloat(positionYInput?.value) || 0;
+            const newWidth = parseFloat(sizeWidthInput?.value) || 0;
+            const newHeight = parseFloat(sizeHeightInput?.value) || 0;
+
+            // Update the appropriate position properties based on what exists
+            if (typeof elData.gridX !== "undefined") {
+              elData.gridX = newX;
+              elData.gridY = newY;
+            } else {
+              elData.x = newX;
+              elData.y = newY;
+            }
+
+            // Update the appropriate size properties
+            if (
+              elData.gridWidth !== undefined ||
+              elData.gridHeight !== undefined
+            ) {
+              elData.gridWidth = newWidth;
+              elData.gridHeight = newHeight;
+            } else {
+              elData.width = newWidth;
+              elData.height = newHeight;
+            }
+
+            // Update DOM element if present
+            try {
+              updateSlideElement(elData);
+            } catch (err) {
+              console.warn(
+                "Failed to update element after changing position/size",
+                err,
+              );
+            }
+
+            // Re-render sidebar to show updated values
+            renderSlideElementsSidebar();
+          };
+
+          input.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              input.blur();
+            }
+          });
+
+          input.addEventListener("blur", () => {
+            try {
+              commitPositionSize();
+            } catch (err) {
+              console.warn("Failed to commit position/size change", err);
+            }
+          });
+        }
+      },
+    );
+
     // Wire up pin checkbox behavior (now from popover) - only if not in template editor mode
-    const pinCheckbox = (queryParams.mode !== "template_editor" && popover) ? popover.querySelector(`#pin-checkbox-${elData.id}`) : null;
+    const pinCheckbox =
+      queryParams.mode !== "template_editor" && popover
+        ? popover.querySelector(`#pin-checkbox-${elData.id}`)
+        : null;
 
     if (pinCheckbox) {
       // prevent checkbox clicks from selecting the row
-      pinCheckbox.addEventListener('click', (e) => e.stopPropagation());
-      pinCheckbox.addEventListener('change', (e) => {
+      pinCheckbox.addEventListener("click", (e) => e.stopPropagation());
+      pinCheckbox.addEventListener("change", (e) => {
         e.stopPropagation();
         // push undo state
         try {
@@ -553,11 +642,17 @@ export function renderSlideElementsSidebar() {
           // ignore if undo not available
         }
         // Prevent changes outside template editor when flagged
-        const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
-                                 (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+        const isSettingsLocked =
+          (queryParams.mode !== "template_editor" &&
+            queryParams.mode !== "suborg_templates" &&
+            elData.preventSettingsChanges) ||
+          (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
         if (isSettingsLocked) {
           try {
-            showToast(gettext("This element's settings are enforced by the template."), "Info");
+            showToast(
+              gettext("This element's settings are enforced by the template."),
+              "Info",
+            );
           } catch (err) {}
           // Revert checkbox
           pinCheckbox.checked = !!elData.isPersistent;
@@ -572,32 +667,53 @@ export function renderSlideElementsSidebar() {
         try {
           updateSlideElement(elData);
         } catch (err) {
-          console.warn('Failed to update element after toggling persistence', err);
+          console.warn(
+            "Failed to update element after toggling persistence",
+            err,
+          );
         }
 
         // Don't close popover - user might want to change multiple settings
-        
+
         // Re-render sidebar to update all rows
         renderSlideElementsSidebar();
       });
     }
 
     // Wire up template lock toggle (only in template editor, now from popover)
-    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
-      const forceSettingsToggle = popover ? popover.querySelector(`#force-settings-toggle-${elData.id}`) : null;
+    if (
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates"
+    ) {
+      const forceSettingsToggle = popover
+        ? popover.querySelector(`#force-settings-toggle-${elData.id}`)
+        : null;
       if (forceSettingsToggle) {
-        forceSettingsToggle.addEventListener('click', (e) => e.stopPropagation());
-        forceSettingsToggle.addEventListener('change', (e) => {
+        forceSettingsToggle.addEventListener("click", (e) =>
+          e.stopPropagation(),
+        );
+        forceSettingsToggle.addEventListener("change", (e) => {
           e.stopPropagation();
-          
+
           // In suborg_templates mode, prevent unlocking if element is locked from parent
-          if (queryParams.mode === "suborg_templates" && elData.lockedFromParent && !forceSettingsToggle.checked) {
+          if (
+            queryParams.mode === "suborg_templates" &&
+            elData.lockedFromParent &&
+            !forceSettingsToggle.checked
+          ) {
             forceSettingsToggle.checked = true;
-            showToast(gettext("Cannot unlock this element - it is locked by the parent global template"), "Warning");
+            showToast(
+              gettext(
+                "Cannot unlock this element - it is locked by the parent global template",
+              ),
+              "Warning",
+            );
             return;
           }
-          
-          try { pushCurrentSlideState(); } catch (err) {}
+
+          try {
+            pushCurrentSlideState();
+          } catch (err) {}
           elData.preventSettingsChanges = !!forceSettingsToggle.checked;
 
           // Don't close popover - user might want to change multiple settings
@@ -608,80 +724,97 @@ export function renderSlideElementsSidebar() {
     }
 
     // Wire up change element type select (in popover)
-    const changeTypeSelect = popover ? popover.querySelector(`#change-element-type-select-${elData.id}`) : null;
+    const changeTypeSelect = popover
+      ? popover.querySelector(`#change-element-type-select-${elData.id}`)
+      : null;
     if (changeTypeSelect) {
       // Populate select with available element types
       const availableTypes = getAvailableElementTypes();
-      
+
       // Determine current element type (handle iframe/dynamic-element mapping)
-      const currentElementType = 
-        elData.type === "iframe" && elData.isDynamic ? "dynamic-element" : elData.type;
-      
+      const currentElementType =
+        elData.type === "iframe" && elData.isDynamic
+          ? "dynamic-element"
+          : elData.type;
+
       // Clear the default placeholder option and add current type as first option
-      changeTypeSelect.innerHTML = '';
-      
+      changeTypeSelect.innerHTML = "";
+
       // Add current type as the first (selected) option
-      const currentTypeInfo = availableTypes.find(t => t.type === currentElementType);
+      const currentTypeInfo = availableTypes.find(
+        (t) => t.type === currentElementType,
+      );
       if (currentTypeInfo) {
-        const currentOption = document.createElement('option');
+        const currentOption = document.createElement("option");
         currentOption.value = currentElementType;
         currentOption.textContent = `${currentTypeInfo.name} (current)`;
         currentOption.selected = true;
         currentOption.disabled = true;
         changeTypeSelect.appendChild(currentOption);
       }
-      
+
       // Add type options
       availableTypes.forEach((typeInfo) => {
         // Skip current type and placeholder type
-        if (typeInfo.type === currentElementType || typeInfo.type === "placeholder") return;
-        
+        if (
+          typeInfo.type === currentElementType ||
+          typeInfo.type === "placeholder"
+        )
+          return;
+
         // Check if conversion is supported
-        const sourceTypeForCheck = 
-          elData.type === "iframe" && elData.isDynamic ? "dynamic-element" : elData.type;
+        const sourceTypeForCheck =
+          elData.type === "iframe" && elData.isDynamic
+            ? "dynamic-element"
+            : elData.type;
         if (!isConversionSupported(sourceTypeForCheck, typeInfo.type)) return;
-        
-        const option = document.createElement('option');
+
+        const option = document.createElement("option");
         option.value = typeInfo.type;
         option.textContent = typeInfo.name;
         changeTypeSelect.appendChild(option);
       });
-      
+
       // Handle selection change
-      changeTypeSelect.addEventListener('change', (e) => {
+      changeTypeSelect.addEventListener("change", (e) => {
         e.stopPropagation();
-        
+
         const selectedType = changeTypeSelect.value;
         if (!selectedType) return;
-        
+
         try {
           // Convert the element type
           replaceElementWithType(elData, selectedType);
-          
+
           // Close popover
-          if (popover) popover.style.display = 'none';
-          
-          const typeInfo = availableTypes.find(t => t.type === selectedType);
-          showToast(gettext(`Element converted to ${typeInfo?.name || selectedType}`), "Success");
+          if (popover) popover.style.display = "none";
+
+          const typeInfo = availableTypes.find((t) => t.type === selectedType);
+          showToast(
+            gettext(`Element converted to ${typeInfo?.name || selectedType}`),
+            "Success",
+          );
         } catch (error) {
-          console.error('Error converting element type:', error);
-          showToast(gettext('Failed to convert element type'), 'Error');
+          console.error("Error converting element type:", error);
+          showToast(gettext("Failed to convert element type"), "Error");
           // Reset select to default
-          changeTypeSelect.value = '';
+          changeTypeSelect.value = "";
         }
       });
-      
+
       window.__popoverCleanupFunctions.push(() => {
         // Cleanup function will be called when sidebar is re-rendered
       });
     }
-    
+
     // Wire up delete button (in popover)
-    const deleteBtn = popover ? popover.querySelector(`#delete-element-btn-${elData.id}`) : null;
+    const deleteBtn = popover
+      ? popover.querySelector(`#delete-element-btn-${elData.id}`)
+      : null;
     if (deleteBtn) {
-      deleteBtn.addEventListener('click', (e) => {
+      deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        
+
         // Check if the element is locked - if so, prevent deletion (except in template editor)
         if (isElementLocked(elData) && queryParams.mode !== "template_editor") {
           try {
@@ -689,16 +822,18 @@ export function renderSlideElementsSidebar() {
           } catch (err) {}
           return;
         }
-        
+
         // Confirm deletion
-        if (!confirm(gettext("Are you sure you want to delete this element?"))) {
+        if (
+          !confirm(gettext("Are you sure you want to delete this element?"))
+        ) {
           return;
         }
-        
+
         try {
           pushCurrentSlideState();
         } catch (err) {}
-        
+
         // Remove element from store
         if (elData.isPersistent) {
           // For persistent elements, remove from all slides
@@ -709,175 +844,204 @@ export function renderSlideElementsSidebar() {
           // For non-persistent elements, remove from current slide only
           const currentSlide = store.slides[store.currentSlideIndex];
           if (currentSlide) {
-            currentSlide.elements = currentSlide.elements.filter((el) => el.id !== elData.id);
+            currentSlide.elements = currentSlide.elements.filter(
+              (el) => el.id !== elData.id,
+            );
           }
         }
-        
+
         // Remove element from DOM
         const domEl = document.getElementById("el-" + elData.id);
         if (domEl) {
           domEl.remove();
         }
-        
+
         // Remove gradient wrapper if present
-        document.querySelector('.gradient-border-wrapper')?.remove();
-        
+        document.querySelector(".gradient-border-wrapper")?.remove();
+
         // Clear selection if this was the selected element
-        if (store.selectedElementData && store.selectedElementData.id === elData.id) {
+        if (
+          store.selectedElementData &&
+          store.selectedElementData.id === elData.id
+        ) {
           store.selectedElement = null;
           store.selectedElementData = null;
-          
+
           // Hide element toolbars
-          document.querySelectorAll(".element-type-toolbar").forEach((toolbar) => 
-            toolbar.classList.replace("d-flex", "d-none")
-          );
+          document
+            .querySelectorAll(".element-type-toolbar")
+            .forEach((toolbar) =>
+              toolbar.classList.replace("d-flex", "d-none"),
+            );
         }
-        
+
         // Close popover
-        if (popover) popover.style.display = 'none';
-        
+        if (popover) popover.style.display = "none";
+
         // Re-render sidebar
         renderSlideElementsSidebar();
-        
+
         // No need to reload slide - DOM element was already removed above
       });
     }
 
-      // Wire up lock checkbox behavior (now from popover)
-      const lockCheckbox = popover ? popover.querySelector(`#lock-checkbox-${elData.id}`) : null;
+    // Wire up lock checkbox behavior (now from popover)
+    const lockCheckbox = popover
+      ? popover.querySelector(`#lock-checkbox-${elData.id}`)
+      : null;
 
-      if (lockCheckbox) {
-        // prevent checkbox clicks from selecting the row and from bubbling to global handlers
-        lockCheckbox.addEventListener('click', (e) => e.stopPropagation());
-        lockCheckbox.addEventListener('change', (e) => {
-          e.stopPropagation();
-          try {
-            pushCurrentSlideState();
-          } catch (err) {
-            // ignore if undo not available
-          }
-
-          // Prevent changes outside template editor when flagged
-          const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
-                                   (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
-          if (isSettingsLocked) {
-            try {
-              showToast(gettext("This element's settings are enforced by the template."), "Info");
-            } catch (err) {}
-            lockCheckbox.checked = !!elData.isLocked;
-            return;
-          }
-
-          const shouldBeLocked = lockCheckbox.checked;
-          // Toggle locked flag on the element data
-          elData.isLocked = shouldBeLocked;
-
-          // Update just this element in the preview (more efficient than reloading entire slide)
-          try {
-            updateSlideElement(elData);
-          } catch (err) {
-            console.warn('Failed to update element after toggling lock', err);
-          }
-
-          // Don't close popover - user might want to change multiple settings
-
-          // Re-render sidebar to update all rows
-          renderSlideElementsSidebar();
-        });
-      }
-
-      // Wire up always on top checkbox behavior (now from popover)
-      const alwaysOnTopCheckbox = popover ? popover.querySelector(`#always-on-top-checkbox-${elData.id}`) : null;
-
-      if (alwaysOnTopCheckbox) {
-        alwaysOnTopCheckbox.addEventListener('click', (e) => e.stopPropagation());
-        alwaysOnTopCheckbox.addEventListener('change', (e) => {
-          e.stopPropagation();
-          try {
-            pushCurrentSlideState();
-          } catch (err) {
-            // ignore if undo not available
-          }
-
-          // Prevent changes outside template editor when flagged
-          const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
-                                   (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
-          if (isSettingsLocked) {
-            try {
-              showToast(gettext("This element's settings are enforced by the template."), "Info");
-            } catch (err) {}
-            alwaysOnTopCheckbox.checked = !!elData.isAlwaysOnTop;
-            return;
-          }
-
-          const shouldBeAlwaysOnTop = alwaysOnTopCheckbox.checked;
-          elData.isAlwaysOnTop = shouldBeAlwaysOnTop;
-
-          // Adjust zIndex
-          // Reserve a high range for always-on-top elements so they cannot be
-          // accidentally covered by regular elements. Use a large base offset
-          // and keep always-on-top elements inside that bucket.
-          const ALWAYS_ON_TOP_BASE = 100000;
-          const alwaysOnTopElements = elementsArray.filter(el => el.isAlwaysOnTop && el.id !== elData.id);
-          if (shouldBeAlwaysOnTop) {
-            // Determine next offset inside the always-on-top bucket
-            const offsets = alwaysOnTopElements.map(el => (Number(el.zIndex) || 0) - ALWAYS_ON_TOP_BASE).filter(n => n >= 0);
-            const nextOffset = offsets.length ? Math.max(...offsets) + 1 : 1;
-            elData.zIndex = ALWAYS_ON_TOP_BASE + nextOffset;
-          } else {
-            // When removing always-on-top, put element back into the regular z-index space
-            try {
-              elData.zIndex = getNewZIndex();
-            } catch (err) {
-              // Fallback to 1 if z-index utility is unavailable for any reason
-              elData.zIndex = 1;
-            }
-          }
-
-          // Update just this element in the preview (more efficient than reloading entire slide)
-          try {
-            updateSlideElement(elData);
-          } catch (err) {
-            console.warn('Failed to update element after toggling always on top', err);
-          }
-
-          // Don't close popover - user might want to change multiple settings
-
-          // Re-render sidebar to update all rows
-          renderSlideElementsSidebar();
-        });
-      }
-
-      // Wire up link select
-      if (store.slideshowMode === "interactive" && queryParams.mode === "edit") {
-        const linkSelect = row.querySelector(`#link-select-${elData.id}`);
-        if (linkSelect) {
-          linkSelect.addEventListener('click', (e) => e.stopPropagation());
-          linkSelect.addEventListener('change', (e) => {
-            e.stopPropagation();
-            try {
-              pushCurrentSlideState();
-            } catch (err) {
-            }
-            const chosenValue = e.target.value;
-            if (chosenValue === "Open page by clicking ..") {
-              delete elData.goToSlideIndex;
-            } else {
-              const chosenIndex = parseInt(chosenValue, 10);
-              if (!isNaN(chosenIndex)) {
-                elData.goToSlideIndex = chosenIndex;
-              }
-            }
-          });
+    if (lockCheckbox) {
+      // prevent checkbox clicks from selecting the row and from bubbling to global handlers
+      lockCheckbox.addEventListener("click", (e) => e.stopPropagation());
+      lockCheckbox.addEventListener("change", (e) => {
+        e.stopPropagation();
+        try {
+          pushCurrentSlideState();
+        } catch (err) {
+          // ignore if undo not available
         }
+
+        // Prevent changes outside template editor when flagged
+        const isSettingsLocked =
+          (queryParams.mode !== "template_editor" &&
+            queryParams.mode !== "suborg_templates" &&
+            elData.preventSettingsChanges) ||
+          (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+        if (isSettingsLocked) {
+          try {
+            showToast(
+              gettext("This element's settings are enforced by the template."),
+              "Info",
+            );
+          } catch (err) {}
+          lockCheckbox.checked = !!elData.isLocked;
+          return;
+        }
+
+        const shouldBeLocked = lockCheckbox.checked;
+        // Toggle locked flag on the element data
+        elData.isLocked = shouldBeLocked;
+
+        // Update just this element in the preview (more efficient than reloading entire slide)
+        try {
+          updateSlideElement(elData);
+        } catch (err) {
+          console.warn("Failed to update element after toggling lock", err);
+        }
+
+        // Don't close popover - user might want to change multiple settings
+
+        // Re-render sidebar to update all rows
+        renderSlideElementsSidebar();
+      });
+    }
+
+    // Wire up always on top checkbox behavior (now from popover)
+    const alwaysOnTopCheckbox = popover
+      ? popover.querySelector(`#always-on-top-checkbox-${elData.id}`)
+      : null;
+
+    if (alwaysOnTopCheckbox) {
+      alwaysOnTopCheckbox.addEventListener("click", (e) => e.stopPropagation());
+      alwaysOnTopCheckbox.addEventListener("change", (e) => {
+        e.stopPropagation();
+        try {
+          pushCurrentSlideState();
+        } catch (err) {
+          // ignore if undo not available
+        }
+
+        // Prevent changes outside template editor when flagged
+        const isSettingsLocked =
+          (queryParams.mode !== "template_editor" &&
+            queryParams.mode !== "suborg_templates" &&
+            elData.preventSettingsChanges) ||
+          (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+        if (isSettingsLocked) {
+          try {
+            showToast(
+              gettext("This element's settings are enforced by the template."),
+              "Info",
+            );
+          } catch (err) {}
+          alwaysOnTopCheckbox.checked = !!elData.isAlwaysOnTop;
+          return;
+        }
+
+        const shouldBeAlwaysOnTop = alwaysOnTopCheckbox.checked;
+        elData.isAlwaysOnTop = shouldBeAlwaysOnTop;
+
+        // Adjust zIndex
+        // Reserve a high range for always-on-top elements so they cannot be
+        // accidentally covered by regular elements. Use a large base offset
+        // and keep always-on-top elements inside that bucket.
+        const ALWAYS_ON_TOP_BASE = 100000;
+        const alwaysOnTopElements = elementsArray.filter(
+          (el) => el.isAlwaysOnTop && el.id !== elData.id,
+        );
+        if (shouldBeAlwaysOnTop) {
+          // Determine next offset inside the always-on-top bucket
+          const offsets = alwaysOnTopElements
+            .map((el) => (Number(el.zIndex) || 0) - ALWAYS_ON_TOP_BASE)
+            .filter((n) => n >= 0);
+          const nextOffset = offsets.length ? Math.max(...offsets) + 1 : 1;
+          elData.zIndex = ALWAYS_ON_TOP_BASE + nextOffset;
+        } else {
+          // When removing always-on-top, put element back into the regular z-index space
+          try {
+            elData.zIndex = getNewZIndex();
+          } catch (err) {
+            // Fallback to 1 if z-index utility is unavailable for any reason
+            elData.zIndex = 1;
+          }
+        }
+
+        // Update just this element in the preview (more efficient than reloading entire slide)
+        try {
+          updateSlideElement(elData);
+        } catch (err) {
+          console.warn(
+            "Failed to update element after toggling always on top",
+            err,
+          );
+        }
+
+        // Don't close popover - user might want to change multiple settings
+
+        // Re-render sidebar to update all rows
+        renderSlideElementsSidebar();
+      });
+    }
+
+    // Wire up link select
+    if (store.slideshowMode === "interactive" && queryParams.mode === "edit") {
+      const linkSelect = row.querySelector(`#link-select-${elData.id}`);
+      if (linkSelect) {
+        linkSelect.addEventListener("click", (e) => e.stopPropagation());
+        linkSelect.addEventListener("change", (e) => {
+          e.stopPropagation();
+          try {
+            pushCurrentSlideState();
+          } catch (err) {}
+          const chosenValue = e.target.value;
+          if (chosenValue === "Open page by clicking ..") {
+            delete elData.goToSlideIndex;
+          } else {
+            const chosenIndex = parseInt(chosenValue, 10);
+            if (!isNaN(chosenIndex)) {
+              elData.goToSlideIndex = chosenIndex;
+            }
+          }
+        });
       }
+    }
 
     // Wire up name editing after inserting HTML
     const nameInput = row.querySelector(`#el-name-${elData.id}`);
     if (nameInput) {
       // Prevent clicks in the input from selecting the row
-      nameInput.addEventListener('click', (e) => e.stopPropagation());
-      nameInput.addEventListener('mousedown', (e) => e.stopPropagation());
+      nameInput.addEventListener("click", (e) => e.stopPropagation());
+      nameInput.addEventListener("mousedown", (e) => e.stopPropagation());
 
       // Commit change on blur or Enter key
       const commitName = () => {
@@ -889,32 +1053,34 @@ export function renderSlideElementsSidebar() {
         renderSlideElementsSidebar();
       };
 
-      nameInput.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter') {
+      nameInput.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") {
           ev.preventDefault();
           nameInput.blur();
-        } else if (ev.key === 'Escape') {
+        } else if (ev.key === "Escape") {
           // revert to original
           nameInput.value = elData.name || summary.type;
           nameInput.blur();
         }
       });
 
-      nameInput.addEventListener('blur', () => {
+      nameInput.addEventListener("blur", () => {
         try {
           commitName();
         } catch (err) {
-          console.warn('Failed to commit element name', err);
+          console.warn("Failed to commit element name", err);
         }
       });
     }
 
     // Wire up block-selection checkbox behavior (now from popover)
-    const blockSelectCheckbox = popover ? popover.querySelector(`#block-select-checkbox-${elData.id}`) : null;
+    const blockSelectCheckbox = popover
+      ? popover.querySelector(`#block-select-checkbox-${elData.id}`)
+      : null;
 
     if (blockSelectCheckbox) {
-      blockSelectCheckbox.addEventListener('click', (e) => e.stopPropagation());
-      blockSelectCheckbox.addEventListener('change', (e) => {
+      blockSelectCheckbox.addEventListener("click", (e) => e.stopPropagation());
+      blockSelectCheckbox.addEventListener("change", (e) => {
         e.stopPropagation();
         try {
           pushCurrentSlideState();
@@ -923,11 +1089,17 @@ export function renderSlideElementsSidebar() {
         }
 
         // Prevent changes outside template editor when flagged
-        const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
-                                 (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+        const isSettingsLocked =
+          (queryParams.mode !== "template_editor" &&
+            queryParams.mode !== "suborg_templates" &&
+            elData.preventSettingsChanges) ||
+          (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
         if (isSettingsLocked) {
           try {
-            showToast(gettext("This element's settings are enforced by the template."), "Info");
+            showToast(
+              gettext("This element's settings are enforced by the template."),
+              "Info",
+            );
           } catch (err) {}
           blockSelectCheckbox.checked = !!elData.isSelectionBlocked;
           return;
@@ -937,19 +1109,27 @@ export function renderSlideElementsSidebar() {
         elData.isSelectionBlocked = shouldBlock;
 
         // If this element is currently selected, deselect it
-        if (store.selectedElementData && store.selectedElementData.id === elData.id) {
+        if (
+          store.selectedElementData &&
+          store.selectedElementData.id === elData.id
+        ) {
           // Clear selection state and remove selection visuals
           window.selectedElementForUpdate = null;
           store.selectedElement = null;
           store.selectedElementData = null;
-          document.querySelectorAll('.gradient-border-wrapper').forEach(n => n.remove());
+          document
+            .querySelectorAll(".gradient-border-wrapper")
+            .forEach((n) => n.remove());
         }
 
         // Update just this element in the preview (more efficient than reloading entire slide)
         try {
           updateSlideElement(elData);
         } catch (err) {
-          console.warn('Failed to update element after toggling selection block', err);
+          console.warn(
+            "Failed to update element after toggling selection block",
+            err,
+          );
         }
 
         // Don't close popover - user might want to change multiple settings
@@ -960,11 +1140,14 @@ export function renderSlideElementsSidebar() {
     }
 
     // Highlight if this is the selected element
-    if (store.selectedElementData && store.selectedElementData.id === elData.id) {
+    if (
+      store.selectedElementData &&
+      store.selectedElementData.id === elData.id
+    ) {
       row.classList.add("active");
     }
 
-  // (Sortable will handle drag/drop for smooth UX)
+    // (Sortable will handle drag/drop for smooth UX)
 
     // Click row to select element
     row.addEventListener("click", () => {
@@ -974,7 +1157,7 @@ export function renderSlideElementsSidebar() {
       // Do not allow selecting if element blocks selection
       if (elData.isSelectionBlocked) {
         try {
-          showToast(gettext('Selection is blocked for this element'), 'Info');
+          showToast(gettext("Selection is blocked for this element"), "Info");
         } catch (e) {
           // ignore
         }
@@ -1019,10 +1202,10 @@ export function renderSlideElementsSidebar() {
         // Prevent moving non-always-on-top elements above always-on-top elements
         const draggedElId = parseInt(evt.dragged.dataset.elId, 10);
         const relatedElId = parseInt(evt.related.dataset.elId, 10);
-        
+
         const currentSlide = store.slides[store.currentSlideIndex];
         if (!currentSlide) return true;
-        
+
         // Get all elements including persistent ones
         const elementsMap = {};
         if (currentSlide.elements) {
@@ -1035,24 +1218,30 @@ export function renderSlideElementsSidebar() {
             if (el.isPersistent) elementsMap[el.id] = el;
           });
         });
-        
+
         const draggedEl = elementsMap[draggedElId];
         const relatedEl = elementsMap[relatedElId];
-        
+
         if (!draggedEl || !relatedEl) return true;
-        
+
         // If dragged element is not always-on-top, but related element is,
         // and we're trying to move above it (willInsertAfter is false),
         // prevent the move
-        if (!draggedEl.isAlwaysOnTop && relatedEl.isAlwaysOnTop && !evt.willInsertAfter) {
+        if (
+          !draggedEl.isAlwaysOnTop &&
+          relatedEl.isAlwaysOnTop &&
+          !evt.willInsertAfter
+        ) {
           return false;
         }
-        
+
         return true;
       },
       onEnd: function (evt) {
         // Build new ordering from DOM children (topmost first as rendered)
-        const ids = Array.from(container.children).map((child) => parseInt(child.dataset.elId, 10)).filter(Boolean);
+        const ids = Array.from(container.children)
+          .map((child) => parseInt(child.dataset.elId, 10))
+          .filter(Boolean);
 
         if (!ids.length) return;
 
@@ -1066,7 +1255,7 @@ export function renderSlideElementsSidebar() {
           const el = currentSlide.elements.find((e) => e.id === id);
           if (el) {
             el.zIndex = ids.length - idx;
-            
+
             // Update DOM element z-index immediately to avoid flicker
             const domEl = document.getElementById("el-" + id);
             if (domEl) {
@@ -1097,39 +1286,42 @@ export function renderSlideElementsSidebar() {
       if (p) {
         try {
           const MARGIN = 8; // keep some breathing room from edges
-          
+
           const preferredWidth = 320;
-          const maxAllowedWidth = Math.min(preferredWidth, window.innerWidth - MARGIN * 2);
+          const maxAllowedWidth = Math.min(
+            preferredWidth,
+            window.innerWidth - MARGIN * 2,
+          );
           const popoverComputedWidth = Math.max(200, maxAllowedWidth);
 
           const popoverHeight = window.innerHeight - MARGIN * 2;
 
-          p.style.position = 'fixed';
+          p.style.position = "fixed";
           p.style.bottom = `${MARGIN}px`;
           p.style.right = `${MARGIN}px`;
           p.style.width = `${Math.round(popoverComputedWidth)}px`;
           p.style.height = `${Math.round(popoverHeight)}px`;
-          p.style.top = '';
-          p.style.left = '';
-          p.style.maxHeight = '';
-          p.style.overflow = 'visible';
-          p.style.display = 'block';
+          p.style.top = "";
+          p.style.left = "";
+          p.style.maxHeight = "";
+          p.style.overflow = "visible";
+          p.style.display = "block";
         } catch (err) {}
       }
     });
   } catch (err) {}
 }
 
-  document.addEventListener("os:slideChanged", () => {
-    try {
-      renderSlideElementsSidebar();
-    } catch (err) {
-      console.warn("Failed to render slide elements sidebar on slide change", err);
-    }
-  });
-
-
-
+document.addEventListener("os:slideChanged", () => {
+  try {
+    renderSlideElementsSidebar();
+  } catch (err) {
+    console.warn(
+      "Failed to render slide elements sidebar on slide change",
+      err,
+    );
+  }
+});
 
 export function initSlideElementsSidebar() {
   // Render initially and whenever slide data or selection changes

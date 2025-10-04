@@ -92,7 +92,11 @@ function handleWheelZoom(event) {
  */
 function handleZoomChange(mode, level) {
   // Only apply zoom in edit and template_editor modes
-  if (queryParams.mode === "edit" || queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+  if (
+    queryParams.mode === "edit" ||
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates"
+  ) {
     if (mode === "fit") {
       enableFitToWindowMode();
     } else if (mode === "zoom") {

@@ -111,7 +111,7 @@ function updateCategorySidebar(templates) {
 async function fetchUnifiedTemplates() {
   const orgId = localStorage.getItem("parentOrgID");
   const suborgId = localStorage.getItem("selectedSubOrgID");
-  
+
   try {
     let url;
     // If we have a suborgId, fetch suborg-specific templates (includes global + suborg templates)
@@ -121,11 +121,11 @@ async function fetchUnifiedTemplates() {
     } else {
       url = `${BASE_URL}/api/slide-templates/?organisation_id=${orgId}`;
     }
-    
+
     const resp = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     if (!resp.ok) {
       console.error("Failed to fetch templates", resp.status);
       return;

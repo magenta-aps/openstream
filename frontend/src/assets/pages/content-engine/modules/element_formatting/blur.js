@@ -78,11 +78,16 @@ export function initBlur() {
       pushCurrentSlideState();
       showBlurPopover(blurBtn, (blurPx) => {
         // Apply CSS filter while preserving other filters
-        const prevFilter = store.selectedElement.style.getPropertyValue("filter") || "";
+        const prevFilter =
+          store.selectedElement.style.getPropertyValue("filter") || "";
         // Remove any existing blur() from prevFilter
         const newFilter = prevFilter.replace(/blur\([^)]*\)/g, "").trim();
         const filterWithBlur = `${newFilter} blur(${blurPx}px)`.trim();
-        store.selectedElement.style.setProperty("filter", filterWithBlur, "important");
+        store.selectedElement.style.setProperty(
+          "filter",
+          filterWithBlur,
+          "important",
+        );
         store.selectedElementData.blur = blurPx;
       });
     });
@@ -93,6 +98,10 @@ export function _renderBlur(container, el) {
   if (typeof el.blur === "number" && el.blur > 0) {
     const prevFilter = container.style.getPropertyValue("filter") || "";
     const newFilter = prevFilter.replace(/blur\([^)]*\)/g, "").trim();
-    container.style.setProperty("filter", `${newFilter} blur(${el.blur}px)`.trim(), "important");
+    container.style.setProperty(
+      "filter",
+      `${newFilter} blur(${el.blur}px)`.trim(),
+      "important",
+    );
   }
 }

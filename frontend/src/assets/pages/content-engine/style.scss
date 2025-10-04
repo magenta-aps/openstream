@@ -194,6 +194,7 @@ body {
   text-align: center;
   background-color: $dark;
   color: $white;
+
   @extend .rounded;
 }
 
@@ -288,17 +289,22 @@ body {
   border-radius: 8px;
   font-size: 22px;
   color: $white;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgb(0 0 0 / 60%);
   border: 3px solid $white;
   pointer-events: none;
 }
 
 /* Per-indicator color / minor variants */
-.lock-indicator { background: #dc3545; }
-.persistent-indicator { background: #000; }
+.lock-indicator {
+  background: #dc3545;
+}
+
+.persistent-indicator {
+  background: #000;
+}
 
 .element-indicators-wrapper .blocked-indicator {
-  background: rgba(0,0,0,0.8);
+  background: rgb(0 0 0 / 80%);
   z-index: 1016; /* sits above other indicators */
 }
 
@@ -742,6 +748,7 @@ span {
   background: $lighter-gray;
   border-left: 1px solid $dark-gray;
   box-sizing: border-box;
+
   /* place to the right inside .slide-canvas flex layout */
 }
 
@@ -753,7 +760,7 @@ span {
 }
 
 .slide-right-sidebar h6 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.5rem;
   font-size: 0.95rem;
   color: $darkest-gray;
   font-weight: 600;
@@ -782,7 +789,9 @@ span {
   background: $secondary-accent;
   color: $darkest-gray;
   border-radius: 6px;
-  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 #slide-elements-list .list-group-item:hover {
@@ -855,20 +864,17 @@ span {
 }
 
 #slide-elements-list .list-group-item.element-locked-from-template::after {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba($light-gray, 0.5);
   border-radius: 6px;
   pointer-events: none;
 }
 
 #slide-elements-list .list-group-item.element-locked-from-template::before {
-  content: 'lock_person';
-  font-family: 'Material Symbols Outlined';
+  content: "lock_person";
+  font-family: "Material Symbols Outlined";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -898,11 +904,11 @@ span {
   height: 20px;
   border-radius: 4px;
   background: rgba($secondary, 0.1);
-  
+
   i {
     font-size: 14px;
     color: $secondary;
-    font-variation-settings: 'FILL' 1;
+    font-variation-settings: "FILL" 1;
   }
 }
 
@@ -910,11 +916,11 @@ span {
 .element-settings-btn {
   color: $darker-gray;
   text-decoration: none;
-  
+
   &:hover {
     color: $secondary;
   }
-  
+
   .material-symbols-outlined {
     font-size: 18px;
   }
@@ -930,44 +936,44 @@ span {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba($black, 0.15);
   display: none;
-  
+
   .popover-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
     border-bottom: 1px solid $light-gray;
-    
+
     strong {
       font-size: 0.9rem;
       color: $darkest-gray;
     }
-    
+
     .popover-close-btn {
       color: $darker-gray;
       text-decoration: none;
-      
+
       &:hover {
         color: $darkest-gray;
       }
-      
+
       .material-symbols-outlined {
         font-size: 20px;
       }
     }
   }
-  
+
   .popover-body {
     padding: 12px 16px;
   }
-  
+
   .setting-item {
     .form-check-label {
       font-size: 0.875rem;
       cursor: pointer;
       margin-bottom: 2px;
     }
-    
+
     .text-muted {
       line-height: 1.3;
     }
@@ -986,25 +992,24 @@ span {
   background: rgba($secondary, 0.05);
   border-radius: 6px;
   border: 1px solid rgba($secondary, 0.15);
-  
+
   .form-check-label {
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 0.8rem;
     cursor: pointer;
-    
+
     .small-icon {
       font-size: 14px;
       vertical-align: middle;
     }
   }
-  
+
   .form-check-input {
     cursor: pointer;
   }
 }
-
 
 /* Ensure slide-canvas lays out preview and right sidebar side-by-side */
 .slide-canvas {
@@ -2073,11 +2078,13 @@ span {
   right: 8px;
   z-index: 1000;
   background: #6c757d; /* match neutral gray used in JS */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 50%);
 }
 
 /* If the element is also persistent, move the blocked indicator left so it doesn't overlap the pin */
-.slide-element.is-persistent .blocked-indicator { right: 56px; }
+.slide-element.is-persistent .blocked-indicator {
+  right: 56px;
+}
 
 /* Slightly dim blocked elements on hover to hint non-interactivity */
 .slide-element.is-selection-blocked:hover {
@@ -2095,9 +2102,14 @@ span {
 }
 
 /* When element is persistent, offset the force-settings indicator to avoid overlap */
-.slide-element.is-persistent .force-settings-indicator { right: 56px; }
+.slide-element.is-persistent .force-settings-indicator {
+  right: 56px;
+}
+
 /* If element is locked too, move further left */
-.slide-element.is-locked .force-settings-indicator { right: 104px; }
+.slide-element.is-locked .force-settings-indicator {
+  right: 104px;
+}
 
 /* Always-on-top indicator (shows that element is top-most) */
 .always-on-top-indicator {

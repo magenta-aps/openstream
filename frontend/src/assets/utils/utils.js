@@ -413,7 +413,7 @@ export function promptDelete(
     deleteModalEl = document.querySelector("#deleteConfirmModal");
     if (!deleteModalEl)
       return console.error(
-        "Unable to insert the delete modal. #main-content not found"
+        "Unable to insert the delete modal. #main-content not found",
       );
   } else {
     deleteModalEl = cloneAndReplaceNode(deleteModalEl); // clean any previous events

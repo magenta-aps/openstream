@@ -3342,7 +3342,9 @@ class SuborgTemplateAPIView(APIView):
                         {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
                     )
             else:
-                if not user_belongs_to_organisation(request.user, template.organisation):
+                if not user_belongs_to_organisation(
+                    request.user, template.organisation
+                ):
                     return Response(
                         {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
                     )
@@ -3357,9 +3359,13 @@ class SuborgTemplateAPIView(APIView):
             )
 
         suborg = get_object_or_404(SubOrganisation, pk=suborg_id)
-        
+
         # User must be able to access this suborg
-        if not user_can_access_branch(request.user, suborg.branches.first()) if suborg.branches.exists() else user_can_manage_suborg(request.user, suborg):
+        if (
+            not user_can_access_branch(request.user, suborg.branches.first())
+            if suborg.branches.exists()
+            else user_can_manage_suborg(request.user, suborg)
+        ):
             return Response({"detail": "Not allowed."}, status=403)
 
         # Get global templates (no suborganisation) and suborg-specific templates
@@ -3367,7 +3373,7 @@ class SuborgTemplateAPIView(APIView):
             organisation=suborg.organisation, suborganisation__isnull=True
         )
         suborg_templates = SlideTemplate.objects.filter(suborganisation=suborg)
-        
+
         templates = (global_templates | suborg_templates).distinct().order_by("name")
         serializer = SlideTemplateSerializer(templates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -3397,7 +3403,9 @@ class SuborgTemplateAPIView(APIView):
         # Check permissions - user must be suborg_admin or org_admin
         if not user_can_manage_suborg(request.user, suborg):
             return Response(
-                {"detail": "Not authorized to create templates for this suborganisation."},
+                {
+                    "detail": "Not authorized to create templates for this suborganisation."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -3418,7 +3426,7 @@ class SuborgTemplateAPIView(APIView):
         # from the parent template. These will be enforced in the frontend so that
         # suborg admins cannot modify settings that were locked by the global template.
         new_template_name = request.data.get("name", f"{parent_template.name} (Copy)")
-        
+
         data = {
             "name": new_template_name,
             "slideData": parent_template.slideData,
@@ -3456,7 +3464,9 @@ class SuborgTemplateAPIView(APIView):
             )
 
         if not user_can_manage_suborg(request.user, template.suborganisation):
-            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+            )
 
         # Don't allow changing organisation, suborganisation, or parent_template
         data = request.data.copy()

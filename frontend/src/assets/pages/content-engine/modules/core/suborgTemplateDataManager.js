@@ -3,12 +3,12 @@
 
 /**
  * SubOrganisation Template Data Manager
- * 
+ *
  * Handles template settings lock hierarchy:
  * 1. Global template locks (preventSettingsChanges) are enforced in suborg templates
  *    - Suborg admins cannot modify or unlock these settings
  *    - Elements with parent locks are marked with `lockedFromParent` flag
- * 
+ *
  * 2. Suborg template locks (preventSettingsChanges) are enforced for branch users
  *    - Suborg admins can add additional locks on non-parent-locked elements
  *    - Branch users respect both parent and suborg locks
@@ -27,7 +27,10 @@ let suborgId = null;
 /**
  * Fetch all templates available for a suborg (global + suborg-specific)
  */
-export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, templateIdToPreserve = null) {
+export async function fetchAllSuborgTemplatesAndPopulateStore(
+  suborgIdToUse,
+  templateIdToPreserve = null,
+) {
   if (!suborgIdToUse) {
     showToast(
       gettext("SubOrganisation ID is missing. Cannot fetch templates."),
@@ -60,8 +63,10 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, tem
 
     if (fetchedTemplates && fetchedTemplates.length > 0) {
       // Filter to only show suborg-specific templates (not global ones)
-      const suborgOnlyTemplates = fetchedTemplates.filter(t => t.suborganisation !== null);
-      
+      const suborgOnlyTemplates = fetchedTemplates.filter(
+        (t) => t.suborganisation !== null,
+      );
+
       suborgOnlyTemplates.forEach((template) => {
         if (!template.slideData) {
           console.warn(
@@ -74,12 +79,17 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, tem
         slideObject.templateId = template.id;
         slideObject.templateOriginalName = template.name;
         slideObject.name = template.name;
-        slideObject.accepted_aspect_ratios = template.accepted_aspect_ratios || [];
+        slideObject.accepted_aspect_ratios =
+          template.accepted_aspect_ratios || [];
         slideObject.isSuborgTemplate = true; // Always true since we filtered
         slideObject.isGlobalTemplate = false; // Always false since we filtered
         slideObject.parentTemplate = template.parent_template;
-        slideObject.organisationId = template.organisation ? template.organisation.id : null;
-        slideObject.suborganisationId = template.suborganisation ? template.suborganisation.id : null;
+        slideObject.organisationId = template.organisation
+          ? template.organisation.id
+          : null;
+        slideObject.suborganisationId = template.suborganisation
+          ? template.suborganisation.id
+          : null;
 
         slideObject.categoryId =
           template.category_id ||
@@ -114,7 +124,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, tem
           if (typeof element.isLocked === "undefined") {
             element.isLocked = false;
           }
-          
+
           // Mark elements that have settings locked from parent global template
           if (element.preventSettingsChanges && template.parent_template) {
             element.lockedFromParent = true;
@@ -137,9 +147,13 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, tem
         store.slides.push(slideObject);
       });
     }
-    
+
     if (store.slides.length === 0) {
-      console.warn(gettext("No suborganisation-specific templates found. Create one using 'Create Template from Global' button."));
+      console.warn(
+        gettext(
+          "No suborganisation-specific templates found. Create one using 'Create Template from Global' button.",
+        ),
+      );
     }
 
     let slideIdxToLoad = 0;
@@ -154,17 +168,17 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, tem
 
     // Set the current slide index BEFORE loading
     store.currentSlideIndex = store.slides.length > 0 ? slideIdxToLoad : -1;
-    
+
     updateSlideSelector();
 
     if (store.currentSlideIndex !== -1) {
       const currentTemplateSlide = store.slides[store.currentSlideIndex];
       store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
       store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
-      
+
       loadSlide(currentTemplateSlide);
       scaleAllSlides();
-      
+
       // Initialize auto-save for suborg templates
       const { initTemplateAutoSave } = await import("./templateDataManager.js");
       initTemplateAutoSave();
@@ -174,10 +188,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(suborgIdToUse, tem
     return true;
   } catch (err) {
     console.error("Error loading suborg templates:", err);
-    showToast(
-      gettext("Error loading templates: ") + err.message,
-      "Error",
-    );
+    showToast(gettext("Error loading templates: ") + err.message, "Error");
     return false;
   }
 }
