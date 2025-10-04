@@ -223,9 +223,38 @@ if (queryParams.mode === "suborg_templates") {
     topPanel.classList.remove("d-none");
   }
 
+  // Customize navbar for suborg templates - hide most nav links
+  const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (!href.includes('manage-templates') && !href.includes('documentation')) {
+      link.parentElement.style.display = 'none';
+    }
+  });
+
   const suborgId = queryParams.suborg_id;
 
   if (suborgId) {
+    // Fetch and display suborg name
+    const { BASE_URL } = await import("../../utils/constants.js");
+    const { token } = await import("../../utils/utils.js");
+    
+    try {
+      const response = await fetch(`${BASE_URL}/api/suborganisations/${suborgId}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const suborgData = await response.json();
+        // Update the branch switcher to show suborg name instead
+        const branchNameEl = document.getElementById("branch-name");
+        if (branchNameEl) {
+          branchNameEl.innerText = suborgData.name || "SubOrg";
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching suborg data:", err);
+    }
+
     // Import and initialize suborg template editor
     const { initSuborgTemplateEditor } = await import(
       "./modules/core/suborgTemplateDataManager.js"

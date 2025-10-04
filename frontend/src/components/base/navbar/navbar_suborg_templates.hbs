@@ -1,0 +1,14 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/navbar/navbar_base }}
+
+    {{#*inline "nav-links"}}
+        {{> base/navbar/nav_link href="#" icon="note_stack" title="Templates" id="suborg-templates-nav-link"}}
+    {{/inline}}
+
+
+    {{#*inline "user-actions"}}
+        {{> base/navbar/suborg-name-display }}
+        {{> base/navbar/user-dropdown }}
+    {{/inline}}
+{{/ base/navbar/navbar_base }}

@@ -710,8 +710,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         const suborgButtonsContainer = document.createElement("div");
         suborgButtonsContainer.className = "d-flex align-items-center ms-auto";
 
-        // Manage Templates button (only for suborg_admin)
-        if (suborg.user_role === "suborg_admin") {
+        // Manage Templates button (for org_admin or suborg_admin)
+        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
           const manageTemplatesBtn = document.createElement("button");
           manageTemplatesBtn.className =
             "btn btn-sm btn-secondary me-2 d-flex align-items-center";
