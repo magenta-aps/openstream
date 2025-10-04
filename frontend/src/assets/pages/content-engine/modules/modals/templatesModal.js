@@ -434,18 +434,24 @@ if (confirmBtn) {
         organisation_id: parentOrgID, // Include if your API requires/uses it for PATCH
       };
 
+      // Check if we're editing a suborg template by looking at the current template
+      const currentTemplate = store.slides[store.editingTemplateIndex];
+      const isSuborgTemplate = currentTemplate && currentTemplate.isSuborgTemplate;
+
+      // Use the appropriate API endpoint based on template type
+      const apiEndpoint = isSuborgTemplate
+        ? `${BASE_URL}/api/suborg-templates/${store.editingTemplateId}/`
+        : `${BASE_URL}/api/slide-templates/${store.editingTemplateId}/`;
+
       try {
-        const resp = await fetch(
-          `${BASE_URL}/api/slide-templates/${store.editingTemplateId}/`,
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
+        const resp = await fetch(apiEndpoint, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify(payload),
+        });
 
         if (!resp.ok) {
           const errTxt = await resp.text();
@@ -458,11 +464,17 @@ if (confirmBtn) {
         }
         showToast(gettext("Template details updated successfully."), "Success");
         // Refresh the templates list to show changes
-        if (
-          queryParams.mode === "template_editor" ||
-          queryParams.mode === "suborg_templates"
-        ) {
+        if (queryParams.mode === "template_editor") {
           await fetchAllOrgTemplatesAndPopulateStore(store.editingTemplateId);
+        } else if (queryParams.mode === "suborg_templates") {
+          // For suborg templates, we need to import and use the suborg-specific refresh function
+          const { fetchAllSuborgTemplatesAndPopulateStore } = await import(
+            "../core/suborgTemplateDataManager.js"
+          );
+          const suborgId = queryParams.suborg_id;
+          if (suborgId) {
+            await fetchAllSuborgTemplatesAndPopulateStore(suborgId, store.editingTemplateId);
+          }
         }
         if (bsModalInstance) bsModalInstance.hide();
       } catch (err) {

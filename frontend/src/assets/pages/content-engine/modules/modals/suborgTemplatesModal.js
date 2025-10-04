@@ -226,7 +226,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       createBtn.disabled = true;
       createBtn.textContent = gettext("Creating...");
 
-      await createSuborgTemplate(
+      const newTemplate = await createSuborgTemplate(
         currentSuborgId,
         selectedTemplateId,
         newName || null,
@@ -240,8 +240,8 @@ export async function openCreateSuborgTemplateModal(suborgId) {
         bsModal.hide();
       }
 
-      // Refresh template list
-      await fetchAllSuborgTemplatesAndPopulateStore(currentSuborgId);
+      // Refresh template list and automatically select the newly created template
+      await fetchAllSuborgTemplatesAndPopulateStore(currentSuborgId, newTemplate.id);
     } catch (err) {
       showToast(gettext("Error creating template: ") + err.message, "Error");
       createBtn.disabled = false;

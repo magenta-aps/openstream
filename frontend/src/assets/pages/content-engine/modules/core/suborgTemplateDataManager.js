@@ -25,6 +25,75 @@ import { gettext } from "../../../../utils/locales.js";
 let suborgId = null;
 
 /**
+ * Check if a 'suborg_templates' branch exists for the suborg, create it if not
+ * Returns the branch ID to use for media operations
+ */
+async function ensureSuborgTemplatesBranch(suborgIdToUse) {
+  try {
+    // First, fetch all branches for the suborg to check if 'suborg_templates' exists
+    const resp = await fetch(
+      `${BASE_URL}/api/branches/?suborg_id=${suborgIdToUse}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!resp.ok) {
+      throw new Error(
+        `Failed to fetch branches. Status: ${resp.status} ${await resp.text()}`,
+      );
+    }
+
+    const branches = await resp.json();
+    
+    // Check if 'suborg_templates' branch already exists
+    const existingBranch = branches.find(
+      (branch) => branch.name.toLowerCase() === "suborg_templates",
+    );
+
+    if (existingBranch) {
+      console.log(
+        `Found existing 'suborg_templates' branch with ID: ${existingBranch.id}`,
+      );
+      return existingBranch.id;
+    }
+
+    // If not found, create the branch
+    console.log("Creating 'suborg_templates' branch...");
+    const createResp = await fetch(`${BASE_URL}/api/branches/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "suborg_templates",
+        suborg_id: suborgIdToUse,
+      }),
+    });
+
+    if (!createResp.ok) {
+      throw new Error(
+        `Failed to create branch. Status: ${createResp.status} ${await createResp.text()}`,
+      );
+    }
+
+    const newBranch = await createResp.json();
+    console.log(
+      `Created 'suborg_templates' branch with ID: ${newBranch.id}`,
+    );
+    return newBranch.id;
+  } catch (err) {
+    console.error("Error ensuring suborg_templates branch:", err);
+    throw err;
+  }
+}
+
+/**
  * Fetch all templates available for a suborg (global + suborg-specific)
  */
 export async function fetchAllSuborgTemplatesAndPopulateStore(
@@ -201,19 +270,36 @@ export async function initSuborgTemplateEditor(suborgIdToUse) {
   store.editorMode = "suborg_templates";
   console.log(`Initializing suborg template editor for suborg ID: ${suborgId}`);
 
-  const success = await fetchAllSuborgTemplatesAndPopulateStore(suborgId);
-  if (!success) {
-    console.error(gettext("Failed to fetch and populate suborg templates."));
-    return;
-  }
+  try {
+    // Ensure 'suborg_templates' branch exists and get its ID
+    const suborgTemplatesBranchId = await ensureSuborgTemplatesBranch(suborgId);
+    
+    // Set the selectedBranchID in localStorage so media operations work
+    localStorage.setItem("selectedBranchID", suborgTemplatesBranchId);
+    console.log(
+      `Set selectedBranchID to suborg_templates branch: ${suborgTemplatesBranchId}`,
+    );
 
-  // Set page title
-  const pageTitle = document.getElementById("contentEngineTitle");
-  if (pageTitle) {
-    pageTitle.textContent = gettext("Manage SubOrganisation Templates");
-  }
+    const success = await fetchAllSuborgTemplatesAndPopulateStore(suborgId);
+    if (!success) {
+      console.error(gettext("Failed to fetch and populate suborg templates."));
+      return;
+    }
 
-  console.log(gettext("Suborg template editor initialized successfully."));
+    // Set page title
+    const pageTitle = document.getElementById("contentEngineTitle");
+    if (pageTitle) {
+      pageTitle.textContent = gettext("Manage SubOrganisation Templates");
+    }
+
+    console.log(gettext("Suborg template editor initialized successfully."));
+  } catch (err) {
+    console.error(gettext("Error initializing suborg template editor:"), err);
+    showToast(
+      gettext("Error setting up template editor: ") + err.message,
+      "Error",
+    );
+  }
 }
 
 /**
