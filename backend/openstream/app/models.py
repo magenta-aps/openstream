@@ -1004,6 +1004,22 @@ class SlideTemplate(models.Model):
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="slide_templates"
     )
+    suborganisation = models.ForeignKey(
+        SubOrganisation,
+        on_delete=models.CASCADE,
+        related_name="slide_templates",
+        null=True,
+        blank=True,
+        help_text="If set, this template is only available to branches in this suborganisation",
+    )
+    parent_template = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="suborg_copies",
+        help_text="If this is a suborg template, reference to the global template it was created from",
+    )
 
     name = models.CharField(max_length=255)
     slideData = models.JSONField(default=dict, blank=True, null=True)

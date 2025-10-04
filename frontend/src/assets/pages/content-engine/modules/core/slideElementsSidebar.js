@@ -142,7 +142,11 @@ export function renderSlideElementsSidebar() {
     row.className = "list-group-item px-1 py-1 d-flex justify-content-between align-items-start my-1 border border-dark rounded";
     
     // Add visual indicator if element is locked from template changes
-    if (queryParams.mode !== "template_editor" && elData.preventSettingsChanges) {
+    // In suborg_templates mode, also show if locked from parent template
+    if (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) {
+      row.classList.add("element-locked-from-template");
+    }
+    if (queryParams.mode === "suborg_templates" && elData.lockedFromParent) {
       row.classList.add("element-locked-from-template");
     }
     
@@ -157,11 +161,14 @@ export function renderSlideElementsSidebar() {
     
     // Build active icons display (only show icons for enabled settings)
     const activeIcons = [];
-    if (elData.isPersistent && queryParams.mode !== "template_editor") activeIcons.push(`<span class="active-setting-icon" title="${gettext("Pinned")}"><i class="material-symbols-outlined">push_pin</i></span>`);
+    if (elData.isPersistent && queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates") activeIcons.push(`<span class="active-setting-icon" title="${gettext("Pinned")}"><i class="material-symbols-outlined">push_pin</i></span>`);
     if (elData.isLocked) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Locked")}"><i class="material-symbols-outlined">lock</i></span>`);
     if (elData.isSelectionBlocked) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Selection blocked")}"><i class="material-symbols-outlined">block</i></span>`);
     if (elData.isAlwaysOnTop) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Always on top")}"><i class="material-symbols-outlined">vertical_align_top</i></span>`);
-    if (queryParams.mode === "template_editor" && elData.preventSettingsChanges) activeIcons.push(`<span class="active-setting-icon" title="${gettext("Settings locked")}"><i class="material-symbols-outlined">lock_person</i></span>`);
+    if ((queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") && elData.preventSettingsChanges) {
+      const lockTitle = (queryParams.mode === "suborg_templates" && elData.lockedFromParent) ? gettext("Settings locked by parent template") : gettext("Settings locked");
+      activeIcons.push(`<span class="active-setting-icon" title="${lockTitle}"><i class="material-symbols-outlined">lock_person</i></span>`);
+    }
     
     row.innerHTML = `
       <div class="w-100">
@@ -280,17 +287,17 @@ export function renderSlideElementsSidebar() {
             </div>
           </div>
           
-          ${queryParams.mode === "template_editor" ? `
+          ${queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates" ? `
           <hr class="my-3">
           <div class="setting-item template-lock-setting">
             <div class="d-flex align-items-start">
               <div class="form-check form-switch w-100">
-                <input class="form-check-input" type="checkbox" role="switch" id="force-settings-toggle-${elData.id}" ${elData.preventSettingsChanges ? "checked" : ""}>
+                <input class="form-check-input" type="checkbox" role="switch" id="force-settings-toggle-${elData.id}" ${elData.preventSettingsChanges ? "checked" : ""} ${queryParams.mode === "suborg_templates" && elData.lockedFromParent ? "disabled" : ""}>
                 <label class="form-check-label fw-semibold d-flex align-items-center gap-1" for="force-settings-toggle-${elData.id}">
                   <span class="material-symbols-outlined small-icon">lock_person</span>
                   ${gettext("Block editing of element settings")}
                 </label>
-                <div class="text-muted small mt-1">${gettext("Prevent users from modifying this element's position, size, and other settings when using this template")}</div>
+                <div class="text-muted small mt-1">${queryParams.mode === "suborg_templates" && elData.lockedFromParent ? gettext("This element's settings are locked by the parent global template and cannot be unlocked") : gettext("Prevent users from modifying this element's position, size, and other settings when using this template")}</div>
               </div>
             </div>
           </div>
@@ -464,7 +471,10 @@ export function renderSlideElementsSidebar() {
           } catch (err) {}
           
           // Prevent changes outside template editor when flagged
-          if (queryParams.mode !== "template_editor" && elData.preventSettingsChanges) {
+          // In suborg_templates mode, respect parent template locks
+          const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
+                                   (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+          if (isSettingsLocked) {
             try {
               showToast(gettext("This element's settings are enforced by the template."), "Info");
             } catch (err) {}
@@ -543,7 +553,9 @@ export function renderSlideElementsSidebar() {
           // ignore if undo not available
         }
         // Prevent changes outside template editor when flagged
-        if (queryParams.mode !== "template_editor" && elData.preventSettingsChanges) {
+        const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
+                                 (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+        if (isSettingsLocked) {
           try {
             showToast(gettext("This element's settings are enforced by the template."), "Info");
           } catch (err) {}
@@ -571,12 +583,20 @@ export function renderSlideElementsSidebar() {
     }
 
     // Wire up template lock toggle (only in template editor, now from popover)
-    if (queryParams.mode === "template_editor") {
+    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
       const forceSettingsToggle = popover ? popover.querySelector(`#force-settings-toggle-${elData.id}`) : null;
       if (forceSettingsToggle) {
         forceSettingsToggle.addEventListener('click', (e) => e.stopPropagation());
         forceSettingsToggle.addEventListener('change', (e) => {
           e.stopPropagation();
+          
+          // In suborg_templates mode, prevent unlocking if element is locked from parent
+          if (queryParams.mode === "suborg_templates" && elData.lockedFromParent && !forceSettingsToggle.checked) {
+            forceSettingsToggle.checked = true;
+            showToast(gettext("Cannot unlock this element - it is locked by the parent global template"), "Warning");
+            return;
+          }
+          
           try { pushCurrentSlideState(); } catch (err) {}
           elData.preventSettingsChanges = !!forceSettingsToggle.checked;
 
@@ -738,7 +758,9 @@ export function renderSlideElementsSidebar() {
           }
 
           // Prevent changes outside template editor when flagged
-          if (queryParams.mode !== "template_editor" && elData.preventSettingsChanges) {
+          const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
+                                   (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+          if (isSettingsLocked) {
             try {
               showToast(gettext("This element's settings are enforced by the template."), "Info");
             } catch (err) {}
@@ -778,7 +800,9 @@ export function renderSlideElementsSidebar() {
           }
 
           // Prevent changes outside template editor when flagged
-          if (queryParams.mode !== "template_editor" && elData.preventSettingsChanges) {
+          const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
+                                   (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+          if (isSettingsLocked) {
             try {
               showToast(gettext("This element's settings are enforced by the template."), "Info");
             } catch (err) {}
@@ -899,7 +923,9 @@ export function renderSlideElementsSidebar() {
         }
 
         // Prevent changes outside template editor when flagged
-        if (queryParams.mode !== "template_editor" && elData.preventSettingsChanges) {
+        const isSettingsLocked = (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates" && elData.preventSettingsChanges) ||
+                                 (queryParams.mode === "suborg_templates" && elData.lockedFromParent);
+        if (isSettingsLocked) {
           try {
             showToast(gettext("This element's settings are enforced by the template."), "Info");
           } catch (err) {}

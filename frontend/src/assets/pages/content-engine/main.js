@@ -212,15 +212,88 @@ if (queryParams.mode === "template_editor") {
   }
 }
 
+if (queryParams.mode === "suborg_templates") {
+  makeActiveInNav("/select-sub-org");
+  const navbar = document.getElementById("navbar");
+  if (navbar) {
+    navbar.style.display = "block";
+  }
+  const topPanel = document.querySelector(".top-panel");
+  if (topPanel) {
+    topPanel.classList.remove("d-none");
+  }
+  
+  const suborgId = queryParams.suborg_id;
+  
+  if (suborgId) {
+    // Import and initialize suborg template editor
+    const { initSuborgTemplateEditor } = await import("./modules/core/suborgTemplateDataManager.js");
+    
+    // Load templates first (this also handles scaling)
+    await initSuborgTemplateEditor(suborgId).catch((err) =>
+      console.error(gettext("Error initializing suborg template editor:"), err),
+    );
+    
+    // Then initialize common editor features
+    initCommonEditorFeatures();
+    initSlideElementsSidebar();
+    
+    // Hide unnecessary buttons
+    const playBtn = document.getElementById("playBtn");
+    if (playBtn) {
+      playBtn.style.display = "none";
+      playBtn.className = "d-none";
+    }
+    const addSlideBtn = document.getElementById("addSlideBtn");
+    if (addSlideBtn) {
+      addSlideBtn.style.display = "none";
+    }
+    const elementLinkDropdown = document.getElementById("elementLinkDropdown");
+    if (elementLinkDropdown) {
+      elementLinkDropdown.style.display = "none";
+    }
+    
+    // Add "Create Template from Global" button
+    const addTemplateBtn = document.createElement("div");
+    addTemplateBtn.innerHTML = `<button class="btn btn-primary" id="addSuborgTemplateBtn">${gettext(
+      "+ Create Template from Global",
+    )}</button>`;
+    
+    addTemplateBtn.addEventListener("click", () => {
+      // Import and open modal for selecting global template
+      import("./modules/modals/suborgTemplatesModal.js").then(module => {
+        module.openCreateSuborgTemplateModal(suborgId);
+      });
+    });
+    
+    const sectionButtons = document.querySelector(".section-buttons");
+    if (sectionButtons) {
+      sectionButtons.appendChild(addTemplateBtn);
+    }
+    const addSlideBtnToRemove = document.querySelector("#addSlideBtn");
+    if (addSlideBtnToRemove) {
+      addSlideBtnToRemove.remove();
+    }
+  } else {
+    console.error(gettext("SubOrganisation ID is missing. Cannot initialize suborg template editor."));
+    const previewContainer = document.querySelector(".preview-container");
+    if (previewContainer) {
+      previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
+        "Error: SubOrganisation ID is missing. Cannot load template editor.",
+      )}</p>`;
+    }
+  }
+}
+
 if (queryParams.mode === "slideshow-player") {
   document.querySelector(".preview-container").classList.add("player-mode");
   initSlideshowPlayerMode();
 }
 
-if (queryParams.mode !== "template_editor") {
+if (queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates") {
   const sideNavLink = document.querySelector('a[href="/manage-content/"]');
   if (sideNavLink) sideNavLink.classList.add("active");
-} else {
+} else if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
   const sideNavLink = document.querySelector(
     'a[href="/edit-slideshow/?mode=template_editor"]',
   );

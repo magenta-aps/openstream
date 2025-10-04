@@ -234,7 +234,7 @@ function updateListDOM(element) {
     listElement = newListElement;
 
     // Re-attach event listeners to children
-    if (queryParams.mode === "edit" || queryParams.mode === "template_editor") {
+    if (queryParams.mode === "edit" || queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
       Array.from(listElement.children).forEach((li) => {
         setupListItemInteractivity(li, element);
       });
@@ -269,7 +269,7 @@ function updateListDOM(element) {
     li.dataset.indent = itemData.indent || 0;
 
     // Enable editing in edit mode
-    if (queryParams.mode === "edit" || queryParams.mode === "template_editor") {
+    if (queryParams.mode === "edit" || queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
       setupListItemInteractivity(li, element);
     }
 

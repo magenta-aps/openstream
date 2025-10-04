@@ -297,7 +297,12 @@ function createElementContextMenu(e, element, dataObj) {
 
   // Only add Delete Element option if the element is not locked
   // Exception: Always show in template editor mode
-  if (!isElementLocked(dataObj) || queryParams.mode === "template_editor") {
+  // In suborg_templates mode: don't allow deleting elements locked from parent template
+  const canDelete = !isElementLocked(dataObj) || 
+                    queryParams.mode === "template_editor" || 
+                    (queryParams.mode === "suborg_templates" && !dataObj.lockedFromParent);
+  
+  if (canDelete) {
     options.push({
       label: gettext("Delete Element"),
       action: () => {

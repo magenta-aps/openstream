@@ -51,7 +51,7 @@ function createSlideContextMenu(e, slideIndex) {
   menu.style.borderRadius = "4px";
 
   // Different labels based on editor mode
-  const isTemplateEditor = queryParams.mode === "template_editor";
+  const isTemplateEditor = queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates";
   const duplicateLabel = isTemplateEditor
     ? gettext("Duplicate Template")
     : gettext("Duplicate Slide");
@@ -236,8 +236,9 @@ export function updateSlideSelector() {
     slideNameDiv.appendChild(slideNameStrong);
 
     // Add aspect ratio display for templates
+    const isTemplateMode = queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates";
     if (
-      queryParams.mode === "template_editor" &&
+      isTemplateMode &&
       slide.accepted_aspect_ratios &&
       slide.accepted_aspect_ratios.length > 0
     ) {
@@ -250,6 +251,21 @@ export function updateSlideSelector() {
       );
       aspectRatioDiv.innerHTML = `<i class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">aspect_ratio</i> ${slide.accepted_aspect_ratios.join(", ")}`;
       slideNameDiv.appendChild(aspectRatioDiv);
+    }
+
+    // Add indicator for suborg-specific templates
+    if (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate) {
+      const suborgBadge = document.createElement("span");
+      suborgBadge.classList.add("badge", "bg-info", "ms-2", "small");
+      suborgBadge.textContent = "SubOrg";
+      suborgBadge.style.fontSize = "10px";
+      slideNameDiv.appendChild(suborgBadge);
+    } else if (queryParams.mode === "suborg_templates" && slide.isGlobalTemplate) {
+      const globalBadge = document.createElement("span");
+      globalBadge.classList.add("badge", "bg-secondary", "ms-2", "small");
+      globalBadge.textContent = "Global";
+      globalBadge.style.fontSize = "10px";
+      slideNameDiv.appendChild(globalBadge);
     }
 
     slideNameDiv.addEventListener("click", (e) => {
@@ -388,6 +404,7 @@ export function updateSlideSelector() {
 
     if (
       queryParams.mode !== "template_editor" &&
+      queryParams.mode !== "suborg_templates" &&
       store.slideshowMode !== "interactive"
     ) {
       slideDetailsButtons.appendChild(calendarTooltipWrapper);
@@ -402,7 +419,7 @@ export function updateSlideSelector() {
       openSaveAsTemplateModal(index);
     });
 
-    if (queryParams.mode === "template_editor") {
+    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
       saveAsTemplateBtn.innerHTML =
         '<i class="material-symbols-outlined" style="vertical-align:middle;">content_copy</i>';
       saveAsTemplateBtn.addEventListener("click", (e) => {
@@ -415,71 +432,82 @@ export function updateSlideSelector() {
 
     // Removed duplicate and delete buttons from here
 
-    if (queryParams.mode === "template_editor") {
-      const editTemplateMetadataBtn = document.createElement("button");
-      editTemplateMetadataBtn.classList.add(
-        "btn",
-        "btn-outline-info",
-        "btn-sm",
-        "me-2",
-      );
-      editTemplateMetadataBtn.innerHTML =
-        '<i class="material-symbols-outlined" style="vertical-align:middle;">edit_note</i>';
-      editTemplateMetadataBtn.title = gettext("Edit Template Details");
-      editTemplateMetadataBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openEditTemplateMetadataModal(index);
-      });
-      slideDetailsButtons.appendChild(editTemplateMetadataBtn);
-
-      const deleteTemplateBtn = document.createElement("button");
-      deleteTemplateBtn.classList.add(
-        "btn",
-        "btn-outline-danger",
-        "btn-sm",
-        "me-2",
-      );
-      deleteTemplateBtn.innerHTML =
-        '<i class="material-symbols-outlined" style="vertical-align:middle;">delete</i>';
-      deleteTemplateBtn.addEventListener("click", async (e) => {
-        // Added event arg e
-        e.stopPropagation(); // Prevent slide selection
-        const currentSlide = store.slides[index];
-        if (!currentSlide || !currentSlide.templateId) {
-          showToast(
-            gettext("Error: Cannot delete template. Template ID is missing."),
-            "Error",
-          );
-          return;
-        }
-
-        showConfirmModal(
-          gettext("Are you sure you want to delete this template?"),
-          async () => {
-            const success = await deleteTemplateOnBackend(
-              currentSlide.templateId,
-            );
-            if (success) {
-              if (store.slides.length === 0) {
-                document.querySelector(".preview-slide").innerHTML = "";
-              }
-              // fetchAllOrgTemplatesAndPopulateStore will be called by deleteTemplateOnBackend if successful
-              // No need to call it again here explicitly unless deleteTemplateOnBackend changes
-              showToast(
-                gettext("Template deleted and list refreshed."),
-                "Success",
-              );
-            }
-          },
+    if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
+      // Only show edit button for suborg templates in suborg_templates mode, or all templates in template_editor mode
+      const canEdit = queryParams.mode === "template_editor" || (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate);
+      
+      if (canEdit) {
+        const editTemplateMetadataBtn = document.createElement("button");
+        editTemplateMetadataBtn.classList.add(
+          "btn",
+          "btn-outline-info",
+          "btn-sm",
+          "me-2",
         );
-      });
-      slideDetailsButtons.appendChild(deleteTemplateBtn); // Moved this line
+        editTemplateMetadataBtn.innerHTML =
+          '<i class="material-symbols-outlined" style="vertical-align:middle;">edit_note</i>';
+        editTemplateMetadataBtn.title = gettext("Edit Template Details");
+        editTemplateMetadataBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openEditTemplateMetadataModal(index);
+        });
+        slideDetailsButtons.appendChild(editTemplateMetadataBtn);
+      }
+
+      // Only show delete button for templates that can be deleted
+      const canDelete = queryParams.mode === "template_editor" || (queryParams.mode === "suborg_templates" && slide.isSuborgTemplate);
+      
+      if (canDelete) {
+        const deleteTemplateBtn = document.createElement("button");
+        deleteTemplateBtn.classList.add(
+          "btn",
+          "btn-outline-danger",
+          "btn-sm",
+          "me-2",
+        );
+        deleteTemplateBtn.innerHTML =
+          '<i class="material-symbols-outlined" style="vertical-align:middle;">delete</i>';
+        deleteTemplateBtn.addEventListener("click", async (e) => {
+          // Added event arg e
+          e.stopPropagation(); // Prevent slide selection
+          const currentSlide = store.slides[index];
+          if (!currentSlide || !currentSlide.templateId) {
+            showToast(
+              gettext("Error: Cannot delete template. Template ID is missing."),
+              "Error",
+            );
+            return;
+          }
+
+          showConfirmModal(
+            gettext("Are you sure you want to delete this template?"),
+            async () => {
+              const success = await deleteTemplateOnBackend(
+                currentSlide.templateId,
+              );
+              if (success) {
+                if (store.slides.length === 0) {
+                  document.querySelector(".preview-slide").innerHTML = "";
+                }
+                // fetchAllOrgTemplatesAndPopulateStore will be called by deleteTemplateOnBackend if successful
+                // No need to call it again here explicitly unless deleteTemplateOnBackend changes
+                showToast(
+                  gettext("Template deleted and list refreshed."),
+                  "Success",
+                );
+              }
+            },
+          );
+        });
+        slideDetailsButtons.appendChild(deleteTemplateBtn); // Moved this line
+      }
     }
 
     slideDetails.appendChild(slideNameDiv);
 
     if (
       queryParams.mode !== "template_editor" &&
+      queryParams.mode !== "suborg_templates" &&
       store.slideshowMode !== "interactive"
     ) {
       slideDetails.appendChild(durationTooltipWrapper); // Changed from slideDurationDiv to durationTooltipWrapper
@@ -630,7 +658,7 @@ export function reorderSlides(fromIndex, toIndex) {
 
 function duplicateSlide(slideIndex) {
   // If in template editor mode, use the backend API
-  if (queryParams.mode === "template_editor") {
+  if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
     const currentSlide = store.slides[slideIndex];
     if (!currentSlide || !currentSlide.templateId) {
       showToast(
@@ -689,7 +717,7 @@ function duplicateSlide(slideIndex) {
 
 function deleteSlide(index) {
   // If in template editor mode, use the backend API
-  if (queryParams.mode === "template_editor") {
+  if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
     const currentSlide = store.slides[index];
     if (!currentSlide || !currentSlide.templateId) {
       showToast(
@@ -729,7 +757,7 @@ function deleteSlide(index) {
     store.currentSlideIndex--;
   }
   updateSlideSelector();
-  if (queryParams.mode === "template_editor" && store.slides.length === 0) {
+  if ((queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") && store.slides.length === 0) {
     // If in template editor and all templates are deleted, re-init to show "No templates" message
     initTemplateEditor(parentOrgID);
   }

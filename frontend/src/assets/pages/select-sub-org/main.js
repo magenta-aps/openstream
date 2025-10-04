@@ -710,6 +710,19 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         const suborgButtonsContainer = document.createElement("div");
         suborgButtonsContainer.className = "d-flex align-items-center ms-auto";
 
+        // Manage Templates button (only for suborg_admin)
+        if (suborg.user_role === "suborg_admin") {
+          const manageTemplatesBtn = document.createElement("button");
+          manageTemplatesBtn.className =
+            "btn btn-sm btn-secondary me-2 d-flex align-items-center";
+          manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext("Manage Templates")}`;
+          manageTemplatesBtn.onclick = function (e) {
+            e.stopPropagation();
+            window.location.href = `/manage-templates?mode=suborg_templates&suborg_id=${suborg.id}`;
+          };
+          suborgButtonsContainer.appendChild(manageTemplatesBtn);
+        }
+
         // Add branch button (for org_admin or suborg_admin)
         if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
           const addBranchBtn = document.createElement("button");

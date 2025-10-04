@@ -264,6 +264,11 @@ export function loadSlide(
   }
 
   // Render elements - _renderSlideElement handles checking if element already exists
+  // Defensive check: ensure slide has elements array
+  if (!slide.elements) {
+    slide.elements = [];
+  }
+  
   slide.elements.forEach((el) => {
     if (!el.isPersistent) {
       _renderSlideElement(el, false, gridContainer);
@@ -272,6 +277,10 @@ export function loadSlide(
 
   // Render persistent elements from all slides, plus unpinned elements on their origin slide
   store.slides.forEach((s, slideIndex) => {
+    // Defensive check: ensure each slide has elements array
+    if (!s.elements) {
+      s.elements = [];
+    }
     s.elements.forEach((el) => {
       if (el.isPersistent) {
         // Render persistent elements on all slides
@@ -610,7 +619,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   // Consider this an interactive playback render when we're not in the
   // editor or template editor modes. That covers slideshow and interactive
   // playback contexts where we shouldn't show editor-only indicators.
-  if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor") {
+  if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates") {
     isInteractivePlayback = true;
   }
 
@@ -694,7 +703,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   resizer.classList.add("resize-handle");
   container.appendChild(resizer);
 
-  if (queryParams.mode === "edit" || queryParams.mode === "template_editor") {
+  if (queryParams.mode === "edit" || queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
     if (!el.isSelectionBlocked) {
       container.addEventListener("click", (ev) => {
         ev.stopPropagation();

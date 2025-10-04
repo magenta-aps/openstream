@@ -458,7 +458,7 @@ if (confirmBtn) {
         }
         showToast(gettext("Template details updated successfully."), "Success");
         // Refresh the templates list to show changes
-        if (queryParams.mode === "template_editor") {
+        if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
           await fetchAllOrgTemplatesAndPopulateStore(store.editingTemplateId);
         }
         if (bsModalInstance) bsModalInstance.hide();
@@ -539,7 +539,7 @@ if (confirmBtn) {
         showToast(gettext("Template saved: ") + savedTemplate.name, "Success");
         await fetchUnifiedTemplates(); // This might be for a different template list
 
-        if (queryParams.mode === "template_editor") {
+        if (queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") {
           await fetchAllOrgTemplatesAndPopulateStore(parentOrgID);
           const newTemplateIndex = store.slides.findIndex(
             (slide) => slide.templateId === savedTemplate.id,

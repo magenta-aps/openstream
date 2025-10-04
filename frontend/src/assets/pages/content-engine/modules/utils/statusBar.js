@@ -246,7 +246,7 @@ export function addToRightSection(element) {
  */
 function createZoomControls(rightSection) {
   // Only show zoom controls in edit modes
-  if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor") {
+  if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor" && queryParams.mode !== "suborg_templates") {
     return;
   }
 

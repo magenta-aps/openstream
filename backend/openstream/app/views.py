@@ -3223,7 +3223,7 @@ class SlideTemplateAPIView(APIView):
     def get(self, request, pk=None):
         """
         - If pk is provided, return that template detail (check membership).
-        - Otherwise, expect ?organisation_id=... to list all templates of that org.
+        - Otherwise, expect ?organisation_id=... to list all templates of that org (global templates only).
         """
         if pk:
             template = get_object_or_404(SlideTemplate, pk=pk)
@@ -3234,7 +3234,7 @@ class SlideTemplateAPIView(APIView):
             serializer = SlideTemplateSerializer(template)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        # List
+        # List - only global templates (no suborganisation)
         org_id = request.query_params.get("organisation_id")
         if not org_id:
             return Response(
@@ -3245,9 +3245,9 @@ class SlideTemplateAPIView(APIView):
         if not user_belongs_to_organisation(request.user, org):
             return Response({"detail": "Not allowed."}, status=403)
 
-        templates = SlideTemplate.objects.filter(organisation=org).order_by(
-            "slideData__id"
-        )
+        templates = SlideTemplate.objects.filter(
+            organisation=org, suborganisation__isnull=True
+        ).order_by("slideData__id")
         serializer = SlideTemplateSerializer(templates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -3307,6 +3307,184 @@ class SlideTemplateAPIView(APIView):
 
         # Ensure the user is an admin in the template's organisation
         if not user_is_admin_in_org(request.user, template.organisation):
+            return Response(
+                {"detail": "Not authorized to delete this template."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        template.delete()
+        return Response(
+            {"detail": "Template deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+###############################################################################
+# SubOrganisation Template Management
+###############################################################################
+
+
+class SuborgTemplateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        """
+        GET /api/suborg-templates/?suborg_id=<id> - List all templates available for a suborg
+          (includes global templates and suborg-specific templates)
+        GET /api/suborg-templates/<pk>/ - Get details of a specific template
+        """
+        if pk:
+            template = get_object_or_404(SlideTemplate, pk=pk)
+            # Check if user can access this template
+            if template.suborganisation:
+                if not user_can_manage_suborg(request.user, template.suborganisation):
+                    return Response(
+                        {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+                    )
+            else:
+                if not user_belongs_to_organisation(request.user, template.organisation):
+                    return Response(
+                        {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+                    )
+            serializer = SlideTemplateSerializer(template)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # List templates for a suborg
+        suborg_id = request.query_params.get("suborg_id")
+        if not suborg_id:
+            return Response(
+                {"detail": "suborg_id query param is required."}, status=400
+            )
+
+        suborg = get_object_or_404(SubOrganisation, pk=suborg_id)
+        
+        # User must be able to access this suborg
+        if not user_can_access_branch(request.user, suborg.branches.first()) if suborg.branches.exists() else user_can_manage_suborg(request.user, suborg):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        # Get global templates (no suborganisation) and suborg-specific templates
+        global_templates = SlideTemplate.objects.filter(
+            organisation=suborg.organisation, suborganisation__isnull=True
+        )
+        suborg_templates = SlideTemplate.objects.filter(suborganisation=suborg)
+        
+        templates = (global_templates | suborg_templates).distinct().order_by("name")
+        serializer = SlideTemplateSerializer(templates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        Create a new suborg template based on a global template.
+        Required: suborg_id, parent_template_id
+        Optional: name (defaults to parent template name)
+        """
+        suborg_id = request.data.get("suborg_id")
+        parent_template_id = request.data.get("parent_template_id")
+
+        if not suborg_id:
+            return Response(
+                {"detail": "suborg_id is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if not parent_template_id:
+            return Response(
+                {"detail": "parent_template_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        suborg = get_object_or_404(SubOrganisation, pk=suborg_id)
+        parent_template = get_object_or_404(SlideTemplate, pk=parent_template_id)
+
+        # Check permissions - user must be suborg_admin or org_admin
+        if not user_can_manage_suborg(request.user, suborg):
+            return Response(
+                {"detail": "Not authorized to create templates for this suborganisation."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Verify parent template is a global template from the same organisation
+        if parent_template.suborganisation is not None:
+            return Response(
+                {"detail": "Parent template must be a global template."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if parent_template.organisation != suborg.organisation:
+            return Response(
+                {"detail": "Parent template must belong to the same organisation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create the new suborg template
+        # Note: slideData is copied as-is, including any preventSettingsChanges flags
+        # from the parent template. These will be enforced in the frontend so that
+        # suborg admins cannot modify settings that were locked by the global template.
+        new_template_name = request.data.get("name", f"{parent_template.name} (Copy)")
+        
+        data = {
+            "name": new_template_name,
+            "slideData": parent_template.slideData,
+            "organisation_id": suborg.organisation.id,
+            "suborganisation_id": suborg.id,
+            "parent_template_id": parent_template.id,
+            "accepted_aspect_ratios": parent_template.accepted_aspect_ratios,
+        }
+
+        if parent_template.category:
+            data["category_id"] = parent_template.category.id
+
+        serializer = SlideTemplateSerializer(data=data)
+        if serializer.is_valid():
+            template = serializer.save()
+            # Copy tags from parent
+            template.tags.set(parent_template.tags.all())
+            return Response(
+                SlideTemplateSerializer(template).data, status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        """
+        Update a suborg template.
+        Only the suborg_admin or org_admin can update.
+        """
+        template = get_object_or_404(SlideTemplate, pk=pk)
+
+        # Must be a suborg template
+        if not template.suborganisation:
+            return Response(
+                {"detail": "This endpoint is only for suborg templates."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user_can_manage_suborg(request.user, template.suborganisation):
+            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Don't allow changing organisation, suborganisation, or parent_template
+        data = request.data.copy()
+        data.pop("organisation_id", None)
+        data.pop("suborganisation_id", None)
+        data.pop("parent_template_id", None)
+
+        serializer = SlideTemplateSerializer(template, data=data, partial=True)
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response(SlideTemplateSerializer(updated).data, status=200)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        """
+        Delete a suborg template.
+        Only suborg_admin or org_admin can delete.
+        """
+        template = get_object_or_404(SlideTemplate, pk=pk)
+
+        # Must be a suborg template
+        if not template.suborganisation:
+            return Response(
+                {"detail": "This endpoint is only for suborg templates."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user_can_manage_suborg(request.user, template.suborganisation):
             return Response(
                 {"detail": "Not authorized to delete this template."},
                 status=status.HTTP_403_FORBIDDEN,

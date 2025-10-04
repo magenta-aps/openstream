@@ -191,19 +191,48 @@ export async function saveCurrentTemplateData() {
   delete slideDataToSave.categoryId;
   delete slideDataToSave.tagIds;
   delete slideDataToSave.accepted_aspect_ratios;
+  delete slideDataToSave.isSuborgTemplate;
+  delete slideDataToSave.isGlobalTemplate;
+  delete slideDataToSave.organisationId;
+  delete slideDataToSave.suborganisationId;
+  delete slideDataToSave.parentTemplate;
+  
+  // Remove frontend-only properties from elements
+  if (slideDataToSave.elements && Array.isArray(slideDataToSave.elements)) {
+    slideDataToSave.elements.forEach(element => {
+      delete element.lockedFromParent;
+    });
+  }
+
+  // For suborg templates, use organisationId from slide object; otherwise use parentOrgID
+  const orgId = currentSlideObject.isSuborgTemplate && currentSlideObject.organisationId
+    ? currentSlideObject.organisationId
+    : parentOrgID;
 
   const payload = {
     name: currentSlideObject.name,
     slideData: slideDataToSave,
     previewWidth: store.emulatedWidth,
     previewHeight: store.emulatedHeight,
-    organisation_id: parentOrgID,
+    organisation_id: orgId,
     accepted_aspect_ratios: currentSlideObject.accepted_aspect_ratios || [],
   };
 
+  // Use the correct endpoint based on whether it's a suborg template or global template
+  const isSuborgTemplate = currentSlideObject.isSuborgTemplate === true;
+  const apiEndpoint = isSuborgTemplate
+    ? `${BASE_URL}/api/suborg-templates/${templateIdToSave}/`
+    : `${BASE_URL}/api/slide-templates/${templateIdToSave}/`;
+
+  console.log(`Saving template ${templateIdToSave} to ${apiEndpoint}`, {
+    isSuborgTemplate,
+    editorMode: store.editorMode,
+    templateId: templateIdToSave,
+  });
+
   try {
     const resp = await fetch(
-      `${BASE_URL}/api/slide-templates/${templateIdToSave}/`,
+      apiEndpoint,
       {
         method: "PATCH",
         headers: {
@@ -238,17 +267,26 @@ export async function saveCurrentTemplateData() {
 }
 
 export function initTemplateAutoSave() {
+  console.log("initTemplateAutoSave called", {
+    editorMode: store.editorMode,
+    currentSlideIndex: store.currentSlideIndex,
+    hasSlide: !!store.slides[store.currentSlideIndex],
+  });
+  
   if (templateAutosaveTimer) {
     clearInterval(templateAutosaveTimer);
   }
   if (
     store.currentSlideIndex === -1 ||
-    store.editorMode !== "template_editor" ||
+    (store.editorMode !== "template_editor" && store.editorMode !== "suborg_templates") ||
     !store.slides[store.currentSlideIndex]
   ) {
+    console.warn("Auto-save not initialized - conditions not met");
     lastStoredSingleSlideStr = null;
     return;
   }
+  
+  console.log("Auto-save initialized successfully for template mode");
   lastStoredSingleSlideStr = JSON.stringify(
     store.slides[store.currentSlideIndex],
   );
@@ -265,8 +303,13 @@ export function initTemplateAutoSave() {
     const currentStateStr = JSON.stringify(currentSlideObject);
 
     if (currentStateStr !== lastStoredSingleSlideStr) {
+      console.log("Template changed - auto-saving...", {
+        templateId: currentSlideObject.templateId,
+        isSuborgTemplate: currentSlideObject.isSuborgTemplate,
+      });
       saveCurrentTemplateData()
         .then(() => {
+          console.log("Auto-save successful");
           showSavingStatus();
         })
         .catch((err) => {
@@ -405,8 +448,19 @@ export async function deleteTemplateOnBackend(templateId) {
     showToast(gettext("Cannot delete: Template ID is missing."), "Error");
     return false;
   }
+  
+  // Check if we're in suborg templates mode
+  const queryParams = new URLSearchParams(window.location.search);
+  const isSuborgMode = queryParams.get("mode") === "suborg_templates";
+  const suborgId = queryParams.get("suborg_id");
+  
   try {
-    const resp = await fetch(`${BASE_URL}/api/slide-templates/${templateId}/`, {
+    // Use appropriate endpoint based on mode
+    const endpoint = isSuborgMode 
+      ? `${BASE_URL}/api/suborg-templates/${templateId}/`
+      : `${BASE_URL}/api/slide-templates/${templateId}/`;
+      
+    const resp = await fetch(endpoint, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -419,14 +473,23 @@ export async function deleteTemplateOnBackend(templateId) {
       );
     }
     showToast(gettext("Template deleted successfully."), "success");
-    if (parentOrgID) {
+    
+    // Refresh the appropriate template list
+    if (isSuborgMode && suborgId) {
+      // Import and call suborg template refresh
+      const { fetchAllSuborgTemplatesAndPopulateStore } = await import("./suborgTemplateDataManager.js");
       let selectedResolution = {
         width: store.emulatedWidth,
         height: store.emulatedHeight,
       };
-
+      await fetchAllSuborgTemplatesAndPopulateStore(suborgId);
+      updateResolution(selectedResolution);
+    } else if (parentOrgID) {
+      let selectedResolution = {
+        width: store.emulatedWidth,
+        height: store.emulatedHeight,
+      };
       await fetchAllOrgTemplatesAndPopulateStore(parentOrgID);
-
       updateResolution(selectedResolution);
     }
     return true;

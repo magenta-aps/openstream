@@ -1002,7 +1002,8 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
 
   if (
     (!isInteractivePlayback && queryParams.mode === "edit") ||
-    (!isInteractivePlayback && queryParams.mode === "template_editor")
+    (!isInteractivePlayback && queryParams.mode === "template_editor") ||
+    (!isInteractivePlayback && queryParams.mode === "suborg_templates")
   ) {
     textWrapper.addEventListener("dblclick", (e) => {
       e.stopPropagation();
