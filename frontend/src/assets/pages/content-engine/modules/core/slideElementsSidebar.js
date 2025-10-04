@@ -146,15 +146,17 @@ export function renderSlideElementsSidebar() {
       "list-group-item px-1 py-1 d-flex justify-content-between align-items-start my-1 border border-dark rounded";
 
     // Add visual indicator if element is locked from template changes
-    // In suborg_templates mode, also show if locked from parent template
-    if (
+    // In suborg_templates mode, show overlay if locked from parent OR if preventSettingsChanges is enabled
+    // In other non-editor modes, show overlay if preventSettingsChanges is enabled
+    // In template_editor mode, never show the overlay (editors can always edit)
+    if (queryParams.mode === "suborg_templates") {
+      if (elData.lockedFromParent || elData.preventSettingsChanges) {
+        row.classList.add("element-locked-from-template");
+      }
+    } else if (
       queryParams.mode !== "template_editor" &&
-      queryParams.mode !== "suborg_templates" &&
       elData.preventSettingsChanges
     ) {
-      row.classList.add("element-locked-from-template");
-    }
-    if (queryParams.mode === "suborg_templates" && elData.lockedFromParent) {
       row.classList.add("element-locked-from-template");
     }
 
@@ -267,7 +269,7 @@ export function renderSlideElementsSidebar() {
           <hr class="my-3">
           
           ${
-            queryParams.mode !== "template_editor"
+            queryParams.mode === "edit"
               ? `
           <div class="setting-item mb-3">
             <div class="d-flex align-items-start">
@@ -624,9 +626,9 @@ export function renderSlideElementsSidebar() {
       },
     );
 
-    // Wire up pin checkbox behavior (now from popover) - only if not in template editor mode
+    // Wire up pin checkbox behavior (now from popover) - only in edit mode
     const pinCheckbox =
-      queryParams.mode !== "template_editor" && popover
+      queryParams.mode === "edit" && popover
         ? popover.querySelector(`#pin-checkbox-${elData.id}`)
         : null;
 
