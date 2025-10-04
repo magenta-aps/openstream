@@ -177,6 +177,10 @@ const preservedProperties = [
   "originSlideIndex",
   "isPersistent",
   "isLocked",
+  "isSelectionBlocked",
+  "isAlwaysOnTop",
+  "preventSettingsChanges",
+  "goToSlideIndex",
 ];
 
 /**
@@ -206,11 +210,10 @@ export function convertElementType(sourceElement, targetType) {
     id: store.elementIdCounter++,
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,
-    isLocked: false,
-    isPersistent: false,
   };
 
   // Preserve size, position and other important properties
+  // This includes all element settings like isLocked, isPersistent, preventSettingsChanges, etc.
   preservedProperties.forEach((prop) => {
     if (sourceElement.hasOwnProperty(prop)) {
       newElement[prop] = sourceElement[prop];

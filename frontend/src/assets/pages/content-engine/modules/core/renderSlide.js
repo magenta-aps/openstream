@@ -642,72 +642,11 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     container.classList.add('is-selection-blocked');
     // Prevent clicks and interactions that would select/edit the element
     container.style.pointerEvents = 'none';
-    // NOTE: visual indicator element (blocked-indicator) is appended later
-    // after other indicators so it isn't accidentally covered by them.
   }
 
-  // Simplified indicators: use a single flex wrapper in the top-right so icons never overlap
-  const shouldShowPersistent = el.isPersistent && (queryParams.mode === 'edit' || queryParams.mode === 'template_editor');
-  // Only show lock indicator in editor/template modes (not during playback)
-  // Only show lock indicator in editor/template modes (not during playback)
-  const shouldShowLock = el.isLocked && !isInteractivePlayback && (queryParams.mode === 'edit' || queryParams.mode === 'template_editor');
-  const shouldShowForce = el.preventSettingsChanges && (queryParams.mode === 'template_editor' || queryParams.mode === 'edit');
-  const shouldShowTop = el.isAlwaysOnTop && (queryParams.mode === 'edit' || queryParams.mode === 'template_editor');
-  const shouldShowBlocked = el.isSelectionBlocked && (queryParams.mode === 'edit' || queryParams.mode === 'template_editor');
-
-  // Always create the indicators wrapper when any indicator would be shown
-  // (we'll toggle its visibility separately). This ensures the wrapper DOM
-  // exists even if indicators are currently hidden so the toggle can show
-  // them again after a slide change.
-  if (shouldShowPersistent || shouldShowLock || shouldShowForce || shouldShowTop || shouldShowBlocked) {
-    const indicatorsWrapper = document.createElement('div');
-    indicatorsWrapper.className = 'element-indicators-wrapper';
-    Object.assign(indicatorsWrapper.style, {
-      position: 'absolute',
-      top: '8px',
-      right: '8px',
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center',
-      zIndex: '1015',
-      pointerEvents: 'none',
-    });
-
-    // Compute visibility from per-slide override if present, otherwise use global
-    const visibleFlag = (typeof slide !== 'undefined' && slide && typeof slide.showElementIndicators !== 'undefined') ? slide.showElementIndicators : store.showElementIndicators;
-    indicatorsWrapper.style.visibility = visibleFlag ? 'visible' : 'hidden';
-
-    const createIndicator = (iconName, opts = {}) => {
-      const d = document.createElement('div');
-      d.className = opts.className || 'element-indicator';
-      d.innerHTML = `<i class="material-symbols-outlined">${iconName}</i>`;
-  // Minimal inline styles only; visual appearance is controlled by CSS classes
-  d.style.pointerEvents = 'none';
-  if (opts.zIndex) d.style.zIndex = opts.zIndex;
-  if (opts.background) d.style.background = opts.background;
-  if (opts.color) d.style.color = opts.color;
-      const inner = d.querySelector('.material-symbols-outlined');
-      if (inner) inner.style.fontVariationSettings = "'FILL' 1";
-      if (opts.zIndex) d.style.zIndex = opts.zIndex;
-      return d;
-    };
-
-    // Append in a fixed order so layout is predictable. Blocked indicator comes last to sit on top.
-    if (shouldShowPersistent) indicatorsWrapper.appendChild(createIndicator('push_pin', { className: 'persistent-indicator', background: 'black' }));
-    if (shouldShowLock) {
-      indicatorsWrapper.appendChild(createIndicator('lock', { className: 'lock-indicator', background: '#dc3545' }));
-      container.classList.add('is-locked');
-    }
-    if (shouldShowForce) indicatorsWrapper.appendChild(createIndicator('lock_person', { className: 'force-settings-indicator' }));
-    if (shouldShowTop) indicatorsWrapper.appendChild(createIndicator('vertical_align_top', { className: 'always-on-top-indicator' }));
-    if (shouldShowBlocked) {
-      const b = createIndicator('block', { className: 'blocked-indicator', zIndex: '1016' });
-      b.style.background = 'rgba(0,0,0,0.8)';
-      b.style.zIndex = '1016';
-      indicatorsWrapper.appendChild(b);
-    }
-
-    container.appendChild(indicatorsWrapper);
+  // Add is-locked class if element is locked
+  if (el.isLocked) {
+    container.classList.add('is-locked');
   }
 
   if (el.rotation) {
