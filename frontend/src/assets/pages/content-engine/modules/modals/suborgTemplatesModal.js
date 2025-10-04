@@ -5,6 +5,8 @@ import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
 import * as bootstrap from "bootstrap";
 import { fetchAllSuborgTemplatesAndPopulateStore } from "../core/suborgTemplateDataManager.js";
+import { loadSlide } from "../core/renderSlide.js";
+import { scaleSlide } from "../core/renderSlide.js";
 
 let currentSuborgId = null;
 
@@ -96,27 +98,37 @@ export async function openCreateSuborgTemplateModal(suborgId) {
 
   // Build modal content
   modal.innerHTML = `
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="${modalId}Label">${gettext("Create Template from Global Template")}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>${gettext("Select a global template to create a copy for this suborganisation:")}</p>
-          <div class="form-group mb-3">
-            <label for="globalTemplateSelect">${gettext("Global Template")}</label>
-            <select class="form-select" id="globalTemplateSelect">
-              <option value="">${gettext("-- Select a template --")}</option>
-              ${globalTemplates.map(t => `<option value="${t.id}">${t.name}</option>`).join("")}
-            </select>
+          <div class="row">
+            <div class="col-md-5">
+              <p>${gettext("Select a global template to create a copy for this suborganisation:")}</p>
+              <div class="form-group mb-3">
+                <label for="globalTemplateSelect">${gettext("Global Template")}</label>
+                <select class="form-select" id="globalTemplateSelect">
+                  <option value="">${gettext("-- Select a template --")}</option>
+                  ${globalTemplates.map(t => `<option value="${t.id}">${t.name}</option>`).join("")}
+                </select>
+              </div>
+              <div class="form-group mb-3">
+                <label for="newTemplateName">${gettext("New Template Name")}</label>
+                <input type="text" class="form-control" id="newTemplateName" placeholder="${gettext("Enter template name")}" />
+                <small class="form-text text-muted">${gettext("Leave empty to use original name with '(Copy)' suffix")}</small>
+              </div>
+              <div id="templateInfo" class="mt-3"></div>
+            </div>
+            <div class="col-md-7">
+              <h6>${gettext("Template Preview")}</h6>
+              <div id="templatePreview" class="border rounded p-2" style="min-height: 400px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                <p class="text-muted">${gettext("Select a template to see preview")}</p>
+              </div>
+            </div>
           </div>
-          <div class="form-group mb-3">
-            <label for="newTemplateName">${gettext("New Template Name")}</label>
-            <input type="text" class="form-control" id="newTemplateName" placeholder="${gettext("Enter template name")}" />
-            <small class="form-text text-muted">${gettext("Leave empty to use original name with '(Copy)' suffix")}</small>
-          </div>
-          <div id="templatePreview" class="mt-3"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${gettext("Cancel")}</button>
@@ -130,22 +142,64 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   const selectElement = modal.querySelector("#globalTemplateSelect");
   selectElement.addEventListener("change", (e) => {
     const templateId = e.target.value;
+    const previewDiv = modal.querySelector("#templatePreview");
+    const infoDiv = modal.querySelector("#templateInfo");
+    
     if (templateId) {
       const template = globalTemplates.find(t => t.id == templateId);
-      if (template) {
-        const previewDiv = modal.querySelector("#templatePreview");
-        previewDiv.innerHTML = `
+      if (template && template.slideData) {
+        // Show template info
+        infoDiv.innerHTML = `
           <div class="card">
             <div class="card-body">
-              <h6>${gettext("Template Preview")}</h6>
-              <p><strong>${gettext("Name")}:</strong> ${template.name}</p>
-              ${template.category ? `<p><strong>${gettext("Category")}:</strong> ${template.category.name}</p>` : ""}
-              ${template.tags && template.tags.length > 0 ? `<p><strong>${gettext("Tags")}:</strong> ${template.tags.map(t => t.name).join(", ")}</p>` : ""}
-              ${template.accepted_aspect_ratios && template.accepted_aspect_ratios.length > 0 ? `<p><strong>${gettext("Aspect Ratios")}:</strong> ${template.accepted_aspect_ratios.join(", ")}</p>` : ""}
+              <h6>${gettext("Template Details")}</h6>
+              <p class="mb-1"><strong>${gettext("Name")}:</strong> ${template.name}</p>
+              ${template.category ? `<p class="mb-1"><strong>${gettext("Category")}:</strong> ${template.category.name}</p>` : ""}
+              ${template.tags && template.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${template.tags.map(t => t.name).join(", ")}</p>` : ""}
+              ${template.accepted_aspect_ratios && template.accepted_aspect_ratios.length > 0 ? `<p class="mb-1"><strong>${gettext("Aspect Ratios")}:</strong> ${template.accepted_aspect_ratios.join(", ")}</p>` : ""}
             </div>
           </div>
         `;
+        
+        // Show visual preview
+        previewDiv.innerHTML = "";
+        previewDiv.style.backgroundColor = "#f8f9fa";
+        
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("template-preview-wrapper");
+        wrapper.style.position = "relative";
+        wrapper.style.width = "100%";
+        wrapper.style.height = "400px";
+        wrapper.style.display = "flex";
+        wrapper.style.alignItems = "center";
+        wrapper.style.justifyContent = "center";
+        
+        previewDiv.appendChild(wrapper);
+        
+        const previewSlide = document.createElement("div");
+        previewSlide.classList.add("preview-slide");
+        previewSlide.id = "suborg-template-preview";
+        previewSlide.style.transform = "";
+        wrapper.appendChild(previewSlide);
+        
+        // Create a proper slide object with the template data
+        const slideObject = {
+          ...template.slideData,
+          previewWidth: template.previewWidth || 1920,
+          previewHeight: template.previewHeight || 1080,
+        };
+        
+        // Load the slide content
+        loadSlide(slideObject, "#suborg-template-preview", true);
+        
+        // Scale the content after a brief delay to ensure rendering
+        setTimeout(() => {
+          scaleSlide(wrapper);
+        }, 100);
       }
+    } else {
+      previewDiv.innerHTML = `<p class="text-muted">${gettext("Select a template to see preview")}</p>`;
+      infoDiv.innerHTML = "";
     }
   });
 
