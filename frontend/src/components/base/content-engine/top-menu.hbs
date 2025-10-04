@@ -10,10 +10,19 @@
                         class="btn btn-primary btn-sm d-flex align-items-center">
                         <i class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">play_arrow</i>
                     </button>
-                    <button type="button" class="btn btn-tertiary btn-sm d-flex align-items-center"
-                        data-bs-toggle="modal" data-bs-target="#resolutionModal">
-                        <i data-bs-toggle="tooltip" data-bs-title='{% trans "Change Preview Aspect Ratio" %}' class="material-symbols-outlined">aspect_ratio</i>
-                    </button>
+                </div>
+            </div>
+            <div class="vr"></div>
+            <div id="aspect-ratio-container" class="d-flex align-items-center">
+                <div>
+                    <span id="aspect-ratio-label">{% trans "Aspect Ratio" %}</span>
+                    <div class="d-flex align-items-center gap-3">
+                        <button type="button" class="btn btn-tertiary btn-sm d-flex align-items-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#resolutionModal">
+                            <i data-bs-toggle="tooltip" data-bs-title='{% trans "Change Preview Aspect Ratio" %}' class="material-symbols-outlined">aspect_ratio</i>
+                            <span id="aspect-ratio-value"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="vr"></div>

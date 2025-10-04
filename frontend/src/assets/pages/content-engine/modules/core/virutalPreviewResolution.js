@@ -34,6 +34,13 @@ export function initVirtualPreviewResolution() {
       option.classList.remove("active");
     }
   });
+  
+  // Initialize aspect ratio value display
+  const currentAspectRatio = getCurrentAspectRatio();
+  const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+  if (aspectRatioValueElement) {
+    aspectRatioValueElement.innerText = currentAspectRatio;
+  }
 
   options.forEach((option) => {
     option.addEventListener("click", () => {
@@ -59,8 +66,18 @@ export async function updateResolution(selectedResolution) {
     if (selectedResolution.width > 0 && selectedResolution.height > 0) {
       store.emulatedWidth = selectedResolution.width;
       store.emulatedHeight = selectedResolution.height;
-      document.getElementById("aspect-ratio").innerText =
-        getCurrentAspectRatio();
+      const currentAspectRatio = getCurrentAspectRatio();
+      
+      // Update aspect ratio displays
+      const aspectRatioElement = document.getElementById("aspect-ratio");
+      if (aspectRatioElement) {
+        aspectRatioElement.innerText = currentAspectRatio;
+      }
+      const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+      if (aspectRatioValueElement) {
+        aspectRatioValueElement.innerText = currentAspectRatio;
+      }
+      
       if (store.currentSlideIndex > -1) {
         loadSlide(
           store.slides[store.currentSlideIndex],
