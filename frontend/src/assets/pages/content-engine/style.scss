@@ -3,6 +3,16 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
 @import "../../scss/main";
 
+/* Prevent overflow in content-engine */
+#main-container {
+  overflow: hidden;
+}
+
+#right-content-container {
+  overflow: hidden;
+  height: 100%;
+}
+
 #right-content-container.resize-for-zoom {
   width: calc(100vw - 18rem);
 }
@@ -10,6 +20,7 @@
 #sidebar {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .player-mode {
@@ -2281,4 +2292,28 @@ span {
   font-weight: 600;
   color: #343a40;
   margin: 0;
+}
+
+/* Fix overflow issues in content-engine layout */
+.slide-canvas {
+  min-height: 0 !important;
+  min-width: 0 !important;
+}
+
+.preview-container {
+  overflow: hidden !important;
+}
+
+.slide-right-sidebar {
+  overflow: hidden auto !important;
+}
+
+/* Ensure flex containers don't cause overflow */
+.d-flex.h-100 {
+  overflow: hidden;
+}
+
+#right-content-container {
+  display: flex;
+  flex-direction: column;
 }
