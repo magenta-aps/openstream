@@ -14,35 +14,7 @@
                         aria-label='{% trans "Close" %}'></button>
             </div>
             <div class="modal-body">
-                <!-- Slide Type Selection -->
-                <div class="border-bottom pb-3 row">
-                    <div>
-                        <input type="radio"
-                               id="optionTemplate"
-                               name="slideType"
-                               value="template"
-                               checked>
-                        <label for="optionTemplate">{% trans "Template Slide" %}</label>
-                        &nbsp;&nbsp;
-                        <input type="radio" id="optionBlank" name="slideType" value="blank">
-                        <label for="optionBlank">{% trans "Blank Slide" %}</label>
-                    </div>
-                </div>
-                <!-- Blank Slide Fields -->
-                <div id="blankSlideSection">
-                    <div class="mb-3">
-                        <label for="slideName" class="form-label">{% trans "Slide Name" %}</label>
-                        <input type="text"
-                               class="form-control"
-                               id="slideName"
-                               placeholder='{% trans "e.g. Welcome Slide" %}'>
-                    </div>
-                    <div class="mb-3">
-                        <label for="slideDuration" class="form-label">{% trans "Duration (seconds)" %}</label>
-                        <input type="number" class="form-control" id="slideDuration" value="5">
-                    </div>
-                </div>
-                <!-- Template Selection Section (hidden by default) -->
+                <!-- Template Selection Section -->
                 <div id="templateSlideSection" class="mb-0">
                     <div style="background-color: var(--lightest-gray)"
                          class="py-1 d-flex justify-content-between align-items-center">

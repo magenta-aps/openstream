@@ -270,30 +270,6 @@ function loadUnifiedTemplatePreview(template) {
 
 export function initAddSlide() {
   document
-    .querySelectorAll('input[name="slideType"]')
-    .forEach(function (radio) {
-      radio.addEventListener("change", async function () {
-        if (this.value === "blank") {
-          document.getElementById("blankSlideSection").style.display = "block";
-          document.getElementById("templateSlideSection").style.display =
-            "none";
-        } else {
-          await fetchUnifiedTemplates();
-          document.getElementById("blankSlideSection").style.display = "none";
-          document.getElementById("templateSlideSection").style.display =
-            "block";
-        }
-      });
-    });
-
-  const checkedRadio = document.querySelector(
-    'input[name="slideType"]:checked',
-  );
-  if (checkedRadio) {
-    checkedRadio.dispatchEvent(new Event("change"));
-  }
-
-  document
     .getElementById("templateSearch")
     .addEventListener("input", function () {
       filterTemplates();
@@ -302,7 +278,8 @@ export function initAddSlide() {
 
   document
     .getElementById("unifiedSlideModal")
-    .addEventListener("shown.bs.modal", () => {
+    .addEventListener("shown.bs.modal", async () => {
+      await fetchUnifiedTemplates();
       const tableBody = document.querySelector("#unifiedTemplateTable tbody");
       if (tableBody && tableBody.children.length > 0) {
         const firstRow = tableBody.children[0];
@@ -315,10 +292,6 @@ export function initAddSlide() {
   document
     .getElementById("unifiedSaveSlideBtn")
     .addEventListener("click", () => {
-      const selectedOption = document.querySelector(
-        'input[name="slideType"]:checked',
-      ).value;
-
       // Ensure slide and element ID counters are up-to-date to prevent conflicts.
       let maxSlideId = 0;
       store.slides.forEach((slide) => {
@@ -346,98 +319,59 @@ export function initAddSlide() {
         maxElementId + 1,
       );
 
-      if (selectedOption === "blank") {
-        const name = document.getElementById("slideName").value.trim();
-        const duration = parseInt(
-          document.getElementById("slideDuration").value,
-          10,
+      if (!selectedUnifiedTemplate) {
+        showToast(
+          gettext("Please select a template from the list."),
+          "Warning",
         );
-        if (!name || duration <= 0) {
-          showToast(
-            gettext("Please fill out slide name and duration correctly."),
-            "Warning",
-          );
-          return;
-        }
-        const newSlide = {
-          id: store.slideIdCounter++,
-          name: name,
-          duration: duration,
-          backgroundColor: "#ffffff",
-          elements: [],
-          undoStack: [],
-          redoStack: [],
-        };
-        store.slides.push(newSlide);
-        store.currentSlideIndex = store.slides.length - 1;
-        updateSlideSelector();
-        bootstrap.Modal.getInstance(
-          document.getElementById("unifiedSlideModal"),
-        ).hide();
-        loadSlide(newSlide);
+        return;
+      }
+      const templateSlide = selectedUnifiedTemplate.slideData;
+      const newSlide = JSON.parse(JSON.stringify(templateSlide));
+      newSlide.id = store.slideIdCounter++;
 
-        // Ensure proper scaling after adding blank slide
-        const previewContainer = document.querySelector(
-          ".slide-canvas .preview-container",
-        );
-        if (previewContainer) {
-          scaleSlide(previewContainer);
-        }
-      } else {
-        if (!selectedUnifiedTemplate) {
-          showToast(
-            gettext("Please select a template from the list."),
-            "Warning",
-          );
-          return;
-        }
-        const templateSlide = selectedUnifiedTemplate.slideData;
-        const newSlide = JSON.parse(JSON.stringify(templateSlide));
-        newSlide.id = store.slideIdCounter++;
+      const manualName = document
+        .getElementById("templateSlideName")
+        .value.trim();
+      const manualDuration = parseInt(
+        document.getElementById("templateSlideDuration").value,
+        10,
+      );
+      newSlide.name = manualName
+        ? manualName
+        : selectedUnifiedTemplate.name + gettext(" (From Template)");
+      if (!isNaN(manualDuration) && manualDuration > 0) {
+        newSlide.duration = manualDuration;
+      }
+      newSlide.undoStack = [];
+      newSlide.redoStack = [];
 
-        const manualName = document
-          .getElementById("templateSlideName")
-          .value.trim();
-        const manualDuration = parseInt(
-          document.getElementById("templateSlideDuration").value,
-          10,
-        );
-        newSlide.name = manualName
-          ? manualName
-          : selectedUnifiedTemplate.name + gettext(" (From Template)");
-        if (!isNaN(manualDuration) && manualDuration > 0) {
-          newSlide.duration = manualDuration;
-        }
-        newSlide.undoStack = [];
-        newSlide.redoStack = [];
+      // When creating a slide from a template, ensure all elements have new unique IDs
+      // and their `originSlideIndex` is updated to the new slide's index.
+      // Also, reset persistence.
+      const newSlideIndex = store.slides.length;
+      if (newSlide.elements && Array.isArray(newSlide.elements)) {
+        newSlide.elements.forEach((element) => {
+          element.id = store.elementIdCounter++;
+          element.originSlideIndex = newSlideIndex;
+          element.isPersistent = false;
+        });
+      }
 
-        // When creating a slide from a template, ensure all elements have new unique IDs
-        // and their `originSlideIndex` is updated to the new slide's index.
-        // Also, reset persistence.
-        const newSlideIndex = store.slides.length;
-        if (newSlide.elements && Array.isArray(newSlide.elements)) {
-          newSlide.elements.forEach((element) => {
-            element.id = store.elementIdCounter++;
-            element.originSlideIndex = newSlideIndex;
-            element.isPersistent = false;
-          });
-        }
+      store.slides.push(newSlide);
+      store.currentSlideIndex = store.slides.length - 1;
+      updateSlideSelector();
+      bootstrap.Modal.getInstance(
+        document.getElementById("unifiedSlideModal"),
+      ).hide();
+      loadSlide(newSlide);
 
-        store.slides.push(newSlide);
-        store.currentSlideIndex = store.slides.length - 1;
-        updateSlideSelector();
-        bootstrap.Modal.getInstance(
-          document.getElementById("unifiedSlideModal"),
-        ).hide();
-        loadSlide(newSlide);
-
-        // Ensure proper scaling after adding slide from template
-        const previewContainer = document.querySelector(
-          ".slide-canvas .preview-container",
-        );
-        if (previewContainer) {
-          scaleSlide(previewContainer);
-        }
+      // Ensure proper scaling after adding slide from template
+      const previewContainer = document.querySelector(
+        ".slide-canvas .preview-container",
+      );
+      if (previewContainer) {
+        scaleSlide(previewContainer);
       }
     });
 
