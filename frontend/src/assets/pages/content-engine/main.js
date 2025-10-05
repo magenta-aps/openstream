@@ -215,6 +215,7 @@ if (queryParams.mode === "template_editor") {
 
 if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
+  document.getElementById("slideshow-mode-text").innerText = gettext("Suborganisation Templates");
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";
