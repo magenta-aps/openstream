@@ -36,6 +36,9 @@ const alignTopBtn = document.querySelector("#alignTextTopBtn");
 const alignMiddleBtn = document.querySelector("#alignTextMiddleBtn");
 const alignBottomBtn = document.querySelector("#alignTextBottomBtn");
 
+const richTextModeRadio = document.querySelector("#richTextMode");
+const simpleTextModeRadio = document.querySelector("#simpleTextMode");
+
 // ─────────────────────────────────────────────────────────────
 // 3) FONT SIZE MAPPING
 // ─────────────────────────────────────────────────────────────
@@ -124,6 +127,53 @@ function restoreSelection(range) {
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
+  }
+}
+
+/**
+ * Strip all formatting from HTML and return plain text content.
+ */
+function stripFormattingToPlainText(html) {
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  return temp.textContent || temp.innerText || "";
+}
+
+/**
+ * Apply uniform styling to a simple text mode textbox.
+ */
+function applySimpleModeStyles(textElement, elData) {
+  const fontSize = fontSizeMapping[elData.fontSize] || fontSizeMapping["12"];
+  const fontFamily = elData.fontFamily || getDefaultFont();
+  const lineHeight = lineHeightMapping[elData.lineHeight] || "1.2";
+  const textColor = elData.textColor || "#000000";
+  const fontWeight = elData.fontWeight || "normal";
+  const fontStyle = elData.fontStyle || "normal";
+  const textDecoration = elData.textDecoration || "none";
+  
+  textElement.style.fontSize = fontSize;
+  textElement.style.fontFamily = `"${fontFamily}"`;
+  textElement.style.lineHeight = lineHeight;
+  textElement.style.color = textColor;
+  textElement.style.fontWeight = fontWeight;
+  textElement.style.fontStyle = fontStyle;
+  textElement.style.textDecoration = textDecoration;
+}
+
+/**
+ * Update the mode radio buttons based on the selected element's state.
+ */
+export function updateModeRadioButtons() {
+  if (!store.selectedElementData) return;
+  
+  const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+  
+  if (isSimpleMode) {
+    simpleTextModeRadio.checked = true;
+    richTextModeRadio.checked = false;
+  } else {
+    richTextModeRadio.checked = true;
+    simpleTextModeRadio.checked = false;
   }
 }
 
@@ -631,11 +681,20 @@ function handleFontSizeChange(e) {
   withSelectedTextbox(() => {
     const target = store.selectedElement.querySelector(".text-content");
     if (target) {
-      target.contentEditable = "true";
-      target.focus();
-      applyCustomFontSize(fontSizeSelect.value);
-      store.selectedElementData.fontSize = fontSizeSelect.value;
-      normalizeNestedSpans(target);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, apply font size to the entire container
+        store.selectedElementData.fontSize = fontSizeSelect.value;
+        applySimpleModeStyles(target, store.selectedElementData);
+      } else {
+        // In rich text mode, apply to selection
+        target.contentEditable = "true";
+        target.focus();
+        applyCustomFontSize(fontSizeSelect.value);
+        store.selectedElementData.fontSize = fontSizeSelect.value;
+        normalizeNestedSpans(target);
+      }
     }
   });
 }
@@ -645,11 +704,20 @@ function handleFontFamilyChange(e) {
   withSelectedTextbox(() => {
     const target = store.selectedElement.querySelector(".text-content");
     if (target) {
-      target.contentEditable = "true";
-      target.focus();
-      applyCustomFontFamily(fontFamilySelect.value);
-      store.selectedElementData.fontFamily = fontFamilySelect.value;
-      normalizeNestedSpans(target);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, apply font family to the entire container
+        store.selectedElementData.fontFamily = fontFamilySelect.value;
+        applySimpleModeStyles(target, store.selectedElementData);
+      } else {
+        // In rich text mode, apply to selection
+        target.contentEditable = "true";
+        target.focus();
+        applyCustomFontFamily(fontFamilySelect.value);
+        store.selectedElementData.fontFamily = fontFamilySelect.value;
+        normalizeNestedSpans(target);
+      }
     }
   });
 }
@@ -666,47 +734,117 @@ function handleLineHeightChange(e) {
     if (elData) elData.lineHeight = key;
     const content = store.selectedElement.querySelector(".text-content");
     if (content) {
-      content.style.lineHeight = lineHeightMapping[key];
-      // apply line-height to all inner spans so they don't override the wrapper
-      content.querySelectorAll("span").forEach((span) => {
-        span.style.lineHeight = lineHeightMapping[key];
-      });
+      const isSimpleMode = elData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, apply line height to the container
+        applySimpleModeStyles(content, elData);
+      } else {
+        // In rich text mode, apply to container and all inner spans
+        content.style.lineHeight = lineHeightMapping[key];
+        content.querySelectorAll("span").forEach((span) => {
+          span.style.lineHeight = lineHeightMapping[key];
+        });
+      }
     }
   });
 }
 
 function handleTextColorPickerClick() {
   withSelectedTextbox(() => {
-    savedRange = saveSelection();
-    showColorPalette(
-      textColorPicker,
-      (chosenColor) => {
-        restoreSelection(savedRange);
-        const target = store.selectedElement.querySelector(".text-content");
-        if (target) {
-          target.contentEditable = "true";
-          target.focus();
-          document.execCommand("styleWithCSS", false, true);
-          if (chosenColor) {
-            document.execCommand("foreColor", false, chosenColor);
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    
+    if (isSimpleMode) {
+      // In simple mode, apply color to entire textbox
+      showColorPalette(
+        textColorPicker,
+        (chosenColor) => {
+          const target = store.selectedElement.querySelector(".text-content");
+          if (target && chosenColor) {
+            store.selectedElementData.textColor = chosenColor;
+            applySimpleModeStyles(target, store.selectedElementData);
           }
-        }
-      },
-      { allowRemove: false },
-    );
+        },
+        { allowRemove: false },
+      );
+    } else {
+      // In rich text mode, apply to selection
+      savedRange = saveSelection();
+      showColorPalette(
+        textColorPicker,
+        (chosenColor) => {
+          restoreSelection(savedRange);
+          const target = store.selectedElement.querySelector(".text-content");
+          if (target) {
+            target.contentEditable = "true";
+            target.focus();
+            document.execCommand("styleWithCSS", false, true);
+            if (chosenColor) {
+              document.execCommand("foreColor", false, chosenColor);
+            }
+          }
+        },
+        { allowRemove: false },
+      );
+    }
   });
 }
 
 function handleBoldClick() {
-  applyTextCommand("bold");
+  withSelectedTextbox(() => {
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    
+    if (isSimpleMode) {
+      // In simple mode, toggle bold for entire textbox
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const currentWeight = target.style.fontWeight;
+        target.style.fontWeight = currentWeight === "bold" ? "normal" : "bold";
+        store.selectedElementData.fontWeight = target.style.fontWeight;
+      }
+    } else {
+      // In rich text mode, apply to selection
+      applyTextCommand("bold");
+    }
+  });
 }
 
 function handleItalicClick() {
-  applyTextCommand("italic");
+  withSelectedTextbox(() => {
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    
+    if (isSimpleMode) {
+      // In simple mode, toggle italic for entire textbox
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const currentStyle = target.style.fontStyle;
+        target.style.fontStyle = currentStyle === "italic" ? "normal" : "italic";
+        store.selectedElementData.fontStyle = target.style.fontStyle;
+      }
+    } else {
+      // In rich text mode, apply to selection
+      applyTextCommand("italic");
+    }
+  });
 }
 
 function handleUnderlineClick() {
-  applyTextCommand("underline");
+  withSelectedTextbox(() => {
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    
+    if (isSimpleMode) {
+      // In simple mode, toggle underline for entire textbox
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const currentDecoration = target.style.textDecoration;
+        target.style.textDecoration = currentDecoration === "underline" ? "none" : "underline";
+        store.selectedElementData.textDecoration = target.style.textDecoration;
+      }
+    } else {
+      // In rich text mode, apply to selection
+      applyTextCommand("underline");
+    }
+  });
 }
 
 function handleAlignLeft() {
@@ -829,11 +967,13 @@ function addTextboxToSlide() {
     lineHeight: "1.2",
     textColor: "#000000",
     fontWeight: "normal",
+    fontStyle: "normal",
     textDecoration: "none",
     textAlign: "left",
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
+    isSimpleTextMode: false, // Initialize as rich text mode by default
   };
 
   store.slides[store.currentSlideIndex].elements.push(newTextbox);
@@ -841,6 +981,76 @@ function addTextboxToSlide() {
 
   const newElDom = document.getElementById("el-" + newTextbox.id);
   selectElement(newElDom, newTextbox);
+}
+
+/**
+ * Handle mode toggle between rich text and simple text modes.
+ */
+function handleModeToggle(e) {
+  const newMode = e.target.value;
+  const isSimpleMode = newMode === "simple";
+  
+  withSelectedTextbox(() => {
+    const currentIsSimple = store.selectedElementData.isSimpleTextMode || false;
+    
+    // If switching to simple mode from rich mode, warn about formatting loss
+    if (isSimpleMode && !currentIsSimple) {
+      const confirmed = confirm(
+        gettext("Switching to simple text mode will remove all formatting (bold, italic, colors, etc.). Do you want to continue?")
+      );
+      
+      if (!confirmed) {
+        // Revert radio button selection
+        richTextModeRadio.checked = true;
+        simpleTextModeRadio.checked = false;
+        return;
+      }
+      
+      pushCurrentSlideState();
+      
+      // Strip all formatting and convert to plain text
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const plainText = stripFormattingToPlainText(target.innerHTML);
+        target.innerHTML = plainText;
+        
+        // Update data model
+        store.selectedElementData.isSimpleTextMode = true;
+        store.selectedElementData.text = plainText;
+        
+        // Apply simple mode styles
+        applySimpleModeStyles(target, store.selectedElementData);
+      }
+    } else if (!isSimpleMode && currentIsSimple) {
+      // Switching from simple to rich mode
+      pushCurrentSlideState();
+      
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        // Get current plain text
+        const plainText = target.textContent || target.innerText || "";
+        
+        // Wrap in span with current settings
+        const fontSize = store.selectedElementData.fontSize || "12";
+        const fontFamily = store.selectedElementData.fontFamily || getDefaultFont();
+        const fontSizeValue = fontSizeMapping[fontSize];
+        
+        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${fontSizeValue}; font-family: '${fontFamily}'; line-height: 1.2;">${plainText}</span>`;
+        
+        // Update data model
+        store.selectedElementData.isSimpleTextMode = false;
+        store.selectedElementData.text = target.innerHTML;
+        
+        // Clear simple mode styles from container
+        target.style.fontSize = "";
+        target.style.fontFamily = "";
+        target.style.color = "";
+        target.style.fontWeight = "";
+        target.style.fontStyle = "";
+        target.style.textDecoration = "";
+      }
+    }
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -884,6 +1094,10 @@ export function initTextbox() {
   document
     .querySelector('[data-type="textbox"]')
     .addEventListener("click", addTextboxToSlide);
+
+  // Mode toggle
+  richTextModeRadio.addEventListener("change", handleModeToggle);
+  simpleTextModeRadio.addEventListener("change", handleModeToggle);
 
   // Font size + font family changes
   fontSizeSelect.addEventListener("change", handleFontSizeChange);
@@ -978,8 +1192,23 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
   textWrapper.setAttribute("autocapitalize", "off");
   textWrapper.setAttribute("spellcheck", "false");
 
-  // Fix line height issues in existing content
-  fixLineHeightInTextbox(textWrapper);
+  const isSimpleMode = el.isSimpleTextMode || false;
+
+  if (isSimpleMode) {
+    // In simple mode, strip all formatting and apply uniform styles
+    const plainText = stripFormattingToPlainText(textWrapper.innerHTML);
+    textWrapper.innerHTML = plainText;
+    applySimpleModeStyles(textWrapper, el);
+  } else {
+    // In rich text mode, fix line height issues in existing content
+    fixLineHeightInTextbox(textWrapper);
+    
+    textWrapper.style.lineHeight = el.lineHeight || "1.2";
+    // ensure all spans inside respect the wrapper's line-height
+    textWrapper.querySelectorAll("span").forEach((span) => {
+      span.style.lineHeight = el.lineHeight || "1.2";
+    });
+  }
 
   // Vertical alignment
   if (el.verticalAlign) {
@@ -993,12 +1222,6 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
       textWrapper.style.justifyContent = "flex-end";
     }
   }
-
-  textWrapper.style.lineHeight = el.lineHeight || "1.2";
-  // ensure all spans inside respect the wrapper's line-height
-  textWrapper.querySelectorAll("span").forEach((span) => {
-    span.style.lineHeight = el.lineHeight || "1.2";
-  });
 
   if (
     (!isInteractivePlayback && queryParams.mode === "edit") ||
@@ -1021,19 +1244,28 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
         // If no other text-content is active, finalize
         if (!document.activeElement?.closest(".text-content")) {
           textWrapper.contentEditable = false;
-          normalizeNestedSpans(textWrapper);
-          el.text = textWrapper.innerHTML;
-          // Fix line height issues after editing
-          fixLineHeightInTextbox(textWrapper);
+          
+          if (isSimpleMode) {
+            // In simple mode, just store plain text
+            el.text = textWrapper.textContent || textWrapper.innerText || "";
+          } else {
+            // In rich mode, normalize and fix formatting
+            normalizeNestedSpans(textWrapper);
+            el.text = textWrapper.innerHTML;
+            fixLineHeightInTextbox(textWrapper);
+          }
         }
       }, 0);
     });
 
     textWrapper.addEventListener("input", () => {
       autoResizeTextbox(textWrapper, container, el);
-      // Also fix line height issues when content changes
-      fixLineHeightInTextbox(textWrapper);
-      handleInputOnEmpty({ target: textWrapper }); // Call the new handler
+      
+      if (!isSimpleMode) {
+        // Only fix line heights and handle empty spans in rich mode
+        fixLineHeightInTextbox(textWrapper);
+        handleInputOnEmpty({ target: textWrapper });
+      }
     });
   }
 

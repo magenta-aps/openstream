@@ -1,6 +1,18 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="wysiwyg-toolbar" title="Textbox" }}
+      <div class="mx-3 d-flex align-items-center">
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text mode">
+            <input type="radio" class="btn-check" name="textModeToggle" id="richTextMode" value="rich" checked>
+            <label class="btn btn-outline-secondary btn-sm" for="richTextMode" title="{% trans 'Rich Text Mode' %}">
+                Rich Text
+            </label>
+            <input type="radio" class="btn-check" name="textModeToggle" id="simpleTextMode" value="simple">
+            <label class="btn btn-outline-secondary btn-sm" for="simpleTextMode" title="{% trans 'Simple Text Mode' %}">
+                Simple Text
+            </label>
+        </div>
+      </div>
       <div class="mx-3 d-flex">
         {{#> base/form/dropdown id="" class="font-family-select mx-1 form-select form-select-sm" }}
             <!-- Populated by JS -->
