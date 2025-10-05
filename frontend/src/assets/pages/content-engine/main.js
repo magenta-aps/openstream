@@ -203,8 +203,9 @@ if (queryParams.mode === "template_editor") {
         "Organisation ID (selectedSubOrgID or parentOrgID) not found. Cannot initialize template editor.",
       ),
     );
-    const previewContainer = document.querySelector(".preview-column .preview-container") || 
-                                   document.querySelector(".preview-container");
+    const previewContainer =
+      document.querySelector(".preview-column .preview-container") ||
+      document.querySelector(".preview-container");
     if (previewContainer) {
       previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
         "Error: Organisation ID is missing. Cannot load template editor.",
@@ -215,7 +216,9 @@ if (queryParams.mode === "template_editor") {
 
 if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
-  document.getElementById("slideshow-mode-text").innerText = gettext("Suborganisation Templates");
+  document.getElementById("slideshow-mode-text").innerText = gettext(
+    "Suborganisation Templates",
+  );
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";
@@ -226,11 +229,11 @@ if (queryParams.mode === "suborg_templates") {
   }
 
   // Customize navbar for suborg templates - hide most nav links
-  const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
-  navLinks.forEach(link => {
-    const href = link.getAttribute('href');
-    if (!href.includes('manage-templates') && !href.includes('documentation')) {
-      link.parentElement.style.display = 'none';
+  const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
+  navLinks.forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href.includes("manage-templates") && !href.includes("documentation")) {
+      link.parentElement.style.display = "none";
     }
   });
 
@@ -240,11 +243,14 @@ if (queryParams.mode === "suborg_templates") {
     // Fetch and display suborg name
     const { BASE_URL } = await import("../../utils/constants.js");
     const { token } = await import("../../utils/utils.js");
-    
+
     try {
-      const response = await fetch(`${BASE_URL}/api/suborganisations/${suborgId}/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetch(
+        `${BASE_URL}/api/suborganisations/${suborgId}/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.ok) {
         const suborgData = await response.json();
         // Update the branch switcher to show suborg name instead
@@ -289,7 +295,7 @@ if (queryParams.mode === "suborg_templates") {
     // Add "Create Template from Global" button
     const addTemplateBtn = document.createElement("div");
     addTemplateBtn.innerHTML = `<button class="btn btn-primary" id="addSuborgTemplateBtn">${gettext(
-      "+ Create Template from Global",
+      "+ Create Template",
     )}</button>`;
 
     addTemplateBtn.addEventListener("click", () => {
@@ -313,8 +319,9 @@ if (queryParams.mode === "suborg_templates") {
         "SubOrganisation ID is missing. Cannot initialize suborg template editor.",
       ),
     );
-    const previewContainer = document.querySelector(".preview-column .preview-container") || 
-                                   document.querySelector(".preview-container");
+    const previewContainer =
+      document.querySelector(".preview-column .preview-container") ||
+      document.querySelector(".preview-container");
     if (previewContainer) {
       previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
         "Error: SubOrganisation ID is missing. Cannot load template editor.",
@@ -324,8 +331,9 @@ if (queryParams.mode === "suborg_templates") {
 }
 
 if (queryParams.mode === "slideshow-player") {
-  const previewContainer = document.querySelector(".preview-column .preview-container") || 
-                          document.querySelector(".preview-container");
+  const previewContainer =
+    document.querySelector(".preview-column .preview-container") ||
+    document.querySelector(".preview-container");
   if (previewContainer) {
     previewContainer.classList.add("player-mode");
   }
@@ -353,8 +361,9 @@ function generalInit() {
 
   window.addIframe = addIframe;
 
-  const container = document.querySelector(".preview-column .preview-container") || 
-                   document.querySelector(".preview-container");
+  const container =
+    document.querySelector(".preview-column .preview-container") ||
+    document.querySelector(".preview-container");
 
   const resizeObserver = new ResizeObserver(() => {
     scaleAllSlides();

@@ -60,8 +60,11 @@ function handleWheelZoom(event) {
 
   // Check if the wheel event is over a slide preview container
   const target = event.target;
-  const previewContainer = target.closest(".preview-column .preview-container") ||
-                          target.closest(".slide-canvas .preview-container:not(.preview-column .preview-container)");
+  const previewContainer =
+    target.closest(".preview-column .preview-container") ||
+    target.closest(
+      ".slide-canvas .preview-container:not(.preview-column .preview-container)",
+    );
 
   if (!previewContainer) {
     return;

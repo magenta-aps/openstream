@@ -49,7 +49,7 @@ async function ensureSuborgTemplatesBranch(suborgIdToUse) {
     }
 
     const branches = await resp.json();
-    
+
     // Check if 'suborg_templates' branch already exists
     const existingBranch = branches.find(
       (branch) => branch.name.toLowerCase() === "suborg_templates",
@@ -83,9 +83,7 @@ async function ensureSuborgTemplatesBranch(suborgIdToUse) {
     }
 
     const newBranch = await createResp.json();
-    console.log(
-      `Created 'suborg_templates' branch with ID: ${newBranch.id}`,
-    );
+    console.log(`Created 'suborg_templates' branch with ID: ${newBranch.id}`);
     return newBranch.id;
   } catch (err) {
     console.error("Error ensuring suborg_templates branch:", err);
@@ -273,7 +271,7 @@ export async function initSuborgTemplateEditor(suborgIdToUse) {
   try {
     // Ensure 'suborg_templates' branch exists and get its ID
     const suborgTemplatesBranchId = await ensureSuborgTemplatesBranch(suborgId);
-    
+
     // Set the selectedBranchID in localStorage so media operations work
     localStorage.setItem("selectedBranchID", suborgTemplatesBranchId);
     console.log(
@@ -289,7 +287,7 @@ export async function initSuborgTemplateEditor(suborgIdToUse) {
     // Set page title
     const pageTitle = document.getElementById("contentEngineTitle");
     if (pageTitle) {
-      pageTitle.textContent = gettext("Manage SubOrganisation Templates");
+      pageTitle.textContent = gettext("Suborganisation Templates");
     }
 
     console.log(gettext("Suborg template editor initialized successfully."));

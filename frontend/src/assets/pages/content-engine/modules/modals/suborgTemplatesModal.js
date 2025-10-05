@@ -241,7 +241,10 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       }
 
       // Refresh template list and automatically select the newly created template
-      await fetchAllSuborgTemplatesAndPopulateStore(currentSuborgId, newTemplate.id);
+      await fetchAllSuborgTemplatesAndPopulateStore(
+        currentSuborgId,
+        newTemplate.id,
+      );
     } catch (err) {
       showToast(gettext("Error creating template: ") + err.message, "Error");
       createBtn.disabled = false;

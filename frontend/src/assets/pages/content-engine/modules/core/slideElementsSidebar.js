@@ -104,7 +104,8 @@ function guardSettingsChange(elData, revert) {
 function computeZOrderRanks(slideElements) {
   const withIndex = slideElements.map((el, idx) => ({ el, idx }));
   withIndex.sort((a, b) => {
-    const priorityDiff = getAlwaysOnTopPriority(b.el) - getAlwaysOnTopPriority(a.el);
+    const priorityDiff =
+      getAlwaysOnTopPriority(b.el) - getAlwaysOnTopPriority(a.el);
     if (priorityDiff) return priorityDiff;
     return (b.el.zIndex || 0) - (a.el.zIndex || 0);
   });
@@ -334,13 +335,14 @@ function createPopover(elData, displayName) {
   const showTemplateLockSetting =
     isTemplateEditorMode() || isSuborgTemplatesMode();
 
-  const templateLockDescription = isSuborgTemplatesMode() && hasParentTemplateLock(elData)
-    ? gettext(
-        "This element's settings are locked by the parent global template and cannot be unlocked",
-      )
-    : gettext(
-        "Prevent users from modifying this element's position, size, and other settings when using this template",
-      );
+  const templateLockDescription =
+    isSuborgTemplatesMode() && hasParentTemplateLock(elData)
+      ? gettext(
+          "This element's settings are locked by the parent global template and cannot be unlocked",
+        )
+      : gettext(
+          "Prevent users from modifying this element's position, size, and other settings when using this template",
+        );
 
   popover.innerHTML = `
     <div class="popover-header">
@@ -515,23 +517,27 @@ function createPopover(elData, displayName) {
 
   const hasGridPosition = typeof elData.gridX !== "undefined";
   if (controls.positionX) {
-    controls.positionX.value = hasGridPosition ? elData.gridX ?? 0 : elData.x ?? 0;
+    controls.positionX.value = hasGridPosition
+      ? (elData.gridX ?? 0)
+      : (elData.x ?? 0);
   }
   if (controls.positionY) {
-    controls.positionY.value = hasGridPosition ? elData.gridY ?? 0 : elData.y ?? 0;
+    controls.positionY.value = hasGridPosition
+      ? (elData.gridY ?? 0)
+      : (elData.y ?? 0);
   }
 
   if (controls.sizeWidth) {
     controls.sizeWidth.value =
       typeof elData.gridWidth !== "undefined"
-        ? elData.gridWidth ?? 0
-        : elData.width ?? 0;
+        ? (elData.gridWidth ?? 0)
+        : (elData.width ?? 0);
   }
   if (controls.sizeHeight) {
     controls.sizeHeight.value =
       typeof elData.gridHeight !== "undefined"
-        ? elData.gridHeight ?? 0
-        : elData.height ?? 0;
+        ? (elData.gridHeight ?? 0)
+        : (elData.height ?? 0);
   }
 
   if (controls.pinCheckbox) {
@@ -778,23 +784,27 @@ function setupPositionSizeInputs({
   const resetInputs = () => {
     if (positionX) {
       positionX.value =
-        typeof elData.gridX !== "undefined" ? elData.gridX ?? 0 : elData.x ?? 0;
+        typeof elData.gridX !== "undefined"
+          ? (elData.gridX ?? 0)
+          : (elData.x ?? 0);
     }
     if (positionY) {
       positionY.value =
-        typeof elData.gridY !== "undefined" ? elData.gridY ?? 0 : elData.y ?? 0;
+        typeof elData.gridY !== "undefined"
+          ? (elData.gridY ?? 0)
+          : (elData.y ?? 0);
     }
     if (sizeWidth) {
       sizeWidth.value =
         typeof elData.gridWidth !== "undefined"
-          ? elData.gridWidth ?? 0
-          : elData.width ?? 0;
+          ? (elData.gridWidth ?? 0)
+          : (elData.width ?? 0);
     }
     if (sizeHeight) {
       sizeHeight.value =
         typeof elData.gridHeight !== "undefined"
-          ? elData.gridHeight ?? 0
-          : elData.height ?? 0;
+          ? (elData.gridHeight ?? 0)
+          : (elData.height ?? 0);
     }
   };
 
@@ -985,8 +995,7 @@ function recalculateAlwaysOnTopZIndices(elements) {
 
   alwaysOnTopElements.forEach(({ element, priority }) => {
     const tier = Math.max(priority, 1);
-    const base =
-      ALWAYS_ON_TOP_BASE + ALWAYS_ON_TOP_PRIORITY_SPAN * (tier - 1);
+    const base = ALWAYS_ON_TOP_BASE + ALWAYS_ON_TOP_PRIORITY_SPAN * (tier - 1);
     const offset = perPriorityOffsets.get(tier) || 0;
     perPriorityOffsets.set(tier, offset + 1);
     const newZIndex = base + offset + 1;
@@ -1139,9 +1148,7 @@ function setupDeleteButton({ button, elData, state, popover }) {
       return;
     }
 
-    if (
-      !confirm(gettext("Are you sure you want to delete this element?"))
-    ) {
+    if (!confirm(gettext("Are you sure you want to delete this element?"))) {
       return;
     }
 
@@ -1158,13 +1165,11 @@ function setupDeleteButton({ button, elData, state, popover }) {
     if (store.selectedElementData?.id === elData.id) {
       store.selectedElement = null;
       store.selectedElementData = null;
-      document
-        .querySelectorAll(".element-type-toolbar")
-        .forEach((toolbar) => {
-          if (toolbar.classList.contains("d-flex")) {
-            toolbar.classList.replace("d-flex", "d-none");
-          }
-        });
+      document.querySelectorAll(".element-type-toolbar").forEach((toolbar) => {
+        if (toolbar.classList.contains("d-flex")) {
+          toolbar.classList.replace("d-flex", "d-none");
+        }
+      });
     }
 
     hidePopover(popover, state);
@@ -1234,10 +1239,7 @@ function populateLinkSelect(select, elData) {
     select.appendChild(option);
   });
 
-  if (
-    typeof elData.goToSlideIndex !== "number" &&
-    select.options.length
-  ) {
+  if (typeof elData.goToSlideIndex !== "number" && select.options.length) {
     select.selectedIndex = 0;
   }
 }

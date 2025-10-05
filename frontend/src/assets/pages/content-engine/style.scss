@@ -1105,6 +1105,7 @@ span {
   scale: none !important;
   zoom: 1 !important;
   position: relative;
+
   /* Ensure sidebar maintains its fixed width */
   flex-shrink: 0;
   width: 10rem;

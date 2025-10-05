@@ -387,34 +387,34 @@ export function scaleAllSlides() {
 
   // Use the same selector pattern as zoom controller to get the correct preview containers
   const previewContainers = document.querySelectorAll(
-    ".preview-column .preview-container, .slide-canvas .preview-container:not(.preview-column .preview-container)"
+    ".preview-column .preview-container, .slide-canvas .preview-container:not(.preview-column .preview-container)",
   );
-  
+
   previewContainers.forEach((container) => {
-      const previewSlide = container.querySelector(".preview-slide");
-      // Update zoomWrapper and gridContainer dimensions here as well,
-      // because scaleAllSlides might be called independently after resolution change
-      const zoomWrapper = previewSlide?.querySelector(".zoom-wrapper");
-      const gridContainer = zoomWrapper?.querySelector(".grid-container");
+    const previewSlide = container.querySelector(".preview-slide");
+    // Update zoomWrapper and gridContainer dimensions here as well,
+    // because scaleAllSlides might be called independently after resolution change
+    const zoomWrapper = previewSlide?.querySelector(".zoom-wrapper");
+    const gridContainer = zoomWrapper?.querySelector(".grid-container");
 
-      if (zoomWrapper) {
-        zoomWrapper.style.width = `${store.emulatedWidth}px`;
-        zoomWrapper.style.height = `${store.emulatedHeight}px`;
-      }
-      if (gridContainer) {
-        gridContainer.style.width = `${store.emulatedWidth}px`;
-        gridContainer.style.height = `${store.emulatedHeight}px`;
-      }
+    if (zoomWrapper) {
+      zoomWrapper.style.width = `${store.emulatedWidth}px`;
+      zoomWrapper.style.height = `${store.emulatedHeight}px`;
+    }
+    if (gridContainer) {
+      gridContainer.style.width = `${store.emulatedWidth}px`;
+      gridContainer.style.height = `${store.emulatedHeight}px`;
+    }
 
-      if (previewSlide) {
-        if (zoomInfo.mode === "fit") {
-          scaleSlide(container); // Scale the container based on the new dimensions
-        } else {
-          // In zoom mode, just update the zoom
-          updateAllSlidesZoom();
-        }
+    if (previewSlide) {
+      if (zoomInfo.mode === "fit") {
+        scaleSlide(container); // Scale the container based on the new dimensions
+      } else {
+        // In zoom mode, just update the zoom
+        updateAllSlidesZoom();
       }
-    });
+    }
+  });
 }
 
 export function initSlideshowPlayerMode() {

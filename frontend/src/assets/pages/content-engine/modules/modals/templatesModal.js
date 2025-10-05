@@ -436,7 +436,8 @@ if (confirmBtn) {
 
       // Check if we're editing a suborg template by looking at the current template
       const currentTemplate = store.slides[store.editingTemplateIndex];
-      const isSuborgTemplate = currentTemplate && currentTemplate.isSuborgTemplate;
+      const isSuborgTemplate =
+        currentTemplate && currentTemplate.isSuborgTemplate;
 
       // Use the appropriate API endpoint based on template type
       const apiEndpoint = isSuborgTemplate
@@ -473,7 +474,10 @@ if (confirmBtn) {
           );
           const suborgId = queryParams.suborg_id;
           if (suborgId) {
-            await fetchAllSuborgTemplatesAndPopulateStore(suborgId, store.editingTemplateId);
+            await fetchAllSuborgTemplatesAndPopulateStore(
+              suborgId,
+              store.editingTemplateId,
+            );
           }
         }
         if (bsModalInstance) bsModalInstance.hide();
@@ -569,9 +573,9 @@ if (confirmBtn) {
 
             updateSlideSelector(); // Update selector to highlight new template
             // Ensure proper scaling after adding slide from template
-            const previewContainer = document.querySelector(
-              ".preview-column .preview-container"
-            ) || document.querySelector(".slide-canvas .preview-container");
+            const previewContainer =
+              document.querySelector(".preview-column .preview-container") ||
+              document.querySelector(".slide-canvas .preview-container");
             if (previewContainer) {
               scaleSlide(previewContainer);
             }

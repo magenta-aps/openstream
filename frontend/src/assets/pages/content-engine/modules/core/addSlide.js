@@ -61,6 +61,30 @@ const noTemplatesFoundAlert = document.getElementById(
   "no-templates-found-alert",
 );
 
+/**
+ * Determine if we're in suborg branch content creation mode
+ * (as opposed to suborg template management mode)
+ */
+function isSuborgContentCreationMode() {
+  // If we're managing templates, allow global templates
+  if (
+    store.editorMode === "template_editor" ||
+    store.editorMode === "suborg_templates"
+  ) {
+    console.log(
+      `Template management mode detected (${store.editorMode}). Global templates allowed.`,
+    );
+    return false;
+  }
+
+  // If we have a suborg selected but we're not managing templates,
+  // then we're creating content for the suborg branch
+  console.log(
+    `Suborg content creation mode detected (editorMode: ${store.editorMode}). Only suborg-specific templates will be available.`,
+  );
+  return true;
+}
+
 function updateCategorySidebar(templates) {
   // Create a map of unique categories (id => name)
   const categoriesMap = new Map();
@@ -131,6 +155,20 @@ async function fetchUnifiedTemplates() {
       return;
     }
     unifiedTemplates = await resp.json();
+
+    // Filter out global templates when creating content for suborg branches
+    // Only allow global templates when managing suborg templates (editorMode = "suborg_templates")
+    if (suborgId && isSuborgContentCreationMode()) {
+      const originalCount = unifiedTemplates.length;
+      // Filter to only suborg-specific templates (suborganisation is not null)
+      // Global templates have suborganisation === null
+      unifiedTemplates = unifiedTemplates.filter(
+        (template) => template.suborganisation !== null,
+      );
+      console.log(
+        `Filtered out global templates for suborg content creation. Templates: ${originalCount} → ${unifiedTemplates.length}`,
+      );
+    }
 
     unifiedTemplates = unifiedTemplates.filter((template) =>
       template.accepted_aspect_ratios.includes(getCurrentAspectRatio()),
@@ -376,9 +414,9 @@ export function initAddSlide() {
       loadSlide(newSlide);
 
       // Ensure proper scaling after adding slide from template
-      const previewContainer = document.querySelector(
-        ".preview-column .preview-container"
-      ) || document.querySelector(".slide-canvas .preview-container");
+      const previewContainer =
+        document.querySelector(".preview-column .preview-container") ||
+        document.querySelector(".slide-canvas .preview-container");
       if (previewContainer) {
         scaleSlide(previewContainer);
       }
