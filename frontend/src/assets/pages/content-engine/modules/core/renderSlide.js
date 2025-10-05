@@ -385,9 +385,12 @@ export function scaleSlide(previewContainer) {
 export function scaleAllSlides() {
   const zoomInfo = getCurrentZoomInfo();
 
-  document
-    .querySelectorAll(".slide-canvas .preview-container")
-    .forEach((container) => {
+  // Use the same selector pattern as zoom controller to get the correct preview containers
+  const previewContainers = document.querySelectorAll(
+    ".preview-column .preview-container, .slide-canvas .preview-container:not(.preview-column .preview-container)"
+  );
+  
+  previewContainers.forEach((container) => {
       const previewSlide = container.querySelector(".preview-slide");
       // Update zoomWrapper and gridContainer dimensions here as well,
       // because scaleAllSlides might be called independently after resolution change

@@ -1056,7 +1056,7 @@ span {
 
 /* Zoom mode styling for scrollable container */
 .preview-container.zoom-mode {
-  overflow: auto;
+  overflow: auto !important;
 
   /* Ensure zoom mode container has flex layout reset */
   display: block;
@@ -1097,6 +1097,34 @@ span {
 
 .preview-container.zoom-mode::-webkit-scrollbar-corner {
   background: $secondary-accent-hover;
+}
+
+/* Ensure the slide sidebar is never affected by zoom transformations */
+.slide-right-sidebar {
+  transform: none !important;
+  scale: none !important;
+  zoom: 1 !important;
+  position: relative;
+  /* Ensure sidebar maintains its fixed width */
+  flex-shrink: 0;
+  width: 10rem;
+  min-width: 10rem;
+  max-width: 10rem;
+}
+
+/* Ensure sidebar children are also protected from zoom effects */
+.slide-right-sidebar * {
+  transform: none !important;
+  scale: none !important;
+}
+
+/* Ensure preview-column layout doesn't interfere with sidebar positioning */
+.preview-column {
+  z-index: 1;
+}
+
+.slide-right-sidebar {
+  z-index: 2; /* Keep sidebar above any zoom transformations */
 }
 
 /* Zoom controls styling */

@@ -377,8 +377,8 @@ export function initAddSlide() {
 
       // Ensure proper scaling after adding slide from template
       const previewContainer = document.querySelector(
-        ".slide-canvas .preview-container",
-      );
+        ".preview-column .preview-container"
+      ) || document.querySelector(".slide-canvas .preview-container");
       if (previewContainer) {
         scaleSlide(previewContainer);
       }

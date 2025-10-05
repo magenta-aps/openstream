@@ -203,7 +203,8 @@ if (queryParams.mode === "template_editor") {
         "Organisation ID (selectedSubOrgID or parentOrgID) not found. Cannot initialize template editor.",
       ),
     );
-    const previewContainer = document.querySelector(".preview-container");
+    const previewContainer = document.querySelector(".preview-column .preview-container") || 
+                                   document.querySelector(".preview-container");
     if (previewContainer) {
       previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
         "Error: Organisation ID is missing. Cannot load template editor.",
@@ -311,7 +312,8 @@ if (queryParams.mode === "suborg_templates") {
         "SubOrganisation ID is missing. Cannot initialize suborg template editor.",
       ),
     );
-    const previewContainer = document.querySelector(".preview-container");
+    const previewContainer = document.querySelector(".preview-column .preview-container") || 
+                                   document.querySelector(".preview-container");
     if (previewContainer) {
       previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
         "Error: SubOrganisation ID is missing. Cannot load template editor.",
@@ -321,7 +323,11 @@ if (queryParams.mode === "suborg_templates") {
 }
 
 if (queryParams.mode === "slideshow-player") {
-  document.querySelector(".preview-container").classList.add("player-mode");
+  const previewContainer = document.querySelector(".preview-column .preview-container") || 
+                          document.querySelector(".preview-container");
+  if (previewContainer) {
+    previewContainer.classList.add("player-mode");
+  }
   initSlideshowPlayerMode();
 }
 
@@ -346,7 +352,8 @@ function generalInit() {
 
   window.addIframe = addIframe;
 
-  const container = document.querySelector(".preview-container");
+  const container = document.querySelector(".preview-column .preview-container") || 
+                   document.querySelector(".preview-container");
 
   const resizeObserver = new ResizeObserver(() => {
     scaleAllSlides();
