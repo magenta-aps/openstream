@@ -554,8 +554,8 @@ function handleMediaSelection(element, elementType) {
     );
   } else if (elementType === "dynamic-element") {
     // Set up the global state like the change-dynamic-content-btn does
-    import("../modals/dynamicModal.js")
-      .then(({ showSlideTypeModal }) => {
+    import("../slideTypes/frontendSlideTypeModal.js")
+      .then(({ showFrontendSlideTypeModal }) => {
         store.dynamicContentUpdateMode = true;
         window.selectedElementForUpdate = document.getElementById(
           "el-" + element.id,
@@ -564,12 +564,12 @@ function handleMediaSelection(element, elementType) {
         // Make sure the store has the updated element data
         store.selectedElementData = element;
 
-        // Pass the element data to showSlideTypeModal (like in iframeElement.js)
-        if (element?.slideTypeId) {
-          showSlideTypeModal(element);
+        // Pass the element data to showFrontendSlideTypeModal (like in iframeElement.js)
+        if (element?.isDynamic && element?.slideTypeId) {
+          showFrontendSlideTypeModal(element);
         } else {
           // For new dynamic elements, show the selection
-          showSlideTypeModal();
+          showFrontendSlideTypeModal();
         }
       })
       .catch((err) => {
