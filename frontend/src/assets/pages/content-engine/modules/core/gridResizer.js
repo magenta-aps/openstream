@@ -92,6 +92,11 @@ export function makeDraggable(el, dataObj) {
     dataObj.gridX = newCol - 1;
     dataObj.gridY = newRow - 1;
 
+    // Update resize handle position if it exists
+    if (el._updateResizerPosition) {
+      el._updateResizerPosition();
+    }
+
     // Show grid info in status bar while dragging
     if (hasDragged) {
       const info = GridUtils.formatGridInfoCompact(
@@ -107,13 +112,20 @@ export function makeDraggable(el, dataObj) {
   function stopElementDrag() {
     document.removeEventListener("mousemove", elementDrag);
     document.removeEventListener("mouseup", stopElementDrag);
+    
+    // Final position update for resize handle
+    if (el._updateResizerPosition) {
+      el._updateResizerPosition();
+    }
   }
 
   el.addEventListener("mousedown", dragMouseDown);
 }
 
 export function makeResizable(el, dataObj) {
-  const resizer = el.querySelector(".resize-handle");
+  const resizer = el._resizeHandle || el.querySelector(".resize-handle");
+  if (!resizer) return;
+  
   let animationFrameId = null;
   let startX, startY, startWidth, startHeight;
   let hasResized = false;
@@ -179,6 +191,11 @@ export function makeResizable(el, dataObj) {
       dataObj.gridWidth = newWidth;
       dataObj.gridHeight = newHeight;
 
+      // Update resize handle position
+      if (el._updateResizerPosition) {
+        el._updateResizerPosition();
+      }
+
       // Show grid info in status bar
       const info = GridUtils.formatGridInfoCompact(
         currentCol - 1, // Convert to 0-based
@@ -194,6 +211,11 @@ export function makeResizable(el, dataObj) {
     cancelAnimationFrame(animationFrameId);
     document.removeEventListener("mousemove", resizeElement);
     document.removeEventListener("mouseup", stopResize);
+
+    // Final position update for resize handle
+    if (el._updateResizerPosition) {
+      el._updateResizerPosition();
+    }
 
     // Clear grid info from status bar
     clearGridInfo();

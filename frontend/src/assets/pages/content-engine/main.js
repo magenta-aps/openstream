@@ -32,6 +32,7 @@ import { initUndoRedo } from "./modules/core/undoRedo.js";
 import { initVirtualPreviewResolution } from "./modules/core/virutalPreviewResolution.js";
 import { initSelectedElementBackgroundColor } from "./modules/element_formatting/backgroundColor.js";
 import { initSelectedElementBorder } from "./modules/element_formatting/border.js";
+import { initBorderRadius } from "./modules/element_formatting/borderRadius.js";
 import { initBoxShadow } from "./modules/element_formatting/boxShadow.js";
 import { initBlur } from "./modules/element_formatting/blur.js";
 import { initSelectedElementOffset } from "./modules/element_formatting/offset.js";
@@ -95,6 +96,7 @@ const initCommonEditorFeatures = () => {
   initEmbedWebsite();
   initSelectedElementBackgroundColor();
   initSelectedElementBorder();
+  initBorderRadius();
   initOpacity();
   initBoxShadow();
   initBlur();

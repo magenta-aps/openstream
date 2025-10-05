@@ -222,8 +222,13 @@ export function selectElement(el, dataObj) {
   updateLockButtonForSelectedElement();
 
   // Show resizer, etc...
-  const resizer = el.querySelector(".resize-handle");
+  const resizer = el._resizeHandle || el.querySelector(".resize-handle");
   if (resizer) {
+    // Update position before showing
+    if (el._updateResizerPosition) {
+      el._updateResizerPosition();
+    }
+    
     // Hide resize handle for locked elements in non-template editor mode
     if (queryParams.mode !== "template_editor" && isElementLocked(dataObj)) {
       resizer.style.display = "none";
@@ -254,9 +259,21 @@ export function selectElement(el, dataObj) {
     }
   }
 
+  const borderRadiusBtn = document.getElementById("selected-element-border-radius");
+  if (borderRadiusBtn) {
+    if (dataObj.borderRadius) {
+      borderRadiusBtn.style.border = "3px solid #007bff";
+    } else {
+      borderRadiusBtn.style.border = "";
+    }
+  }
+
   const boxShadowBtn = document.getElementById("selected-element-boxshadow");
   if (boxShadowBtn) {
-    if (dataObj.boxShadow) {
+    if (dataObj.boxShadowData) {
+      boxShadowBtn.style.border = `3px solid ${dataObj.boxShadowData.color}`;
+    } else if (dataObj.boxShadow) {
+      // Legacy support
       boxShadowBtn.style.border = "5px solid " + dataObj.boxShadow;
     } else {
       boxShadowBtn.style.border = "";

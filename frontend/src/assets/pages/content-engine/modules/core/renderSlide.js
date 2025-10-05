@@ -7,10 +7,8 @@ import {
 } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { _renderBackgroundColor } from "../element_formatting/backgroundColor.js";
-import {
-  _renderBorder,
-  _renderBorderRadius,
-} from "../element_formatting/border.js";
+import { _renderBorder } from "../element_formatting/border.js";
+import { _renderBorderRadius } from "../element_formatting/borderRadius.js";
 import { _renderBoxShadow } from "../element_formatting/boxShadow.js";
 import { _renderZIndex } from "../element_formatting/bringFrontBack.js";
 import { _renderOffset } from "../element_formatting/offset.js";
@@ -678,17 +676,17 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   if (el.opacity) {
     _renderOpacity(container, el);
   }
-  if (el.rounded) {
+  if (el.rounded || el.borderRadius) {
     _renderBorderRadius(container, el);
   }
 
   if (el.backgroundColor) {
     _renderBackgroundColor(container, el);
   }
-  if (el.border) {
+  if (el.border || el.borderData) {
     _renderBorder(container, el);
   }
-  if (el.boxShadow) {
+  if (el.boxShadow || el.boxShadowData) {
     _renderBoxShadow(container, el);
   }
 
@@ -768,4 +766,47 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   }
 
   gridContainer.appendChild(container);
+  
+  // Now that container is in the DOM, set up the resize handle as a sibling
+  // to avoid it being clipped by border-radius
+  const resizerHandle = container.querySelector(".resize-handle");
+  if (resizerHandle && container.parentNode) {
+    // Remove from container and re-add as sibling
+    resizerHandle.remove();
+    resizerHandle.style.cssText = `
+      display: none;
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: #696969;
+      cursor: se-resize;
+      user-select: none;
+      z-index: 9999;
+      pointer-events: auto;
+    `;
+    
+    // Position the resizer at the bottom-right corner of the container
+    const updateResizerPosition = () => {
+      resizerHandle.style.left = (container.offsetLeft + container.offsetWidth - 15) + "px";
+      resizerHandle.style.top = (container.offsetTop + container.offsetHeight - 15) + "px";
+    };
+    
+    // Insert resizer as sibling, not child, so it won't be clipped by border-radius
+    container.parentNode.insertBefore(resizerHandle, container.nextSibling);
+    updateResizerPosition();
+    
+    // Store reference and update function on container
+    container._resizeHandle = resizerHandle;
+    container._updateResizerPosition = updateResizerPosition;
+    
+    // Add mutation observer to track position/size changes
+    const resizerObserver = new MutationObserver(() => {
+      updateResizerPosition();
+    });
+    resizerObserver.observe(container, {
+      attributes: true,
+      attributeFilter: ["style", "class"],
+    });
+    container._resizerObserver = resizerObserver;
+  }
 }
