@@ -17,7 +17,11 @@ path = [
     "**.ico",
     "**.xlsx",
     "**.mp4",
-    "**.env"
+    "**.env",
+    "**.jpg",
+    "**.woff",
+    "**.ttf",
+    "**.woff2"
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Magenta ApS <info@magenta.dk>"
