@@ -657,12 +657,28 @@ class FrontendSlideTypeModal {
       // Get slide type info
       const slideType = slideTypeRegistry.getSlideType(this.currentSlideTypeId);
 
-      // Create the iframe element
-      addIframe(slideHTML, {
+      // Get slide data which may include default size properties
+      const slideData = slideTypeRegistry.generateSlideData(this.currentSlideTypeId);
+
+      // Prepare overrides - start with slide data defaults
+      const overrides = {
         slideTypeId: this.currentSlideTypeId,
         config: config,
         integrationName: slideType.name,
-      });
+        ...slideData, // Include any defaults from the slide type
+      };
+
+      // If we're updating an existing element (e.g., from placeholder conversion),
+      // remove size properties so we preserve the existing element's size
+      if (window.selectedElementForUpdate) {
+        delete overrides.gridX;
+        delete overrides.gridY;
+        delete overrides.gridWidth;
+        delete overrides.gridHeight;
+      }
+
+      // Create the iframe element
+      addIframe(slideHTML, overrides);
 
       // Close modal
       this.hide();
