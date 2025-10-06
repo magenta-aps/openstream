@@ -23,6 +23,7 @@ import { gettext } from "../../../../utils/locales.js";
 const fontSizeSelect = document.querySelector(".font-size-select");
 const fontFamilySelect = document.querySelector(".font-family-select");
 const lineHeightSelect = document.querySelector(".line-height-select");
+const lineWidthSelect = document.querySelector(".line-width-select");
 const textColorPicker = document.querySelector(".text-color-picker");
 
 const boldBtn = document.querySelector("#boldBtn");
@@ -77,6 +78,14 @@ export const lineHeightMapping = {
   1.2: "1.2",
   1.5: "1.5",
   2: "2",
+};
+
+export const lineWidthMapping = {
+  "none": "none",
+  "300px": "300px", 
+  "500px": "500px",
+  "700px": "700px",
+  "100%": "100%",
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -183,6 +192,7 @@ function applySimpleModeStyles(textElement, elData) {
   const fontStyle = elData.fontStyle || "normal";
   const textDecoration = elData.textDecoration || "none";
   const textAlign = elData.textAlign || "left";
+  const lineWidth = lineWidthMapping[elData.lineWidth] || "none";
   
   textElement.style.fontSize = fontSize;
   textElement.style.fontFamily = `"${fontFamily}"`;
@@ -192,6 +202,7 @@ function applySimpleModeStyles(textElement, elData) {
   textElement.style.fontStyle = fontStyle;
   textElement.style.textDecoration = textDecoration;
   textElement.style.textAlign = textAlign;
+  textElement.style.maxWidth = lineWidth === "none" ? "none" : lineWidth;
 }
 
 /**
@@ -232,6 +243,11 @@ export function updateToolbarDropdowns() {
   // Update line height dropdown
   if (store.selectedElementData.lineHeight) {
     lineHeightSelect.value = store.selectedElementData.lineHeight;
+  }
+  
+  // Update line width dropdown
+  if (store.selectedElementData.lineWidth) {
+    lineWidthSelect.value = store.selectedElementData.lineWidth;
   }
 }
 
@@ -808,6 +824,32 @@ function handleLineHeightChange(e) {
   });
 }
 
+function handleLineWidthChange(e) {
+  e.preventDefault();
+  pushCurrentSlideState();
+  withSelectedTextbox(() => {
+    const key = lineWidthSelect.value;
+    const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
+    const elData = store.slides[store.currentSlideIndex].elements.find(
+      (el) => el.id === id,
+    );
+    if (elData) elData.lineWidth = key;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (content) {
+      const isSimpleMode = elData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, apply line width to the container
+        applySimpleModeStyles(content, elData);
+      } else {
+        // In rich text mode, apply to container
+        const maxWidth = lineWidthMapping[key];
+        content.style.maxWidth = maxWidth === "none" ? "none" : maxWidth;
+      }
+    }
+  });
+}
+
 function handleTextColorPickerClick() {
   withSelectedTextbox(() => {
     const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
@@ -1050,6 +1092,7 @@ function addTextboxToSlide() {
     fontFamily: defaultFontFamily,
     fontSize: defaultFontSizeKey,
     lineHeight: "1.2",
+    lineWidth: "none", // Default to auto width
     textColor: "#000000",
     fontWeight: "normal",
     fontStyle: "normal",
@@ -1189,6 +1232,7 @@ export function initTextbox() {
   fontSizeSelect.addEventListener("change", handleFontSizeChange);
   fontFamilySelect.addEventListener("change", handleFontFamilyChange);
   lineHeightSelect.addEventListener("change", handleLineHeightChange);
+  lineWidthSelect.addEventListener("change", handleLineWidthChange);
 
   // Text color picker
   textColorPicker.addEventListener("click", handleTextColorPickerClick);

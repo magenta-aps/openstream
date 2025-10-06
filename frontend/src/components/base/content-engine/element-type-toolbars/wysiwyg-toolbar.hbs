@@ -52,6 +52,13 @@
             {{> base/form/dropdown-option value="1.5" text="1.5"}}
             {{> base/form/dropdown-option value="2" text="2"}}
     {{/base/form/dropdown}}
+        {{#> base/form/dropdown id="" class="line-width-select mx-1 form-select form-select-sm" title="{% trans 'Line Width' %}" }}
+            {{> base/form/dropdown-option value="none" text="Auto" selected=true}}
+            {{> base/form/dropdown-option value="300px" text="Narrow"}}
+            {{> base/form/dropdown-option value="500px" text="Medium"}}
+            {{> base/form/dropdown-option value="700px" text="Wide"}}
+            {{> base/form/dropdown-option value="100%" text="Full"}}
+    {{/base/form/dropdown}}
     </div>
     <div class="mx-4">
         <!-- Text Color Picker -->
