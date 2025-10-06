@@ -998,7 +998,7 @@ function addTextboxToSlide() {
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
     isHidden: false, // Initialize visibility state
-    isSimpleTextMode: false, // Initialize as rich text mode by default
+    isSimpleTextMode: true, // Initialize as simple text mode by default
   };
 
   store.slides[store.currentSlideIndex].elements.push(newTextbox);

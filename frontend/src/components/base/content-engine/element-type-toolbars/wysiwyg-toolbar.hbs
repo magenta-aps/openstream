@@ -3,13 +3,13 @@
 {{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="wysiwyg-toolbar" title="Textbox" }}
       <div class="mx-3 d-flex align-items-center">
         <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text mode">
-            <input type="radio" class="btn-check" name="textModeToggle" id="richTextMode" value="rich" checked>
-            <label class="btn btn-outline-secondary btn-sm" for="richTextMode" title="{% trans 'Rich Text Mode' %}">
-                Rich Text
-            </label>
-            <input type="radio" class="btn-check" name="textModeToggle" id="simpleTextMode" value="simple">
+            <input type="radio" class="btn-check" name="textModeToggle" id="simpleTextMode" value="simple" checked>
             <label class="btn btn-outline-secondary btn-sm" for="simpleTextMode" title="{% trans 'Simple Text Mode' %}">
                 Simple Text
+            </label>
+            <input type="radio" class="btn-check" name="textModeToggle" id="richTextMode" value="rich">
+            <label class="btn btn-outline-secondary btn-sm" for="richTextMode" title="{% trans 'Rich Text Mode' %}">
+                Rich Text
             </label>
         </div>
       </div>
