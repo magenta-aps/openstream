@@ -131,22 +131,31 @@ function restoreSelection(range) {
 }
 
 /**
- * Strip all formatting from HTML except <br> tags to preserve line breaks.
- * This approach is safer and preserves multiple consecutive line breaks.
+ * Strip all formatting from HTML except <br> and <div> tags to preserve line breaks.
+ * Divs are preserved but stripped of styling since contentEditable creates them for paragraphs.
  */
 function stripFormattingToPlainText(html) {
   const temp = document.createElement("div");
   temp.innerHTML = html;
   
-  // Get the text content while preserving <br> tags
-  // We'll replace all HTML tags except <br> with their text content
+  // Process nodes while preserving <br> and clean <div> tags
   function processNode(node) {
     if (node.nodeType === Node.TEXT_NODE) {
       return node.textContent;
     } else if (node.nodeType === Node.ELEMENT_NODE) {
-      if (node.tagName.toLowerCase() === 'br') {
+      const tagName = node.tagName.toLowerCase();
+      
+      if (tagName === 'br') {
         // Keep <br> tags as-is
         return '<br>';
+      } else if (tagName === 'div') {
+        // Keep <div> tags but strip all attributes/styling
+        let result = '<div>';
+        for (const child of node.childNodes) {
+          result += processNode(child);
+        }
+        result += '</div>';
+        return result;
       } else {
         // For all other elements, just process their children (strip the tags but keep content)
         let result = '';
@@ -173,6 +182,7 @@ function applySimpleModeStyles(textElement, elData) {
   const fontWeight = elData.fontWeight || "normal";
   const fontStyle = elData.fontStyle || "normal";
   const textDecoration = elData.textDecoration || "none";
+  const textAlign = elData.textAlign || "left";
   
   textElement.style.fontSize = fontSize;
   textElement.style.fontFamily = `"${fontFamily}"`;
@@ -181,6 +191,7 @@ function applySimpleModeStyles(textElement, elData) {
   textElement.style.fontWeight = fontWeight;
   textElement.style.fontStyle = fontStyle;
   textElement.style.textDecoration = textDecoration;
+  textElement.style.textAlign = textAlign;
 }
 
 /**
@@ -899,9 +910,18 @@ function handleAlignLeft() {
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
     if (textEl) {
-      textEl.contentEditable = "true";
-      textEl.focus();
-      document.execCommand("justifyLeft", false, null);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, update data model and apply style directly
+        store.selectedElementData.textAlign = "left";
+        textEl.style.textAlign = "left";
+      } else {
+        // In rich mode, use execCommand
+        textEl.contentEditable = "true";
+        textEl.focus();
+        document.execCommand("justifyLeft", false, null);
+      }
     }
   });
 }
@@ -911,9 +931,18 @@ function handleAlignCenter() {
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
     if (textEl) {
-      textEl.contentEditable = "true";
-      textEl.focus();
-      document.execCommand("justifyCenter", false, null);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, update data model and apply style directly
+        store.selectedElementData.textAlign = "center";
+        textEl.style.textAlign = "center";
+      } else {
+        // In rich mode, use execCommand
+        textEl.contentEditable = "true";
+        textEl.focus();
+        document.execCommand("justifyCenter", false, null);
+      }
     }
   });
 }
@@ -923,9 +952,18 @@ function handleAlignRight() {
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
     if (textEl) {
-      textEl.contentEditable = "true";
-      textEl.focus();
-      document.execCommand("justifyRight", false, null);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+      
+      if (isSimpleMode) {
+        // In simple mode, update data model and apply style directly
+        store.selectedElementData.textAlign = "right";
+        textEl.style.textAlign = "right";
+      } else {
+        // In rich mode, use execCommand
+        textEl.contentEditable = "true";
+        textEl.focus();
+        document.execCommand("justifyRight", false, null);
+      }
     }
   });
 }
