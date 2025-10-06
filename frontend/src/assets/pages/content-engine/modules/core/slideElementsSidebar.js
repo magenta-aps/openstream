@@ -763,8 +763,9 @@ function setupPopoverToggle({
 function setupInlineNameEditing({ input, elData, state }) {
   if (!input) return;
 
+  // Allow text selection by only stopping row-click propagation, not mousedown
   registerListener(input, "click", stopEventPropagation);
-  registerListener(input, "mousedown", stopEventPropagation);
+  // Removed mousedown stop to allow text selection and dragging
 
   const commit = () => {
     const newName = input.value.trim();
@@ -794,7 +795,9 @@ function setupInlineNameEditing({ input, elData, state }) {
 function setupPopoverNameEditing({ input, elData, state }) {
   if (!input) return;
 
+  // Allow text selection by only stopping click propagation to prevent popover close
   registerListener(input, "click", stopEventPropagation);
+  // Don't stop mousedown to allow text selection and dragging
 
   const commit = () => {
     const newName = input.value.trim();
@@ -1559,7 +1562,8 @@ function initSortable(container, state) {
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
-      filter: '[data-role="expand-collapse-all"]', // Prevent dragging the expand/collapse button
+      filter: '[data-role="expand-collapse-all"], input, button, select, textarea', // Prevent dragging when interacting with form elements or expand/collapse button
+      preventOnFilter: false, // Allow default behavior on filtered elements
       onMove(evt) {
         const draggedId = parseInt(evt.dragged.dataset.elId, 10);
         const relatedId = parseInt(evt.related?.dataset?.elId, 10);

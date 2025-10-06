@@ -287,6 +287,13 @@ export function updateSlideSelector() {
       slideNameDiv.innerHTML = "";
       slideNameDiv.appendChild(input);
       input.focus();
+      input.select(); // Select all text for easy editing
+
+      // Stop propagation on input to prevent slide selection
+      input.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+      // Allow mousedown for text selection - don't stop propagation
 
       input.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
@@ -349,6 +356,13 @@ export function updateSlideSelector() {
 
       slideDurationDiv.appendChild(input);
       input.focus();
+      input.select(); // Select all text for easy editing
+
+      // Stop propagation on input to prevent slide selection
+      input.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+      // Allow mousedown for text selection
 
       // Re-enable tooltip when editing is done
       const finishEditing = () => {
@@ -582,6 +596,8 @@ export function updateSlideSelector() {
     chosenClass: "sortable-chosen", // Class name for the chosen item
     dragClass: "sortable-drag", // Class name for the dragged item
     handle: ".slide-item", // Drag handle selector within list items
+    filter: "input, button, select, textarea", // Prevent dragging when interacting with form elements
+    preventOnFilter: false, // Allow default behavior on filtered elements
     onEnd: function (evt) {
       // Update the store when drag ends
       const fromIndex = evt.oldIndex;
