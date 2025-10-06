@@ -22,6 +22,7 @@ import { _renderHtmlElement } from "../elements/htmlElement.js";
 import { _renderIframe } from "../elements/iframeElement.js";
 import { _renderImage } from "../elements/imageElement.js";
 import { _renderShape } from "../elements/shapeElement.js";
+import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
 import { _renderList } from "../elements/listElement.js";
 import { _renderTextbox } from "../elements/textbox.js";
@@ -787,6 +788,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderVideo(el, container);
   } else if (el.type === "shape") {
     _renderShape(el, container);
+  } else if (el.type === "box") {
+    _renderBox(el, container);
   } else if (el.type === "html") {
     _renderHtmlElement(el, container);
   } else if (el.type === "table") {

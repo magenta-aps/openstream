@@ -67,6 +67,9 @@
                         <button class="btn btn-secondary btn-sm d-flex align-items-center" data-type="shapes" data-bs-toggle="tooltip" data-bs-title='{% trans " Add Shape" %}'>
                             <i class="material-symbols-outlined">interests</i>
                         </button>
+                        <button class="btn btn-secondary btn-sm d-flex align-items-center" data-type="box" data-bs-toggle="tooltip" data-bs-title='{% trans " Add Box" %}'>
+                            <i class="material-symbols-outlined">crop_din</i>
+                        </button>
                         <button class="btn btn-secondary btn-sm d-flex align-items-center" data-type="html-element" data-bs-toggle="tooltip" data-bs-title='{% trans " Add HTML Element To Slide" %}'>
                             <i id="add-html-element" class="material-symbols-outlined">code</i>
                         </button>
@@ -132,6 +135,7 @@
             {{> base/content-engine/element-type-toolbars/html-element-toolbar }}
             {{> base/content-engine/element-type-toolbars/placeholder-toolbar }}
             {{> base/content-engine/element-type-toolbars/video-toolbar }}
+            {{> base/content-engine/element-type-toolbars/box-element-toolbar }}
             </div>
         </div>
     </div>

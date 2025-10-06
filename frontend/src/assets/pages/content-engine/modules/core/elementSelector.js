@@ -470,6 +470,15 @@ export function selectElement(el, dataObj) {
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";
     createGradientWrapper(el);
+  } else if (dataObj.type === "box") {
+    // Box: simple generic element, show box toolbar
+    hideElementToolbars();
+    document
+      .querySelector(".box-element-toolbar")
+      ?.classList.replace("d-none", "d-flex");
+    setToolbarGeneralVisibility("visible");
+    el.style.outline = "3px dashed blue";
+    createGradientWrapper(el);
   } else if (dataObj.type === "html") {
     // HTML Element handling
     hideElementToolbars();

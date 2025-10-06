@@ -111,6 +111,11 @@ function getElementDefaults() {
       alignment: { h: "center", v: "middle" },
     },
 
+    box: {
+      type: "box",
+      backgroundColor: "#000000",
+    },
+
     html: {
       type: "html",
       html: '<div class="example">\n  <h2>Hello World</h2>\n  <p>This is an example HTML element.</p>\n</div>',
@@ -322,6 +327,7 @@ export function getAvailableElementTypes() {
     { type: "table", name: "Table", icon: "table" },
     { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
+    { type: "box", name: "Box", icon: "crop_din" },
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
     { type: "dynamic-element", name: "Dynamic Content", icon: "dynamic_feed" },
@@ -340,6 +346,7 @@ export function getAllElementTypes() {
     { type: "table", name: "Table", icon: "table" },
     { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
+    { type: "box", name: "Box", icon: "crop_din" },
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
     { type: "dynamic-element", name: "Dynamic Content", icon: "dynamic_feed" },

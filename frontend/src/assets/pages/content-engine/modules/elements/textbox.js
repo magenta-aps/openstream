@@ -131,12 +131,35 @@ function restoreSelection(range) {
 }
 
 /**
- * Strip all formatting from HTML and return plain text content.
+ * Strip all formatting from HTML except <br> tags to preserve line breaks.
+ * This approach is safer and preserves multiple consecutive line breaks.
  */
 function stripFormattingToPlainText(html) {
   const temp = document.createElement("div");
   temp.innerHTML = html;
-  return temp.textContent || temp.innerText || "";
+  
+  // Get the text content while preserving <br> tags
+  // We'll replace all HTML tags except <br> with their text content
+  function processNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.tagName.toLowerCase() === 'br') {
+        // Keep <br> tags as-is
+        return '<br>';
+      } else {
+        // For all other elements, just process their children (strip the tags but keep content)
+        let result = '';
+        for (const child of node.childNodes) {
+          result += processNode(child);
+        }
+        return result;
+      }
+    }
+    return '';
+  }
+  
+  return processNode(temp);
 }
 
 /**
@@ -1033,15 +1056,15 @@ function handleModeToggle(e) {
       
       pushCurrentSlideState();
       
-      // Strip all formatting and convert to plain text
+      // Strip all formatting except <br> tags to preserve line breaks
       const target = store.selectedElement.querySelector(".text-content");
       if (target) {
-        const plainText = stripFormattingToPlainText(target.innerHTML);
-        target.innerHTML = plainText;
+        const plainTextWithBreaks = stripFormattingToPlainText(target.innerHTML);
+        target.innerHTML = plainTextWithBreaks;
         
         // Update data model
         store.selectedElementData.isSimpleTextMode = true;
-        store.selectedElementData.text = plainText;
+        store.selectedElementData.text = plainTextWithBreaks;
         
         // Apply simple mode styles
         applySimpleModeStyles(target, store.selectedElementData);
@@ -1052,15 +1075,15 @@ function handleModeToggle(e) {
       
       const target = store.selectedElement.querySelector(".text-content");
       if (target) {
-        // Get current plain text
-        const plainText = target.textContent || target.innerText || "";
+        // Get current content (preserve line breaks as <br> tags)
+        const currentContent = target.innerHTML;
         
         // Wrap in span with current settings
         const fontSize = store.selectedElementData.fontSize || "12";
         const fontFamily = store.selectedElementData.fontFamily || getDefaultFont();
         const fontSizeValue = fontSizeMapping[fontSize];
         
-        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${fontSizeValue}; font-family: '${fontFamily}'; line-height: 1.2;">${plainText}</span>`;
+        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${fontSizeValue}; font-family: '${fontFamily}'; line-height: 1.2;">${currentContent}</span>`;
         
         // Update data model
         store.selectedElementData.isSimpleTextMode = false;
@@ -1271,9 +1294,9 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
   const isSimpleMode = el.isSimpleTextMode || false;
 
   if (isSimpleMode) {
-    // In simple mode, strip all formatting and apply uniform styles
-    const plainText = stripFormattingToPlainText(textWrapper.innerHTML);
-    textWrapper.innerHTML = plainText;
+    // In simple mode, strip all formatting except <br> tags and apply uniform styles
+    const plainTextWithBreaks = stripFormattingToPlainText(textWrapper.innerHTML);
+    textWrapper.innerHTML = plainTextWithBreaks;
     applySimpleModeStyles(textWrapper, el);
   } else {
     // In rich text mode, fix line height issues in existing content
@@ -1322,8 +1345,8 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
           textWrapper.contentEditable = false;
           
           if (isSimpleMode) {
-            // In simple mode, just store plain text
-            el.text = textWrapper.textContent || textWrapper.innerText || "";
+            // In simple mode, preserve line breaks as <br> tags
+            el.text = textWrapper.innerHTML;
           } else {
             // In rich mode, normalize and fix formatting
             normalizeNestedSpans(textWrapper);
