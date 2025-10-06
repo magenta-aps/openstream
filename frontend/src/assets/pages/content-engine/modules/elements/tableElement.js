@@ -289,6 +289,7 @@ function addTableElementToSlide() {
     borderThickness: 1, // Border thickness in pixels
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
+    isHidden: false, // Initialize visibility state
   };
 
   store.slides[store.currentSlideIndex].elements.push(newTable);

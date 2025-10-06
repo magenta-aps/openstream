@@ -218,6 +218,22 @@ function buildActiveIconsHtml(elData) {
   return icons.join("");
 }
 
+function getElementTypeIcon(type) {
+  const iconMap = {
+    image: "image",
+    textbox: "text_fields",
+    video: "videocam",
+    "dynamic-element": "dynamic_feed",
+    "embed-website": "language",
+    shape: "interests",
+    "html-element": "code",
+    table: "table",
+    list: "format_list_bulleted",
+    placeholder: "crop_free",
+  };
+  return iconMap[type] || "help";
+}
+
 function createRenderState(container, openPopovers) {
   const elements = collectSidebarElements();
   return {
@@ -236,16 +252,31 @@ function createElementRow(elData, state) {
   const summary = elementSummary(elData);
   const displayName = elData.name || summary.type;
   const rank = state.rankMap[elData.id] || "-";
+  const elementType =
+    elData.type === "iframe" && elData.isDynamic
+      ? "dynamic-element"
+      : elData.type;
+  const iconName = getElementTypeIcon(elementType);
 
   const row = document.createElement("div");
   row.className =
     "list-group-item px-1 py-1 d-flex justify-content-between align-items-start my-1 border border-dark rounded";
+  if (elData.isHidden === true) {
+    row.classList.add("element-hidden");
+  }
   row.dataset.elId = elData.id;
 
   row.innerHTML = `
     <div class="w-100">
       <div class="d-flex justify-content-between align-items-center mb-1">
-        <div class="d-flex align-items-center gap-1" data-role="active-icons"></div>
+        <div class="d-flex align-items-center gap-1">
+          <button class="btn btn-sm btn-link p-0 visibility-toggle-btn" type="button" title="${gettext(
+            "Toggle visibility",
+          )}" data-role="visibility-button">
+            <span class="material-symbols-outlined">${elData.isHidden === true ? "visibility_off" : "visibility"}</span>
+          </button>
+          <div class="d-flex align-items-center gap-1" data-role="active-icons"></div>
+        </div>
         <div class="d-flex align-items-center gap-1">
           <span class="rank-badge" data-role="rank-badge"></span>
           <button class="btn btn-sm btn-link p-0 element-settings-btn" type="button" title="${gettext(
@@ -255,32 +286,40 @@ function createElementRow(elData, state) {
           </button>
         </div>
       </div>
-      <div class="fw-bold mb-1">
+      <div class="fw-bold mb-1 d-flex align-items-center gap-1">
+        <i class="material-symbols-outlined">${iconName}</i>
         <label class="visually-hidden">${gettext("Name")}</label>
         <input class="form-control form-control-sm p-0 m-0 border-0 bg-transparent fw-bold" type="text" aria-label="${gettext(
           "Element name",
         )}" data-role="name-input" />
+        <button class="btn btn-sm btn-link p-0 details-toggle-btn" type="button" title="${gettext(
+          "Toggle details",
+        )}" data-role="details-toggle">
+          <span class="material-symbols-outlined">expand_more</span>
+        </button>
       </div>
-      <div class="text-muted small mb-1">
-        <strong>${gettext("Type")}:</strong>
-        <span data-role="summary-type"></span>
+      <div class="element-details collapse" data-role="element-details">
+        <div class="text-muted small mb-1">
+          <strong>${gettext("Type")}:</strong>
+          <span data-role="summary-type"></span>
+        </div>
+        <div class="text-muted small mb-1">
+          <strong>${gettext("Size")}:</strong>
+          <span data-role="summary-size"></span>
+        </div>
+        <div class="text-muted small mb-1">
+          <strong>${gettext("Position")}:</strong>
+          <span data-role="summary-position"></span>
+        </div>
+        ${
+          state.showLinkSelect
+            ? `<div class="text-muted small mb-1" data-role="link-row">
+            <strong>${gettext("Link")}:</strong>
+            <select class="form-select form-select-sm" data-role="link-select"></select>
+          </div>`
+            : ""
+        }
       </div>
-      <div class="text-muted small mb-1">
-        <strong>${gettext("Size")}:</strong>
-        <span data-role="summary-size"></span>
-      </div>
-      <div class="text-muted small mb-1">
-        <strong>${gettext("Position")}:</strong>
-        <span data-role="summary-position"></span>
-      </div>
-      ${
-        state.showLinkSelect
-          ? `<div class="text-muted small mb-1" data-role="link-row">
-          <strong>${gettext("Link")}:</strong>
-          <select class="form-select form-select-sm" data-role="link-select"></select>
-        </div>`
-          : ""
-      }
     </div>
   `;
 
@@ -605,6 +644,11 @@ function attachElementInteractions({
     state,
     closeButton: controls.closeButton,
   });
+  setupVisibilityToggle({ 
+    button: row.querySelector('[data-role="visibility-button"]'), 
+    elData, 
+    state 
+  });
 
   setupInlineNameEditing({ input: nameInput, elData, state });
   setupPopoverNameEditing({ input: controls.nameInput, elData, state });
@@ -643,6 +687,10 @@ function attachElementInteractions({
   });
   setupDeleteButton({ button: controls.deleteButton, elData, state, popover });
   setupLinkSelect({ select: linkSelect, elData });
+  setupDetailsToggle({ 
+    button: row.querySelector('[data-role="details-toggle"]'), 
+    detailsContainer: row.querySelector('[data-role="element-details"]')
+  });
 
   preventInternalPopoverPropagation(popover);
 }
@@ -858,6 +906,80 @@ function setupPositionSizeInputs({
       state.rerender();
     });
   });
+}
+
+function setupVisibilityToggle({ button, elData, state }) {
+  if (!button) return;
+
+  registerListener(button, "click", (event) => {
+    event.stopPropagation();
+    safePushCurrentSlideState();
+
+    if (
+      !guardSettingsChange(elData, () => {
+        // Revert the visual state if change is blocked
+        const icon = button.querySelector('.material-symbols-outlined');
+        if (icon) {
+          icon.textContent = elData.isHidden === true ? 'visibility_off' : 'visibility';
+        }
+      })
+    ) {
+      return;
+    }
+
+    // Toggle visibility state (handle undefined as false)
+    elData.isHidden = !(elData.isHidden === true);
+    
+    // Update button icon and styling
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.textContent = elData.isHidden ? 'visibility_off' : 'visibility';
+    }
+    
+    // Update button styling
+    if (elData.isHidden === true) {
+      button.classList.add('element-hidden');
+    } else {
+      button.classList.remove('element-hidden');
+    }
+    
+    // Update button tooltip
+    button.title = elData.isHidden === true ? gettext("Show element") : gettext("Hide element");
+
+    // Update row styling
+    const row = button.closest('.list-group-item');
+    if (row) {
+      if (elData.isHidden === true) {
+        row.classList.add('element-hidden');
+      } else {
+        row.classList.remove('element-hidden');
+      }
+    }
+
+    // Update the DOM element's visibility
+    const domElement = document.getElementById(`el-${elData.id}`);
+    if (domElement) {
+      domElement.style.visibility = elData.isHidden === true ? 'hidden' : 'visible';
+    }
+
+    safeUpdateSlideElement(elData);
+    state.rerender();
+  });
+
+  // Set initial state
+  const icon = button.querySelector('.material-symbols-outlined');
+  if (icon) {
+    icon.textContent = elData.isHidden === true ? 'visibility_off' : 'visibility';
+  }
+  
+  // Set initial button styling
+  if (elData.isHidden === true) {
+    button.classList.add('element-hidden');
+  } else {
+    button.classList.remove('element-hidden');
+  }
+  
+  button.title = elData.isHidden === true ? gettext("Show element") : gettext("Hide element");
 }
 
 function setupPinToggle({ checkbox, elData, state }) {
@@ -1211,6 +1333,27 @@ function setupLinkSelect({ select, elData }) {
       if (!Number.isNaN(chosenIndex)) {
         elData.goToSlideIndex = chosenIndex;
       }
+    }
+  });
+}
+
+function setupDetailsToggle({ button, detailsContainer }) {
+  if (!button || !detailsContainer) return;
+
+  registerListener(button, "click", (event) => {
+    event.stopPropagation();
+    
+    const isCollapsed = detailsContainer.classList.contains('collapse');
+    const icon = button.querySelector('.material-symbols-outlined');
+    
+    if (isCollapsed) {
+      detailsContainer.classList.remove('collapse');
+      if (icon) icon.textContent = 'expand_less';
+      button.title = gettext("Hide details");
+    } else {
+      detailsContainer.classList.add('collapse');
+      if (icon) icon.textContent = 'expand_more';
+      button.title = gettext("Show details");
     }
   });
 }

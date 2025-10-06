@@ -18,6 +18,7 @@ import {
 import { initAddSlide } from "./modules/core/addSlide.js";
 import { initContextMenu } from "./modules/core/contextMenu.js";
 import { initDeleteElement } from "./modules/core/deleteElement.js";
+import { initDeselectElement } from "./modules/core/deselectElement.js";
 import { initDuplicateElement } from "./modules/core/duplicateElement.js";
 import {
   initSlideshowPlayerMode,
@@ -91,6 +92,7 @@ const initCommonEditorFeatures = () => {
   initTextbox();
   initUndoRedo();
   initDeleteElement();
+  initDeselectElement();
   initImageElement();
   initVideoElement();
   initEmbedWebsite();

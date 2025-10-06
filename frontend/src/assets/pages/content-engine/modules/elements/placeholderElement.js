@@ -31,6 +31,7 @@ function addPlaceholderToSlide() {
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,
     isLocked: false,
+    isHidden: false, // Initialize visibility state
   };
 
   store.slides[store.currentSlideIndex].elements.push(newPlaceholder);

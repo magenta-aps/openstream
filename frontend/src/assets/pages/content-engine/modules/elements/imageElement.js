@@ -64,6 +64,7 @@ function addImageElementToSlide(imageId) {
       objectPosition: "center center", // Default object position
       originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
       isLocked: false, // Initialize lock state
+      isHidden: false, // Initialize visibility state
     };
     store.slides[store.currentSlideIndex].elements.push(newImage);
 

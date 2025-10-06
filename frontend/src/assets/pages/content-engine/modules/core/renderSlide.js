@@ -218,11 +218,21 @@ export function loadSlide(
     else gridContainer.classList.remove("show-grid"); // Ensure grid class is removed if needed
 
     // Attach listeners only when creating/clearing the grid
-    gridContainer.addEventListener("click", () => {
-      hideElementToolbars();
-      hideResizeHandles();
-      window.selectedElementForUpdate = null;
-      store.selectedElement = null;
+    gridContainer.addEventListener("click", (event) => {
+      // Only deselect if clicking directly on the grid container (empty space), not on child elements
+      if (event.target === gridContainer) {
+        // Exit edit mode for any currently contentEditable elements
+        const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
+        activeEditableElements.forEach(editableEl => {
+          editableEl.blur();
+          editableEl.contentEditable = false;
+        });
+
+        hideElementToolbars();
+        hideResizeHandles();
+        window.selectedElementForUpdate = null;
+        store.selectedElement = null;
+      }
     });
     gridContainer.addEventListener("click", () => {
       document.querySelectorAll(".popover").forEach((popover) => {
@@ -575,6 +585,13 @@ async function _startSlideshowPlayer() {
 }
 
 function _resetEditorSelection(wysiwygToolbar) {
+  // Exit edit mode for any currently contentEditable elements
+  const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
+  activeEditableElements.forEach(editableEl => {
+    editableEl.blur();
+    editableEl.contentEditable = false;
+  });
+
   if (wysiwygToolbar) {
     wysiwygToolbar.classList.add("disabled");
   }
@@ -706,6 +723,13 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderPadding(container, el);
   }
 
+  // Handle element visibility (default to visible if property is undefined)
+  if (el.isHidden === true) {
+    container.style.visibility = 'hidden';
+  } else {
+    container.style.visibility = 'visible';
+  }
+
   const resizer = document.createElement("div");
   resizer.classList.add("resize-handle");
   container.appendChild(resizer);
@@ -717,6 +741,14 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   ) {
     if (!el.isSelectionBlocked) {
       container.addEventListener("click", (ev) => {
+        // Check if we're clicking within a contentEditable element that's already in edit mode
+        const clickedEditableElement = ev.target.closest('[contenteditable="true"]');
+        
+        // If clicking within an already-editable element, don't trigger selection
+        if (clickedEditableElement && clickedEditableElement.isContentEditable) {
+          return; // Let the text editing happen naturally
+        }
+        
         ev.stopPropagation();
         selectElement(container, el);
       });

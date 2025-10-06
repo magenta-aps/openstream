@@ -973,6 +973,7 @@ function addTextboxToSlide() {
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
+    isHidden: false, // Initialize visibility state
     isSimpleTextMode: false, // Initialize as rich text mode by default
   };
 

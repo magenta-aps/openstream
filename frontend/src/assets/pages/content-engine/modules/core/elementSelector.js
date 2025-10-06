@@ -192,6 +192,16 @@ export function selectElement(el, dataObj) {
     }
   }
 
+  // Exit edit mode for contentEditable elements only if selecting a different element
+  const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
+  activeEditableElements.forEach(editableEl => {
+    // Only exit edit mode if the new element being selected is not the same as or within the editable element
+    if (!editableEl.contains(el) && editableEl !== el) {
+      editableEl.blur();
+      editableEl.contentEditable = false;
+    }
+  });
+
   hideResizeHandles();
   // Make these globally accessible
   window.selectedElementForUpdate = { element: dataObj, container: el };
@@ -565,5 +575,33 @@ export function selectElement(el, dataObj) {
     // Show/hide or enable/disable based on slideshowMode
     linkDropdown.style.display = "none";
     linkDropdown.disabled = true;
+  }
+}
+
+export function deselectElement() {
+  if (store.selectedElement || store.selectedElementData) {
+    // Exit edit mode for any currently contentEditable elements before deselecting
+    const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
+    activeEditableElements.forEach(editableEl => {
+      editableEl.blur();
+      editableEl.contentEditable = false;
+    });
+
+    // Clear selection from store
+    store.selectedElement = null;
+    store.selectedElementData = null;
+    window.selectedElementForUpdate = null;
+
+    // Hide resize handles and toolbars
+    hideResizeHandles();
+    hideElementToolbars();
+
+    // Clear grid info from status bar
+    clearGridInfo();
+
+    // Remove any gradient wrappers
+    document
+      .querySelectorAll(".gradient-border-wrapper")
+      .forEach((node) => node.remove());
   }
 }

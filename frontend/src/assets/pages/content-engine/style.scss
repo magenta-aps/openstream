@@ -856,6 +856,15 @@ span {
   color: $secondary;
 }
 
+/* Hidden element styling in sidebar */
+#slide-elements-list .list-group-item.element-hidden {
+  opacity: 0.5;
+  
+  .fw-bold, .text-muted {
+    color: $darker-gray !important;
+  }
+}
+
 /* Locked element from template: show gray overlay and lock icon */
 #slide-elements-list .list-group-item.element-locked-from-template {
   position: relative;
@@ -923,6 +932,42 @@ span {
 
   .material-symbols-outlined {
     font-size: 18px;
+  }
+}
+
+/* Visibility toggle button in sidebar */
+.visibility-toggle-btn {
+  color: $darker-gray;
+  text-decoration: none;
+  border: none;
+  background: none;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $secondary;
+    background: rgba($secondary, 0.1);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba($secondary, 0.3);
+  }
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  /* When element is hidden, make button slightly more prominent */
+  &.element-hidden {
+    color: $warning;
+    background: rgba($warning, 0.1);
+
+    &:hover {
+      color: darken($warning, 10%);
+      background: rgba($warning, 0.2);
+    }
   }
 }
 
@@ -1108,9 +1153,7 @@ span {
 
   /* Ensure sidebar maintains its fixed width */
   flex-shrink: 0;
-  width: 10rem;
-  min-width: 10rem;
-  max-width: 10rem;
+  width: 12rem;
 }
 
 /* Ensure sidebar children are also protected from zoom effects */

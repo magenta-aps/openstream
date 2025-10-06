@@ -32,6 +32,10 @@ function duplicateElement() {
   newElement.isPersistent = false;
   // Reset lock state for the duplicated element
   newElement.isLocked = false;
+  // Initialize visibility state if not present
+  if (newElement.isHidden === undefined) {
+    newElement.isHidden = false;
+  }
   // Set new zIndex considering all persistent elements
   newElement.zIndex = getNewZIndex();
 

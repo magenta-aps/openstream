@@ -126,6 +126,7 @@ function addListElementToSlide() {
     itemSpacing: 0.5,
     originSlideIndex: store.currentSlideIndex,
     isLocked: false,
+    isHidden: false, // Initialize visibility state
   };
 
   store.slides[store.currentSlideIndex].elements.push(newList);
