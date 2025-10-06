@@ -52,12 +52,17 @@
             {{> base/form/dropdown-option value="1.5" text="1.5"}}
             {{> base/form/dropdown-option value="2" text="2"}}
     {{/base/form/dropdown}}
-        {{#> base/form/dropdown id="" class="line-width-select mx-1 form-select form-select-sm" title="{% trans 'Line Width' %}" }}
-            {{> base/form/dropdown-option value="none" text="Auto" selected=true}}
-            {{> base/form/dropdown-option value="300px" text="Narrow"}}
-            {{> base/form/dropdown-option value="500px" text="Medium"}}
-            {{> base/form/dropdown-option value="700px" text="Wide"}}
-            {{> base/form/dropdown-option value="100%" text="Full"}}
+        {{#> base/form/dropdown id="" class="letter-spacing-select mx-1 form-select form-select-sm" title="{% trans 'Letter Spacing' %}" }}
+            {{> base/form/dropdown-option value="-0.1" text="-0.1em"}}
+            {{> base/form/dropdown-option value="-0.05" text="-0.05em"}}
+            {{> base/form/dropdown-option value="-0.02" text="-0.02em"}}
+            {{> base/form/dropdown-option value="normal" text="Normal" selected=true}}
+            {{> base/form/dropdown-option value="0.02" text="0.02em"}}
+            {{> base/form/dropdown-option value="0.05" text="0.05em"}}
+            {{> base/form/dropdown-option value="0.1" text="0.1em"}}
+            {{> base/form/dropdown-option value="0.15" text="0.15em"}}
+            {{> base/form/dropdown-option value="0.2" text="0.2em"}}
+            {{> base/form/dropdown-option value="0.25" text="0.25em"}}
     {{/base/form/dropdown}}
     </div>
     <div class="mx-4">

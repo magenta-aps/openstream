@@ -23,7 +23,7 @@ import { gettext } from "../../../../utils/locales.js";
 const fontSizeSelect = document.querySelector(".font-size-select");
 const fontFamilySelect = document.querySelector(".font-family-select");
 const lineHeightSelect = document.querySelector(".line-height-select");
-const lineWidthSelect = document.querySelector(".line-width-select");
+const letterSpacingSelect = document.querySelector(".letter-spacing-select");
 const textColorPicker = document.querySelector(".text-color-picker");
 
 const boldBtn = document.querySelector("#boldBtn");
@@ -80,12 +80,17 @@ export const lineHeightMapping = {
   2: "2",
 };
 
-export const lineWidthMapping = {
-  "none": "none",
-  "300px": "300px", 
-  "500px": "500px",
-  "700px": "700px",
-  "100%": "100%",
+export const letterSpacingMapping = {
+  "-0.1": "-0.1em",
+  "-0.05": "-0.05em", 
+  "-0.02": "-0.02em",
+  "normal": "normal",
+  "0.02": "0.02em",
+  "0.05": "0.05em",
+  "0.1": "0.1em",
+  "0.15": "0.15em",
+  "0.2": "0.2em",
+  "0.25": "0.25em",
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -187,22 +192,22 @@ function applySimpleModeStyles(textElement, elData) {
   const fontSize = fontSizeMapping[elData.fontSize] || fontSizeMapping["12"];
   const fontFamily = elData.fontFamily || getDefaultFont();
   const lineHeight = lineHeightMapping[elData.lineHeight] || "1.2";
+  const letterSpacing = letterSpacingMapping[elData.letterSpacing] || "normal";
   const textColor = elData.textColor || "#000000";
   const fontWeight = elData.fontWeight || "normal";
   const fontStyle = elData.fontStyle || "normal";
   const textDecoration = elData.textDecoration || "none";
   const textAlign = elData.textAlign || "left";
-  const lineWidth = lineWidthMapping[elData.lineWidth] || "none";
   
   textElement.style.fontSize = fontSize;
   textElement.style.fontFamily = `"${fontFamily}"`;
   textElement.style.lineHeight = lineHeight;
+  textElement.style.letterSpacing = letterSpacing;
   textElement.style.color = textColor;
   textElement.style.fontWeight = fontWeight;
   textElement.style.fontStyle = fontStyle;
   textElement.style.textDecoration = textDecoration;
   textElement.style.textAlign = textAlign;
-  textElement.style.maxWidth = lineWidth === "none" ? "none" : lineWidth;
 }
 
 /**
@@ -245,9 +250,9 @@ export function updateToolbarDropdowns() {
     lineHeightSelect.value = store.selectedElementData.lineHeight;
   }
   
-  // Update line width dropdown
-  if (store.selectedElementData.lineWidth) {
-    lineWidthSelect.value = store.selectedElementData.lineWidth;
+  // Update letter spacing dropdown
+  if (store.selectedElementData.letterSpacing) {
+    letterSpacingSelect.value = store.selectedElementData.letterSpacing;
   }
 }
 
@@ -746,6 +751,44 @@ function handleLineHeightIndicator() {
   // lineHeightSelect.value = "";
 }
 
+/**
+ * Climbs up from the caret/selection to find data-letter-spacing and updates
+ * the .letter-spacing-select dropdown accordingly.
+ */
+function handleLetterSpacingIndicator() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+
+  const range = sel.getRangeAt(0);
+  const contentEl = store.selectedElement?.querySelector?.(".text-content");
+  if (!contentEl) return;
+
+  // Only proceed if the selection is within the current textbox content
+  const anchor = range.commonAncestorContainer || range.startContainer;
+  if (!contentEl.contains(anchor)) return;
+
+  let node = range.startContainer;
+  if (node.nodeType === Node.TEXT_NODE) {
+    node = node.parentNode;
+  }
+
+  while (
+    node &&
+    node !== contentEl &&
+    !node.classList?.contains("text-content")
+  ) {
+    const letterSpacing = node?.getAttribute?.("data-letter-spacing");
+    if (letterSpacing) {
+      letterSpacingSelect.value = letterSpacing;
+      return;
+    }
+    node = node.parentNode;
+  }
+
+  // If none found, you could reset:
+  // letterSpacingSelect.value = "";
+}
+
 // ─────────────────────────────────────────────────────────────
 // 7) INDIVIDUAL EVENT HANDLER FUNCTIONS
 // ─────────────────────────────────────────────────────────────
@@ -824,27 +867,29 @@ function handleLineHeightChange(e) {
   });
 }
 
-function handleLineWidthChange(e) {
+function handleLetterSpacingChange(e) {
   e.preventDefault();
   pushCurrentSlideState();
   withSelectedTextbox(() => {
-    const key = lineWidthSelect.value;
+    const key = letterSpacingSelect.value;
     const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
     const elData = store.slides[store.currentSlideIndex].elements.find(
       (el) => el.id === id,
     );
-    if (elData) elData.lineWidth = key;
+    if (elData) elData.letterSpacing = key;
     const content = store.selectedElement.querySelector(".text-content");
     if (content) {
       const isSimpleMode = elData.isSimpleTextMode || false;
       
       if (isSimpleMode) {
-        // In simple mode, apply line width to the container
+        // In simple mode, apply letter spacing to the container
         applySimpleModeStyles(content, elData);
       } else {
-        // In rich text mode, apply to container
-        const maxWidth = lineWidthMapping[key];
-        content.style.maxWidth = maxWidth === "none" ? "none" : maxWidth;
+        // In rich text mode, apply to container and all inner spans
+        content.style.letterSpacing = letterSpacingMapping[key];
+        content.querySelectorAll("span").forEach((span) => {
+          span.style.letterSpacing = letterSpacingMapping[key];
+        });
       }
     }
   });
@@ -1092,7 +1137,7 @@ function addTextboxToSlide() {
     fontFamily: defaultFontFamily,
     fontSize: defaultFontSizeKey,
     lineHeight: "1.2",
-    lineWidth: "none", // Default to auto width
+    letterSpacing: "normal",
     textColor: "#000000",
     fontWeight: "normal",
     fontStyle: "normal",
@@ -1232,7 +1277,7 @@ export function initTextbox() {
   fontSizeSelect.addEventListener("change", handleFontSizeChange);
   fontFamilySelect.addEventListener("change", handleFontFamilyChange);
   lineHeightSelect.addEventListener("change", handleLineHeightChange);
-  lineWidthSelect.addEventListener("change", handleLineWidthChange);
+  letterSpacingSelect.addEventListener("change", handleLetterSpacingChange);
 
   // Text color picker
   textColorPicker.addEventListener("click", handleTextColorPickerClick);
@@ -1499,11 +1544,13 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
     handleFontSizeIndicator();
     handleFontFamilyIndicator();
     handleLineHeightIndicator();
+    handleLetterSpacingIndicator();
   });
   textWrapper.addEventListener("keyup", () => {
     handleFontSizeIndicator();
     handleFontFamilyIndicator();
     handleLineHeightIndicator();
+    handleLetterSpacingIndicator();
   });
 
   container.appendChild(textWrapper);
