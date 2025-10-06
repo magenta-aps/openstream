@@ -24,6 +24,8 @@ const POPOVER_MIN_WIDTH = 200;
 const POLL_INTERVAL_MS = 600;
 const NO_ELEMENTS_HTML = `<div class="text-muted small">No elements</div>`;
 
+let globalExpandState = false; // Track global expand/collapse state
+
 function safePushCurrentSlideState() {
   try {
     pushCurrentSlideState();
@@ -1340,6 +1342,19 @@ function setupLinkSelect({ select, elData }) {
 function setupDetailsToggle({ button, detailsContainer }) {
   if (!button || !detailsContainer) return;
 
+  // Set initial state based on global state
+  if (globalExpandState) {
+    detailsContainer.classList.remove('collapse');
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (icon) icon.textContent = 'expand_less';
+    button.title = gettext("Hide details");
+  } else {
+    detailsContainer.classList.add('collapse');
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (icon) icon.textContent = 'expand_more';
+    button.title = gettext("Show details");
+  }
+
   registerListener(button, "click", (event) => {
     event.stopPropagation();
     
@@ -1544,6 +1559,7 @@ function initSortable(container, state) {
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
+      filter: '[data-role="expand-collapse-all"]', // Prevent dragging the expand/collapse button
       onMove(evt) {
         const draggedId = parseInt(evt.dragged.dataset.elId, 10);
         const relatedId = parseInt(evt.related?.dataset?.elId, 10);
@@ -1599,6 +1615,66 @@ function initSortable(container, state) {
   }
 }
 
+function toggleAllDetails(expand) {
+  globalExpandState = expand;
+  const container = document.getElementById("slide-elements-list");
+  if (!container) return;
+
+  const detailsContainers = container.querySelectorAll('[data-role="element-details"]');
+  const toggleButtons = container.querySelectorAll('[data-role="details-toggle"]');
+
+  detailsContainers.forEach((detailsContainer) => {
+    if (expand) {
+      detailsContainer.classList.remove('collapse');
+    } else {
+      detailsContainer.classList.add('collapse');
+    }
+  });
+
+  toggleButtons.forEach((button) => {
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (expand) {
+      if (icon) icon.textContent = 'expand_less';
+      button.title = gettext("Hide details");
+    } else {
+      if (icon) icon.textContent = 'expand_more';
+      button.title = gettext("Show details");
+    }
+  });
+}
+
+function createExpandCollapseButton() {
+  const button = document.createElement("button");
+  button.className = "btn btn-sm btn-outline-secondary w-100 mb-2 d-flex align-items-center justify-content-center gap-1";
+  button.type = "button";
+  button.dataset.role = "expand-collapse-all";
+  
+  const updateButtonText = () => {
+    const icon = document.createElement("span");
+    icon.className = "material-symbols-outlined";
+    icon.style.fontSize = "16px";
+    icon.textContent = globalExpandState ? "unfold_less" : "unfold_more";
+    
+    const text = document.createTextNode(
+      globalExpandState ? gettext("Collapse All") : gettext("Expand All")
+    );
+    
+    button.innerHTML = "";
+    button.appendChild(icon);
+    button.appendChild(text);
+  };
+  
+  updateButtonText();
+  
+  registerListener(button, "click", (event) => {
+    event.stopPropagation();
+    toggleAllDetails(!globalExpandState);
+    updateButtonText();
+  });
+  
+  return button;
+}
+
 export function renderSlideElementsSidebar() {
   const container = document.getElementById("slide-elements-list");
   if (!container) return;
@@ -1615,6 +1691,11 @@ export function renderSlideElementsSidebar() {
   }
 
   container.innerHTML = "";
+  
+  // Add expand/collapse all button
+  const expandCollapseButton = createExpandCollapseButton();
+  container.appendChild(expandCollapseButton);
+  
   state.sortedElements.forEach((elData) => {
     const row = createElementRow(elData, state);
     container.appendChild(row);
