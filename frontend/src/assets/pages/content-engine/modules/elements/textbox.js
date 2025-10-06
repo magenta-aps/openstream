@@ -1156,49 +1156,100 @@ export function initTextbox() {
 function handleInputOnEmpty(e) {
   const textContentElement = e.target; // This is the .text-content div
 
-  // CONDITION: Act only if the div contains exactly one child, and it's a text node.
-  if (
-    textContentElement.childNodes.length === 1 &&
-    textContentElement.firstChild.nodeType === Node.TEXT_NODE
-  ) {
-    const textNode = textContentElement.firstChild;
+  // This function used to only handle the exact case where the div had a single
+  // text node. In practice users often replace/clear content (Ctrl+A, Delete)
+  // or paste, leaving direct text nodes or unwrapped elements in the
+  // contenteditable. When that happens the new text inherits no font-size
+  // wrapper and can appear very small. To avoid that we now:
+  // - Wrap any direct text nodes or unwrapped elements in a span carrying
+  //   the current toolbar font/size/family data attributes.
+  // - Remove empty/whitespace-only text nodes.
+  // - Preserve existing spans that already have `data-font-size-key` or
+  //   `data-font-family`.
 
-    // Don't do anything if the input was just a deletion that emptied the node
-    if (textNode.textContent.length === 0) {
+  // Only operate for rich text mode; in simple mode the container holds
+  // uniform styles.
+  const isSimpleMode = store.selectedElementData?.isSimpleTextMode || false;
+  if (isSimpleMode) return;
+
+  // 1. Get the desired style from the toolbar's current state.
+  const currentSizeKey = fontSizeSelect.value;
+  const currentFontSize = fontSizeMapping[currentSizeKey];
+  const currentFontFamily = fontFamilySelect.value;
+
+  if (!currentFontSize) {
+    console.warn("No font size selected. Cannot apply style.");
+    return; // Safety check
+  }
+
+  let madeChange = false;
+
+  // Make a static copy because we'll modify the DOM while iterating.
+  const children = Array.from(textContentElement.childNodes);
+
+  children.forEach((node) => {
+    // Remove empty/whitespace-only text nodes
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!node.textContent || !node.textContent.trim()) {
+        node.parentNode && node.parentNode.removeChild(node);
+        madeChange = true;
+        return;
+      }
+
+      // Wrap plain text nodes
+      const wrapperSpan = document.createElement("span");
+      wrapperSpan.style.fontSize = currentFontSize;
+      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+      wrapperSpan.style.lineHeight = "1.2";
+      wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
+      wrapperSpan.setAttribute("data-font-family", currentFontFamily);
+
+      // Replace the text node with the wrapper, then move the text node into it.
+      textContentElement.replaceChild(wrapperSpan, node);
+      wrapperSpan.appendChild(node);
+      madeChange = true;
       return;
     }
 
-    // 1. Get the desired style from the toolbar's current state.
-    const currentSizeKey = fontSizeSelect.value;
-    const currentFontSize = fontSizeMapping[currentSizeKey];
-    const currentFontFamily = fontFamilySelect.value;
-
-    if (!currentFontSize) {
-      console.warn("No font size selected. Cannot apply style.");
-      return; // Safety check
+    // If it's already a span with our data attributes, leave it alone.
+    if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      node.tagName === "SPAN" &&
+      (node.hasAttribute("data-font-size-key") || node.hasAttribute("data-font-family"))
+    ) {
+      return;
     }
 
-    // 2. Create the wrapper span with all the correct styles and data attributes.
-    const wrapperSpan = document.createElement("span");
-    wrapperSpan.style.fontSize = currentFontSize;
-    wrapperSpan.style.fontFamily = `"${currentFontFamily}"`; // Quote font name for safety
-    wrapperSpan.style.lineHeight = "1.2"; // Maintain consistent line height
-    wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
-    wrapperSpan.setAttribute("data-font-family", currentFontFamily);
+    // For any other element (e.g., <b>, <i>, <div>, <br>, etc.) wrap it so
+    // that toolbar styles apply uniformly. This preserves formatting tags
+    // while ensuring the wrapper controls font size/family.
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const wrapperSpan = document.createElement("span");
+      wrapperSpan.style.fontSize = currentFontSize;
+      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+      wrapperSpan.style.lineHeight = "1.2";
+      wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
+      wrapperSpan.setAttribute("data-font-family", currentFontFamily);
 
-    // 3. Move the text from the raw text node into our new span.
-    wrapperSpan.appendChild(textNode);
+      textContentElement.replaceChild(wrapperSpan, node);
+      wrapperSpan.appendChild(node);
+      madeChange = true;
+      return;
+    }
+  });
 
-    // 4. Replace the div's content with the new, wrapped span.
-    textContentElement.appendChild(wrapperSpan);
-
-    // 5. CRUCIAL: Restore the selection/cursor to the end of the text.
-    const sel = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(wrapperSpan);
-    range.collapse(false); // 'false' collapses the range to its end point
-    sel.removeAllRanges();
-    sel.addRange(range);
+  if (madeChange) {
+    // Move caret to the end of the last child to give a natural typing
+    // experience after wrapping.
+    const lastChild = textContentElement.lastChild;
+    if (lastChild) {
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(lastChild);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
   }
 }
 
@@ -1290,6 +1341,50 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
         // Only fix line heights and handle empty spans in rich mode
         fixLineHeightInTextbox(textWrapper);
         handleInputOnEmpty({ target: textWrapper });
+      }
+    });
+
+    // Force plain-text paste and ensure pasted text gets wrapped with the
+    // current toolbar styles in rich text mode so it doesn't become tiny.
+    textWrapper.addEventListener("paste", (pasteEvent) => {
+      // Always prevent the browser from inserting rich HTML
+      pasteEvent.preventDefault();
+
+      const clipboardData = pasteEvent.clipboardData || window.clipboardData;
+      const pasteText = clipboardData && clipboardData.getData
+        ? clipboardData.getData("text/plain")
+        : "";
+
+      if (!pasteText) return;
+
+      // Insert plain text at the current selection/caret
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) {
+        // Fallback: append at end
+        textWrapper.appendChild(document.createTextNode(pasteText));
+      } else {
+        const range = sel.getRangeAt(0);
+        // Replace selection
+        range.deleteContents();
+        const textNode = document.createTextNode(pasteText);
+        range.insertNode(textNode);
+
+        // Move caret after inserted text
+        const newRange = document.createRange();
+        newRange.setStartAfter(textNode);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+
+      // If in rich mode, ensure the newly-inserted plain text is wrapped
+      // so toolbar font/size applies. In simple mode we want plain text only.
+      if (!isSimpleMode) {
+        // Run our wrapper logic which will wrap direct text nodes.
+        handleInputOnEmpty({ target: textWrapper });
+        // Also normalize line-height issues
+        normalizeNestedSpans(textWrapper);
+        fixLineHeightInTextbox(textWrapper);
       }
     });
   }
