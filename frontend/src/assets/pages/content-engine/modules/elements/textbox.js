@@ -177,6 +177,30 @@ export function updateModeRadioButtons() {
   }
 }
 
+/**
+ * Update the toolbar dropdowns based on the selected textbox's properties.
+ * This function reads the fontSize, fontFamily, and lineHeight from the
+ * selected element's data and updates the toolbar selects accordingly.
+ */
+export function updateToolbarDropdowns() {
+  if (!store.selectedElementData) return;
+  
+  // Update font size dropdown
+  if (store.selectedElementData.fontSize) {
+    fontSizeSelect.value = store.selectedElementData.fontSize;
+  }
+  
+  // Update font family dropdown
+  if (store.selectedElementData.fontFamily) {
+    fontFamilySelect.value = store.selectedElementData.fontFamily;
+  }
+  
+  // Update line height dropdown
+  if (store.selectedElementData.lineHeight) {
+    lineHeightSelect.value = store.selectedElementData.lineHeight;
+  }
+}
+
 // ─────────────────────────────────────────────────────────────
 // 5) APPLY TEXT STYLES (FONT SIZE, FAMILY, BOLD, ETC.)
 // ─────────────────────────────────────────────────────────────

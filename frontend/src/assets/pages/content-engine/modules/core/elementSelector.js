@@ -10,7 +10,7 @@ import {
 } from "../utils/mediaElementUtils.js";
 import { setupImageSizeMode } from "../elements/imageElement.js";
 import { setupTableToolbar } from "../elements/tableElement.js";
-import { updateModeRadioButtons } from "../elements/textbox.js";
+import { updateModeRadioButtons, updateToolbarDropdowns } from "../elements/textbox.js";
 
 // Helper function to safely access toolbar-general
 function setToolbarGeneralVisibility(visibility) {
@@ -346,6 +346,8 @@ export function selectElement(el, dataObj) {
     createGradientWrapper(el);
     // Update mode radio buttons based on element's state
     updateModeRadioButtons();
+    // Update toolbar dropdowns (font size, family, line height) based on element's properties
+    updateToolbarDropdowns();
   } else if (dataObj.type === "video") {
     setupMuteButtons();
     setupMediaAlignmentRadioButtons();
