@@ -134,6 +134,7 @@ async function loadMediaFiles(page = 1) {
 
     renderMediaGrid(data.results);
     renderPagination(data);
+    showFilters(filters);
   } catch (err) {
     console.error("Error fetching media files:", err);
     showToast(gettext("Failed to load media files"), "Error");
@@ -424,6 +425,39 @@ function getFilters() {
   }
 
   return filters;
+}
+
+/** Render the chosen filter option(s) in HTML */
+function renderFilter(values, targetSelector, data=null) {
+  const container = document.querySelector(targetSelector);
+  const wrapper = document.createElement("div");
+
+  container.innerHTML = "";
+
+  if(values){
+    values.forEach(val => {
+      // 'val' may only contain an id for the filter option - so find the name from data param
+      const match = data?.find(el => el.id === parseInt(val));
+      const name = match ? match.name : val;
+
+      const el = document.createElement("p");
+      el.classList = "m-0";
+      el.innerHTML = `<span class="material-symbols-outlined fs-6">add</span> ${name}`;
+      wrapper.appendChild(el);
+    });
+
+    container.innerHTML = wrapper.innerHTML;
+  } else {
+    // No filters selected
+    container.textContent = gettext("Nothing selected");
+  }
+}
+
+/** Show chosen filter option(s) */
+function showFilters(filters) {
+  renderFilter(filters["file_types"], "#extensions-active");
+  renderFilter(filters["categories"], "#categories-active", categories);
+  renderFilter(filters["tags"], "#tags-active", tags);
 }
 
 // ============ MEDIA TAG FUNCTIONS ============

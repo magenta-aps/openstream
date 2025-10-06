@@ -911,6 +911,9 @@
   "File extensions": {
     "da": "Filtyper"
   },
+  "Nothing selected":{
+    "da": "Intet valgt"
+  },
   "Error fetching tags": {
     "da": "Fejl ved hentning af tags"
   },
