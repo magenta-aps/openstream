@@ -3765,7 +3765,8 @@ class CustomColorAPIView(APIView):
 
 
 class CustomFontAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    # AllowAny because we perform our own auth check supporting X-API-KEY or user token
+    permission_classes = [AllowAny]
 
     def get(self, request, pk=None):
         """
@@ -3774,28 +3775,79 @@ class CustomFontAPIView(APIView):
         Optional: Provide pk to get a specific font.
         """
         org_id = request.query_params.get("organisation_id")
+        dw = None
+        # If no organisation_id provided, try to infer it from a display website id
+        # Support common param names used across the app: 'displayWebsiteId', 'display_website_id', or 'id'
         if not org_id:
-            return Response(
-                {"detail": "organisation_id parameter is required."},
-                status=status.HTTP_400_BAD_REQUEST,
+            display_website_id = (
+                request.query_params.get("displayWebsiteId")
+                or request.query_params.get("display_website_id")
+                or request.query_params.get("id")
             )
+            if not display_website_id:
+                return Response(
+                    {"detail": "organisation_id parameter is required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
-            return Response(
-                {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            # Resolve the display website and derive organisation from its branch
+            try:
+                dw = get_object_or_404(DisplayWebsite, id=display_website_id)
+            except Exception:
+                return Response({"detail": "Display website not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if user has permission to access this organization
-        if not (
-            user_is_super_admin(request.user)
-            or user_belongs_to_organisation(request.user, organisation)
-        ):
-            return Response(
-                {"detail": "You don't have permission to access this organization."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            if not dw.branch or not dw.branch.suborganisation:
+                return Response({"detail": "Display website missing branch/suborganisation."}, status=status.HTTP_400_BAD_REQUEST)
+
+            organisation = dw.branch.suborganisation.organisation
+            org_id = organisation.id
+        else:
+            try:
+                organisation = get_object_or_404(Organisation, pk=org_id)
+            except:
+                return Response({"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Allow access via X-API-KEY (e.g. slideshow player) when the key belongs
+        # to a branch under the requested organisation. Otherwise validate the
+        # requesting user as before.
+        api_key = request.headers.get("X-API-KEY")
+        api_key_authenticated = False
+        if api_key:
+            try:
+                key_obj = SlideshowPlayerAPIKey.objects.filter(key=api_key, is_active=True).first()
+            except Exception:
+                key_obj = None
+
+            if not key_obj:
+                return Response({"detail": "Invalid API key."}, status=status.HTTP_403_FORBIDDEN)
+
+            # If we resolved a DisplayWebsite (dw) prefer to validate the api key against that branch.
+            if dw:
+                if key_obj.branch and key_obj.branch != dw.branch:
+                    return Response({"detail": "API key not valid for this branch."}, status=status.HTTP_403_FORBIDDEN)
+            else:
+                # Fallback: ensure the api key's branch belongs to the requested organisation
+                try:
+                    key_org = key_obj.branch.suborganisation.organisation
+                except Exception:
+                    return Response({"detail": "API key not linked to an organisation."}, status=status.HTTP_403_FORBIDDEN)
+
+                if str(key_org.id) != str(org_id):
+                    return Response({"detail": "API key does not grant access to this organisation."}, status=status.HTTP_403_FORBIDDEN)
+
+            api_key_authenticated = True
+
+        if not api_key_authenticated:
+            # Check if user has permission to access this organization
+            if not (
+                hasattr(request, "user")
+                and user_is_super_admin(request.user)
+                or user_belongs_to_organisation(request.user, organisation)
+            ):
+                return Response(
+                    {"detail": "You don't have permission to access this organization."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         if pk:
             # Get a single font by ID

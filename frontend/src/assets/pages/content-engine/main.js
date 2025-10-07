@@ -346,6 +346,9 @@ if (queryParams.mode === "slideshow-player") {
     previewContainer.classList.add("player-mode");
   }
   initSlideshowPlayerMode();
+  // Re-fetch fonts after player init so any apiKey saved by initSlideshowPlayerMode
+  // (localStorage) is available for protected font requests.
+  await fetchAndInitializeFonts();
 }
 
 if (
