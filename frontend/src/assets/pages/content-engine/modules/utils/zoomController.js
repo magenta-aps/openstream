@@ -213,6 +213,14 @@ function enableZoomMode(zoomLevel) {
           gridContainer.style.height = `100%`;
         }
 
+        // Calculate the actual rendered size after scaling
+        const scaledWidth = store.emulatedWidth * zoomScale;
+        const scaledHeight = store.emulatedHeight * zoomScale;
+
+        // Set the preview slide dimensions to the scaled size to provide proper scrollable area
+        previewSlide.style.width = `${scaledWidth}px`;
+        previewSlide.style.height = `${scaledHeight}px`;
+
         // Reset any container constraints that might interfere with scrolling
         container.style.minWidth = "auto";
         container.style.minHeight = "auto";
