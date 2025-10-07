@@ -66,16 +66,17 @@
             </div>
             <div class="modal-body">
                 <div class="collapse show border-bottom mb-3" id="filterCollapse">
-                    <form id="mediaFilterForm" class="d-flex gap-0 align-items-center">
+                    <form id="mediaFilterForm" class="d-flex gap-1 mb-1 align-items-center">
                         <div id="media-owner-wrapper" class=""></div>
                         <div id="media-category-wrapper" class=""></div>
                         <div id="extension-select-wrapper" class=""></div>
                         <div id="media-filter-tags-wrapper" class="filter-dropdown me-3"></div>
-                        <div class="search-input-wrapper flex-fill">
-                            <input type="text"
-                                   class="form-control search-input"
-                                   id="titleSearchInput"
-                                   placeholder="🔎 Search by Title">
+                        <!-- Search Field -->
+                        <div class="position-relative ms-auto">
+                            <label for="titleSearchInput" class="search-icon" aria-label="Search for media file">
+                                <i class="material-symbols-outlined text-darkest-gray">search</i>
+                            </label>
+                            {{> base/form/input type="text" id="titleSearchInput" placeholder="Search by Title" extraClass="ps-5"}}
                         </div>
                     </form>
                 </div>

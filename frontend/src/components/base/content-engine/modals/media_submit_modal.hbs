@@ -89,8 +89,7 @@
                             {% trans "Tags" %}
                         </label>
                         <div id="mediaEditTagsSelect" class="dropdown-start"></div>
-                        {{!-- old class: streamlined-dropdown --}}
-                        <div id="mediaEditTagsContainer" class="selected-tags-container mt-2"></div>
+                        <div id="mediaEditTagsContainer" class="selected-tags-container mt-2 d-flex gap-2 "></div>
                     </div>
                     <hr class="my-4">
                     <!-- Category Section -->
@@ -100,8 +99,8 @@
                             {% trans "Category" %}
                         </label>
                         <select id="submitMediaCtgSelect"
-                                class="form-select form-select-lg"
-                                aria-label='{% trans "Category select" %}'
+                                class="form-select py-2 fs-5 rounded"
+                                aria-label="{% trans "Category select" %}"
                                 name="category">
                             <option value="">{% trans "Select a category..." %}</option>
                         </select>

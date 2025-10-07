@@ -536,11 +536,10 @@ export function addTagToDisplay(container, tag, callBack) {
   if (isStreamlined) {
     // Create new styled tag badge
     const tagBadge = document.createElement("div");
-    // tagBadge.classList.add("tag-badge");
-    tagBadge.classList.add("border", "border-light-gray", "d-inline-flex", "gap-2", "align-items-center");
+    tagBadge.classList.add("border", "border-light-gray", "d-inline-flex", "gap-2", "align-items-center", "rounded", "p-1");
     tagBadge.innerHTML = `
       ${tag}
-      <button type="button" class="remove-tag" data-id="${tag}">
+      <button type="button" class="btn p-0" data-id="${tag}">
         <span class="material-symbols-outlined">close</span>
       </button>
     `;
@@ -691,9 +690,8 @@ function createStreamlinedDropdown(container, buttonText, options, checkAll) {
 function createOriginalDropdown(container, buttonText, options, checkAll) {
   const wrapper = document.createElement("div");
   wrapper.className = "dropdown";
-  //btn btn-outline-gray old classes for wrapper innerhtml button
   wrapper.innerHTML = `
-    <button class=" form-select form-select-lg text-black w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="form-select py-2 fs-5 rounded text-black w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
     ${buttonText}
     </button>
     <ul class="dropdown-menu p-2" id="extensionDropdown" style="max-height: 500px; overflow-y: auto;">
