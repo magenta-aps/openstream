@@ -1123,7 +1123,7 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
             "organisation_id",
             "suborganisation_id",
             "parent_template_id",
-            "accepted_aspect_ratios",
+            "aspect_ratio",
         ]
 
     def create(self, validated_data):

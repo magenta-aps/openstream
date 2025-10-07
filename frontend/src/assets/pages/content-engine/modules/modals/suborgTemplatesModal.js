@@ -4,11 +4,41 @@ import { showToast, token, parentOrgID } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
 import * as bootstrap from "bootstrap";
-import { fetchAllSuborgTemplatesAndPopulateStore } from "../core/suborgTemplateDataManager.js";
-import { loadSlide } from "../core/renderSlide.js";
+import { fetchAllSuborgTemplatesAndPopulateStore, setResolutionFromAspectRatio } from "../core/suborgTemplateDataManager.js";
+import { loadSlide, scaleAllSlides } from "../core/renderSlide.js";
 import { scaleSlide } from "../core/renderSlide.js";
+import { store } from "../core/slideStore.js";
+import { updateAllSlidesZoom } from "../utils/zoomController.js";
 
 let currentSuborgId = null;
+let savedResolution = null;
+
+/**
+ * Restore the resolution properly with all UI updates
+ */
+function restoreResolution(resolution) {
+  if (!resolution) return;
+  
+  store.emulatedWidth = resolution.width;
+  store.emulatedHeight = resolution.height;
+  
+  // Import and call the same update functions that setResolutionFromAspectRatio calls
+  setTimeout(async () => {
+    try {
+      // Dynamically import the functions we need to avoid circular imports
+      const { updateResolutionModalSelection, updateAspectRatioDisplay } = await import("../core/suborgTemplateDataManager.js");
+      
+      updateResolutionModalSelection(resolution.width, resolution.height);
+      updateAspectRatioDisplay();
+      scaleAllSlides();
+      updateAllSlidesZoom();
+      
+      console.log(`Restored resolution to ${resolution.width}x${resolution.height}`);
+    } catch (err) {
+      console.warn("Could not fully restore resolution UI:", err);
+    }
+  }, 50);
+}
 
 /**
  * Fetch global templates for the organisation
@@ -78,6 +108,12 @@ async function createSuborgTemplate(suborgId, parentTemplateId, templateName) {
  */
 export async function openCreateSuborgTemplateModal(suborgId) {
   currentSuborgId = suborgId;
+
+  // Save current resolution to restore if user cancels
+  savedResolution = {
+    width: store.emulatedWidth,
+    height: store.emulatedHeight
+  };
 
   // Create modal HTML dynamically
   const modalId = "createSuborgTemplateModal";
@@ -164,7 +200,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
               <p class="mb-1"><strong>${gettext("Name")}:</strong> ${template.name}</p>
               ${template.category ? `<p class="mb-1"><strong>${gettext("Category")}:</strong> ${template.category.name}</p>` : ""}
               ${template.tags && template.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${template.tags.map((t) => t.name).join(", ")}</p>` : ""}
-              ${template.accepted_aspect_ratios && template.accepted_aspect_ratios.length > 0 ? `<p class="mb-1"><strong>${gettext("Aspect Ratios")}:</strong> ${template.accepted_aspect_ratios.join(", ")}</p>` : ""}
+              ${template.aspect_ratio ? `<p class="mb-1"><strong>${gettext("Aspect Ratio")}:</strong> ${template.aspect_ratio}</p>` : ""}
             </div>
           </div>
         `;
@@ -189,6 +225,11 @@ export async function openCreateSuborgTemplateModal(suborgId) {
         previewSlide.id = "suborg-template-preview";
         previewSlide.style.transform = "";
         wrapper.appendChild(previewSlide);
+
+        // Set the resolution based on the template's aspect ratio
+        if (template.aspect_ratio) {
+          setResolutionFromAspectRatio(template.aspect_ratio);
+        }
 
         // Create a proper slide object with the template data
         const slideObject = {
@@ -234,6 +275,9 @@ export async function openCreateSuborgTemplateModal(suborgId) {
 
       showToast(gettext("Template created successfully!"), "Success");
 
+      // Clear saved resolution since template was created successfully
+      savedResolution = null;
+
       // Close modal
       const bsModal = bootstrap.Modal.getInstance(modal);
       if (bsModal) {
@@ -249,6 +293,15 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       showToast(gettext("Error creating template: ") + err.message, "Error");
       createBtn.disabled = false;
       createBtn.textContent = gettext("Create Template");
+    }
+  });
+
+  // Handle modal close/cancel - restore original resolution
+  modal.addEventListener("hidden.bs.modal", () => {
+    if (savedResolution) {
+      restoreResolution(savedResolution);
+      savedResolution = null;
+      console.log("Restored original resolution after modal cancel");
     }
   });
 

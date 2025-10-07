@@ -3,6 +3,7 @@
 import Sortable from "sortablejs";
 import { store } from "./slideStore.js";
 import { loadSlide } from "./renderSlide.js";
+import { getCurrentAspectRatio } from "./addSlide.js";
 import * as bootstrap from "bootstrap";
 import {
   hideElementToolbars,
@@ -32,6 +33,79 @@ import {
 import { gettext } from "../../../../utils/locales.js";
 
 let slideSortable; // Declare a variable to store the Sortable instance
+
+/**
+ * Set the resolution based on aspect ratio and update resolution modal
+ */
+function setResolutionFromAspectRatio(aspectRatio) {
+  const aspectRatioMap = {
+    "16:9": { width: 1920, height: 1080 },
+    "4:3": { width: 1024, height: 768 },
+    "21:9": { width: 3440, height: 1440 },
+    "1.85:1": { width: 1998, height: 1080 },
+    "2.39:1": { width: 2048, height: 858 },
+    "9:16": { width: 1080, height: 1920 },
+    "3:4": { width: 768, height: 1024 },
+    "9:21": { width: 1440, height: 3440 },
+    "1:1.85": { width: 1080, height: 1998 },
+    "1:2.39": { width: 858, height: 2048 },
+    "3:2": { width: 1440, height: 960 },  // fallback
+    "1:1": { width: 1080, height: 1080 },  // fallback
+  };
+  
+  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
+  store.emulatedWidth = resolution.width;
+  store.emulatedHeight = resolution.height;
+  
+  // Update resolution modal to show the correct active option
+  updateResolutionModalSelection(resolution.width, resolution.height);
+  
+  // Update the aspect ratio display in the UI
+  updateAspectRatioDisplay();
+  
+  // Trigger zoom adjustment to fit the new aspect ratio
+  setTimeout(async () => {
+    const { scaleAllSlides } = await import("./renderSlide.js");
+    const { updateAllSlidesZoom } = await import("../utils/zoomController.js");
+    scaleAllSlides();
+    updateAllSlidesZoom();
+  }, 50);
+  
+  console.log(`Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`);
+}
+
+/**
+ * Update the resolution modal to show the correct active selection
+ */
+function updateResolutionModalSelection(width, height) {
+  const options = document.querySelectorAll(".resolution-option");
+  options.forEach((option) => {
+    const optionWidth = parseInt(option.getAttribute("data-width"), 10);
+    const optionHeight = parseInt(option.getAttribute("data-height"), 10);
+    
+    if (optionWidth === width && optionHeight === height) {
+      option.classList.add("active");
+    } else {
+      option.classList.remove("active");
+    }
+  });
+}
+
+/**
+ * Update the aspect ratio display in the UI
+ */
+function updateAspectRatioDisplay() {
+  const currentAspectRatio = getCurrentAspectRatio();
+  const aspectRatioElement = document.getElementById("aspect-ratio");
+  const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+  
+  if (aspectRatioElement) {
+    aspectRatioElement.innerText = currentAspectRatio;
+  }
+  if (aspectRatioValueElement) {
+    aspectRatioValueElement.innerText = currentAspectRatio;
+  }
+}
 
 // Add function to create slide context menu
 function createSlideContextMenu(e, slideIndex) {
@@ -241,11 +315,7 @@ export function updateSlideSelector() {
     const isTemplateMode =
       queryParams.mode === "template_editor" ||
       queryParams.mode === "suborg_templates";
-    if (
-      isTemplateMode &&
-      slide.accepted_aspect_ratios &&
-      slide.accepted_aspect_ratios.length > 0
-    ) {
+    if (isTemplateMode && slide.aspect_ratio) {
       const aspectRatioDiv = document.createElement("div");
       aspectRatioDiv.classList.add(
         "aspect-ratios",
@@ -253,7 +323,7 @@ export function updateSlideSelector() {
         "text-muted",
         "mt-1",
       );
-      aspectRatioDiv.innerHTML = `<i class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">aspect_ratio</i> ${slide.accepted_aspect_ratios.join(", ")}`;
+      aspectRatioDiv.innerHTML = `<i class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">aspect_ratio</i> ${slide.aspect_ratio}`;
       slideNameDiv.appendChild(aspectRatioDiv);
     }
 
@@ -571,6 +641,12 @@ export function updateSlideSelector() {
       }
 
       store.currentSlideIndex = index;
+      
+      // For template mode, set resolution based on template's aspect ratio
+      if ((store.editorMode === "template_editor" || store.editorMode === "suborg_templates") && slide.aspect_ratio) {
+        setResolutionFromAspectRatio(slide.aspect_ratio);
+      }
+      
       loadSlide(slide, undefined, undefined, true);
 
       updateSlideSelector();

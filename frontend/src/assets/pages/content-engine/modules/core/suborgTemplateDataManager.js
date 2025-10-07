@@ -19,10 +19,85 @@ import { loadSlide, scaleAllSlides } from "./renderSlide.js";
 import { updateSlideSelector } from "./slideSelector.js";
 import { showToast, token } from "../../../../utils/utils.js";
 import { updateResolution } from "./virutalPreviewResolution.js";
+import { updateAllSlidesZoom } from "../utils/zoomController.js";
+import { getCurrentAspectRatio } from "./addSlide.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
 
 let suborgId = null;
+
+/**
+ * Set the resolution based on aspect ratio and update resolution modal
+ */
+export function setResolutionFromAspectRatio(aspectRatio) {
+  const aspectRatioMap = {
+    "16:9": { width: 1920, height: 1080 },
+    "4:3": { width: 1024, height: 768 },
+    "21:9": { width: 3440, height: 1440 },
+    "1.85:1": { width: 1998, height: 1080 },
+    "2.39:1": { width: 2048, height: 858 },
+    "9:16": { width: 1080, height: 1920 },
+    "3:4": { width: 768, height: 1024 },
+    "9:21": { width: 1440, height: 3440 },
+    "1:1.85": { width: 1080, height: 1998 },
+    "1:2.39": { width: 858, height: 2048 },
+    "3:2": { width: 1440, height: 960 },  // fallback
+    "1:1": { width: 1080, height: 1080 },  // fallback
+  };
+  
+  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
+  store.emulatedWidth = resolution.width;
+  store.emulatedHeight = resolution.height;
+  
+  // Update resolution modal to show the correct active option
+  updateResolutionModalSelection(resolution.width, resolution.height);
+  
+  // Update the aspect ratio display in the UI
+  updateAspectRatioDisplay();
+  
+  // Trigger zoom adjustment to fit the new aspect ratio
+  setTimeout(() => {
+    scaleAllSlides();
+    updateAllSlidesZoom();
+  }, 50);
+  
+  console.log(`Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`);
+}
+
+/**
+ * Update the resolution modal to show the correct active selection
+ */
+export function updateResolutionModalSelection(width, height) {
+  const options = document.querySelectorAll(".resolution-option");
+  options.forEach((option) => {
+    const optionWidth = parseInt(option.getAttribute("data-width"), 10);
+    const optionHeight = parseInt(option.getAttribute("data-height"), 10);
+    
+    if (optionWidth === width && optionHeight === height) {
+      option.classList.add("active");
+    } else {
+      option.classList.remove("active");
+    }
+  });
+}
+
+/**
+ * Update the aspect ratio display in the UI
+ */
+export function updateAspectRatioDisplay() {
+  const currentAspectRatio = getCurrentAspectRatio();
+  const aspectRatioElement = document.getElementById("aspect-ratio");
+  const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+  
+  if (aspectRatioElement) {
+    aspectRatioElement.innerText = currentAspectRatio;
+  }
+  if (aspectRatioValueElement) {
+    aspectRatioValueElement.innerText = currentAspectRatio;
+  }
+}
+
+
 
 /**
  * Check if a 'suborg_templates' branch exists for the suborg, create it if not
@@ -146,8 +221,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         slideObject.templateId = template.id;
         slideObject.templateOriginalName = template.name;
         slideObject.name = template.name;
-        slideObject.accepted_aspect_ratios =
-          template.accepted_aspect_ratios || [];
+        slideObject.aspect_ratio = template.aspect_ratio || "16:9";
         slideObject.isSuborgTemplate = true; // Always true since we filtered
         slideObject.isGlobalTemplate = false; // Always false since we filtered
         slideObject.parentTemplate = template.parent_template;
@@ -240,8 +314,16 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
 
     if (store.currentSlideIndex !== -1) {
       const currentTemplateSlide = store.slides[store.currentSlideIndex];
-      store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-      store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+      
+      // Set resolution based on template's aspect ratio
+      const aspectRatio = currentTemplateSlide.aspect_ratio || "16:9";
+      setResolutionFromAspectRatio(aspectRatio);
+      
+      // Fallback to previewWidth/Height if needed
+      if (!store.emulatedWidth || !store.emulatedHeight) {
+        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
+        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+      }
 
       loadSlide(currentTemplateSlide);
       scaleAllSlides();

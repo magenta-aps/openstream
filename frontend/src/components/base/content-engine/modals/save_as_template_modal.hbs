@@ -45,42 +45,17 @@
             </div>
 
             <div class="mb-3">
-                {{> base/form/label text="Suitable Aspect Ratios"}}
-                <p class="text-muted small">Select aspect ratios this template is designed to work with. This helps users find templates appropriate for their display size.</p>
-
-                <div class="card mb-2">
-                    <div class="card-header">
-                        {{> base/form/checkbox id="selectAllLandscape" text="Landscape"}}
-                    </div>
-                    <div class="card-body" id="landscapeRatios">
-                        <div class="row mb-2">
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio16_9" class="landscape-ratio" name="aspectRatios" value="16:9" text="16:9"}}</div>
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio4_3" class="landscape-ratio" name="aspectRatios" value="4:3" text="4:3"}}</div>
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio21_9" class="landscape-ratio" name="aspectRatios" value="21:9" text="21:9"}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio1_85_1" class="landscape-ratio" name="aspectRatios" value="1.85:1" text="1.85:1"}}</div>
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio2_39_1" class="landscape-ratio" name="aspectRatios" value="2.39:1" text="2.39:1"}}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        {{> base/form/checkbox id="selectAllPortrait" text="Portrait"}}
-                    </div>
-                    <div class="card-body" id="portraitRatios">
-                        <div class="row mb-2">
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio9_16" class="portrait-ratio" name="aspectRatios" value="9:16" text="9:16"}}</div>
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio3_4" class="portrait-ratio" name="aspectRatios" value="3:4" text="3:4"}}</div>
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio9_21" class="portrait-ratio" name="aspectRatios" value="9:21" text="9:21"}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio1_1_85" class="portrait-ratio" name="aspectRatios" value="1:1.85" text="1:1.85"}}</div>
-                            <div class="col-md-4">{{> base/form/checkbox id="ratio1_2_39" class="portrait-ratio" name="aspectRatios" value="1:2.39" text="1:2.39"}}</div>
-                        </div>
-                    </div>
-                </div>
+                {{> base/form/label for="templateAspectRatio" text="Aspect Ratio"}}
+                <p class="text-muted small">Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio.</p>
+                <select class="form-select" id="templateAspectRatio" name="aspectRatio">
+                    <option value="16:9">16:9 (Landscape)</option>
+                    <option value="4:3">4:3 (Landscape)</option>
+                    <option value="21:9">21:9 (Ultra-wide)</option>
+                    <option value="3:2">3:2 (Landscape)</option>
+                    <option value="9:16">9:16 (Portrait)</option>
+                    <option value="3:4">3:4 (Portrait)</option>
+                    <option value="1:1">1:1 (Square)</option>
+                </select>
             </div>
 
             {{> base/form/input type="hidden" id="templateOrgId"}}

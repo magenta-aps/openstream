@@ -3433,7 +3433,7 @@ class SuborgTemplateAPIView(APIView):
             "organisation_id": suborg.organisation.id,
             "suborganisation_id": suborg.id,
             "parent_template_id": parent_template.id,
-            "accepted_aspect_ratios": parent_template.accepted_aspect_ratios,
+            "aspect_ratio": parent_template.aspect_ratio,
         }
 
         if parent_template.category:

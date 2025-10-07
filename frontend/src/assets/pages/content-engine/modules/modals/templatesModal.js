@@ -23,31 +23,9 @@ const modalTitleEl = document.getElementById("saveAsTemplateModalLabel");
 const templateNameField = document.getElementById("templateName");
 const templateCategorySelect = document.getElementById("templateCategory");
 const confirmBtn = document.getElementById("confirmSaveTemplateBtn");
-const selectAllLandscape = document.getElementById("selectAllLandscape");
-const selectAllPortrait = document.getElementById("selectAllPortrait");
-const landscapeRatiosContainer = document.getElementById("landscapeRatios");
-const portraitRatiosContainer = document.getElementById("portraitRatios");
+// Removed old aspect ratio checkbox elements - now using simple dropdown
 
-// Initialize aspect ratio checkboxes event listeners
-if (selectAllLandscape) {
-  selectAllLandscape.addEventListener("change", (e) => {
-    const landscapeRatios = document.querySelectorAll(".landscape-ratio");
-    landscapeRatios.forEach((checkbox) => {
-      checkbox.checked = e.target.checked;
-    });
-    updateAspectRatioSummary();
-  });
-}
-
-if (selectAllPortrait) {
-  selectAllPortrait.addEventListener("change", (e) => {
-    const portraitRatios = document.querySelectorAll(".portrait-ratio");
-    portraitRatios.forEach((checkbox) => {
-      checkbox.checked = e.target.checked;
-    });
-    updateAspectRatioSummary();
-  });
-}
+// Aspect ratio is now handled by a simple dropdown - no complex event handling needed
 
 // Add change listeners to all ratio checkboxes
 document.addEventListener("DOMContentLoaded", () => {
@@ -111,28 +89,17 @@ export function openSaveAsTemplateModal(index = null, isBlank = false) {
 
   fetchCategoriesForTemplate();
   fetchTagsForTemplate();
-  resetAspectRatios(); // Reset aspect ratio checkboxes when opening modal
+  // Reset aspect ratio to default when opening modal
+  const aspectRatioSelect = document.getElementById("templateAspectRatio");
+  if (aspectRatioSelect) {
+    aspectRatioSelect.value = "16:9";
+  }
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
   bsModal.show();
 }
 
-// Function to reset aspect ratio checkboxes
-function resetAspectRatios() {
-  // Uncheck all checkboxes
-  document
-    .querySelectorAll('input[name="aspectRatios"]')
-    .forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-
-  // Uncheck select all checkboxes
-  if (selectAllLandscape) selectAllLandscape.checked = false;
-  if (selectAllPortrait) selectAllPortrait.checked = false;
-
-  // We intentionally don't auto-select any aspect ratios by default
-  // This allows users to manually choose which aspect ratios the template supports
-}
+// Aspect ratio selection is now a simple dropdown
 
 export function openEditTemplateMetadataModal(index) {
   const templateToEdit = store.slides[index];
@@ -156,47 +123,17 @@ export function openEditTemplateMetadataModal(index) {
 
   fetchCategoriesForTemplate(templateToEdit.categoryId);
   fetchTagsForTemplate(templateToEdit.tagIds || []);
-  loadAspectRatios(templateToEdit.accepted_aspect_ratios || []);
+  loadAspectRatio(templateToEdit.aspect_ratio || "16:9");
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
   bsModal.show();
 }
 
-// Function to load aspect ratios from template data
-function loadAspectRatios(aspectRatios = []) {
-  // First clear all checkboxes without applying defaults
-  document
-    .querySelectorAll('input[name="aspectRatios"]')
-    .forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-
-  // Uncheck select all checkboxes
-  if (selectAllLandscape) selectAllLandscape.checked = false;
-  if (selectAllPortrait) selectAllPortrait.checked = false;
-
-  // Then check the ones included in the template
-  aspectRatios.forEach((ratio) => {
-    const checkbox = document.querySelector(
-      `input[name="aspectRatios"][value="${ratio}"]`,
-    );
-    if (checkbox) checkbox.checked = true;
-  });
-
-  // Check if all landscape or portrait ratios are selected and update "select all" checkboxes
-  updateSelectAllCheckboxes();
-
-  // Show selected ratio count in a summary element
-  const countSummary =
-    document.getElementById("aspectRatioSummary") ||
-    document.createElement("div");
-  if (!document.getElementById("aspectRatioSummary")) {
-    countSummary.id = "aspectRatioSummary";
-    countSummary.className = "mt-2 text-info small";
-    const container = document.querySelector(
-      ".modal-body form .mb-3:last-of-type",
-    );
-    if (container) container.appendChild(countSummary);
+// Function to load aspect ratio from template data
+function loadAspectRatio(aspectRatio = "16:9") {
+  const aspectRatioSelect = document.getElementById("templateAspectRatio");
+  if (aspectRatioSelect) {
+    aspectRatioSelect.value = aspectRatio;
   }
 }
 
@@ -412,10 +349,8 @@ if (confirmBtn) {
       ? document.getElementById("templateTags").value.split(",")
       : [];
 
-    // Get selected aspect ratios
-    const aspectRatios = Array.from(
-      document.querySelectorAll('input[name="aspectRatios"]:checked'),
-    ).map((checkbox) => checkbox.value);
+    // Get selected aspect ratio
+    const aspectRatio = document.getElementById("templateAspectRatio").value;
 
     if (!name) {
       showToast(gettext("Please enter a template name."), "Warning");
@@ -430,7 +365,7 @@ if (confirmBtn) {
         name: name,
         category_id: categoryId ? parseInt(categoryId) : null,
         tag_ids: tagValues.map((t) => parseInt(t)),
-        accepted_aspect_ratios: aspectRatios,
+        aspect_ratio: aspectRatio,
         organisation_id: parentOrgID, // Include if your API requires/uses it for PATCH
       };
 
@@ -523,13 +458,13 @@ if (confirmBtn) {
       delete slideData.templateOriginalName;
       delete slideData.categoryId;
       delete slideData.tagIds;
-      delete slideData.accepted_aspect_ratios;
+      delete slideData.aspect_ratio;
 
       const payload = {
         name: name,
         category_id: categoryId ? parseInt(categoryId) : null,
         tag_ids: tagValues.map((t) => parseInt(t)),
-        accepted_aspect_ratios: aspectRatios,
+        aspect_ratio: aspectRatio,
         slideData: slideData,
         previewWidth: store.emulatedWidth || 1920,
         previewHeight: store.emulatedHeight || 1080,

@@ -1032,10 +1032,10 @@ class SlideTemplate(models.Model):
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="slide_templates")
 
-    accepted_aspect_ratios = models.JSONField(
-        default=list,
-        blank=True,
-        help_text='List of supported aspect ratios, e.g. ["16:9","4:3","9:16"]',
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
     )
 
     class Meta:
