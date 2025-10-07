@@ -112,7 +112,7 @@ export function makeDraggable(el, dataObj) {
   function stopElementDrag() {
     document.removeEventListener("mousemove", elementDrag);
     document.removeEventListener("mouseup", stopElementDrag);
-    
+
     // Final position update for resize handle
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
@@ -125,7 +125,7 @@ export function makeDraggable(el, dataObj) {
 export function makeResizable(el, dataObj) {
   const resizer = el._resizeHandle || el.querySelector(".resize-handle");
   if (!resizer) return;
-  
+
   let animationFrameId = null;
   let startX, startY, startWidth, startHeight;
   let hasResized = false;

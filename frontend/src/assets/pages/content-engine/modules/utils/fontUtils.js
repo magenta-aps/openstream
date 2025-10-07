@@ -45,18 +45,16 @@ export async function fetchAndInitializeFonts() {
     let fontsUrl = `${BASE_URL}/api/fonts/?organisation_id=${parentOrgID}`;
     if (queryParams.mode === "slideshow-player") {
       const displayWebsiteId =
-        queryParams.displayWebsiteId || queryParams.display_website_id || queryParams.id || queryParams.dw_id;
+        queryParams.displayWebsiteId ||
+        queryParams.display_website_id ||
+        queryParams.id ||
+        queryParams.dw_id;
       if (displayWebsiteId) {
         fontsUrl = `${BASE_URL}/api/fonts/?displayWebsiteId=${displayWebsiteId}`;
       }
     }
 
-    const fonts = await genericFetch(
-      fontsUrl,
-      "GET",
-      null,
-      headers,
-    );
+    const fonts = await genericFetch(fontsUrl, "GET", null, headers);
 
     if (fonts && Array.isArray(fonts)) {
       availableFonts = fonts;
@@ -67,7 +65,10 @@ export async function fetchAndInitializeFonts() {
         try {
           await loadProtectedFontsViaFontFace(availableFonts, headers);
         } catch (e) {
-          console.warn("Falling back to @font-face injection after FontFace failure", e);
+          console.warn(
+            "Falling back to @font-face injection after FontFace failure",
+            e,
+          );
           injectFontFacesIntoStylesheet(availableFonts);
         }
       } else {
@@ -138,7 +139,9 @@ async function loadProtectedFontsViaFontFace(fonts, headers = {}) {
     try {
       const resp = await fetch(font.font_url, { headers });
       if (!resp.ok) {
-        console.warn(`Failed to fetch font ${font.name} via fetch: ${resp.status}`);
+        console.warn(
+          `Failed to fetch font ${font.name} via fetch: ${resp.status}`,
+        );
         continue;
       }
       const arrayBuffer = await resp.arrayBuffer();

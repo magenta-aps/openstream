@@ -49,20 +49,20 @@ function setResolutionFromAspectRatio(aspectRatio) {
     "9:21": { width: 1440, height: 3440 },
     "1:1.85": { width: 1080, height: 1998 },
     "1:2.39": { width: 858, height: 2048 },
-    "3:2": { width: 1440, height: 960 },  // fallback
-    "1:1": { width: 1080, height: 1080 },  // fallback
+    "3:2": { width: 1440, height: 960 }, // fallback
+    "1:1": { width: 1080, height: 1080 }, // fallback
   };
-  
+
   const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
   store.emulatedWidth = resolution.width;
   store.emulatedHeight = resolution.height;
-  
+
   // Update resolution modal to show the correct active option
   updateResolutionModalSelection(resolution.width, resolution.height);
-  
+
   // Update the aspect ratio display in the UI
   updateAspectRatioDisplay();
-  
+
   // Trigger zoom adjustment to fit the new aspect ratio
   setTimeout(async () => {
     const { scaleAllSlides } = await import("./renderSlide.js");
@@ -70,8 +70,10 @@ function setResolutionFromAspectRatio(aspectRatio) {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
-  
-  console.log(`Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`);
+
+  console.log(
+    `Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`,
+  );
 }
 
 /**
@@ -82,7 +84,7 @@ function updateResolutionModalSelection(width, height) {
   options.forEach((option) => {
     const optionWidth = parseInt(option.getAttribute("data-width"), 10);
     const optionHeight = parseInt(option.getAttribute("data-height"), 10);
-    
+
     if (optionWidth === width && optionHeight === height) {
       option.classList.add("active");
     } else {
@@ -98,7 +100,7 @@ function updateAspectRatioDisplay() {
   const currentAspectRatio = getCurrentAspectRatio();
   const aspectRatioElement = document.getElementById("aspect-ratio");
   const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
-  
+
   if (aspectRatioElement) {
     aspectRatioElement.innerText = currentAspectRatio;
   }
@@ -641,12 +643,16 @@ export function updateSlideSelector() {
       }
 
       store.currentSlideIndex = index;
-      
+
       // For template mode, set resolution based on template's aspect ratio
-      if ((store.editorMode === "template_editor" || store.editorMode === "suborg_templates") && slide.aspect_ratio) {
+      if (
+        (store.editorMode === "template_editor" ||
+          store.editorMode === "suborg_templates") &&
+        slide.aspect_ratio
+      ) {
         setResolutionFromAspectRatio(slide.aspect_ratio);
       }
-      
+
       loadSlide(slide, undefined, undefined, true);
 
       updateSlideSelector();

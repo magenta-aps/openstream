@@ -4,7 +4,10 @@ import { showToast, token, parentOrgID } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
 import * as bootstrap from "bootstrap";
-import { fetchAllSuborgTemplatesAndPopulateStore, setResolutionFromAspectRatio } from "../core/suborgTemplateDataManager.js";
+import {
+  fetchAllSuborgTemplatesAndPopulateStore,
+  setResolutionFromAspectRatio,
+} from "../core/suborgTemplateDataManager.js";
 import { loadSlide, scaleAllSlides } from "../core/renderSlide.js";
 import { scaleSlide } from "../core/renderSlide.js";
 import { store } from "../core/slideStore.js";
@@ -18,22 +21,25 @@ let savedResolution = null;
  */
 function restoreResolution(resolution) {
   if (!resolution) return;
-  
+
   store.emulatedWidth = resolution.width;
   store.emulatedHeight = resolution.height;
-  
+
   // Import and call the same update functions that setResolutionFromAspectRatio calls
   setTimeout(async () => {
     try {
       // Dynamically import the functions we need to avoid circular imports
-      const { updateResolutionModalSelection, updateAspectRatioDisplay } = await import("../core/suborgTemplateDataManager.js");
-      
+      const { updateResolutionModalSelection, updateAspectRatioDisplay } =
+        await import("../core/suborgTemplateDataManager.js");
+
       updateResolutionModalSelection(resolution.width, resolution.height);
       updateAspectRatioDisplay();
       scaleAllSlides();
       updateAllSlidesZoom();
-      
-      console.log(`Restored resolution to ${resolution.width}x${resolution.height}`);
+
+      console.log(
+        `Restored resolution to ${resolution.width}x${resolution.height}`,
+      );
     } catch (err) {
       console.warn("Could not fully restore resolution UI:", err);
     }
@@ -112,7 +118,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   // Save current resolution to restore if user cancels
   savedResolution = {
     width: store.emulatedWidth,
-    height: store.emulatedHeight
+    height: store.emulatedHeight,
   };
 
   // Create modal HTML dynamically

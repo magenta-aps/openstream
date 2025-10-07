@@ -646,10 +646,10 @@ function attachElementInteractions({
     state,
     closeButton: controls.closeButton,
   });
-  setupVisibilityToggle({ 
-    button: row.querySelector('[data-role="visibility-button"]'), 
-    elData, 
-    state 
+  setupVisibilityToggle({
+    button: row.querySelector('[data-role="visibility-button"]'),
+    elData,
+    state,
   });
 
   setupInlineNameEditing({ input: nameInput, elData, state });
@@ -689,9 +689,9 @@ function attachElementInteractions({
   });
   setupDeleteButton({ button: controls.deleteButton, elData, state, popover });
   setupLinkSelect({ select: linkSelect, elData });
-  setupDetailsToggle({ 
-    button: row.querySelector('[data-role="details-toggle"]'), 
-    detailsContainer: row.querySelector('[data-role="element-details"]')
+  setupDetailsToggle({
+    button: row.querySelector('[data-role="details-toggle"]'),
+    detailsContainer: row.querySelector('[data-role="element-details"]'),
   });
 
   preventInternalPopoverPropagation(popover);
@@ -923,9 +923,10 @@ function setupVisibilityToggle({ button, elData, state }) {
     if (
       !guardSettingsChange(elData, () => {
         // Revert the visual state if change is blocked
-        const icon = button.querySelector('.material-symbols-outlined');
+        const icon = button.querySelector(".material-symbols-outlined");
         if (icon) {
-          icon.textContent = elData.isHidden === true ? 'visibility_off' : 'visibility';
+          icon.textContent =
+            elData.isHidden === true ? "visibility_off" : "visibility";
         }
       })
     ) {
@@ -934,37 +935,41 @@ function setupVisibilityToggle({ button, elData, state }) {
 
     // Toggle visibility state (handle undefined as false)
     elData.isHidden = !(elData.isHidden === true);
-    
+
     // Update button icon and styling
-    const icon = button.querySelector('.material-symbols-outlined');
+    const icon = button.querySelector(".material-symbols-outlined");
     if (icon) {
-      icon.textContent = elData.isHidden ? 'visibility_off' : 'visibility';
+      icon.textContent = elData.isHidden ? "visibility_off" : "visibility";
     }
-    
+
     // Update button styling
     if (elData.isHidden === true) {
-      button.classList.add('element-hidden');
+      button.classList.add("element-hidden");
     } else {
-      button.classList.remove('element-hidden');
+      button.classList.remove("element-hidden");
     }
-    
+
     // Update button tooltip
-    button.title = elData.isHidden === true ? gettext("Show element") : gettext("Hide element");
+    button.title =
+      elData.isHidden === true
+        ? gettext("Show element")
+        : gettext("Hide element");
 
     // Update row styling
-    const row = button.closest('.list-group-item');
+    const row = button.closest(".list-group-item");
     if (row) {
       if (elData.isHidden === true) {
-        row.classList.add('element-hidden');
+        row.classList.add("element-hidden");
       } else {
-        row.classList.remove('element-hidden');
+        row.classList.remove("element-hidden");
       }
     }
 
     // Update the DOM element's visibility
     const domElement = document.getElementById(`el-${elData.id}`);
     if (domElement) {
-      domElement.style.visibility = elData.isHidden === true ? 'hidden' : 'visible';
+      domElement.style.visibility =
+        elData.isHidden === true ? "hidden" : "visible";
     }
 
     safeUpdateSlideElement(elData);
@@ -972,19 +977,23 @@ function setupVisibilityToggle({ button, elData, state }) {
   });
 
   // Set initial state
-  const icon = button.querySelector('.material-symbols-outlined');
+  const icon = button.querySelector(".material-symbols-outlined");
   if (icon) {
-    icon.textContent = elData.isHidden === true ? 'visibility_off' : 'visibility';
+    icon.textContent =
+      elData.isHidden === true ? "visibility_off" : "visibility";
   }
-  
+
   // Set initial button styling
   if (elData.isHidden === true) {
-    button.classList.add('element-hidden');
+    button.classList.add("element-hidden");
   } else {
-    button.classList.remove('element-hidden');
+    button.classList.remove("element-hidden");
   }
-  
-  button.title = elData.isHidden === true ? gettext("Show element") : gettext("Hide element");
+
+  button.title =
+    elData.isHidden === true
+      ? gettext("Show element")
+      : gettext("Hide element");
 }
 
 function setupPinToggle({ checkbox, elData, state }) {
@@ -1347,30 +1356,30 @@ function setupDetailsToggle({ button, detailsContainer }) {
 
   // Set initial state based on global state
   if (globalExpandState) {
-    detailsContainer.classList.remove('collapse');
-    const icon = button.querySelector('.material-symbols-outlined');
-    if (icon) icon.textContent = 'expand_less';
+    detailsContainer.classList.remove("collapse");
+    const icon = button.querySelector(".material-symbols-outlined");
+    if (icon) icon.textContent = "expand_less";
     button.title = gettext("Hide details");
   } else {
-    detailsContainer.classList.add('collapse');
-    const icon = button.querySelector('.material-symbols-outlined');
-    if (icon) icon.textContent = 'expand_more';
+    detailsContainer.classList.add("collapse");
+    const icon = button.querySelector(".material-symbols-outlined");
+    if (icon) icon.textContent = "expand_more";
     button.title = gettext("Show details");
   }
 
   registerListener(button, "click", (event) => {
     event.stopPropagation();
-    
-    const isCollapsed = detailsContainer.classList.contains('collapse');
-    const icon = button.querySelector('.material-symbols-outlined');
-    
+
+    const isCollapsed = detailsContainer.classList.contains("collapse");
+    const icon = button.querySelector(".material-symbols-outlined");
+
     if (isCollapsed) {
-      detailsContainer.classList.remove('collapse');
-      if (icon) icon.textContent = 'expand_less';
+      detailsContainer.classList.remove("collapse");
+      if (icon) icon.textContent = "expand_less";
       button.title = gettext("Hide details");
     } else {
-      detailsContainer.classList.add('collapse');
-      if (icon) icon.textContent = 'expand_more';
+      detailsContainer.classList.add("collapse");
+      if (icon) icon.textContent = "expand_more";
       button.title = gettext("Show details");
     }
   });
@@ -1562,7 +1571,8 @@ function initSortable(container, state) {
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
-      filter: '[data-role="expand-collapse-all"], input, button, select, textarea', // Prevent dragging when interacting with form elements or expand/collapse button
+      filter:
+        '[data-role="expand-collapse-all"], input, button, select, textarea', // Prevent dragging when interacting with form elements or expand/collapse button
       preventOnFilter: false, // Allow default behavior on filtered elements
       onMove(evt) {
         const draggedId = parseInt(evt.dragged.dataset.elId, 10);
@@ -1624,24 +1634,28 @@ function toggleAllDetails(expand) {
   const container = document.getElementById("slide-elements-list");
   if (!container) return;
 
-  const detailsContainers = container.querySelectorAll('[data-role="element-details"]');
-  const toggleButtons = container.querySelectorAll('[data-role="details-toggle"]');
+  const detailsContainers = container.querySelectorAll(
+    '[data-role="element-details"]',
+  );
+  const toggleButtons = container.querySelectorAll(
+    '[data-role="details-toggle"]',
+  );
 
   detailsContainers.forEach((detailsContainer) => {
     if (expand) {
-      detailsContainer.classList.remove('collapse');
+      detailsContainer.classList.remove("collapse");
     } else {
-      detailsContainer.classList.add('collapse');
+      detailsContainer.classList.add("collapse");
     }
   });
 
   toggleButtons.forEach((button) => {
-    const icon = button.querySelector('.material-symbols-outlined');
+    const icon = button.querySelector(".material-symbols-outlined");
     if (expand) {
-      if (icon) icon.textContent = 'expand_less';
+      if (icon) icon.textContent = "expand_less";
       button.title = gettext("Hide details");
     } else {
-      if (icon) icon.textContent = 'expand_more';
+      if (icon) icon.textContent = "expand_more";
       button.title = gettext("Show details");
     }
   });
@@ -1649,33 +1663,34 @@ function toggleAllDetails(expand) {
 
 function createExpandCollapseButton() {
   const button = document.createElement("button");
-  button.className = "btn btn-sm btn-outline-secondary w-100 mb-2 d-flex align-items-center justify-content-center gap-1";
+  button.className =
+    "btn btn-sm btn-outline-secondary w-100 mb-2 d-flex align-items-center justify-content-center gap-1";
   button.type = "button";
   button.dataset.role = "expand-collapse-all";
-  
+
   const updateButtonText = () => {
     const icon = document.createElement("span");
     icon.className = "material-symbols-outlined";
     icon.style.fontSize = "16px";
     icon.textContent = globalExpandState ? "unfold_less" : "unfold_more";
-    
+
     const text = document.createTextNode(
-      globalExpandState ? gettext("Collapse All") : gettext("Expand All")
+      globalExpandState ? gettext("Collapse All") : gettext("Expand All"),
     );
-    
+
     button.innerHTML = "";
     button.appendChild(icon);
     button.appendChild(text);
   };
-  
+
   updateButtonText();
-  
+
   registerListener(button, "click", (event) => {
     event.stopPropagation();
     toggleAllDetails(!globalExpandState);
     updateButtonText();
   });
-  
+
   return button;
 }
 
@@ -1695,11 +1710,11 @@ export function renderSlideElementsSidebar() {
   }
 
   container.innerHTML = "";
-  
+
   // Add expand/collapse all button
   const expandCollapseButton = createExpandCollapseButton();
   container.appendChild(expandCollapseButton);
-  
+
   state.sortedElements.forEach((elData) => {
     const row = createElementRow(elData, state);
     container.appendChild(row);

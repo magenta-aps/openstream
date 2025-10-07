@@ -116,7 +116,7 @@ const initCommonEditorFeatures = () => {
   initMediaAlignment();
   initMuteButtons();
   initShape();
-    initBoxElement();
+  initBoxElement();
   initHtmlElement();
   initTableElement();
   initListElement();

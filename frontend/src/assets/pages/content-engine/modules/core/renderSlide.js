@@ -224,8 +224,10 @@ export function loadSlide(
       // Only deselect if clicking directly on the grid container (empty space), not on child elements
       if (event.target === gridContainer) {
         // Exit edit mode for any currently contentEditable elements
-        const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
-        activeEditableElements.forEach(editableEl => {
+        const activeEditableElements = document.querySelectorAll(
+          '[contenteditable="true"]',
+        );
+        activeEditableElements.forEach((editableEl) => {
           editableEl.blur();
           editableEl.contentEditable = false;
         });
@@ -588,8 +590,10 @@ async function _startSlideshowPlayer() {
 
 function _resetEditorSelection(wysiwygToolbar) {
   // Exit edit mode for any currently contentEditable elements
-  const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
-  activeEditableElements.forEach(editableEl => {
+  const activeEditableElements = document.querySelectorAll(
+    '[contenteditable="true"]',
+  );
+  activeEditableElements.forEach((editableEl) => {
     editableEl.blur();
     editableEl.contentEditable = false;
   });
@@ -731,9 +735,9 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
   // Handle element visibility (default to visible if property is undefined)
   if (el.isHidden === true) {
-    container.style.visibility = 'hidden';
+    container.style.visibility = "hidden";
   } else {
-    container.style.visibility = 'visible';
+    container.style.visibility = "visible";
   }
 
   const resizer = document.createElement("div");
@@ -748,13 +752,18 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     if (!el.isSelectionBlocked) {
       container.addEventListener("click", (ev) => {
         // Check if we're clicking within a contentEditable element that's already in edit mode
-        const clickedEditableElement = ev.target.closest('[contenteditable="true"]');
-        
+        const clickedEditableElement = ev.target.closest(
+          '[contenteditable="true"]',
+        );
+
         // If clicking within an already-editable element, don't trigger selection
-        if (clickedEditableElement && clickedEditableElement.isContentEditable) {
+        if (
+          clickedEditableElement &&
+          clickedEditableElement.isContentEditable
+        ) {
           return; // Let the text editing happen naturally
         }
-        
+
         ev.stopPropagation();
         selectElement(container, el);
       });
@@ -806,7 +815,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   }
 
   gridContainer.appendChild(container);
-  
+
   // Now that container is in the DOM, set up the resize handle as a sibling
   // to avoid it being clipped by border-radius
   const resizerHandle = container.querySelector(".resize-handle");
@@ -824,21 +833,23 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       z-index: 9999;
       pointer-events: auto;
     `;
-    
+
     // Position the resizer at the bottom-right corner of the container
     const updateResizerPosition = () => {
-      resizerHandle.style.left = (container.offsetLeft + container.offsetWidth - 15) + "px";
-      resizerHandle.style.top = (container.offsetTop + container.offsetHeight - 15) + "px";
+      resizerHandle.style.left =
+        container.offsetLeft + container.offsetWidth - 15 + "px";
+      resizerHandle.style.top =
+        container.offsetTop + container.offsetHeight - 15 + "px";
     };
-    
+
     // Insert resizer as sibling, not child, so it won't be clipped by border-radius
     container.parentNode.insertBefore(resizerHandle, container.nextSibling);
     updateResizerPosition();
-    
+
     // Store reference and update function on container
     container._resizeHandle = resizerHandle;
     container._updateResizerPosition = updateResizerPosition;
-    
+
     // Add mutation observer to track position/size changes
     const resizerObserver = new MutationObserver(() => {
       updateResizerPosition();

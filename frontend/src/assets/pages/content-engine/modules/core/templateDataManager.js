@@ -30,27 +30,29 @@ function setResolutionFromAspectRatio(aspectRatio) {
     "9:21": { width: 1440, height: 3440 },
     "1:1.85": { width: 1080, height: 1998 },
     "1:2.39": { width: 858, height: 2048 },
-    "3:2": { width: 1440, height: 960 },  // fallback
-    "1:1": { width: 1080, height: 1080 },  // fallback
+    "3:2": { width: 1440, height: 960 }, // fallback
+    "1:1": { width: 1080, height: 1080 }, // fallback
   };
-  
+
   const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
   store.emulatedWidth = resolution.width;
   store.emulatedHeight = resolution.height;
-  
+
   // Update resolution modal to show the correct active option
   updateResolutionModalSelection(resolution.width, resolution.height);
-  
+
   // Update the aspect ratio display in the UI
   updateAspectRatioDisplay();
-  
+
   // Trigger zoom adjustment to fit the new aspect ratio
   setTimeout(() => {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
-  
-  console.log(`Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`);
+
+  console.log(
+    `Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`,
+  );
 }
 
 /**
@@ -61,7 +63,7 @@ function updateResolutionModalSelection(width, height) {
   options.forEach((option) => {
     const optionWidth = parseInt(option.getAttribute("data-width"), 10);
     const optionHeight = parseInt(option.getAttribute("data-height"), 10);
-    
+
     if (optionWidth === width && optionHeight === height) {
       option.classList.add("active");
     } else {
@@ -77,7 +79,7 @@ function updateAspectRatioDisplay() {
   const currentAspectRatio = getCurrentAspectRatio();
   const aspectRatioElement = document.getElementById("aspect-ratio");
   const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
-  
+
   if (aspectRatioElement) {
     aspectRatioElement.innerText = currentAspectRatio;
   }
@@ -208,11 +210,11 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
 
     if (store.currentSlideIndex !== -1) {
       const currentTemplateSlide = store.slides[store.currentSlideIndex];
-      
+
       // Set resolution based on template's aspect ratio
       const aspectRatio = currentTemplateSlide.aspect_ratio || "16:9";
       setResolutionFromAspectRatio(aspectRatio);
-      
+
       // Fallback to previewWidth/Height if needed
       if (!store.emulatedWidth || !store.emulatedHeight) {
         store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
@@ -331,7 +333,8 @@ export async function saveCurrentTemplateData() {
     currentSlideObject.templateOriginalName = updatedTemplateFromServer.name;
     currentSlideObject.previewWidth = updatedTemplateFromServer.previewWidth;
     currentSlideObject.previewHeight = updatedTemplateFromServer.previewHeight;
-    currentSlideObject.aspect_ratio = updatedTemplateFromServer.aspect_ratio || "16:9";
+    currentSlideObject.aspect_ratio =
+      updatedTemplateFromServer.aspect_ratio || "16:9";
 
     lastStoredSingleSlideStr = JSON.stringify(currentSlideObject);
 

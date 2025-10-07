@@ -44,11 +44,11 @@ function showBoxShadowPopover(button, currentShadowData, callback) {
       color: selectedColor,
     };
     applyBoxShadow(store.selectedElement, shadowData);
-    
+
     // Update the data store so changes are saved
     store.selectedElementData.boxShadowData = shadowData;
     store.selectedElementData.boxShadow = shadowData.color; // Keep for legacy compatibility
-    
+
     // Update button indicator
     const boxShadowBtn = document.getElementById("selected-element-boxshadow");
     if (boxShadowBtn) {
@@ -95,7 +95,10 @@ function showBoxShadowPopover(button, currentShadowData, callback) {
     valueInput.addEventListener("input", () => {
       let val = parseInt(valueInput.value);
       if (!isNaN(val)) {
-        slider.value = Math.min(parseInt(max), Math.max(parseInt(min), val)).toString();
+        slider.value = Math.min(
+          parseInt(max),
+          Math.max(parseInt(min), val),
+        ).toString();
         valueInput.value = slider.value;
         applyBoxShadowRealtime();
       }
@@ -128,12 +131,7 @@ function showBoxShadowPopover(button, currentShadowData, callback) {
   popover.appendChild(verticalSlider.container);
 
   // Blur radius slider
-  const blurSlider = createSlider(
-    gettext("Blur Radius:"),
-    0,
-    50,
-    blurRadius,
-  );
+  const blurSlider = createSlider(gettext("Blur Radius:"), 0, 50, blurRadius);
   popover.appendChild(blurSlider.container);
 
   // Spread radius slider
@@ -176,7 +174,7 @@ function showBoxShadowPopover(button, currentShadowData, callback) {
 
   colorButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    
+
     // Create a fake positioning element to the right of the popover
     const popoverRect = popover.getBoundingClientRect();
     const fakeButton = {
@@ -187,9 +185,9 @@ function showBoxShadowPopover(button, currentShadowData, callback) {
         right: popoverRect.right + 5,
         width: 0,
         height: popoverRect.height,
-      })
+      }),
     };
-    
+
     showColorPalette(
       fakeButton,
       (color) => {
@@ -261,7 +259,10 @@ function showBoxShadowPopover(button, currentShadowData, callback) {
   document.body.appendChild(popover);
 
   const removePopover = (e) => {
-    if (!popover.contains(e.target) && !e.target.closest(".custom-color-palette")) {
+    if (
+      !popover.contains(e.target) &&
+      !e.target.closest(".custom-color-palette")
+    ) {
       if (document.body.contains(popover)) {
         document.body.removeChild(popover);
       }

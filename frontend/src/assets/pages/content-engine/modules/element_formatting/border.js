@@ -68,30 +68,30 @@ function showBorderPopover(button, currentBorderData, callback) {
 
   // Create checkboxElements object early so it can be referenced
   const checkboxElements = {};
-  
+
   // Helper to apply border in real-time (defined early so it can be used by all event listeners)
   const applyBorderRealtime = () => {
     if (!store.selectedElement) return;
     let thickness = parseInt(thicknessValue.value, 10);
     if (isNaN(thickness) || thickness <= 0) return;
-    
+
     // Check if checkboxes are initialized yet
     if (!checkboxElements.top) return;
-    
+
     const sides = {
       top: checkboxElements.top.checked,
       right: checkboxElements.right.checked,
       bottom: checkboxElements.bottom.checked,
       left: checkboxElements.left.checked,
     };
-    
+
     applyBorderToElement(
       store.selectedElement,
       thickness,
       selectedColor,
       sides,
     );
-    
+
     // Update the data store so changes are saved
     store.selectedElementData.borderData = {
       thickness: thickness,
@@ -99,9 +99,11 @@ function showBorderPopover(button, currentBorderData, callback) {
       sides: sides,
     };
     store.selectedElementData.border = true;
-    
+
     // Update button indicator
-    const selectedElementBorder = document.getElementById("selected-element-border");
+    const selectedElementBorder = document.getElementById(
+      "selected-element-border",
+    );
     if (selectedElementBorder) {
       selectedElementBorder.style.border = `3px solid ${selectedColor}`;
     }
@@ -138,7 +140,7 @@ function showBorderPopover(button, currentBorderData, callback) {
 
   colorButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    
+
     // Create a fake positioning element to the right of the popover
     const popoverRect = popover.getBoundingClientRect();
     const fakeButton = {
@@ -149,9 +151,9 @@ function showBorderPopover(button, currentBorderData, callback) {
         right: popoverRect.right + 5,
         width: 0,
         height: popoverRect.height,
-      })
+      }),
     };
-    
+
     showColorPalette(
       fakeButton,
       (color) => {
@@ -198,10 +200,10 @@ function showBorderPopover(button, currentBorderData, callback) {
     checkbox.checked = side.checked;
     checkbox.style.marginRight = "5px";
     checkboxElements[side.key] = checkbox;
-    
+
     // Add real-time update listener
     checkbox.addEventListener("change", applyBorderRealtime);
-    
+
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode(gettext(side.label)));
     sideOptions.appendChild(label);
@@ -283,7 +285,10 @@ function showBorderPopover(button, currentBorderData, callback) {
   document.body.appendChild(popover);
 
   const removePopover = (e) => {
-    if (!popover.contains(e.target) && !e.target.closest(".custom-color-palette")) {
+    if (
+      !popover.contains(e.target) &&
+      !e.target.closest(".custom-color-palette")
+    ) {
       if (document.body.contains(popover)) {
         document.body.removeChild(popover);
       }
@@ -297,10 +302,10 @@ function showBorderPopover(button, currentBorderData, callback) {
 
 function applyBorderToElement(element, thickness, color, sides) {
   const borderValue = `${thickness}px solid ${color}`;
-  
+
   // Clear any existing shorthand border
   element.style.border = "";
-  
+
   // Apply to individual sides
   element.style.borderTop = sides.top ? borderValue : "";
   element.style.borderRight = sides.right ? borderValue : "";
@@ -330,9 +335,14 @@ export function initSelectedElementBorder() {
       if (store.selectedElementData?.borderData) {
         currentBorderData = store.selectedElementData.borderData;
         // Migrate old data structure if it has 'all' property
-        if (currentBorderData.sides && 'all' in currentBorderData.sides) {
+        if (currentBorderData.sides && "all" in currentBorderData.sides) {
           if (currentBorderData.sides.all) {
-            currentBorderData.sides = { top: true, right: true, bottom: true, left: true };
+            currentBorderData.sides = {
+              top: true,
+              right: true,
+              bottom: true,
+              left: true,
+            };
           }
         }
       } else {

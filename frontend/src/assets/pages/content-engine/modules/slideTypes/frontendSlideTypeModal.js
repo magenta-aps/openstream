@@ -658,7 +658,9 @@ class FrontendSlideTypeModal {
       const slideType = slideTypeRegistry.getSlideType(this.currentSlideTypeId);
 
       // Get slide data which may include default size properties
-      const slideData = slideTypeRegistry.generateSlideData(this.currentSlideTypeId);
+      const slideData = slideTypeRegistry.generateSlideData(
+        this.currentSlideTypeId,
+      );
 
       // Prepare overrides - start with slide data defaults
       const overrides = {

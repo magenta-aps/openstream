@@ -108,8 +108,12 @@ export async function updateResolution(selectedResolution) {
       }
 
       // Update template's aspect ratio in template mode
-      if ((queryParams.mode === "template_editor" || queryParams.mode === "suborg_templates") && 
-          store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
+      if (
+        (queryParams.mode === "template_editor" ||
+          queryParams.mode === "suborg_templates") &&
+        store.currentSlideIndex > -1 &&
+        store.slides[store.currentSlideIndex]
+      ) {
         const currentTemplate = store.slides[store.currentSlideIndex];
         currentTemplate.aspect_ratio = currentAspectRatio;
         console.log(`Updated template aspect ratio to: ${currentAspectRatio}`);

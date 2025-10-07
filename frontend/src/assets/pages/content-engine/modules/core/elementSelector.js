@@ -10,7 +10,10 @@ import {
 } from "../utils/mediaElementUtils.js";
 import { setupImageSizeMode } from "../elements/imageElement.js";
 import { setupTableToolbar } from "../elements/tableElement.js";
-import { updateModeRadioButtons, updateToolbarDropdowns } from "../elements/textbox.js";
+import {
+  updateModeRadioButtons,
+  updateToolbarDropdowns,
+} from "../elements/textbox.js";
 
 // Helper function to safely access toolbar-general
 function setToolbarGeneralVisibility(visibility) {
@@ -193,8 +196,10 @@ export function selectElement(el, dataObj) {
   }
 
   // Exit edit mode for contentEditable elements only if selecting a different element
-  const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
-  activeEditableElements.forEach(editableEl => {
+  const activeEditableElements = document.querySelectorAll(
+    '[contenteditable="true"]',
+  );
+  activeEditableElements.forEach((editableEl) => {
     // Only exit edit mode if the new element being selected is not the same as or within the editable element
     if (!editableEl.contains(el) && editableEl !== el) {
       editableEl.blur();
@@ -239,7 +244,7 @@ export function selectElement(el, dataObj) {
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
     }
-    
+
     // Hide resize handle for locked elements in non-template editor mode
     if (queryParams.mode !== "template_editor" && isElementLocked(dataObj)) {
       resizer.style.display = "none";
@@ -270,7 +275,9 @@ export function selectElement(el, dataObj) {
     }
   }
 
-  const borderRadiusBtn = document.getElementById("selected-element-border-radius");
+  const borderRadiusBtn = document.getElementById(
+    "selected-element-border-radius",
+  );
   if (borderRadiusBtn) {
     if (dataObj.borderRadius) {
       borderRadiusBtn.style.border = "3px solid #007bff";
@@ -592,8 +599,10 @@ export function selectElement(el, dataObj) {
 export function deselectElement() {
   if (store.selectedElement || store.selectedElementData) {
     // Exit edit mode for any currently contentEditable elements before deselecting
-    const activeEditableElements = document.querySelectorAll('[contenteditable="true"]');
-    activeEditableElements.forEach(editableEl => {
+    const activeEditableElements = document.querySelectorAll(
+      '[contenteditable="true"]',
+    );
+    activeEditableElements.forEach((editableEl) => {
       editableEl.blur();
       editableEl.contentEditable = false;
     });

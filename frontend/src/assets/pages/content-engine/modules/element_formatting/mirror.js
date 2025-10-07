@@ -27,7 +27,8 @@ function showMirrorPopover(button, callback, initialMirror) {
   // Horizontal flip button
   const horizontalBtn = document.createElement("button");
   horizontalBtn.className = "btn btn-sm btn-outline-primary";
-  horizontalBtn.innerHTML = '<i class="material-symbols-outlined">flip</i> Flip Horizontally';
+  horizontalBtn.innerHTML =
+    '<i class="material-symbols-outlined">flip</i> Flip Horizontally';
   horizontalBtn.style.display = "flex";
   horizontalBtn.style.alignItems = "center";
   horizontalBtn.style.gap = "8px";
@@ -35,7 +36,8 @@ function showMirrorPopover(button, callback, initialMirror) {
   // Vertical flip button
   const verticalBtn = document.createElement("button");
   verticalBtn.className = "btn btn-sm btn-outline-primary";
-  verticalBtn.innerHTML = '<i class="material-symbols-outlined" style="transform: rotate(90deg);">flip</i> Flip Vertically';
+  verticalBtn.innerHTML =
+    '<i class="material-symbols-outlined" style="transform: rotate(90deg);">flip</i> Flip Vertically';
   verticalBtn.style.display = "flex";
   verticalBtn.style.alignItems = "center";
   verticalBtn.style.gap = "8px";
@@ -50,10 +52,12 @@ function showMirrorPopover(button, callback, initialMirror) {
 
   // Update button states based on current mirror values
   function updateButtonStates(mirror) {
-    horizontalBtn.className = mirror.horizontal ? 
-      "btn btn-sm btn-primary" : "btn btn-sm btn-outline-primary";
-    verticalBtn.className = mirror.vertical ? 
-      "btn btn-sm btn-primary" : "btn btn-sm btn-outline-primary";
+    horizontalBtn.className = mirror.horizontal
+      ? "btn btn-sm btn-primary"
+      : "btn btn-sm btn-outline-primary";
+    verticalBtn.className = mirror.vertical
+      ? "btn btn-sm btn-primary"
+      : "btn btn-sm btn-outline-primary";
   }
 
   updateButtonStates(initialMirror);
@@ -72,7 +76,7 @@ function showMirrorPopover(button, callback, initialMirror) {
   horizontalBtn.addEventListener("click", () => {
     const newMirror = {
       horizontal: !initialMirror.horizontal,
-      vertical: initialMirror.vertical
+      vertical: initialMirror.vertical,
     };
     initialMirror = newMirror;
     updateButtonStates(newMirror);
@@ -83,7 +87,7 @@ function showMirrorPopover(button, callback, initialMirror) {
   verticalBtn.addEventListener("click", () => {
     const newMirror = {
       horizontal: initialMirror.horizontal,
-      vertical: !initialMirror.vertical
+      vertical: !initialMirror.vertical,
     };
     initialMirror = newMirror;
     updateButtonStates(newMirror);
@@ -148,16 +152,18 @@ export function initMirror() {
 function applyMirrorTransform(element, mirror) {
   let scaleX = mirror.horizontal ? -1 : 1;
   let scaleY = mirror.vertical ? -1 : 1;
-  
+
   // Get existing transforms
   let existingTransform = element.style.transform || "";
-  
+
   // Remove any existing scale transforms
-  existingTransform = existingTransform.replace(/scale[XY]?\([^)]*\)/g, "").trim();
-  
+  existingTransform = existingTransform
+    .replace(/scale[XY]?\([^)]*\)/g, "")
+    .trim();
+
   // Add new scale transform
   const newScale = `scale(${scaleX}, ${scaleY})`;
-  
+
   if (existingTransform) {
     element.style.transform = `${existingTransform} ${newScale}`;
   } else {
@@ -170,16 +176,18 @@ export function _renderMirror(container, el) {
   if (el.mirror) {
     const scaleX = el.mirror.horizontal ? -1 : 1;
     const scaleY = el.mirror.vertical ? -1 : 1;
-    
+
     // Get existing transform from container
     let existingTransform = container.style.transform || "";
-    
+
     // Remove any existing scale transforms
-    existingTransform = existingTransform.replace(/scale[XY]?\([^)]*\)/g, "").trim();
-    
+    existingTransform = existingTransform
+      .replace(/scale[XY]?\([^)]*\)/g, "")
+      .trim();
+
     // Add new scale transform
     const newScale = `scale(${scaleX}, ${scaleY})`;
-    
+
     if (existingTransform) {
       container.style.transform = `${existingTransform} ${newScale}`;
     } else {

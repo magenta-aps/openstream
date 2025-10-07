@@ -7,7 +7,7 @@ export function initDeselectElement() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && store.selectedElement) {
       const activeElement = document.activeElement;
-      
+
       // Handle text box edit mode specially
       if (activeElement && activeElement.isContentEditable) {
         // Exit edit mode by blurring the element, but keep it selected
@@ -15,7 +15,7 @@ export function initDeselectElement() {
         activeElement.contentEditable = false;
         return;
       }
-      
+
       // Don't deselect if user is typing in regular input fields
       if (
         activeElement &&

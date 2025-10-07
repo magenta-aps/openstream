@@ -75,32 +75,36 @@ function showBorderRadiusPopover(button, currentRadiusData, callback) {
 
   // Create checkboxElements object early
   const checkboxElements = {};
-  
+
   // Helper to apply border radius in real-time
   const applyBorderRadiusRealtime = () => {
     if (!store.selectedElement) return;
     let radius = parseInt(radiusValue.value, 10);
     if (isNaN(radius) || radius < 0) return;
-    
+
     // Check if checkboxes are initialized yet
     if (!checkboxElements.topLeft) return;
-    
+
     const corners = {
       all: allCornersCheckbox.checked,
       topLeft: allCornersCheckbox.checked || checkboxElements.topLeft.checked,
       topRight: allCornersCheckbox.checked || checkboxElements.topRight.checked,
-      bottomRight: allCornersCheckbox.checked || checkboxElements.bottomRight.checked,
-      bottomLeft: allCornersCheckbox.checked || checkboxElements.bottomLeft.checked,
+      bottomRight:
+        allCornersCheckbox.checked || checkboxElements.bottomRight.checked,
+      bottomLeft:
+        allCornersCheckbox.checked || checkboxElements.bottomLeft.checked,
     };
-    
+
     applyBorderRadiusToElement(store.selectedElement, radius, corners);
-    
+
     // Update the data store so changes are saved
     store.selectedElementData.borderRadius = radius;
     store.selectedElementData.borderRadiusCorners = corners;
-    
+
     // Update button indicator
-    const borderRadiusBtn = document.getElementById("selected-element-border-radius");
+    const borderRadiusBtn = document.getElementById(
+      "selected-element-border-radius",
+    );
     if (borderRadiusBtn && radius > 0) {
       borderRadiusBtn.style.border = "3px solid #007bff";
     }
@@ -170,10 +174,10 @@ function showBorderRadiusPopover(button, currentRadiusData, callback) {
     checkbox.style.marginRight = "5px";
     checkbox.disabled = allCornersCheckbox.checked;
     checkboxElements[corner.key] = checkbox;
-    
+
     // Add real-time update listener
     checkbox.addEventListener("change", applyBorderRadiusRealtime);
-    
+
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode(gettext(corner.label)));
     individualCornersDiv.appendChild(label);
@@ -284,12 +288,14 @@ function applyBorderRadiusToElement(element, radius, corners) {
 }
 
 export function initBorderRadius() {
-  const borderRadiusBtn = document.getElementById("selected-element-border-radius");
+  const borderRadiusBtn = document.getElementById(
+    "selected-element-border-radius",
+  );
   if (!borderRadiusBtn) {
     console.error("Border radius button not found in DOM");
     return;
   }
-  
+
   borderRadiusBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     document.querySelectorAll(".popover").forEach((popover) => {
@@ -300,56 +306,63 @@ export function initBorderRadius() {
       return;
     }
 
-      // Push state before making any changes (for undo/redo)
-      pushCurrentSlideState();
+    // Push state before making any changes (for undo/redo)
+    pushCurrentSlideState();
 
-      // Get current border radius data from the store
-      let currentRadiusData = null;
-      if (store.selectedElementData?.borderRadius && store.selectedElementData?.borderRadiusCorners) {
-        currentRadiusData = {
-          radius: store.selectedElementData.borderRadius,
-          corners: store.selectedElementData.borderRadiusCorners,
-        };
-      }
+    // Get current border radius data from the store
+    let currentRadiusData = null;
+    if (
+      store.selectedElementData?.borderRadius &&
+      store.selectedElementData?.borderRadiusCorners
+    ) {
+      currentRadiusData = {
+        radius: store.selectedElementData.borderRadius,
+        corners: store.selectedElementData.borderRadiusCorners,
+      };
+    }
 
-      showBorderRadiusPopover(
-        borderRadiusBtn,
-        currentRadiusData,
-        (radiusData) => {
-          if (radiusData === null) {
-            // Remove border radius
-            store.selectedElement.style.borderRadius = "";
-            store.selectedElement.style.borderTopLeftRadius = "";
-            store.selectedElement.style.borderTopRightRadius = "";
-            store.selectedElement.style.borderBottomRightRadius = "";
-            store.selectedElement.style.borderBottomLeftRadius = "";
-            store.selectedElementData.borderRadius = null;
-            store.selectedElementData.borderRadiusCorners = null;
-            if (borderRadiusBtn) {
-              borderRadiusBtn.style.border = "";
-            }
-          } else {
-            // Apply border radius
-            applyBorderRadiusToElement(
-              store.selectedElement,
-              radiusData.radius,
-              radiusData.corners,
-            );
-            store.selectedElementData.borderRadius = radiusData.radius;
-            store.selectedElementData.borderRadiusCorners = radiusData.corners;
-            if (borderRadiusBtn) {
-              borderRadiusBtn.style.border = "3px solid #007bff";
-            }
+    showBorderRadiusPopover(
+      borderRadiusBtn,
+      currentRadiusData,
+      (radiusData) => {
+        if (radiusData === null) {
+          // Remove border radius
+          store.selectedElement.style.borderRadius = "";
+          store.selectedElement.style.borderTopLeftRadius = "";
+          store.selectedElement.style.borderTopRightRadius = "";
+          store.selectedElement.style.borderBottomRightRadius = "";
+          store.selectedElement.style.borderBottomLeftRadius = "";
+          store.selectedElementData.borderRadius = null;
+          store.selectedElementData.borderRadiusCorners = null;
+          if (borderRadiusBtn) {
+            borderRadiusBtn.style.border = "";
           }
-        },
-      );
+        } else {
+          // Apply border radius
+          applyBorderRadiusToElement(
+            store.selectedElement,
+            radiusData.radius,
+            radiusData.corners,
+          );
+          store.selectedElementData.borderRadius = radiusData.radius;
+          store.selectedElementData.borderRadiusCorners = radiusData.corners;
+          if (borderRadiusBtn) {
+            borderRadiusBtn.style.border = "3px solid #007bff";
+          }
+        }
+      },
+    );
   });
 }
 
 // Helper function for the render engine
 export function _renderBorderRadius(container, el) {
   if (el.borderRadius && el.borderRadiusCorners) {
-    applyBorderRadiusToElement(container, el.borderRadius, el.borderRadiusCorners);
+    applyBorderRadiusToElement(
+      container,
+      el.borderRadius,
+      el.borderRadiusCorners,
+    );
   } else if (el.rounded) {
     // Legacy support for old "rounded" property (Bootstrap rounded class)
     container.classList.add("rounded");

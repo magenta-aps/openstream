@@ -3794,10 +3794,16 @@ class CustomFontAPIView(APIView):
             try:
                 dw = get_object_or_404(DisplayWebsite, id=display_website_id)
             except Exception:
-                return Response({"detail": "Display website not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"detail": "Display website not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
             if not dw.branch or not dw.branch.suborganisation:
-                return Response({"detail": "Display website missing branch/suborganisation."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"detail": "Display website missing branch/suborganisation."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             organisation = dw.branch.suborganisation.organisation
             org_id = organisation.id
@@ -3805,7 +3811,10 @@ class CustomFontAPIView(APIView):
             try:
                 organisation = get_object_or_404(Organisation, pk=org_id)
             except:
-                return Response({"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"detail": "Organization not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
         # Allow access via X-API-KEY (e.g. slideshow player) when the key belongs
         # to a branch under the requested organisation. Otherwise validate the
@@ -3814,26 +3823,41 @@ class CustomFontAPIView(APIView):
         api_key_authenticated = False
         if api_key:
             try:
-                key_obj = SlideshowPlayerAPIKey.objects.filter(key=api_key, is_active=True).first()
+                key_obj = SlideshowPlayerAPIKey.objects.filter(
+                    key=api_key, is_active=True
+                ).first()
             except Exception:
                 key_obj = None
 
             if not key_obj:
-                return Response({"detail": "Invalid API key."}, status=status.HTTP_403_FORBIDDEN)
+                return Response(
+                    {"detail": "Invalid API key."}, status=status.HTTP_403_FORBIDDEN
+                )
 
             # If we resolved a DisplayWebsite (dw) prefer to validate the api key against that branch.
             if dw:
                 if key_obj.branch and key_obj.branch != dw.branch:
-                    return Response({"detail": "API key not valid for this branch."}, status=status.HTTP_403_FORBIDDEN)
+                    return Response(
+                        {"detail": "API key not valid for this branch."},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
             else:
                 # Fallback: ensure the api key's branch belongs to the requested organisation
                 try:
                     key_org = key_obj.branch.suborganisation.organisation
                 except Exception:
-                    return Response({"detail": "API key not linked to an organisation."}, status=status.HTTP_403_FORBIDDEN)
+                    return Response(
+                        {"detail": "API key not linked to an organisation."},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
                 if str(key_org.id) != str(org_id):
-                    return Response({"detail": "API key does not grant access to this organisation."}, status=status.HTTP_403_FORBIDDEN)
+                    return Response(
+                        {
+                            "detail": "API key does not grant access to this organisation."
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
             api_key_authenticated = True
 
@@ -3845,7 +3869,9 @@ class CustomFontAPIView(APIView):
                 or user_belongs_to_organisation(request.user, organisation)
             ):
                 return Response(
-                    {"detail": "You don't have permission to access this organization."},
+                    {
+                        "detail": "You don't have permission to access this organization."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 

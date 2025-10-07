@@ -37,8 +37,6 @@ body.player-mode {
   overflow: hidden !important;
 }
 
-
-
 body.player-mode .left-sidebar,
 body.player-mode #sidebar,
 body.player-mode .top-toolbar,
@@ -430,7 +428,8 @@ body {
   visibility: hidden;
 }
 
-.text-content span, .text-content div {
+.text-content span,
+.text-content div {
   font-family: inherit;
 }
 
@@ -861,8 +860,9 @@ span {
 /* Hidden element styling in sidebar */
 #slide-elements-list .list-group-item.element-hidden {
   opacity: 0.5;
-  
-  .fw-bold, .text-muted {
+
+  .fw-bold,
+  .text-muted {
     color: $darker-gray !important;
   }
 }
