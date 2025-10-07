@@ -65,7 +65,7 @@ import {
   initMuteButtons,
 } from "./modules/utils/mediaElementUtils.js";
 import { initSlideshowPlayer } from "./modules/core/slideshowPlayer.js";
-import { fetchAndInitializeFonts } from "./modules/utils/fontUtils.js";
+import { fetchAndInitializeFonts, waitForFontsReady } from "./modules/utils/fontUtils.js";
 import { syncGridConfigWithCSS } from "./modules/config/gridConfig.js";
 import { initStatusBar } from "./modules/utils/statusBar.js";
 import initSlideElementsSidebar from "./modules/core/slideElementsSidebar.js";
@@ -346,9 +346,7 @@ if (queryParams.mode === "slideshow-player") {
     previewContainer.classList.add("player-mode");
   }
   initSlideshowPlayerMode();
-  // Re-fetch fonts after player init so any apiKey saved by initSlideshowPlayerMode
-  // (localStorage) is available for protected font requests.
-  await fetchAndInitializeFonts();
+  // Font loading is now handled inside _startSlideshowPlayer to ensure better timing
 }
 
 if (
