@@ -2356,40 +2356,80 @@ class RegisteredSlideTypesAPIView(APIView):
     API view for fetching registered slide types for an organisation.
     - GET: Returns a list of registered slide types for the specified organisation
 
-    Query params:
+    Query params (for user authentication):
       - org_id (required): The organisation ID to fetch slide types for
+    
+    Query params (for API key authentication):
+      - branch_id (optional): Required when using non-branch-limited API key
+    
+    Authentication: Supports both user authentication and X-API-KEY header.
+    For API key authentication, organisation is derived from the branch.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = []  # We handle both user & API-key auth ourselves
 
     def get(self, request):
         """
         Returns a list of registered slide types for the specified organisation.
-        Users must belong to the organisation to access its slide types.
+        Supports both user authentication and API key authentication.
         """
-        org_id = request.query_params.get("org_id")
-        if not org_id:
-            return Response(
-                {"error": "org_id parameter is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # --- Authentication Section ---
+        api_key_value = request.headers.get("X-API-KEY")
 
-        try:
-            organisation = Organisation.objects.get(id=org_id)
-        except Organisation.DoesNotExist:
-            return Response(
-                {"error": "Organisation not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+        if api_key_value:
+            # API key authentication
+            key_obj = SlideshowPlayerAPIKey.objects.filter(
+                key=api_key_value, is_active=True
+            ).first()
+            if not key_obj:
+                return Response({"detail": "Invalid or inactive API key."}, status=403)
 
-        # Check if user belongs to this organisation or is super_admin
-        if not user_is_super_admin(request.user):
-            if not user_belongs_to_organisation(request.user, organisation):
+            # For API key access, get branch from the key or use branch_id param
+            if key_obj.branch:
+                branch = key_obj.branch
+            else:
+                # If API key is not branch-limited, require branch_id parameter
+                branch_id = request.query_params.get("branch_id")
+                if not branch_id:
+                    return Response(
+                        {
+                            "detail": "branch_id is required when using non-branch-limited API key."
+                        },
+                        status=400,
+                    )
+                branch = get_object_or_404(Branch, id=branch_id)
+
+            # Get organisation from the branch
+            organisation = branch.suborganisation.organisation
+        else:
+            # User authentication
+            if not request.user or not request.user.is_authenticated:
+                return Response({"detail": "Authentication required."}, status=401)
+
+            # For user authentication, org_id parameter is required
+            org_id = request.query_params.get("org_id")
+            if not org_id:
                 return Response(
-                    {
-                        "error": "You do not have permission to access slide types for this organisation"
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
+                    {"error": "org_id parameter is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            try:
+                organisation = Organisation.objects.get(id=org_id)
+            except Organisation.DoesNotExist:
+                return Response(
+                    {"error": "Organisation not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Check if user belongs to this organisation or is super_admin
+            if not user_is_super_admin(request.user):
+                if not user_belongs_to_organisation(request.user, organisation):
+                    return Response(
+                        {
+                            "error": "You do not have permission to access slide types for this organisation"
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
         # Fetch registered slide types for the organisation
         slide_types = RegisteredSlideTypes.objects.filter(

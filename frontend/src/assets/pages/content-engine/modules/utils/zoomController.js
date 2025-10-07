@@ -125,6 +125,7 @@ function handleZoomChange(mode, level) {
  * Enable fit-to-window mode (current default behavior)
  */
 function enableFitToWindowMode() {
+  console.log("Zoom Controller: Switching to fit-to-window mode");
   const previewContainers = getPreviewContainers();
 
   previewContainers.forEach((container) => {
@@ -173,6 +174,7 @@ function enableFitToWindowMode() {
  * Enable zoom mode with scrolling
  */
 function enableZoomMode(zoomLevel) {
+  console.log(`Zoom Controller: Switching to zoom mode at ${zoomLevel}%`);
   const previewContainers = getPreviewContainers();
 
   previewContainers.forEach((container) => {
@@ -214,12 +216,12 @@ function enableZoomMode(zoomLevel) {
         }
 
         // Calculate the actual rendered size after scaling
-        const scaledWidth = store.emulatedWidth * zoomScale;
-        const scaledHeight = store.emulatedHeight * zoomScale;
+       // const scaledWidth = store.emulatedWidth * zoomScale;
+       // const scaledHeight = store.emulatedHeight * zoomScale;
 
         // Set the preview slide dimensions to the scaled size to provide proper scrollable area
-        previewSlide.style.width = `${scaledWidth}px`;
-        previewSlide.style.height = `${scaledHeight}px`;
+       // previewSlide.style.width = `${scaledWidth}px`;
+        // previewSlide.style.height = `${scaledHeight}px`;
 
         // Reset any container constraints that might interfere with scrolling
         container.style.minWidth = "auto";
@@ -259,6 +261,12 @@ function scaleSlideToFit(previewContainer) {
  * Update zoom for all slides (called when resolution changes, etc.)
  */
 export function updateAllSlidesZoom() {
+  // For slideshow-player mode, always use fit mode regardless of status bar state
+  if (queryParams.mode === "slideshow-player") {
+    enableFitToWindowMode();
+    return;
+  }
+
   // Get current zoom state from status bar
   const statusBar = document.querySelector(".content-engine-status-bar");
   if (!statusBar) return;

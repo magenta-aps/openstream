@@ -6,24 +6,46 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../utils/constants.js";
-import { token } from "../../../../utils/utils.js";
+import { token, queryParams, selectedBranchID } from "../../../../utils/utils.js";
 
 const allowedSlideTypes = [];
 
 try {
-  const res = await fetch(
-    `${BASE_URL}/api/organisations/slide-types/?org_id=${localStorage.getItem("parentOrgID")}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
+  // Build headers based on authentication mode
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  // Check if we're in slideshow-player mode and have an API key
+  if (queryParams.mode === "slideshow-player" && queryParams.apiKey) {
+    headers["X-API-KEY"] = queryParams.apiKey;
+  } else if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    console.error("No authentication method available for slide types");
+    throw new Error("No authentication method available");
+  }
+
+  // Build URL based on authentication mode
+  let url;
+  if (queryParams.mode === "slideshow-player" && queryParams.apiKey) {
+    // For API key authentication, no org_id needed - it's derived from the branch
+    url = `${BASE_URL}/api/organisations/slide-types/`;
+    if (selectedBranchID) {
+      url += `?branch_id=${selectedBranchID}`;
+    }
+  } else {
+    // For user authentication, org_id is required
+    url = `${BASE_URL}/api/organisations/slide-types/?org_id=${localStorage.getItem("parentOrgID")}`;
+  }
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers,
+  });
+  
   if (res.ok) {
     const data = await res.json();
-    //allowedSlideTypes = data.
     data.forEach((slideType) => {
       allowedSlideTypes.push(slideType.slide_type_id);
     });
