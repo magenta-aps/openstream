@@ -24,6 +24,7 @@ const fontSizeSelect = document.querySelector(".font-size-select");
 const fontFamilySelect = document.querySelector(".font-family-select");
 const lineHeightSelect = document.querySelector(".line-height-select");
 const letterSpacingSelect = document.querySelector(".letter-spacing-select");
+const fontWeightSelect = document.querySelector(".font-weight-select");
 const textColorPicker = document.querySelector(".text-color-picker");
 
 const boldBtn = document.querySelector("#boldBtn");
@@ -125,17 +126,51 @@ export const letterSpacingMapping = {
   "-0.05": "-0.05vw",
   "-0.02": "-0.02vw",
   normal: "normal",
+  0.01: "0.01vw",
   0.02: "0.02vw",
+  0.03: "0.03vw",
+  0.04: "0.04vw",
   0.05: "0.05vw",
+  0.06: "0.06vw",
+  0.07: "0.07vw",
+  0.08: "0.08vw",
+  0.09: "0.09vw",
   0.1: "0.1vw",
+  0.12: "0.12vw",
   0.15: "0.15vw",
+  0.18: "0.18vw",
   0.2: "0.2vw",
   0.25: "0.25vw",
+  0.3: "0.3vw",
+  0.4: "0.4vw",
+  0.5: "0.5vw",
+  0.6: "0.6vw",
+  0.7: "0.7vw",
+  0.8: "0.8vw",
+  0.9: "0.9vw",
+  1: "1vw",
+  1.2: "1.2vw",
+  1.5: "1.5vw",
+  1.8: "1.8vw",
+  2: "2vw",
 };
 
 export const textDirectionMapping = {
   horizontal: "horizontal-tb",
   vertical: "vertical-rl",
+};
+
+export const fontWeightMapping = {
+  normal: "normal",
+  100: "100",
+  200: "200",
+  300: "300",
+  400: "400",
+  500: "500",
+  600: "600",
+  700: "700",
+  800: "800",
+  900: "900",
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -297,6 +332,9 @@ export function updateModeRadioButtons() {
     horizontalTextModeRadio.checked = true;
     verticalTextModeRadio.checked = false;
   }
+
+  // Update font weight dropdown state based on mode
+  updateFontWeightDropdownState();
 }
 
 /**
@@ -327,6 +365,11 @@ export function updateToolbarDropdowns() {
     letterSpacingSelect.value = store.selectedElementData.letterSpacing;
   }
 
+  // Update font weight dropdown
+  if (store.selectedElementData.fontWeight) {
+    fontWeightSelect.value = store.selectedElementData.fontWeight;
+  }
+
   // Update text direction radio buttons
   const textDirection = store.selectedElementData.textDirection || "horizontal";
   if (textDirection === "vertical") {
@@ -336,6 +379,9 @@ export function updateToolbarDropdowns() {
     horizontalTextModeRadio.checked = true;
     verticalTextModeRadio.checked = false;
   }
+
+  // Update font weight dropdown state based on mode
+  updateFontWeightDropdownState();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -977,6 +1023,32 @@ function handleLetterSpacingChange(e) {
   });
 }
 
+function handleFontWeightChange(e) {
+  e.preventDefault();
+  pushCurrentSlideState();
+  withSelectedTextbox(() => {
+    const newFontWeight = e.target.value;
+    const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
+    const elData = store.slides[store.currentSlideIndex].elements.find(
+      (el) => el.id === id,
+    );
+    
+    // Only apply font weight changes in Simple Text mode
+    const isSimpleMode = elData?.isSimpleTextMode || false;
+    if (!isSimpleMode) {
+      console.warn("Font weight can only be changed in Simple Text mode.");
+      return;
+    }
+
+    if (elData) elData.fontWeight = newFontWeight;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (content) {
+      // In simple mode, apply font weight to the container
+      applySimpleModeStyles(content, elData);
+    }
+  });
+}
+
 function handleTextDirectionChange(e) {
   e.preventDefault();
   pushCurrentSlideState();
@@ -1362,7 +1434,33 @@ function handleModeToggle(e) {
         target.style.textDecoration = "";
       }
     }
+
+    // Update font weight dropdown state based on mode
+    updateFontWeightDropdownState();
   });
+}
+
+/**
+ * Enable/disable font weight dropdown based on text mode.
+ * Font weight is only available in Simple Text mode.
+ */
+function updateFontWeightDropdownState() {
+  if (!store.selectedElementData) {
+    fontWeightSelect.disabled = true;
+    return;
+  }
+
+  const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+  fontWeightSelect.disabled = !isSimpleMode;
+  
+  // Add visual styling for disabled state
+  if (!isSimpleMode) {
+    fontWeightSelect.style.opacity = "0.5";
+    fontWeightSelect.style.cursor = "not-allowed";
+  } else {
+    fontWeightSelect.style.opacity = "1";
+    fontWeightSelect.style.cursor = "pointer";
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1420,6 +1518,7 @@ export function initTextbox() {
   fontFamilySelect.addEventListener("change", handleFontFamilyChange);
   lineHeightSelect.addEventListener("change", handleLineHeightChange);
   letterSpacingSelect.addEventListener("change", handleLetterSpacingChange);
+  fontWeightSelect.addEventListener("change", handleFontWeightChange);
 
   // Text color picker
   textColorPicker.addEventListener("click", handleTextColorPickerClick);
