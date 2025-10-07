@@ -173,6 +173,65 @@ export const fontWeightMapping = {
   900: "900",
 };
 
+// ------------------------------------------------------------------
+// Container-based font-size helpers
+// ------------------------------------------------------------------
+
+/**
+ * Returns the closest slide/container width in pixels to base font-size calculations on.
+ * Falls back to store.emulatedWidth when DOM lookup fails.
+ */
+function getContainerWidthForElement(el) {
+  try {
+    // Prefer the zoom-wrapper width if available
+    const zoom = el?.closest?.(".zoom-wrapper");
+    if (zoom && zoom.clientWidth) return zoom.clientWidth;
+
+    // Otherwise look for the grid container or slide-element parent
+    const grid = el?.closest?.(".grid-container");
+    if (grid && grid.clientWidth) return grid.clientWidth;
+
+    const slideEl = el?.closest?.(".preview-slide");
+    if (slideEl && slideEl.clientWidth) return slideEl.clientWidth;
+  } catch (err) {
+    // ignore and fallback
+  }
+
+  // Final fallback to store.emulatedWidth
+  return store?.emulatedWidth || window.innerWidth || 1000;
+}
+
+/**
+ * Convert a font-size string value (e.g. "1.02vw" or "16px") to a css px value
+ * based on the given containerWidth. If value is already px, return as-is.
+ */
+function fontSizeValueToPx(value, containerWidth) {
+  if (!value) return "";
+  const trimmed = String(value).trim();
+  if (trimmed.endsWith("px")) return trimmed;
+  if (trimmed.endsWith("vw")) {
+    const num = parseFloat(trimmed.replace("vw", ""));
+    if (Number.isNaN(num)) return "";
+    // vw is percent of viewport width; here we use containerWidth instead
+    const px = (num / 100) * containerWidth;
+    return Math.round(px) + "px";
+  }
+  // If it's a plain number, assume px
+  const parsed = parseFloat(trimmed);
+  if (!Number.isNaN(parsed)) return Math.round(parsed) + "px";
+  return trimmed; // unknown unit, return raw
+}
+
+/**
+ * Given a font size key (the mapping key like "12"), return a px value
+ * computed for the container that contains `referenceEl`.
+ */
+function fontSizeKeyToPx(sizeKey, referenceEl) {
+  const raw = fontSizeMapping[sizeKey] || fontSizeMapping["12"];
+  const width = getContainerWidthForElement(referenceEl || document.body);
+  return fontSizeValueToPx(raw, width);
+}
+
 // ─────────────────────────────────────────────────────────────
 // 4) SMALL HELPER UTILITIES
 // ─────────────────────────────────────────────────────────────
@@ -269,7 +328,7 @@ function stripFormattingToPlainText(html) {
  * Apply uniform styling to a simple text mode textbox.
  */
 function applySimpleModeStyles(textElement, elData) {
-  const fontSize = fontSizeMapping[elData.fontSize] || fontSizeMapping["12"];
+  const fontSize = fontSizeKeyToPx(elData.fontSize || "12", textElement);
   const fontFamily = elData.fontFamily || getDefaultFont();
   const lineHeight = lineHeightMapping[elData.lineHeight] || "1.2";
   const letterSpacing = letterSpacingMapping[elData.letterSpacing] || "normal";
@@ -463,9 +522,8 @@ function normalizeNestedSpans(textContentElement) {
 }
 
 function applyCustomFontSize(sizeKey) {
-  // fontSizeMapping should be defined elsewhere (e.g., { small: '12px', medium: '16px', large: '20px' }).
-  const desiredSize = fontSizeMapping[sizeKey];
-  if (!desiredSize) return;
+  // Ensure key exists in mapping
+  if (!fontSizeMapping[sizeKey]) return;
 
   const sel = window.getSelection();
   if (sel.rangeCount > 0) {
@@ -478,9 +536,11 @@ function applyCustomFontSize(sizeKey) {
     //    preserving text color, font family, and text alignment but dropping inline font-size.
     const cleanContent = flattenFragmentForSize(extractedContent);
 
-    // 3) Create a new wrapper that applies the uniform font size.
-    const wrapperSpan = document.createElement("span");
-    wrapperSpan.style.fontSize = desiredSize;
+  // 3) Create a new wrapper that applies the uniform font size.
+  const wrapperSpan = document.createElement("span");
+  // Compute px based on the selection container (closest text-content)
+  const referenceEl = range.startContainer?.parentElement || document.body;
+  wrapperSpan.style.fontSize = fontSizeKeyToPx(sizeKey, referenceEl);
     wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
     wrapperSpan.setAttribute("data-font-size-key", sizeKey);
 
@@ -686,13 +746,25 @@ function applyCustomFontFamily(family) {
     const cleanContent = flattenFragmentForFamily(extractedContent);
 
     // 3) Create a new wrapper that applies the custom font family.
-    const wrapperSpan = document.createElement("span");
-    // Use the font name directly as the font-family value
-    wrapperSpan.style.fontFamily = `"${family}"`; // Ensure font names with spaces are quoted
-    wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
-    wrapperSpan.setAttribute("data-font-family", family);
+  const wrapperSpan = document.createElement("span");
+  // Use the font name directly as the font-family value
+  wrapperSpan.style.fontFamily = `"${family}"`; // Ensure font names with spaces are quoted
+  wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
+  wrapperSpan.setAttribute("data-font-family", family);
+  // If the fragment contains spans with data-font-size-key, convert their fontSize values
+  // to px relative to the current container so pasted/wrapped text remains sized correctly.
 
     // 4) Append the cleaned content into the wrapper.
+    // Convert any data-font-size-key placeholders inside the cleanContent
+    const referenceEl = range.startContainer?.parentElement || document.body;
+    const spans = Array.from(cleanContent.querySelectorAll
+      ? cleanContent.querySelectorAll("span[data-font-size-key]")
+      : []);
+    spans.forEach((s) => {
+      const key = s.getAttribute("data-font-size-key");
+      if (key) s.style.fontSize = fontSizeKeyToPx(key, referenceEl);
+    });
+
     wrapperSpan.appendChild(cleanContent);
 
     // 5) Insert the new node back into the document.
@@ -1314,18 +1386,19 @@ function addTextboxToSlide() {
 
   // Default font-size key and family
   const defaultFontSizeKey = "12";
-  const defaultFontSizeValue = fontSizeMapping[defaultFontSizeKey];
   // Use the first available custom font or a system default
   const defaultFontFamily = getDefaultFont();
 
   const newTextbox = {
     id: store.elementIdCounter++,
     type: "textbox",
-    // Wrap the default text in a <span> with data attributes:
+    // Wrap the default text in a <span> with data attributes. We compute an initial px
+    // font-size using the document body as reference; it will be recomputed when rendered
+    // inside the actual slide container.
     text: `<span><span 
              data-font-size-key="${defaultFontSizeKey}"
              data-font-family="${defaultFontFamily}"
-             style="font-size: ${defaultFontSizeValue}; font-family: '${defaultFontFamily}'; line-height: 1.2;"
+             style="font-size: ${fontSizeKeyToPx(defaultFontSizeKey, document.body)}; font-family: '${defaultFontFamily}'; line-height: 1.2;"
            >
              ${gettext("Double click to edit text")}
            </span>
@@ -1417,9 +1490,11 @@ function handleModeToggle(e) {
         const fontSize = store.selectedElementData.fontSize || "12";
         const fontFamily =
           store.selectedElementData.fontFamily || getDefaultFont();
-        const fontSizeValue = fontSizeMapping[fontSize];
 
-        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${fontSizeValue}; font-family: '${fontFamily}'; line-height: 1.2;">${currentContent}</span>`;
+        // Compute px based on the actual target container
+        const computedFontSize = fontSizeKeyToPx(fontSize, target);
+
+        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${computedFontSize}; font-family: '${fontFamily}'; line-height: 1.2;">${currentContent}</span>`;
 
         // Update data model
         store.selectedElementData.isSimpleTextMode = false;
@@ -1565,7 +1640,7 @@ function handleInputOnEmpty(e) {
 
   // 1. Get the desired style from the toolbar's current state.
   const currentSizeKey = fontSizeSelect.value;
-  const currentFontSize = fontSizeMapping[currentSizeKey];
+  const currentFontSize = fontSizeKeyToPx(currentSizeKey || "12", textContentElement);
   const currentFontFamily = fontFamilySelect.value;
 
   if (!currentFontSize) {
@@ -1588,9 +1663,9 @@ function handleInputOnEmpty(e) {
       }
 
       // Wrap plain text nodes
-      const wrapperSpan = document.createElement("span");
-      wrapperSpan.style.fontSize = currentFontSize;
-      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+  const wrapperSpan = document.createElement("span");
+  wrapperSpan.style.fontSize = currentFontSize;
+  wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
       wrapperSpan.style.lineHeight = "1.2";
       wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
       wrapperSpan.setAttribute("data-font-family", currentFontFamily);
@@ -1616,9 +1691,9 @@ function handleInputOnEmpty(e) {
     // that toolbar styles apply uniformly. This preserves formatting tags
     // while ensuring the wrapper controls font size/family.
     if (node.nodeType === Node.ELEMENT_NODE) {
-      const wrapperSpan = document.createElement("span");
-      wrapperSpan.style.fontSize = currentFontSize;
-      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+  const wrapperSpan = document.createElement("span");
+  wrapperSpan.style.fontSize = currentFontSize;
+  wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
       wrapperSpan.style.lineHeight = "1.2";
       wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
       wrapperSpan.setAttribute("data-font-family", currentFontFamily);
@@ -1674,9 +1749,16 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
     fixLineHeightInTextbox(textWrapper);
 
     textWrapper.style.lineHeight = el.lineHeight || "1.2";
-    // ensure all spans inside respect the wrapper's line-height
+    // ensure all spans inside respect the wrapper's line-height and convert vw sizes to px
     textWrapper.querySelectorAll("span").forEach((span) => {
       span.style.lineHeight = el.lineHeight || "1.2";
+      if (span.hasAttribute("data-font-size-key")) {
+        const key = span.getAttribute("data-font-size-key");
+        span.style.fontSize = fontSizeKeyToPx(key, textWrapper);
+      } else if (span.style.fontSize) {
+        // Convert any vw-based inline font sizes to px relative to this container
+        span.style.fontSize = fontSizeValueToPx(span.style.fontSize, getContainerWidthForElement(textWrapper));
+      }
     });
   }
 
