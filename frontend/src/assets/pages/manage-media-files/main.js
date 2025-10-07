@@ -467,6 +467,12 @@ function removeTagFromMedia(tagName) {
   if (tagObj) {
     currentMediaTags.delete(String(tagObj.id));
   }
+  // Uncheck in dropdown if present
+  const tagsSelectEl = document.querySelector("#mediaEditTagsSelect");
+  if (tagsSelectEl) {
+    const cbElem = tagsSelectEl.querySelector(`input[value="${tagObj.id}"]`);
+    if (cbElem) cbElem.checked = false;
+  }
   refreshTagListDisplay();
 }
 
