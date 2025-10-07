@@ -461,6 +461,15 @@
   "Rotate": {
     "da": "Roter"
   },
+  " Mirror/Flip": {
+    "da": " Spejl/Vend"
+  },
+  " Mirror/Flip Selected Element": {
+    "da": " Spejl/Vend Valgt Element"
+  },
+  "Mirror/Flip": {
+    "da": "Spejl/Vend"
+  },
   " Border": {
     "da": " Kant"
   },

@@ -37,6 +37,8 @@ body.player-mode {
   overflow: hidden !important;
 }
 
+
+
 body.player-mode .left-sidebar,
 body.player-mode #sidebar,
 body.player-mode .top-toolbar,
@@ -428,7 +430,7 @@ body {
   visibility: hidden;
 }
 
-.text-content span {
+.text-content span, .text-content div {
   font-family: inherit;
 }
 

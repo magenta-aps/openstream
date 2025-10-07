@@ -12,6 +12,16 @@
                 Rich Text
             </label>
         </div>
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text direction">
+            <input type="radio" class="btn-check" name="textDirectionToggle" id="horizontalTextMode" value="horizontal" checked>
+            <label class="btn btn-outline-secondary btn-sm" for="horizontalTextMode" title="{% trans 'Horizontal Text' %}">
+                <span class="material-symbols-outlined">text_rotation_none</span>
+            </label>
+            <input type="radio" class="btn-check" name="textDirectionToggle" id="verticalTextMode" value="vertical">
+            <label class="btn btn-outline-secondary btn-sm" for="verticalTextMode" title="{% trans 'Vertical Text' %}">
+                <span class="material-symbols-outlined">text_rotation_down</span>
+            </label>
+        </div>
       </div>
       <div class="mx-3 d-flex">
         {{#> base/form/dropdown id="" class="font-family-select mx-1 form-select form-select-sm" }}
@@ -45,12 +55,49 @@
             {{> base/form/dropdown-option value="25" text="112"}}
             {{> base/form/dropdown-option value="26" text="120"}}
             {{> base/form/dropdown-option value="27" text="128"}}
+            {{> base/form/dropdown-option value="28" text="144"}}
+            {{> base/form/dropdown-option value="29" text="160"}}
+            {{> base/form/dropdown-option value="30" text="176"}}
+            {{> base/form/dropdown-option value="31" text="192"}}
+            {{> base/form/dropdown-option value="32" text="208"}}
+            {{> base/form/dropdown-option value="33" text="224"}}
+            {{> base/form/dropdown-option value="34" text="240"}}
+            {{> base/form/dropdown-option value="35" text="256"}}
+            {{> base/form/dropdown-option value="36" text="272"}}
+            {{> base/form/dropdown-option value="37" text="288"}}
+            {{> base/form/dropdown-option value="38" text="304"}}
+            {{> base/form/dropdown-option value="39" text="320"}}
+            {{> base/form/dropdown-option value="40" text="336"}}
+            {{> base/form/dropdown-option value="41" text="352"}}
+            {{> base/form/dropdown-option value="42" text="368"}}
+            {{> base/form/dropdown-option value="43" text="384"}}
+            {{> base/form/dropdown-option value="44" text="400"}}
+            {{> base/form/dropdown-option value="45" text="416"}}
+            {{> base/form/dropdown-option value="46" text="432"}}
+            {{> base/form/dropdown-option value="47" text="448"}}
+            {{> base/form/dropdown-option value="48" text="464"}}
+            {{> base/form/dropdown-option value="49" text="480"}}
+            {{> base/form/dropdown-option value="50" text="496"}}
+            {{> base/form/dropdown-option value="51" text="512"}}
     {{/base/form/dropdown}}
         {{#> base/form/dropdown id="" class="line-height-select mx-1 form-select form-select-sm" title="{% trans 'Line Height' %}" }}
+            {{> base/form/dropdown-option value="0.5" text="0.5"}}
+            {{> base/form/dropdown-option value="0.6" text="0.6"}}
+            {{> base/form/dropdown-option value="0.7" text="0.7"}}
+            {{> base/form/dropdown-option value="0.8" text="0.8"}}
+            {{> base/form/dropdown-option value="0.9" text="0.9"}}
             {{> base/form/dropdown-option value="1" text="1"}}
+            {{> base/form/dropdown-option value="1.1" text="1.1"}}
             {{> base/form/dropdown-option value="1.2" text="1.2" selected=true}}
+            {{> base/form/dropdown-option value="1.3" text="1.3"}}
+            {{> base/form/dropdown-option value="1.4" text="1.4"}}
             {{> base/form/dropdown-option value="1.5" text="1.5"}}
+            {{> base/form/dropdown-option value="1.6" text="1.6"}}
+            {{> base/form/dropdown-option value="1.8" text="1.8"}}
             {{> base/form/dropdown-option value="2" text="2"}}
+            {{> base/form/dropdown-option value="2.2" text="2.2"}}
+            {{> base/form/dropdown-option value="2.5" text="2.5"}}
+            {{> base/form/dropdown-option value="3" text="3"}}
     {{/base/form/dropdown}}
         {{#> base/form/dropdown id="" class="letter-spacing-select mx-1 form-select form-select-sm" title="{% trans 'Letter Spacing' %}" }}
             {{> base/form/dropdown-option value="-0.1" text="-0.1em"}}

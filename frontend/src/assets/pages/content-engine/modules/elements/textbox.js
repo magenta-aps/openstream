@@ -40,6 +40,9 @@ const alignBottomBtn = document.querySelector("#alignTextBottomBtn");
 const richTextModeRadio = document.querySelector("#richTextMode");
 const simpleTextModeRadio = document.querySelector("#simpleTextMode");
 
+const horizontalTextModeRadio = document.querySelector("#horizontalTextMode");
+const verticalTextModeRadio = document.querySelector("#verticalTextMode");
+
 // ─────────────────────────────────────────────────────────────
 // 3) FONT SIZE MAPPING
 // ─────────────────────────────────────────────────────────────
@@ -71,13 +74,50 @@ export const fontSizeMapping = {
   25: "calc(112px + 0.5vw)",
   26: "calc(120px + 0.5vw)",
   27: "calc(128px + 0.5vw)",
+  28: "calc(144px + 0.5vw)",
+  29: "calc(160px + 0.5vw)",
+  30: "calc(176px + 0.5vw)",
+  31: "calc(192px + 0.5vw)",
+  32: "calc(208px + 0.5vw)",
+  33: "calc(224px + 0.5vw)",
+  34: "calc(240px + 0.5vw)",
+  35: "calc(256px + 0.5vw)",
+  36: "calc(272px + 0.5vw)",
+  37: "calc(288px + 0.5vw)",
+  38: "calc(304px + 0.5vw)",
+  39: "calc(320px + 0.5vw)",
+  40: "calc(336px + 0.5vw)",
+  41: "calc(352px + 0.5vw)",
+  42: "calc(368px + 0.5vw)",
+  43: "calc(384px + 0.5vw)",
+  44: "calc(400px + 0.5vw)",
+  45: "calc(416px + 0.5vw)",
+  46: "calc(432px + 0.5vw)",
+  47: "calc(448px + 0.5vw)",
+  48: "calc(464px + 0.5vw)",
+  49: "calc(480px + 0.5vw)",
+  50: "calc(496px + 0.5vw)",
+  51: "calc(512px + 0.5vw)",
 };
 
 export const lineHeightMapping = {
+  0.5: "0.5",
+  0.6: "0.6",
+  0.7: "0.7",
+  0.8: "0.8",
+  0.9: "0.9",
   1: "1",
+  1.1: "1.1",
   1.2: "1.2",
+  1.3: "1.3",
+  1.4: "1.4",
   1.5: "1.5",
+  1.6: "1.6",
+  1.8: "1.8",
   2: "2",
+  2.2: "2.2",
+  2.5: "2.5",
+  3: "3",
 };
 
 export const letterSpacingMapping = {
@@ -91,6 +131,11 @@ export const letterSpacingMapping = {
   "0.15": "0.15em",
   "0.2": "0.2em",
   "0.25": "0.25em",
+};
+
+export const textDirectionMapping = {
+  "horizontal": "horizontal-tb",
+  "vertical": "vertical-rl",
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -198,6 +243,7 @@ function applySimpleModeStyles(textElement, elData) {
   const fontStyle = elData.fontStyle || "normal";
   const textDecoration = elData.textDecoration || "none";
   const textAlign = elData.textAlign || "left";
+  const textDirection = textDirectionMapping[elData.textDirection] || "horizontal-tb";
   
   textElement.style.fontSize = fontSize;
   textElement.style.fontFamily = `"${fontFamily}"`;
@@ -208,6 +254,22 @@ function applySimpleModeStyles(textElement, elData) {
   textElement.style.fontStyle = fontStyle;
   textElement.style.textDecoration = textDecoration;
   textElement.style.textAlign = textAlign;
+  textElement.style.writingMode = textDirection;
+}
+
+/**
+ * Map a horizontal textAlign value to a sensible textAlign when in vertical mode.
+ * For example, "left" in horizontal corresponds to "start" in vertical writing mode.
+ */
+function mapTextAlignForDirection(textAlign, direction) {
+  if (direction === "vertical") {
+    // Use CSS logical values to remain consistent across directions
+    if (textAlign === "left") return "start";
+    if (textAlign === "right") return "end";
+    return "center"; // center remains center
+  }
+  // Default: return as-is for horizontal
+  return textAlign;
 }
 
 /**
@@ -217,6 +279,7 @@ export function updateModeRadioButtons() {
   if (!store.selectedElementData) return;
   
   const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+  const textDirection = store.selectedElementData.textDirection || "horizontal";
   
   if (isSimpleMode) {
     simpleTextModeRadio.checked = true;
@@ -225,11 +288,19 @@ export function updateModeRadioButtons() {
     richTextModeRadio.checked = true;
     simpleTextModeRadio.checked = false;
   }
+  
+  if (textDirection === "vertical") {
+    verticalTextModeRadio.checked = true;
+    horizontalTextModeRadio.checked = false;
+  } else {
+    horizontalTextModeRadio.checked = true;
+    verticalTextModeRadio.checked = false;
+  }
 }
 
 /**
  * Update the toolbar dropdowns based on the selected textbox's properties.
- * This function reads the fontSize, fontFamily, and lineHeight from the
+ * This function reads the fontSize, fontFamily, lineHeight, letterSpacing, and textDirection from the
  * selected element's data and updates the toolbar selects accordingly.
  */
 export function updateToolbarDropdowns() {
@@ -253,6 +324,16 @@ export function updateToolbarDropdowns() {
   // Update letter spacing dropdown
   if (store.selectedElementData.letterSpacing) {
     letterSpacingSelect.value = store.selectedElementData.letterSpacing;
+  }
+  
+  // Update text direction radio buttons
+  const textDirection = store.selectedElementData.textDirection || "horizontal";
+  if (textDirection === "vertical") {
+    verticalTextModeRadio.checked = true;
+    horizontalTextModeRadio.checked = false;
+  } else {
+    horizontalTextModeRadio.checked = true;
+    verticalTextModeRadio.checked = false;
   }
 }
 
@@ -895,6 +976,41 @@ function handleLetterSpacingChange(e) {
   });
 }
 
+function handleTextDirectionChange(e) {
+  e.preventDefault();
+  pushCurrentSlideState();
+  withSelectedTextbox(() => {
+    const direction = e.target.value;
+    const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
+    const elData = store.slides[store.currentSlideIndex].elements.find(
+      (el) => el.id === id,
+    );
+    if (elData) elData.textDirection = direction;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (content) {
+      const writingMode = textDirectionMapping[direction];
+      content.style.writingMode = writingMode;
+      
+      // Also apply to the container element for better display
+      const container = store.selectedElement;
+      if (container) {
+        container.style.writingMode = writingMode;
+        
+        // Adjust text alignment for vertical text
+        if (direction === "vertical") {
+          // Map stored horizontal alignment into an appropriate vertical-mode value
+          const rawAlign = elData.textAlign || "left";
+          content.style.textAlign = mapTextAlignForDirection(rawAlign, "vertical");
+        } else {
+          // Restore original text alignment from element data for horizontal mode
+          const textAlign = elData.textAlign || "left";
+          content.style.textAlign = textAlign;
+        }
+      }
+    }
+  });
+}
+
 function handleTextColorPickerClick() {
   withSelectedTextbox(() => {
     const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
@@ -1008,6 +1124,10 @@ function handleAlignLeft() {
         textEl.contentEditable = "true";
         textEl.focus();
         document.execCommand("justifyLeft", false, null);
+        // Persist the logical text alignment so it survives reloads
+        if (store && store.selectedElementData) {
+          store.selectedElementData.textAlign = "left";
+        }
       }
     }
   });
@@ -1029,6 +1149,9 @@ function handleAlignCenter() {
         textEl.contentEditable = "true";
         textEl.focus();
         document.execCommand("justifyCenter", false, null);
+        if (store && store.selectedElementData) {
+          store.selectedElementData.textAlign = "center";
+        }
       }
     }
   });
@@ -1050,6 +1173,9 @@ function handleAlignRight() {
         textEl.contentEditable = "true";
         textEl.focus();
         document.execCommand("justifyRight", false, null);
+        if (store && store.selectedElementData) {
+          store.selectedElementData.textAlign = "right";
+        }
       }
     }
   });
@@ -1143,6 +1269,7 @@ function addTextboxToSlide() {
     fontStyle: "normal",
     textDecoration: "none",
     textAlign: "left",
+    textDirection: "horizontal", // Initialize as horizontal text by default
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
@@ -1272,6 +1399,10 @@ export function initTextbox() {
   // Mode toggle
   richTextModeRadio.addEventListener("change", handleModeToggle);
   simpleTextModeRadio.addEventListener("change", handleModeToggle);
+
+  // Text direction toggle
+  horizontalTextModeRadio.addEventListener("change", handleTextDirectionChange);
+  verticalTextModeRadio.addEventListener("change", handleTextDirectionChange);
 
   // Font size + font family changes
   fontSizeSelect.addEventListener("change", handleFontSizeChange);
@@ -1446,6 +1577,25 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
       textWrapper.style.justifyContent = "center";
     } else if (el.verticalAlign === "flex-end") {
       textWrapper.style.justifyContent = "flex-end";
+    }
+  }
+
+  // Text direction (writing mode)
+  if (el.textDirection) {
+    const writingMode = textDirectionMapping[el.textDirection] || "horizontal-tb";
+    textWrapper.style.writingMode = writingMode;
+    
+    // Also apply to the container element for better display
+    container.style.writingMode = writingMode;
+    
+    // Adjust text alignment for vertical text
+    if (el.textDirection === "vertical") {
+      const rawAlign = el.textAlign || "left";
+      textWrapper.style.textAlign = mapTextAlignForDirection(rawAlign, "vertical");
+    } else {
+      // Restore original text alignment from element data
+      const textAlign = el.textAlign || "left";
+      textWrapper.style.textAlign = textAlign;
     }
   }
 

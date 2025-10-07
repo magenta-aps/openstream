@@ -40,6 +40,7 @@ import { initSelectedElementOffset } from "./modules/element_formatting/offset.j
 import { initOpacity } from "./modules/element_formatting/opacity.js";
 import { initSelectedElementPadding } from "./modules/element_formatting/padding.js";
 import { initRotate } from "./modules/element_formatting/rotate.js";
+import { initMirror } from "./modules/element_formatting/mirror.js";
 import { initSelectedElementScale } from "./modules/element_formatting/scale.js";
 import { initPersistElement } from "./modules/element_formatting/persistElement.js";
 import { initLockElement } from "./modules/element_formatting/lockElement.js";
@@ -104,6 +105,7 @@ const initCommonEditorFeatures = () => {
   initBoxShadow();
   initBlur();
   initRotate();
+  initMirror();
   initDuplicateElement();
   initVirtualPreviewResolution();
   initSelectedElementPadding();
