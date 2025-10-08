@@ -18,6 +18,7 @@ import { _renderRotate } from "../element_formatting/rotate.js";
 import { _renderMirror } from "../element_formatting/mirror.js";
 import { _renderScale } from "../element_formatting/scale.js";
 import { _renderBlur } from "../element_formatting/blur.js";
+import { _renderGrayscale } from "../element_formatting/grayscale.js";
 import { _renderEmbedWebsite } from "../elements/embedWebsiteElement.js";
 import { _renderHtmlElement } from "../elements/htmlElement.js";
 import { _renderIframe } from "../elements/iframeElement.js";
@@ -742,6 +743,10 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
   if (el.blur) {
     _renderBlur(container, el);
+  }
+
+  if (el.grayscale) {
+    _renderGrayscale(container, el);
   }
 
   if (el.zIndex) {

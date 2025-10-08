@@ -36,6 +36,7 @@ import { initSelectedElementBorder } from "./modules/element_formatting/border.j
 import { initBorderRadius } from "./modules/element_formatting/borderRadius.js";
 import { initBoxShadow } from "./modules/element_formatting/boxShadow.js";
 import { initBlur } from "./modules/element_formatting/blur.js";
+import { initGrayscale } from "./modules/element_formatting/grayscale.js";
 import { initSelectedElementOffset } from "./modules/element_formatting/offset.js";
 import { initOpacity } from "./modules/element_formatting/opacity.js";
 import { initSelectedElementPadding } from "./modules/element_formatting/padding.js";
@@ -104,6 +105,7 @@ const initCommonEditorFeatures = () => {
   initOpacity();
   initBoxShadow();
   initBlur();
+  initGrayscale();
   initRotate();
   initMirror();
   initDuplicateElement();
