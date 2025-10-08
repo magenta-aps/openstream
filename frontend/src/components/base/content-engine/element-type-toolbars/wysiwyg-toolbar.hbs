@@ -4,11 +4,11 @@
       <div class="mx-3 d-flex align-items-center">
         <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text mode">
             <input type="radio" class="btn-check" name="textModeToggle" id="simpleTextMode" value="simple" checked>
-            <label class="btn btn-outline-secondary btn-sm" for="simpleTextMode" title="{% trans 'Simple Text Mode' %}">
-                Simple Text
+            <label class="btn btn-outline-secondary btn-sm" style="min-width: 5rem;" for="simpleTextMode" title="{% trans 'Simple Text Mode' %}">
+                Simple
             </label>
-            <input type="radio" class="btn-check" name="textModeToggle" id="richTextMode" value="rich">
-            <label class="btn btn-outline-secondary btn-sm" for="richTextMode" title="{% trans 'Rich Text Mode' %}">
+            <input type="radio" class="btn-check" name="textModeToggle"  id="richTextMode" value="rich">
+            <label class="btn btn-outline-secondary btn-sm" style="min-width: 5rem;" for="richTextMode" title="{% trans 'Rich Text Mode' %}">
                 Rich Text
             </label>
         </div>
@@ -145,11 +145,11 @@
             {{> base/form/dropdown-option value="900" text="900"}}
     {{/base/form/dropdown}}
     </div>
-    <div class="mx-4">
+    <div class="mx-4 d-flex">
         <!-- Text Color Picker -->
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="textColorBtn" class="text-color-picker" icon="format_color_text" tooltip="{% trans 'Change Text Color' %}"}}
     </div>
-    <div class="mx-3">
+    <div class="mx-3 d-flex">
         <!-- Bold format -->
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="boldBtn" icon="format_bold" tooltip="{% trans 'Make Text Bold' %}"}}
         <!-- Italic format -->
@@ -157,7 +157,7 @@
         <!-- Underline format -->
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="underlineBtn" icon="format_underlined" tooltip="{% trans 'Underline Text' %}"}}
     </div>
-    <div class="mx-3">
+    <div class="mx-3 d-flex">
         <!-- Text align left -->
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="alignTextLeftBtn" icon="format_align_left" tooltip="{% trans 'Align Text Left' %}"}}
         <!-- Text align center -->

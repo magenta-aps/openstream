@@ -716,6 +716,19 @@ span {
   text-align: center;
 }
 
+.form-select-sm {
+  min-width: 4rem;
+}
+
+#sidebar {
+  flex-shrink: 0;
+}
+
+#selected-element-toolbar {
+  overflow-x: auto;
+  overflow-y: hidden
+}
+
 /* ---------------- Slide Preview Area ---------------- */
 
 /* Slide Preview Area adjustments */
