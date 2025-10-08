@@ -188,7 +188,7 @@ export const NewstickerSlideType = {
       gridX: 0,
       gridY: 188,
       backgroundColor: defaults.backgroundColor,
-      slideTypeId: "newsticker",
+  slideTypeId: 5,
       config: config,
       integrationName: "Newsticker",
     };

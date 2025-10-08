@@ -191,7 +191,7 @@ export const NewsfeedWithImageSlideType = {
       gridX: 0,
       gridY: 0,
       backgroundColor: "transparent",
-      slideTypeId: "newsfeed-with-image",
+  slideTypeId: 3,
       config: config,
       integrationName: "Newsfeed with Image",
     };

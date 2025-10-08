@@ -155,7 +155,7 @@ export const DreambrokerSlideType = {
       gridX: 50,
       gridY: 50,
       backgroundColor: "transparent",
-      slideTypeId: "dreambroker",
+  slideTypeId: 4,
       config: config,
       integrationName: "Dreambroker Video",
     };

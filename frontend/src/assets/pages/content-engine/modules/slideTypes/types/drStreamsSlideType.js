@@ -116,7 +116,7 @@ export const DrStreamsSlideType = {
       gridX: 50,
       gridY: 50,
       backgroundColor: "transparent",
-      slideTypeId: "dr-streams",
+  slideTypeId: 8,
       config: config,
       integrationName: "DR Streams",
     };

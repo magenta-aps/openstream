@@ -251,7 +251,31 @@ class FrontendSlideTypeModal {
     // If editing existing element, preselect its slide type
     if (existingElement?.slideTypeId) {
       setTimeout(() => {
-        this.selectSlideType(existingElement.slideTypeId);
+        // Try to resolve numeric id first
+        const candidate = existingElement.slideTypeId;
+        const numeric = Number(candidate);
+        if (Number.isInteger(numeric) && slideTypeRegistry.getSlideType(numeric)) {
+          this.selectSlideType(numeric);
+          return;
+        }
+
+        // If candidate is a string identifier (legacy), attempt to find the
+        // registered slide type whose metadata matches that identifier.
+        const lowerCandidate = String(candidate).toLowerCase();
+        for (const [key, slideType] of slideTypeRegistry.slideTypes.entries()) {
+          // Check common properties that may match the legacy id
+          if (
+            (slideType.slideTypeId && String(slideType.slideTypeId).toLowerCase() === lowerCandidate) ||
+            (slideType.id && String(slideType.id) === String(candidate)) ||
+            (slideType.name && slideType.name.toLowerCase().includes(lowerCandidate))
+          ) {
+            this.selectSlideType(key);
+            return;
+          }
+        }
+
+        // Fallback: try selecting by numeric conversion again (no-op if invalid)
+        this.selectSlideType(numeric);
       }, 200);
     }
   }
@@ -662,12 +686,20 @@ class FrontendSlideTypeModal {
         this.currentSlideTypeId,
       );
 
-      // Prepare overrides - start with slide data defaults
+      // Ensure slideData cannot override the numeric slideTypeId (some slide types
+      // incorrectly return a string id like "winkas" which breaks later lookup).
+      if (slideData && Object.prototype.hasOwnProperty.call(slideData, "slideTypeId")) {
+        delete slideData.slideTypeId;
+      }
+
+      // Prepare overrides - start with slide data defaults. Explicitly set the
+      // numeric slideTypeId (this.currentSlideTypeId) so slideData can't override it.
       const overrides = {
+        ...slideData, // include defaults from the slide type (without slideTypeId)
         slideTypeId: this.currentSlideTypeId,
         config: config,
         integrationName: slideType.name,
-        ...slideData, // Include any defaults from the slide type
+        ...slideData, // re-apply slideData to allow its config to be present
       };
 
       // If we're updating an existing element (e.g., from placeholder conversion),

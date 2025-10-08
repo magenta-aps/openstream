@@ -278,7 +278,7 @@ export const FrontdeskLtkBorgerserviceSlideType = {
       gridX: defaults.gridX,
       gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-      slideTypeId: "frontdesk-ltk-borgerservice",
+  slideTypeId: 10,
       config: {},
       integrationName: "Frontdesk LTK Borgerservice",
     };

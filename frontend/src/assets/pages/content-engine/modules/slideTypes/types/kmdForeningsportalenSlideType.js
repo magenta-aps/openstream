@@ -251,7 +251,7 @@ export const KmdForeningsportalenSlideType = {
       gridX: defaults.gridX,
       gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-      slideTypeId: "kmd-foreningsportalen",
+  slideTypeId: 9,
       config: config,
       integrationName: "KMD - Foreningsportalen",
     };
