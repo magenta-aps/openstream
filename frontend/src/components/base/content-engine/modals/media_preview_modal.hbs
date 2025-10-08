@@ -36,7 +36,10 @@
                 </div>
             </div>
             
-            {{> base/modal/modal-footer-close btn-text="{% trans 'Cancel' %}" }}
+            <button type="button" class="btn btn-secondary" data-bs-target="#mediaListModal" data-bs-toggle="modal">
+                <span class="material-symbols-outlined me-1">cancel</span>
+                {% trans "Cancel" %}
+            </button>
         </div>
     {{/inline}}
 {{/base/modal/modal}}
