@@ -24,18 +24,12 @@
   margin-bottom: 1rem;
   border-radius: 6px;
   padding: 8px;
-  overflow: hidden;
   border: 1px solid $gray;
   box-shadow: 0 2px 4px rgba($black, 0.05);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
   background-color: $white;
-}
-
-.media-box:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba($black, 0.1);
 }
 
 .preview-container {
@@ -54,12 +48,6 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-}
-
-.media-info {
-  padding: 8px;
-  border-top: 1px solid $gray;
-  background-color: $lightest-gray;
 }
 
 .media-title {

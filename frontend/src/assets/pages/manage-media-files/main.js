@@ -181,17 +181,31 @@ function renderMediaGrid(mediaFiles) {
 
     // Create the info section
     const infoHTML = `
-      <div class="media-info">
-        <p class="media-title" title="${file.title}.${file.file_type?.toLowerCase()}">${file.title}.${file.file_type?.toLowerCase()}</p>
+      <div class="media-info d-flex gap-1 align-items-center mt-2">
+        <p class="media-title flex-grow-1 m-0" title="${file.title}.${file.file_type?.toLowerCase()}">${file.title}.${file.file_type?.toLowerCase()}</p>
         <div class="media-actions">
           ${
             file.is_owned_by_branch
-              ? `<button class="btn btn-info btn-sm edit-media-btn">
-              <span class="material-symbols-outlined">edit</span>
+              ? 
+              `
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="material-symbols-outlined">more_horiz</span>
             </button>
-            <button class="btn btn-danger btn-sm delete-media-btn">
-              <span class="material-symbols-outlined">delete</span>
-            </button>`
+                <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">
+                  <li>
+                    <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center edit-media-btn">
+                      <span class="material-symbols-outlined">edit</span> ${gettext("Edit")}
+                    </button>
+                  </li>
+                  <li class="mt-2">
+                    <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center preview-media-btn">
+                      <span class="material-symbols-outlined">zoom_in</span> ${gettext("Preview")}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              `
               : `<button class="btn btn-secondary btn-sm" disabled title="${gettext("Not editable")}">
               <span class="material-symbols-outlined">lock</span>
             </button>`
