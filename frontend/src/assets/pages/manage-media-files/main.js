@@ -59,6 +59,8 @@ const validExtensions = [
 
 // Elements
 const submitMediaModalEl = document.getElementById("submitMediaModal");
+const previewMediaModalEl = document.getElementById("previewMediaModal");
+const previewContainer = document.querySelector("#preview-media-container");
 const tagsContainer = document.querySelector("#mediaEditTagsContainer");
 const submitMediaForm = document.querySelector("#submitMediaForm");
 const deleteMediaBtn = document.querySelector("#btnDeleteMedia");
@@ -73,6 +75,7 @@ const pageSizeEl = document.querySelector("#resultsPerPageDropdown");
 
 // Initialize Bootstrap components
 const bsSubmitModal = bootstrap.Modal.getOrCreateInstance(submitMediaModalEl);
+const bsPreviewModal = bootstrap.Modal.getOrCreateInstance(previewMediaModalEl);
 
 // Debounced filtering function
 const updateFilteringDebounce = debounce(() => loadMediaFiles(1));
@@ -191,7 +194,7 @@ function renderMediaGrid(mediaFiles) {
               <div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <span class="material-symbols-outlined">more_horiz</span>
-            </button>
+                </button>
                 <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">
                   <li>
                     <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center edit-media-btn">
@@ -223,12 +226,12 @@ function renderMediaGrid(mediaFiles) {
         currentlyEditingMedia = file;
         openEditMediaModal();
       });
-
-      const deleteBtn = mediaBox.querySelector(".delete-media-btn");
-      deleteBtn?.addEventListener("click", () => {
+      
+      const previewBtn = mediaBox.querySelector(".preview-media-btn");
+      previewBtn?.addEventListener("click", () => {
         currentlyEditingMedia = file;
-        confirmDeleteMedia();
-      });
+        openPreviewMediaModal();
+      })
     }
 
     mediaGrid.appendChild(mediaBox);
@@ -324,6 +327,21 @@ function openEditMediaModal() {
   bsSubmitModal.show();
 }
 
+function openPreviewMediaModal(){
+  if (videoExtensionsList.includes(currentlyEditingMedia["file_type"]?.toLowerCase())) {
+    previewContainer.innerHTML = `
+      <video loop muted autoplay controls playsinline class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">
+        <source src="${currentlyEditingMedia['file_url']}" type="video/${currentlyEditingMedia['file_type']?.toLowerCase()}">
+        ${gettext("Your browser does not support the video tag.")}
+      </video>`;
+  } else {
+    previewContainer.innerHTML = `
+      <img src="${currentlyEditingMedia['file_url']}" alt="${currentlyEditingMedia['title']}" class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">`;
+  }
+
+  bsPreviewModal.show();
+}
+
 // ============ EVENT LISTENERS ============
 
 function initEventListeners() {
@@ -353,25 +371,37 @@ function initEventListeners() {
   // Filter inputs
   titleInput?.addEventListener("input", updateFilteringDebounce);
 
-  // Background Pattern on Media preview Toggle Buttons
-  const lightPatternBtn = document.getElementById("lightPattern");
-  const darkPatternBtn = document.getElementById("darkPattern");
+  // Background Pattern on Media preview (in mediaGrid and media_preview_modal) Toggle Buttons
+  const lightPatternBtn = document.querySelectorAll(".pattern-light-btn");
+  const darkPatternBtn = document.querySelectorAll(".pattern-dark-btn");
 
-  if (lightPatternBtn && darkPatternBtn && mediaGrid) {
-    lightPatternBtn.addEventListener("change", () => {
-      if (lightPatternBtn.checked) {
-        mediaGrid.classList.remove("checkerboard-dark");
-        mediaGrid.classList.add("checkerboard-light");
+  lightPatternBtn?.forEach((btn) => {
+    btn.addEventListener("change", () => {
+      if (btn.checked) {
+        mediaGrid?.classList.remove("checkerboard-dark");
+        mediaGrid?.classList.add("checkerboard-light");
+        previewContainer?.classList.remove("checkerboard-dark");
+        previewContainer?.classList.add("checkerboard-light");
+
+        // Make every lightPattern button be checked
+        lightPatternBtn.forEach((b) => (b.checked = true));
       }
     });
-
-    darkPatternBtn.addEventListener("change", () => {
-      if (darkPatternBtn.checked) {
-        mediaGrid.classList.remove("checkerboard-light");
-        mediaGrid.classList.add("checkerboard-dark");
+  });
+  
+  darkPatternBtn?.forEach((btn)=>{
+    btn.addEventListener("change", () => {
+      if (btn.checked) {
+        mediaGrid?.classList.remove("checkerboard-light");
+        mediaGrid?.classList.add("checkerboard-dark");
+        previewContainer?.classList.remove("checkerboard-light");
+        previewContainer?.classList.add("checkerboard-dark");
+    
+        // Make every darkPattern button be checked
+        darkPatternBtn.forEach((b) => (b.checked = true));
       }
     });
-  }
+  });
 }
 
 // ============ FILTER FUNCTIONS ============

@@ -33,7 +33,7 @@
                     <p class="control-label m-0">{% trans 'Background:' %}</p>
                     <div class="btn-group btn-group-sm d-flex gap-2" role="group" id="backgroundPatternToggle">
                         <input type="radio"
-                            class="btn-check"
+                            class="btn-check pattern-light-btn"
                             name="backgroundPattern"
                             id="lightPattern"
                             autocomplete="off"
@@ -42,7 +42,7 @@
                             <span class="material-symbols-outlined">light_mode</span>
                         </label>
                         <input type="radio"
-                            class="btn-check"
+                            class="btn-check pattern-dark-btn"
                             name="backgroundPattern"
                             id="darkPattern"
                             autocomplete="off">
@@ -76,6 +76,7 @@
                     </div>
                     <!-- Include the existing modals -->
                 {{> base/content-engine/modals/media_submit_modal }}
+                {{> base/content-engine/modals/media_preview_modal }}
             {{/inline}}
         {{/base/containers/sidebar-and-content-container}}
     {{/base/containers/main-container}}
