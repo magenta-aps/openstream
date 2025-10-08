@@ -31,6 +31,7 @@ import {
 import { initTemplateEditor } from "./modules/core/templateDataManager.js";
 import { initUndoRedo } from "./modules/core/undoRedo.js";
 import { initVirtualPreviewResolution } from "./modules/core/virutalPreviewResolution.js";
+import "./modules/core/keyboardShortcuts.js";
 import { initSelectedElementBackgroundColor } from "./modules/element_formatting/backgroundColor.js";
 import { initSelectedElementBorder } from "./modules/element_formatting/border.js";
 import { initBorderRadius } from "./modules/element_formatting/borderRadius.js";

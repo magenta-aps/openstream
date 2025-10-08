@@ -51,10 +51,6 @@ function setResolutionFromAspectRatio(aspectRatio) {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
-
-  console.log(
-    `Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`,
-  );
 }
 
 /**
@@ -150,17 +146,11 @@ function isSuborgContentCreationMode() {
     store.editorMode === "template_editor" ||
     store.editorMode === "suborg_templates"
   ) {
-    console.log(
-      `Template management mode detected (${store.editorMode}). Global templates allowed.`,
-    );
     return false;
   }
 
   // If we have a suborg selected but we're not managing templates,
   // then we're creating content for the suborg branch
-  console.log(
-    `Suborg content creation mode detected (editorMode: ${store.editorMode}). Only suborg-specific templates will be available.`,
-  );
   return true;
 }
 
@@ -244,13 +234,6 @@ async function fetchUnifiedTemplates() {
       unifiedTemplates = unifiedTemplates.filter(
         (template) => template.suborganisation !== null,
       );
-      console.log(
-        `Filtered out global templates for suborg content creation. Templates: ${originalCount} → ${unifiedTemplates.length}`,
-      );
-
-      console.log("current aspect ratio", getCurrentAspectRatio());
-
-      console.log(unifiedTemplates);
     }
 
     // Filter templates by aspect ratio to match current slideshow aspect ratio
