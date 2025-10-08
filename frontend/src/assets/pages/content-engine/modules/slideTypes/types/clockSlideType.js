@@ -216,7 +216,7 @@ export const ClockSlideType = {
       gridX: 1,
       gridY: 1,
       backgroundColor: "transparent",
-  slideTypeId: 7,
+      slideTypeId: 7,
       config: config,
       integrationName: "Clock",
     };

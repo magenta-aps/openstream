@@ -50,32 +50,32 @@ function showGrayscalePopover(button, callback) {
   const popoverRect = popover.getBoundingClientRect();
   const viewportHeight = window.innerHeight;
   const viewportWidth = window.innerWidth;
-  
+
   let top = rect.bottom + window.scrollY;
   let left = rect.left + window.scrollX;
-  
+
   // Check if popover would overflow at the bottom
   if (rect.bottom + popoverRect.height > viewportHeight) {
     // Position above the button instead
     top = rect.top + window.scrollY - popoverRect.height - 5;
   }
-  
+
   // Check if popover would overflow on the right
   if (rect.left + popoverRect.width > viewportWidth) {
     // Align to the right edge of the button
     left = rect.right + window.scrollX - popoverRect.width;
   }
-  
+
   // Ensure popover doesn't go off the left edge
   if (left < 0) {
     left = 10; // Small margin from edge
   }
-  
+
   // Ensure popover doesn't go above the top
   if (top < window.scrollY) {
     top = window.scrollY + 10; // Small margin from top
   }
-  
+
   popover.style.top = top + "px";
   popover.style.left = left + "px";
 
@@ -112,7 +112,8 @@ export function initGrayscale() {
           store.selectedElement.style.getPropertyValue("filter") || "";
         // Remove any existing grayscale() from prevFilter
         const newFilter = prevFilter.replace(/grayscale\([^)]*\)/g, "").trim();
-        const filterWithGrayscale = `${newFilter} grayscale(${grayscalePercent}%)`.trim();
+        const filterWithGrayscale =
+          `${newFilter} grayscale(${grayscalePercent}%)`.trim();
         store.selectedElement.style.setProperty(
           "filter",
           filterWithGrayscale,

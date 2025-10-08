@@ -263,7 +263,7 @@ export const DdbEventsApiSlideType = {
       gridX: defaults.gridX,
       gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-  slideTypeId: 1,
+      slideTypeId: 1,
       config: config,
       integrationName: "Det Digitale Folkebibliotek Events API",
     };

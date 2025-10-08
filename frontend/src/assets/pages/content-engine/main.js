@@ -66,7 +66,10 @@ import {
   initMuteButtons,
 } from "./modules/utils/mediaElementUtils.js";
 import { initSlideshowPlayer } from "./modules/core/slideshowPlayer.js";
-import { fetchAndInitializeFonts, waitForFontsReady } from "./modules/utils/fontUtils.js";
+import {
+  fetchAndInitializeFonts,
+  waitForFontsReady,
+} from "./modules/utils/fontUtils.js";
 import { syncGridConfigWithCSS } from "./modules/config/gridConfig.js";
 import { initStatusBar } from "./modules/utils/statusBar.js";
 import initSlideElementsSidebar from "./modules/core/slideElementsSidebar.js";

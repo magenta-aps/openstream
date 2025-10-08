@@ -254,7 +254,10 @@ class FrontendSlideTypeModal {
         // Try to resolve numeric id first
         const candidate = existingElement.slideTypeId;
         const numeric = Number(candidate);
-        if (Number.isInteger(numeric) && slideTypeRegistry.getSlideType(numeric)) {
+        if (
+          Number.isInteger(numeric) &&
+          slideTypeRegistry.getSlideType(numeric)
+        ) {
           this.selectSlideType(numeric);
           return;
         }
@@ -265,9 +268,11 @@ class FrontendSlideTypeModal {
         for (const [key, slideType] of slideTypeRegistry.slideTypes.entries()) {
           // Check common properties that may match the legacy id
           if (
-            (slideType.slideTypeId && String(slideType.slideTypeId).toLowerCase() === lowerCandidate) ||
+            (slideType.slideTypeId &&
+              String(slideType.slideTypeId).toLowerCase() === lowerCandidate) ||
             (slideType.id && String(slideType.id) === String(candidate)) ||
-            (slideType.name && slideType.name.toLowerCase().includes(lowerCandidate))
+            (slideType.name &&
+              slideType.name.toLowerCase().includes(lowerCandidate))
           ) {
             this.selectSlideType(key);
             return;
@@ -688,7 +693,10 @@ class FrontendSlideTypeModal {
 
       // Ensure slideData cannot override the numeric slideTypeId (some slide types
       // incorrectly return a string id like "winkas" which breaks later lookup).
-      if (slideData && Object.prototype.hasOwnProperty.call(slideData, "slideTypeId")) {
+      if (
+        slideData &&
+        Object.prototype.hasOwnProperty.call(slideData, "slideTypeId")
+      ) {
         delete slideData.slideTypeId;
       }
 

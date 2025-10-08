@@ -6,7 +6,11 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../utils/constants.js";
-import { token, queryParams, selectedBranchID } from "../../../../utils/utils.js";
+import {
+  token,
+  queryParams,
+  selectedBranchID,
+} from "../../../../utils/utils.js";
 
 const allowedSlideTypes = [];
 
@@ -43,7 +47,7 @@ try {
     method: "GET",
     headers,
   });
-  
+
   if (res.ok) {
     const data = await res.json();
     data.forEach((slideType) => {

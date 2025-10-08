@@ -2358,10 +2358,10 @@ class RegisteredSlideTypesAPIView(APIView):
 
     Query params (for user authentication):
       - org_id (required): The organisation ID to fetch slide types for
-    
+
     Query params (for API key authentication):
       - branch_id (optional): Required when using non-branch-limited API key
-    
+
     Authentication: Supports both user authentication and X-API-KEY header.
     For API key authentication, organisation is derived from the branch.
     """
@@ -2418,7 +2418,8 @@ class RegisteredSlideTypesAPIView(APIView):
                 organisation = Organisation.objects.get(id=org_id)
             except Organisation.DoesNotExist:
                 return Response(
-                    {"error": "Organisation not found"}, status=status.HTTP_404_NOT_FOUND
+                    {"error": "Organisation not found"},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             # Check if user belongs to this organisation or is super_admin

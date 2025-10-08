@@ -48,10 +48,10 @@ export const KmdForeningsportalenSlideType = {
     const config = existingConfig || {};
     return {
       location: config.location || "",
-  sub_locations: config.sub_locations || [],
-  // Continuous scrolling options (mirrors Winkas slide type)
-  continuous_scroll: config.continuous_scroll || false,
-  scroll_speed: config.scroll_speed || 100,
+      sub_locations: config.sub_locations || [],
+      // Continuous scrolling options (mirrors Winkas slide type)
+      continuous_scroll: config.continuous_scroll || false,
+      scroll_speed: config.scroll_speed || 100,
     };
   },
 
@@ -82,8 +82,12 @@ export const KmdForeningsportalenSlideType = {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
     // Populate continuous scroll settings if present in the form
-    const continuousToggle = document.getElementById("continuous-scroll-toggle");
-    const scrollSettings = document.getElementById("continuous-scroll-settings");
+    const continuousToggle = document.getElementById(
+      "continuous-scroll-toggle",
+    );
+    const scrollSettings = document.getElementById(
+      "continuous-scroll-settings",
+    );
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
@@ -91,13 +95,17 @@ export const KmdForeningsportalenSlideType = {
       continuousToggle.checked = !!config.continuous_scroll;
     }
     if (scrollSettings) {
-      scrollSettings.style.display = config.continuous_scroll ? "block" : "none";
+      scrollSettings.style.display = config.continuous_scroll
+        ? "block"
+        : "none";
     }
     if (scrollSpeedInput) {
       scrollSpeedInput.value = config.scroll_speed || 100;
     }
     if (scrollSpeedValue) {
-      scrollSpeedValue.textContent = scrollSpeedInput ? scrollSpeedInput.value : (config.scroll_speed || 100);
+      scrollSpeedValue.textContent = scrollSpeedInput
+        ? scrollSpeedInput.value
+        : config.scroll_speed || 100;
     }
   },
 
@@ -174,11 +182,15 @@ export const KmdForeningsportalenSlideType = {
   setupFormEventListeners() {
     const locationSelect = document.getElementById("location-input");
     const allSelector = document.getElementById("all-selector");
-    
-  const continuousToggle = document.getElementById("continuous-scroll-toggle");
-  const scrollSettings = document.getElementById("continuous-scroll-settings");
-  const scrollSpeedInput = document.getElementById("scroll-speed");
-  const scrollSpeedValue = document.getElementById("scroll-speed-value");
+
+    const continuousToggle = document.getElementById(
+      "continuous-scroll-toggle",
+    );
+    const scrollSettings = document.getElementById(
+      "continuous-scroll-settings",
+    );
+    const scrollSpeedInput = document.getElementById("scroll-speed");
+    const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
     if (!locationSelect) {
       setTimeout(() => this.setupFormEventListeners(), 100);
@@ -215,7 +227,8 @@ export const KmdForeningsportalenSlideType = {
     if (continuousToggle) {
       const toggleHandler = (e) => {
         const enabled = e.target.checked;
-        if (scrollSettings) scrollSettings.style.display = enabled ? "block" : "none";
+        if (scrollSettings)
+          scrollSettings.style.display = enabled ? "block" : "none";
       };
       continuousToggle.addEventListener("change", toggleHandler);
       this.eventListenerCleanup.push(() =>
@@ -246,9 +259,9 @@ export const KmdForeningsportalenSlideType = {
   async generateSlide(config) {
     const params = {
       location: config.location || "",
-  sub_locations: (config.sub_locations || []).join(","),
-  continuous_scroll: config.continuous_scroll ? "1" : "0",
-  scroll_speed: config.scroll_speed || 100,
+      sub_locations: (config.sub_locations || []).join(","),
+      continuous_scroll: config.continuous_scroll ? "1" : "0",
+      scroll_speed: config.scroll_speed || 100,
     };
 
     return SlideTypeUtils.generateSlideUrl(
@@ -264,8 +277,10 @@ export const KmdForeningsportalenSlideType = {
       ".sub_loc_box:checked",
     );
 
-  const continuousToggle = document.getElementById("continuous-scroll-toggle");
-  const scrollSpeedInput = document.getElementById("scroll-speed");
+    const continuousToggle = document.getElementById(
+      "continuous-scroll-toggle",
+    );
+    const scrollSpeedInput = document.getElementById("scroll-speed");
 
     const subLocations = Array.from(subLocationCheckboxes).map(
       (checkbox) => checkbox.value,
@@ -274,8 +289,8 @@ export const KmdForeningsportalenSlideType = {
     return {
       location: locationSelect?.value || "",
       sub_locations: subLocations,
-  continuous_scroll: continuousToggle ? !!continuousToggle.checked : false,
-  scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 100,
+      continuous_scroll: continuousToggle ? !!continuousToggle.checked : false,
+      scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 100,
     };
   },
 
@@ -315,7 +330,7 @@ export const KmdForeningsportalenSlideType = {
       gridX: defaults.gridX,
       gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-  slideTypeId: 9,
+      slideTypeId: 9,
       config: config,
       integrationName: "KMD - Foreningsportalen",
     };

@@ -157,7 +157,7 @@ export const SpeedAdminSlideType = {
       gridX: defaults.gridX,
       gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-  slideTypeId: 6,
+      slideTypeId: 6,
       config: config,
       integrationName: "Speed Admin",
     };

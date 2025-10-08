@@ -536,11 +536,11 @@ function applyCustomFontSize(sizeKey) {
     //    preserving text color, font family, and text alignment but dropping inline font-size.
     const cleanContent = flattenFragmentForSize(extractedContent);
 
-  // 3) Create a new wrapper that applies the uniform font size.
-  const wrapperSpan = document.createElement("span");
-  // Compute px based on the selection container (closest text-content)
-  const referenceEl = range.startContainer?.parentElement || document.body;
-  wrapperSpan.style.fontSize = fontSizeKeyToPx(sizeKey, referenceEl);
+    // 3) Create a new wrapper that applies the uniform font size.
+    const wrapperSpan = document.createElement("span");
+    // Compute px based on the selection container (closest text-content)
+    const referenceEl = range.startContainer?.parentElement || document.body;
+    wrapperSpan.style.fontSize = fontSizeKeyToPx(sizeKey, referenceEl);
     wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
     wrapperSpan.setAttribute("data-font-size-key", sizeKey);
 
@@ -746,20 +746,22 @@ function applyCustomFontFamily(family) {
     const cleanContent = flattenFragmentForFamily(extractedContent);
 
     // 3) Create a new wrapper that applies the custom font family.
-  const wrapperSpan = document.createElement("span");
-  // Use the font name directly as the font-family value
-  wrapperSpan.style.fontFamily = `"${family}"`; // Ensure font names with spaces are quoted
-  wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
-  wrapperSpan.setAttribute("data-font-family", family);
-  // If the fragment contains spans with data-font-size-key, convert their fontSize values
-  // to px relative to the current container so pasted/wrapped text remains sized correctly.
+    const wrapperSpan = document.createElement("span");
+    // Use the font name directly as the font-family value
+    wrapperSpan.style.fontFamily = `"${family}"`; // Ensure font names with spaces are quoted
+    wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
+    wrapperSpan.setAttribute("data-font-family", family);
+    // If the fragment contains spans with data-font-size-key, convert their fontSize values
+    // to px relative to the current container so pasted/wrapped text remains sized correctly.
 
     // 4) Append the cleaned content into the wrapper.
     // Convert any data-font-size-key placeholders inside the cleanContent
     const referenceEl = range.startContainer?.parentElement || document.body;
-    const spans = Array.from(cleanContent.querySelectorAll
-      ? cleanContent.querySelectorAll("span[data-font-size-key]")
-      : []);
+    const spans = Array.from(
+      cleanContent.querySelectorAll
+        ? cleanContent.querySelectorAll("span[data-font-size-key]")
+        : [],
+    );
     spans.forEach((s) => {
       const key = s.getAttribute("data-font-size-key");
       if (key) s.style.fontSize = fontSizeKeyToPx(key, referenceEl);
@@ -1104,7 +1106,7 @@ function handleFontWeightChange(e) {
     const elData = store.slides[store.currentSlideIndex].elements.find(
       (el) => el.id === id,
     );
-    
+
     // Only apply font weight changes in Simple Text mode
     const isSimpleMode = elData?.isSimpleTextMode || false;
     if (!isSimpleMode) {
@@ -1527,7 +1529,7 @@ function updateFontWeightDropdownState() {
 
   const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
   fontWeightSelect.disabled = !isSimpleMode;
-  
+
   // Add visual styling for disabled state
   if (!isSimpleMode) {
     fontWeightSelect.style.opacity = "0.5";
@@ -1640,7 +1642,10 @@ function handleInputOnEmpty(e) {
 
   // 1. Get the desired style from the toolbar's current state.
   const currentSizeKey = fontSizeSelect.value;
-  const currentFontSize = fontSizeKeyToPx(currentSizeKey || "12", textContentElement);
+  const currentFontSize = fontSizeKeyToPx(
+    currentSizeKey || "12",
+    textContentElement,
+  );
   const currentFontFamily = fontFamilySelect.value;
 
   if (!currentFontSize) {
@@ -1663,9 +1668,9 @@ function handleInputOnEmpty(e) {
       }
 
       // Wrap plain text nodes
-  const wrapperSpan = document.createElement("span");
-  wrapperSpan.style.fontSize = currentFontSize;
-  wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+      const wrapperSpan = document.createElement("span");
+      wrapperSpan.style.fontSize = currentFontSize;
+      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
       wrapperSpan.style.lineHeight = "1.2";
       wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
       wrapperSpan.setAttribute("data-font-family", currentFontFamily);
@@ -1691,9 +1696,9 @@ function handleInputOnEmpty(e) {
     // that toolbar styles apply uniformly. This preserves formatting tags
     // while ensuring the wrapper controls font size/family.
     if (node.nodeType === Node.ELEMENT_NODE) {
-  const wrapperSpan = document.createElement("span");
-  wrapperSpan.style.fontSize = currentFontSize;
-  wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+      const wrapperSpan = document.createElement("span");
+      wrapperSpan.style.fontSize = currentFontSize;
+      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
       wrapperSpan.style.lineHeight = "1.2";
       wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
       wrapperSpan.setAttribute("data-font-family", currentFontFamily);
@@ -1757,7 +1762,10 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
         span.style.fontSize = fontSizeKeyToPx(key, textWrapper);
       } else if (span.style.fontSize) {
         // Convert any vw-based inline font sizes to px relative to this container
-        span.style.fontSize = fontSizeValueToPx(span.style.fontSize, getContainerWidthForElement(textWrapper));
+        span.style.fontSize = fontSizeValueToPx(
+          span.style.fontSize,
+          getContainerWidthForElement(textWrapper),
+        );
       }
     });
   }
