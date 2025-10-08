@@ -2947,5 +2947,62 @@
   },
   "Lock position & size": {
     "da": "Lås Position & Størrelse"
+  },
+  "Box": {
+    "da": "Boks"
+  },
+  "Layers": {
+    "da": "Lag"
+  },
+  " Add Box": {
+    "da": " Tilføj Boks"
+  },
+  " Border Radius": {
+    "da": " Kant Radius"
+  },
+  " Add Border Radius To Selected Element": {
+    "da": " Tilføj Kant Radius Til Valgt Element"
+  },
+  " Blur": {
+    "da": "Slør"
+  },
+  "Grayscale": {
+    "da": "Gråskala"
+  },
+  " Add Grayscale To Selected Element": {
+    "da": " Tilføj Gråskala Til Valgt Element"
+  },
+  "Simple Text Mode": {
+    "da": "Simpel Tekst Tilstand"
+  },
+  "Rich Text Mode": {
+    "da": "Rig Tekst Tilstand"
+  },
+  "Horizontal Text": {
+    "da": "Horisontal Tekst"
+  },
+  "Vertical Text": {
+    "da": "Vertikal Tekst"
+  },
+  "https://example.com": {
+    "da": "https://eksempel.com"
+  },
+  "Toggle visibility": {
+    "da": "Skift Synlighed"
+  },
+  "Toggle details": {
+    "da": "Skift Detaljer"
+  },
+  "Prevent users from modifying this element's position, size, and other settings when using this template": {
+    "da": "Forhindr brugere i at ændre dette elements position, størrelse og andre indstillinger når du bruger denne skabelon"
+  },
+  "Block editing of element settings": {
+    "da": "Bloker redigering af elementindstillinger"
+  },
+  "Hide element": {
+    "da": "Skjul element"
+  },
+  "Show details": {
+    "da": "Vis detaljer"
   }
 }
