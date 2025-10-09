@@ -213,17 +213,10 @@ export async function displayMediaModal(
         titleP.title = `${file.title}.${file.file_type?.toLowerCase()}`;
         titleP.textContent = `${file.title}.${file.file_type?.toLowerCase()}`;
         infoDiv.appendChild(titleP);
-        // <p class="media-title flex-grow-1 m-0" title="${file.title}.${file.file_type?.toLowerCase()}">${file.title}.${file.file_type?.toLowerCase()}</p>
 
         // Create and add edit button conditionally
-        // let editButtonHTML = "";
         let actionButtonHTML = "";
         if (file.is_owned_by_branch) {
-          // editButtonHTML = `
-          //   <button class="btn btn-info btn-sm edit-media-btn">
-          //       <span class="material-symbols-outlined">edit</span>
-          //   </button>`;
-            
           actionButtonHTML = 
             `<div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -257,7 +250,6 @@ export async function displayMediaModal(
                 </ul>
             </div>`
         }
-        
 
         // Set innerHTML for the main mediaBox
         mediaBox.innerHTML = `
@@ -267,16 +259,12 @@ export async function displayMediaModal(
         `;
 
         infoDiv.insertAdjacentHTML("beforeend", actionButtonHTML);
-        // infoDiv.insertAdjacentHTML("beforeend", editButtonHTML);
         mediaBox.appendChild(infoDiv);
 
         mediaBox.addEventListener("click", (e) => {
           if (e.target.closest(".dropdown")) {
             return;
           }
-          // if (e.target.closest(".edit-media-btn")) {
-          //   return;
-          // }
           if (bsMediaListModal) {
             bsMediaListModal.hide();
           }
@@ -296,7 +284,6 @@ export async function displayMediaModal(
         previewBtn?.addEventListener("click", (e) => {
           e.stopPropagation();
           currentlyEditingMedia = file;
-          // console.log(currentlyEditingMedia);
           openPreviewMediaModal();
         })
 
@@ -1115,26 +1102,6 @@ function initEventListeners() {
       syncFileTitleAndInput();
       displaySelectedFiles();
     });
-
-    // // Background Pattern Toggle Buttons
-    // const lightPatternBtn = document.getElementById("lightPattern");
-    // const darkPatternBtn = document.getElementById("darkPattern");
-
-    // if (lightPatternBtn && darkPatternBtn && imageGrid) {
-    //   lightPatternBtn.addEventListener("change", () => {
-    //     if (lightPatternBtn.checked) {
-    //       imageGrid.classList.remove("checkerboard-dark");
-    //       imageGrid.classList.add("checkerboard-light");
-    //     }
-    //   });
-
-    //   darkPatternBtn.addEventListener("change", () => {
-    //     if (darkPatternBtn.checked) {
-    //       imageGrid.classList.remove("checkerboard-light");
-    //       imageGrid.classList.add("checkerboard-dark");
-    //     }
-    //   });
-    // }
 
     // Background Pattern on Media preview (in mediaGrid and media_preview_modal) Toggle Buttons
     const lightPatternBtn = document.querySelectorAll(".pattern-light-btn");
