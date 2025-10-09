@@ -1,0 +1,12 @@
+Third-Party Content License
+
+This file covers various third-party content included in this project that is NOT owned by Magenta ApS.
+
+The content in the dev-environment/minio_test_media directory includes:
+- Images and media files from various sources (e.g., Pexels.com, stock photo sites)
+- Font files from various foundries (e.g., Google Fonts, other open source fonts)
+- Other third-party assets used for demonstration and testing purposes
+
+These files are used under their respective original licenses and terms of service.
+
+The files are included in this repository solely for development, testing, and demonstration purposes. No ownership is claimed over these third-party assets.
