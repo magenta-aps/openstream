@@ -24,9 +24,11 @@
         </div>
       </div>
       <div class="mx-3 d-flex">
+        <span class="me-1 align-self-center">Font:</span>
         {{#> base/form/dropdown id="" class="font-family-select mx-1 form-select form-select-sm" }}
             <!-- Populated by JS -->
     {{/base/form/dropdown}}
+        <span class="me-1 align-self-center">Size:</span>
         {{#> base/form/dropdown id="" class="font-size-select mx-1 form-select form-select-sm" }}
             {{> base/form/dropdown-option value="1" text="10"}}
             {{> base/form/dropdown-option value="2" text="11"}}
@@ -80,6 +82,7 @@
             {{> base/form/dropdown-option value="50" text="496"}}
             {{> base/form/dropdown-option value="51" text="512"}}
     {{/base/form/dropdown}}
+        <span class="me-1 align-self-center">Line Ht:</span>
         {{#> base/form/dropdown id="" class="line-height-select mx-1 form-select form-select-sm" title="{% trans 'Line Height' %}" }}
             {{> base/form/dropdown-option value="0.5" text="0.5"}}
             {{> base/form/dropdown-option value="0.6" text="0.6"}}
@@ -99,6 +102,7 @@
             {{> base/form/dropdown-option value="2.5" text="2.5"}}
             {{> base/form/dropdown-option value="3" text="3"}}
     {{/base/form/dropdown}}
+        <span class="me-1 align-self-center">Spacing:</span>
         {{#> base/form/dropdown id="" class="letter-spacing-select mx-1 form-select form-select-sm" title="{% trans 'Letter Spacing' %}" }}
             {{> base/form/dropdown-option value="-0.1" text="-0.1vw"}}
             {{> base/form/dropdown-option value="-0.05" text="-0.05vw"}}
@@ -132,6 +136,7 @@
             {{> base/form/dropdown-option value="1.8" text="1.8vw"}}
             {{> base/form/dropdown-option value="2" text="2vw"}}
     {{/base/form/dropdown}}
+        <span class="me-1 align-self-center">Weight:</span>
         {{#> base/form/dropdown id="" class="font-weight-select mx-1 form-select form-select-sm" title="{% trans 'Font Weight' %}" }}
             {{> base/form/dropdown-option value="normal" text="Normal" selected=true}}
             {{> base/form/dropdown-option value="100" text="100"}}
