@@ -3,7 +3,7 @@
 {{#> base/modal/modal  id="previewMediaModal" ariaLabelledby="previewMediaLabel" size="modal-lg" }}
     {{#*inline "header"}}
         <h5 class="modal-title" id="previewMediaLabel">{% trans "Preview Media" %}</h5>
-        {{> base/modal/modal-header-close }}
+        {{> base/modal/modal-header-close data-bs-target="#mediaListModal" data-bs-toggle="modal"}}
     {{/inline}}
 
     {{#*inline "body"}}
