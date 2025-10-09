@@ -4,68 +4,77 @@
     {{> base/navbar/navbar_global_settings }}
     {{#> base/containers/main-container }}
 
-        <div class="manage-tags-categories-container">
-            <div class="page-header bg-dark text-light p-3 mb-4">
-                <h2>{% trans "Manage Categories and Tags" %}</h2>
-                <p class="mb-0">{% trans "Add, edit, or delete tags and categories for your organisation" %}</p>
-            </div>
-            <div class="row mx-2">
+        <section class="p-5 d-flex flex-column h-100">
+            <h1 class="mb-4">{% trans "Manage Categories and Tags" %}</h1>
+            <p>{% trans "Add, edit, or delete tags and categories for your organisation." %}</p>
+            <div class="d-flex flex-column flex-md-row justify-content-evenly gap-5 flex-grow-1">
                 <!-- Categories Section -->
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <h3 class="mb-0">{% trans "Categories" %}</h3>
-                            <button class="btn btn-light" id="add-category-btn">
-                                <span class="material-symbols-outlined">add</span> {% trans "Add Category" %}
-                            </button>
+                <div class="w-100 d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between align-items-center p-2">
+                        <h3 class="m-0 text-secondary">{% trans "Categories" %}</h3>
+                        <button type="button" class="btn btn-primary" id="add-category-btn">
+                            <i class="material-symbols-outlined me-2">add</i>{% trans "Add Category" %}
+                        </button>
+                    </div>
+                    <div class="card shadow-xl rounded-4 border-0 p-2 d-flex flex-column flex-grow-1">
+                        <div class="text-center py-5" id="categories-loading">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">{% trans "Loading..." %}</span>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="search-container mb-3">
-                                <input type="text" class="form-control" id="category-search" placeholder='{% trans "Search categories..." %}'>
-                            </div>
-                            <div id="categories-container" class="list-container">
-                                <!-- Categories will be populated by JS -->
-                                <div class="text-center py-5" id="categories-loading">
-                                    <div class="spinner-border" role="status">
-                                        <span class="visually-hidden">{% trans "Loading..." %}</span>
-                                    </div>
-                                </div>
-                                <div class="alert alert-info d-none" id="no-categories-alert">
-                                    {% trans "No categories found. Use the Add Category button to create your first category." %}
-                                </div>
-                            </div>
+                        <div class="overflow-auto flex-grow-1 table-content-container">
+                            <table class="table table-hover mb-0">
+                                <thead class="sticky-top bg-white">
+                                    <tr>
+                                        <th class="fw-semibold w-50">{% trans "Name" %}</th>
+                                        <th class="fw-semibold">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cateogry-table-body">
+                                    <!-- Categories will be populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info d-none" id="no-categories-alert">
+                            {% trans "No categories found. Use the Add Category button to create your first category." %}
                         </div>
                     </div>
                 </div>
                 <!-- Tags Section -->
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                            <h3 class="mb-0">{% trans "Tags" %}</h3>
-                            <button class="btn btn-light" id="add-tag-btn">
-                                <span class="material-symbols-outlined">add</span> {% trans "Add Tag" %}
-                            </button>
+                <div class="w-100 d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between align-items-center p-2">
+                        <h3 class="m-0 text-secondary">{% trans "Tags" %}</h3>
+                        <button class="btn btn-primary" id="add-tag-btn" >
+                            <span class="material-symbols-outlined align-middle">add</span>
+                            <span class="align-middle">{% trans "Add Tag" %}</span>
+                        </button>
+                    </div>
+                    <div class="card shadow-xl rounded-4 border-0 p-2 d-flex flex-column flex-grow-1">
+                        <div class="text-center py-5" id="tags-loading">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">{% trans "Loading..." %}</span>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="search-container mb-3">
-                                <input type="text" class="form-control" id="tag-search" placeholder='{% trans "Search tags..." %}'>
-                            </div>
-                            <div id="tags-container" class="list-container">
-                                <!-- Tags will be populated by JS -->
-                                <div class="text-center py-5" id="tags-loading">
-                                    <div class="spinner-border" role="status">
-                                        <span class="visually-hidden">{% trans "Loading..." %}</span>
-                                    </div>
-                                </div>
-                                <div class="alert alert-info d-none" id="no-tags-alert">
-                                    {% trans "No tags found. Use the Add Tag button to create your first tag." %}
-                                </div>
-                            </div>
+                        <div class="overflow-auto flex-grow-1 table-content-container">
+                            <table class="table table-hover mb-0">
+                                <thead class="sticky-top bg-white">
+                                    <tr>
+                                        <th class="fw-semibold w-50">{% trans "Name" %}</th>
+                                        <th class="fw-semibold">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tags-table-body">
+                                    <!-- Tags will be populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info d-none" id="no-tags-alert">
+                            {% trans "No tags found. Use the Add Tag button to create your first tag." %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         {{> pages/manage-tags-and-categories/modals/add-edit-category-modal }}
         {{> pages/manage-tags-and-categories/modals/add-edit-tag-modal }}
