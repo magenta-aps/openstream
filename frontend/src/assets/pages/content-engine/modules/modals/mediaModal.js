@@ -217,6 +217,7 @@ export async function displayMediaModal(
         // Create and add edit button conditionally
         let actionButtonHTML = "";
         if (file.is_owned_by_branch) {  
+          // Show edit and preview actions btns
           actionButtonHTML = 
             `<div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -235,7 +236,8 @@ export async function displayMediaModal(
                   </li>
                 </ul>
             </div>`
-          } else {
+        } else {
+          // Show preview action btn only
           actionButtonHTML = 
             `<div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
