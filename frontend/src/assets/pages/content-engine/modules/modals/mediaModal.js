@@ -220,7 +220,7 @@ export async function displayMediaModal(
           // Show edit and preview actions btns
           actionButtonHTML = 
             `<div class="dropdown">
-                <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-secondary btn-sm px-1 py-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <span class="material-symbols-outlined">more_horiz</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">

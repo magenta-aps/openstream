@@ -1914,19 +1914,6 @@ span {
 #imageGrid {
   background: none;
 }
-
-#imageGrid .image-box {
-  width: 210px;
-  height: 250px;
-  border: 1px solid $lighter-gray;
-  border-radius: 4px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  background-color: $lightest-gray;
-  box-shadow: 0 1px 3px rgba($black, 0.1);
-}
-
 #imageGrid .image-box .checkerboard-bg {
   flex-grow: 1;
   display: flex;
@@ -1970,10 +1957,10 @@ span {
 }
 
 #imageGrid .image-box {
-  width: 210px;
+  width: 205px;
+  height: 205px;
   border: 1px solid $lighter-gray;
   border-radius: 4px;
-  padding: 8px;
   display: flex;
   flex-direction: column;
   background-color: $lightest-gray;

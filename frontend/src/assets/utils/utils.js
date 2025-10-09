@@ -563,7 +563,7 @@ export function createCheckboxDropdown(
   container,
   buttonText,
   options,
-  checkAll = true,
+  checkAll = false,
 ) {
   // Options should be an array of objects with a "value" key and an optional "display" key
   // If no "display" key is provided, the "value" value will be used both as a display and internal input value attribute
