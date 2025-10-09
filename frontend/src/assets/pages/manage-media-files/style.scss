@@ -18,7 +18,7 @@
 
 .media-box {
   width: 200px;
-  height: 205px;
+  height: 200px;
   display: inline-block;
   border-radius: 6px;
   padding: 8px;
@@ -27,9 +27,13 @@
   transition:
   transform 0.2s,
   box-shadow 0.2s;
-  background-color: $white;
+  background-color: $lighter-gray;
   margin-bottom: 0.5rem;
 
+}
+
+.media-box.pseudo-item {
+  visibility: hidden;
 }
 
 .preview-container {

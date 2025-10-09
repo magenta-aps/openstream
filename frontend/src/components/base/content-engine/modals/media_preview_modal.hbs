@@ -3,7 +3,7 @@
 {{#> base/modal/modal  id="previewMediaModal" ariaLabelledby="previewMediaLabel" size="modal-lg" }}
     {{#*inline "header"}}
         <h5 class="modal-title" id="previewMediaLabel">{% trans "Preview Media" %}</h5>
-        {{> base/modal/modal-header-close data-bs-target="#mediaListModal" data-bs-toggle="modal"}}
+        {{> base/modal/modal-header-close }}
     {{/inline}}
 
     {{#*inline "body"}}
@@ -36,10 +36,20 @@
                 </div>
             </div>
             
-            <button type="button" class="btn btn-secondary" data-bs-target="#mediaListModal" data-bs-toggle="modal">
-                <span class="material-symbols-outlined me-1">cancel</span>
-                {% trans "Cancel" %}
-            </button>
+            <div class="d-flex gap-2">
+                <button type="button" id="btnEditMediaPreview" class="btn btn-primary">
+                    <span class="material-symbols-outlined me-1">edit</span>
+                    {% trans "Edit" %}
+                </button>
+                <button type="button" id="btnDeleteMediaPreview" class="btn btn-danger">
+                    <span class="material-symbols-outlined me-1">delete</span>
+                    {% trans "Delete" %}
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <span class="material-symbols-outlined me-1">cancel</span>
+                    {% trans "Cancel" %}
+                </button>
+            </div>
         </div>
     {{/inline}}
 {{/base/modal/modal}}

@@ -64,6 +64,8 @@ const previewContainer = document.querySelector("#preview-media-container");
 const tagsContainer = document.querySelector("#mediaEditTagsContainer");
 const submitMediaForm = document.querySelector("#submitMediaForm");
 const deleteMediaBtn = document.querySelector("#btnDeleteMedia");
+const deleteMediaPreviewBtn = document.querySelector("#btnDeleteMediaPreview");
+const editMediaPreviewBtn = document.querySelector("#btnEditMediaPreview");
 const fileInput = document.querySelector("#mediaFileInput");
 const titleInput = document.querySelector("#titleSearchInput");
 const mediaCategoryEl = document.querySelector("#media-category-wrapper");
@@ -268,7 +270,7 @@ function renderMediaGrid(mediaFiles) {
               ? 
               `
               <div class="dropdown">
-                <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-secondary btn-sm py-0 px-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <span class="material-symbols-outlined">more_horiz</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">
@@ -280,6 +282,11 @@ function renderMediaGrid(mediaFiles) {
                   <li class="mt-2">
                     <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center preview-media-btn">
                       <span class="material-symbols-outlined">zoom_in</span> ${gettext("Preview")}
+                    </button>
+                  </li>
+                  <li class="mt-2">
+                    <button class="btn btn-danger btn-sm d-flex gap-1 align-items-center delete-media-btn">
+                      <span class="material-symbols-outlined">delete</span> ${gettext("Delete")}
                     </button>
                   </li>
                 </ul>
@@ -295,6 +302,20 @@ function renderMediaGrid(mediaFiles) {
     // Combine preview and info
     mediaBox.innerHTML = previewHTML + infoHTML;
 
+    const previewEl = mediaBox.querySelector(".preview-container");
+    previewEl?.addEventListener("click", () => {
+      currentlyEditingMedia = file;
+      openPreviewMediaModal();
+    });
+    previewEl?.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const dropdownBtn = mediaBox.querySelector('[data-bs-toggle="dropdown"]');
+      if (dropdownBtn) {
+        const dropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownBtn);
+        dropdown.show();
+      }
+    });
+
     // Add event listeners to the action buttons
     if (file.is_owned_by_branch) {
       const editBtn = mediaBox.querySelector(".edit-media-btn");
@@ -302,16 +323,33 @@ function renderMediaGrid(mediaFiles) {
         currentlyEditingMedia = file;
         openEditMediaModal();
       });
-      
+
       const previewBtn = mediaBox.querySelector(".preview-media-btn");
       previewBtn?.addEventListener("click", () => {
         currentlyEditingMedia = file;
         openPreviewMediaModal();
-      })
+      });
+
+      const deleteBtn = mediaBox.querySelector(".delete-media-btn");
+      deleteBtn?.addEventListener("click", () => {
+        currentlyEditingMedia = file;
+        confirmDeleteMedia();
+      });
     }
 
     mediaGrid.appendChild(mediaBox);
   });
+
+  // Add pseudo-items to fill out the grid and prevent spacing issues
+  const pageSize = parseInt(pageSizeEl.value, 10);
+  const remainingItems = pageSize - mediaFiles.length;
+  if (remainingItems > 0) {
+    for (let i = 0; i < remainingItems; i++) {
+      const pseudoBox = document.createElement("div");
+      pseudoBox.className = "media-box pseudo-item";
+      mediaGrid.appendChild(pseudoBox);
+    }
+  }
 
   // Initialize video previews
   mediaGrid.querySelectorAll("video").forEach((video) => {
@@ -440,6 +478,12 @@ function initEventListeners() {
 
   // Delete button
   deleteMediaBtn?.addEventListener("click", confirmDeleteMedia);
+  deleteMediaPreviewBtn?.addEventListener("click", confirmDeleteMedia);
+
+  editMediaPreviewBtn?.addEventListener("click", () => {
+    bsPreviewModal.hide();
+    openEditMediaModal();
+  });
 
   // File input change
   fileInput?.addEventListener("change", syncFileTitleAndInput);
@@ -766,6 +810,9 @@ async function confirmDeleteMedia() {
 
       if (bsSubmitModal) {
         bsSubmitModal.hide();
+      }
+      if (bsPreviewModal) {
+        bsPreviewModal.hide();
       }
 
       // Refresh the media grid
