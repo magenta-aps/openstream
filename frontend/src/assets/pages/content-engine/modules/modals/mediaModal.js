@@ -376,6 +376,33 @@ async function initMediaModalInternal() {
   }
   await createUploadedBySelect();
   initEventListeners();
+  // When preview modal is open and the user presses Escape, don't close the modal
+  // but instead return to the media list overview. We attach the keydown listener
+  // in the capture phase when the preview modal is shown so we can intercept the
+  // Escape key before Bootstrap's default handler.
+  if (previewMediaModalEl) {
+    const _previewEscapeHandler = (e) => {
+      if (e.key === "Escape") {
+        // Prevent default modal-close behavior and stop other handlers
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (bsPreviewModal) {
+          bsPreviewModal.hide();
+        }
+        if (bsMediaListModal) {
+          bsMediaListModal.show();
+        }
+      }
+    };
+
+    // Add on show/hide so we don't leak global listeners
+    previewMediaModalEl.addEventListener("shown.bs.modal", () => {
+      document.addEventListener("keydown", _previewEscapeHandler, true); // capture
+    });
+    previewMediaModalEl.addEventListener("hidden.bs.modal", () => {
+      document.removeEventListener("keydown", _previewEscapeHandler, true);
+    });
+  }
 }
 
 function createExtensionSelect() {
