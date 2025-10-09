@@ -242,6 +242,20 @@ export async function displayMediaModal(
                   </li>
                 </ul>
             </div>`
+          } else {
+          actionButtonHTML = 
+            `<div class="dropdown">
+                <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="material-symbols-outlined">more_horiz</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">
+                  <li class="mt-2">
+                    <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center preview-media-btn">
+                      <span class="material-symbols-outlined">zoom_in</span> ${gettext("Preview")}
+                    </button>
+                  </li>
+                </ul>
+            </div>`
         }
         
 
