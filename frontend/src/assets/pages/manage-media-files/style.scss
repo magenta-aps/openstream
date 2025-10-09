@@ -18,18 +18,18 @@
 
 .media-box {
   width: 200px;
-  height: fit-content;
+  height: 205px;
   display: inline-block;
-  margin-right: 1rem;
-  margin-bottom: 1rem;
   border-radius: 6px;
   padding: 8px;
   border: 1px solid $gray;
   box-shadow: 0 2px 4px rgba($black, 0.05);
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transform 0.2s,
+  box-shadow 0.2s;
   background-color: $white;
+  margin-bottom: 0.5rem;
+
 }
 
 .preview-container {

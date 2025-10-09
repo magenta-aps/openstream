@@ -121,8 +121,84 @@ async function initPage() {
   }
 
   initEventListeners();
+  // Calculate how many media items fit in the current viewport and set the
+  // page size automatically so pagination matches the visible grid.
+  calculateAndSetPageSize();
   loadMediaFiles(1);
 }
+
+/**
+ * Calculate how many `.media-box` items will fit inside the `mediaGrid`
+ * and set the page size dropdown accordingly. Adds an "auto-fit" option
+ * to the dropdown when the computed size is not one of the existing
+ * options.
+ */
+function calculateAndSetPageSize() {
+  if (!mediaGrid || !pageSizeEl) return;
+
+  // Create a temporary element to measure real rendered size (including padding/border)
+  const temp = document.createElement("div");
+  temp.className = "media-box";
+  temp.style.visibility = "hidden";
+  document.body.appendChild(temp);
+
+  // Use computed styles to include margins
+  const tempRect = temp.getBoundingClientRect();
+  const cs = window.getComputedStyle(temp);
+  const marginRight = parseFloat(cs.marginRight) || 0;
+  const marginBottom = parseFloat(cs.marginBottom) || 0;
+  const itemWidth = Math.ceil(tempRect.width + marginRight);
+  const itemHeight = Math.ceil(tempRect.height + marginBottom);
+
+  document.body.removeChild(temp);
+
+  // Determine container available width/height
+  let containerWidth = mediaGrid.clientWidth - 48;
+  let containerHeight = mediaGrid.clientHeight - 48;
+
+  // If mediaGrid has no height yet (not visible), fall back to viewport calculations
+  if (!containerHeight) {
+
+    const gridTop = mediaGrid.getBoundingClientRect().top;
+    const paginationEl = document.querySelector('#media-pagination-wrapper');
+    const paginationHeight = paginationEl ? paginationEl.offsetHeight : 0;
+    containerHeight = Math.max(window.innerHeight - gridTop - paginationHeight - 48); // small padding
+  }
+
+  // Ensure at least 1 column/row
+  const cols = Math.max(1, Math.floor(containerWidth / Math.max(1, itemWidth)));
+  const rows = Math.max(1, Math.floor(containerHeight / Math.max(1, itemHeight)));
+  const computedPageSize = cols * rows;
+
+  // Cap the page size to a reasonable number (prevents insane values)
+  const pageSize = Math.min(Math.max(computedPageSize, 1), 200);
+
+  // If the dropdown already has an option with this value, select it.
+  const existingOption = pageSizeEl.querySelector(`option[value="${pageSize}"]`);
+  // Remove any previous auto option we created
+  const prevAuto = pageSizeEl.querySelector('#autoPageSizeOption');
+  if (prevAuto) prevAuto.remove();
+
+  if (existingOption) {
+    pageSizeEl.value = pageSize;
+  } else {
+    // Add a temporary auto option and select it so the UI reflects the computed size
+    const opt = document.createElement('option');
+    opt.id = 'autoPageSizeOption';
+    opt.value = String(pageSize);
+    opt.text = `${pageSize} (fit)`;
+    // Append and select
+    pageSizeEl.appendChild(opt);
+    pageSizeEl.value = String(pageSize);
+  }
+}
+
+// Recalculate page size on window resize with debounce
+window.addEventListener('resize', debounce(() => {
+  calculateAndSetPageSize();
+  // Reload first page so new page size takes effect
+  loadMediaFiles(1);
+}, 200));
 
 // ============ MEDIA LOADING ============
 
