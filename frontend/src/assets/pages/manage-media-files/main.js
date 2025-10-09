@@ -372,10 +372,10 @@ function initEventListeners() {
   titleInput?.addEventListener("input", updateFilteringDebounce);
 
   // Background Pattern on Media preview (in mediaGrid and media_preview_modal) Toggle Buttons
-  const lightPatternBtn = document.querySelectorAll(".pattern-light-btn");
-  const darkPatternBtn = document.querySelectorAll(".pattern-dark-btn");
+  const lightPatternBtns = document.querySelectorAll(".pattern-light-btn");
+  const darkPatternBtns = document.querySelectorAll(".pattern-dark-btn");
 
-  lightPatternBtn?.forEach((btn) => {
+  lightPatternBtns?.forEach((btn) => {
     btn.addEventListener("change", () => {
       if (btn.checked) {
         mediaGrid?.classList.remove("checkerboard-dark");
@@ -384,12 +384,12 @@ function initEventListeners() {
         previewContainer?.classList.add("checkerboard-light");
 
         // Make every lightPattern button be checked
-        lightPatternBtn.forEach((b) => (b.checked = true));
+        lightPatternBtns.forEach((b) => (b.checked = true));
       }
     });
   });
   
-  darkPatternBtn?.forEach((btn)=>{
+  darkPatternBtns?.forEach((btn)=>{
     btn.addEventListener("change", () => {
       if (btn.checked) {
         mediaGrid?.classList.remove("checkerboard-light");
@@ -398,7 +398,7 @@ function initEventListeners() {
         previewContainer?.classList.add("checkerboard-dark");
     
         // Make every darkPattern button be checked
-        darkPatternBtn.forEach((b) => (b.checked = true));
+        darkPatternBtns.forEach((b) => (b.checked = true));
       }
     });
   });

@@ -216,7 +216,7 @@ export async function displayMediaModal(
 
         // Create and add edit button conditionally
         let actionButtonHTML = "";
-        if (file.is_owned_by_branch) {
+        if (file.is_owned_by_branch) {  
           actionButtonHTML = 
             `<div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -250,7 +250,7 @@ export async function displayMediaModal(
                 </ul>
             </div>`
         }
-
+        
         // Set innerHTML for the main mediaBox
         mediaBox.innerHTML = `
           <div class="checkerboard-bg">
@@ -1104,10 +1104,10 @@ function initEventListeners() {
     });
 
     // Background Pattern on Media preview (in mediaGrid and media_preview_modal) Toggle Buttons
-    const lightPatternBtn = document.querySelectorAll(".pattern-light-btn");
-    const darkPatternBtn = document.querySelectorAll(".pattern-dark-btn");
+    const lightPatternBtns = document.querySelectorAll(".pattern-light-btn");
+    const darkPatternBtns = document.querySelectorAll(".pattern-dark-btn");
 
-    lightPatternBtn?.forEach((btn) => {
+    lightPatternBtns?.forEach((btn) => {
       btn.addEventListener("change", () => {
         if (btn.checked) {
           imageGrid?.classList.remove("checkerboard-dark");
@@ -1116,12 +1116,12 @@ function initEventListeners() {
           previewContainer?.classList.add("checkerboard-light");
 
           // Make every lightPattern button be checked
-          lightPatternBtn.forEach((b) => (b.checked = true));
+          lightPatternBtns.forEach((b) => (b.checked = true));
         }
       });
     });
     
-    darkPatternBtn?.forEach((btn)=>{
+    darkPatternBtns?.forEach((btn)=>{
       btn.addEventListener("change", () => {
         if (btn.checked) {
           imageGrid?.classList.remove("checkerboard-light");
@@ -1130,7 +1130,7 @@ function initEventListeners() {
           previewContainer?.classList.add("checkerboard-dark");
       
           // Make every darkPattern button be checked
-          darkPatternBtn.forEach((b) => (b.checked = true));
+          darkPatternBtns.forEach((b) => (b.checked = true));
         }
       });
     });
