@@ -560,6 +560,8 @@ span {
 .top-panel-options {
   width: 100%;
   align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .top-option {
@@ -659,6 +661,8 @@ span {
 #toolbar-general-container {
   background-color: $lighter-gray;
   height: 45px;
+  overflow-x: auto;
+  overflow-y: hidden !important;
 }
 
 .toolbar-general {
@@ -667,6 +671,9 @@ span {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden !important;
+  min-width: 100%;
 }
 
 .toolbar-general button {
@@ -2073,8 +2080,21 @@ span {
   font-size: 0.75rem;
 }
 
+#slideshow-mode-text {
+  display: none;
+}
+
 #addSlideBtn span {
   font-size: 0.9rem;
+}
+
+
+.toolbar-general button, .toolbar-general span, .toolbar-general div, .element-type-toolbar span, .autosave-info {
+  white-space: nowrap !important;
+}
+
+#aspect-ratio-label {
+  display: none;
 }
 
 #slideshow-name {
