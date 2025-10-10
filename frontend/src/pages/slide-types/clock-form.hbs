@@ -1,81 +1,73 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/containers/html-container title="Clock Widget Configuration" }}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    {{#> base/containers/html-container title="Clock Widget Configuration" }}
 
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-header">
-                        <h5 class="mb-0 text-white">
-                            Clock Widget Configuration
-                        </h5>
+    <div>
+        <div class="card-body">
+            <!-- Description Section -->
+            <div class="alert alert-info mb-4 bg-secondary-accent border-gray" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>About this widget:</strong> Displays a live digital clock that updates every second.
+            </div>
+
+            <!-- Color Selection -->
+            <div class="mb-4">
+                <h6 class=" mb-3">Clock Appearance</h6>
+
+                <!-- Preset Colors -->
+                <div class="mb-3">
+                    <label for="choose-color" class="form-label ">
+                        Preset Colors
+                    </label>
+                    <select id="choose-color" class="form-select  border-gray">
+                        <option selected value="white">White</option>
+                        <option value="black">Black</option>
+                        <option value="red">Red</option>
+                        <option value="blue">Blue</option>
+                        <option value="green">Green</option>
+                        <option value="yellow">Yellow</option>
+                        <option value="orange">Orange</option>
+                        <option value="purple">Purple</option>
+                        <option value="custom">Custom Color</option>
+                    </select>
+                </div>
+
+                <!-- Custom Color Picker -->
+                <div class="mb-3" id="custom-color-section" style="display: none">
+                    <label for="custom-color-picker" class="form-label ">
+                        Custom Color
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="color" id="custom-color-picker"
+                            class="form-control form-control-color border-gray" value="#ffffff"
+                            title="Choose your custom color" />
+                        <span class=" small">Click to choose a custom color</span>
                     </div>
-                    <div class="card-body">
-                        <!-- Description Section -->
-                        <div class="alert alert-info mb-4" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>About this widget:</strong> Displays a live digital clock that updates every second.
-                        </div>
+                </div>
+            </div>
 
-                        <!-- Color Selection -->
-                        <div class="mb-4">
-                            <h6 class="text-white mb-3">Clock Appearance</h6>
+            <!-- Size Selection -->
+            <div class="mb-4">
+                <h6 class=" mb-3">Clock Size</h6>
+                <div class="mb-3">
+                    <label for="clock-size-input" class="form-label ">
+                        Clock size in pixels
+                    </label>
+                    <input type="number" class="form-control border-gray" id="clock-size-input" value="100" min="50"
+                        max="500" />
+                </div>
+            </div>
 
-                            <!-- Preset Colors -->
-                            <div class="mb-3">
-                                <label for="choose-color" class="form-label text-white">
-                                    Preset Colors
-                                </label>
-                                <select id="choose-color" class="form-select bg-secondary text-white border-secondary">
-                                    <option selected value="white">White</option>
-                                    <option value="black">Black</option>
-                                    <option value="red">Red</option>
-                                    <option value="blue">Blue</option>
-                                    <option value="green">Green</option>
-                                    <option value="yellow">Yellow</option>
-                                    <option value="orange">Orange</option>
-                                    <option value="purple">Purple</option>
-                                    <option value="custom">Custom Color</option>
-                                </select>
-                            </div>
-
-                            <!-- Custom Color Picker -->
-                            <div class="mb-3" id="custom-color-section" style="display: none">
-                                <label for="custom-color-picker" class="form-label text-white">
-                                    Custom Color
-                                </label>
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="color" id="custom-color-picker" class="form-control form-control-color bg-secondary border-secondary" value="#ffffff" title="Choose your custom color" />
-                                    <span class="text-white small">Click to choose a custom color</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Size Selection -->
-                        <div class="mb-4">
-                            <h6 class="text-white mb-3">Clock Size</h6>
-                            <div class="mb-3">
-                                <label for="clock-size-input" class="form-label text-white">
-                                    Clock size in pixels
-                                </label>
-                                <input type="number" class="form-control bg-secondary text-white border-secondary" id="clock-size-input" value="100" min="50" max="500" />
-                            </div>
-                        </div>
-
-                        <!-- Preview Section -->
-                        <div class="mb-4">
-                            <h6 class="text-white mb-3">Preview</h6>
-                            <div class="border border-secondary rounded p-3 bg-secondary bg-opacity-25 text-center">
-                                <div id="clock-preview" class="display-4 fw-bold" style="color: white">
-                                    12:34:56
-                                </div>
-                            </div>
-                        </div>
+            <!-- Preview Section -->
+            <div class="mb-4">
+                <h6 class=" mb-3">Preview</h6>
+                <div class="border border-dark-gray rounded p-3 bg-gray text-center">
+                    <div id="clock-preview" class="display-4 fw-bold" style="color: white">
+                        12:34:56
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-{{/ base/containers/html-container }}
+    {{/ base/containers/html-container }}

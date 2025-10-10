@@ -1,57 +1,44 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/containers/html-container title="DR Channel Stream Configuration" }}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    {{#> base/containers/html-container title="DR Channel Stream Configuration" }}
+    <div>
+        <div class="card-body">
+            <!-- Channel Selection -->
+            <div class="mb-4">
+                <label for="choose-channel" class="form-label ">Select Channel</label>
+                <select id="choose-channel" class="form-select   border-gray">
+                    <option value="https://drlivedr1hls.akamaized.net/hls/live/2113625/drlivedr1/6.m3u8">
+                        DR1
+                    </option>
+                    <option value="https://drlivedr2hls.akamaized.net/hls/live/2113623/drlivedr2/6.m3u8">
+                        DR2
+                    </option>
+                    <option value="https://drlivedrrhls.akamaized.net/hls/live/2113621/drlivedrr/6.m3u8">
+                        Ramasjang
+                    </option>
+                    <option value="https://drlivedrtvhls.akamaized.net/hls/live/2113624/drlivedrtv/6.m3u8">
+                        DRTV
+                    </option>
+                </select>
+            </div>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-header">
-                        <h5 class="mb-0 text-white">
-                            DR Channel Stream Configuration
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Channel Selection -->
-                        <div class="mb-4">
-                            <label for="choose-channel" class="form-label text-white">Select Channel</label>
-                            <select id="choose-channel" class="form-select bg-secondary text-white border-secondary">
-                                <option value="https://drlivedr1hls.akamaized.net/hls/live/2113625/drlivedr1/6.m3u8">
-                                    DR1
-                                </option>
-                                <option value="https://drlivedr2hls.akamaized.net/hls/live/2113623/drlivedr2/6.m3u8">
-                                    DR2
-                                </option>
-                                <option value="https://drlivedrrhls.akamaized.net/hls/live/2113621/drlivedrr/6.m3u8">
-                                    Ramasjang
-                                </option>
-                                <option value="https://drlivedrtvhls.akamaized.net/hls/live/2113624/drlivedrtv/6.m3u8">
-                                    DRTV
-                                </option>
-                            </select>
-                        </div>
-
-                        <!-- Audio Options -->
-                        <div class="mb-4">
-                            <label for="mute-toggle" class="form-label text-white">Audio Settings</label>
-                            <select id="mute-toggle" class="form-select bg-secondary text-white border-secondary">
-                                <option value="muted">
-                                    Muted (Recommended for displays)
-                                </option>
-                                <option value="sound">Sound Enabled</option>
-                            </select>
-                        </div>
-
-                        <!-- Info Section -->
-                        <div class="alert alert-info mb-4" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong>
-                            Streams are muted by default in edit mode. Audio settings only apply when the display is live.
-                        </div>
-                    </div>
+            <!-- Audio Options -->
+            <div class="mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="mute-toggle"
+                        checked>
+                    <label class="form-check-label" for="mute-toggle">
+                        Mute audio (Recommended for displays)
+                    </label>
                 </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="alert alert-info bg-secondary-accent-lighter border-gray mb-4" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Note:</strong>
+                Streams are muted by default in edit mode. Audio settings only apply when the display is live.
             </div>
         </div>
     </div>
-
-{{/ base/containers/html-container }}
+    {{/ base/containers/html-container }}

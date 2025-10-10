@@ -49,8 +49,11 @@ export const DrStreamsSlideType = {
     // Set channel selection
     this.setElementValue("choose-channel", config.channel_url);
 
-    // Set mute toggle
-    this.setElementValue("mute-toggle", config.mute ? "muted" : "sound");
+    // Set mute checkbox
+    const muteCheckbox = document.getElementById("mute-toggle");
+    if (muteCheckbox) {
+      muteCheckbox.checked = config.mute;
+    }
   },
 
   setElementValue(selector, value) {
@@ -87,11 +90,11 @@ export const DrStreamsSlideType = {
     const getElementValue = (id) => document.getElementById(id)?.value || "";
 
     const channelUrl = getElementValue("choose-channel");
-    const muteValue = getElementValue("mute-toggle");
+    const muteCheckbox = document.getElementById("mute-toggle");
 
     return {
       channel_url: channelUrl,
-      mute: muteValue === "muted",
+      mute: muteCheckbox ? muteCheckbox.checked : true, // Default to muted if checkbox not found
     };
   },
 
