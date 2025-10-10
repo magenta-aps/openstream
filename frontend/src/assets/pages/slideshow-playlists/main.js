@@ -34,6 +34,7 @@ updateNavbarUsername();
 // static/js_and_css/pages/slideshow_playlist/slideshow-playlists.js
 
 let currentSlideshowPlaylistId = null;
+let currentSlideshowPlaylist = null; // Store the full playlist object
 let playlistToRenameId = null;
 let initialSelectedPlaylistId = null;
 
@@ -70,16 +71,26 @@ function renderSlideshowPlaylists(slideshowPlaylists) {
     // select + edit on row click
     item.addEventListener("click", () => {
       makeElementActive(item);
-      editSlideshowPlaylist(pl.id, pl.name);
+      editSlideshowPlaylist(pl);
     });
 
-    // name
+    // name and aspect ratio container
+    const contentContainer = document.createElement("div");
+    contentContainer.style.maxWidth = "75%";
 
-    const nameSpan = document.createElement("span");
-    nameSpan.innerHTML = nameSpan.innerHTML = autoHyphenate(pl.name);
-    nameSpan.style.maxWidth = "75%";
+    const nameSpan = document.createElement("div");
+    nameSpan.innerHTML = autoHyphenate(pl.name);
     nameSpan.style.wordBreak = "break-all";
     nameSpan.style.hyphens = "auto";
+    nameSpan.style.fontWeight = "500";
+
+    const aspectRatioSpan = document.createElement("small");
+    aspectRatioSpan.textContent = pl.aspect_ratio || "16:9";
+    aspectRatioSpan.className = "text-muted";
+    aspectRatioSpan.style.fontSize = "0.75rem";
+
+    contentContainer.appendChild(nameSpan);
+    contentContainer.appendChild(aspectRatioSpan);
 
     // rename btn
     const renameBtn = document.createElement("button");
@@ -102,7 +113,7 @@ function renderSlideshowPlaylists(slideshowPlaylists) {
     const nameDiv = document.createElement("div");
     nameDiv.className = "d-flex justify-content-start align-items-center";
     nameDiv.style.maxWidth = "80%";
-    nameDiv.append(nameSpan, renameBtn);
+    nameDiv.append(contentContainer, renameBtn);
     item.append(nameDiv, deleteBtn);
 
     if (pl.id === currentSlideshowPlaylistId) {
@@ -114,17 +125,18 @@ function renderSlideshowPlaylists(slideshowPlaylists) {
 
   // If the page was opened with a playlist_id query param, try to auto-select it
   if (!currentSlideshowPlaylistId && initialSelectedPlaylistId) {
-    const targetEl = list.querySelector(
-      `.playlist-item[data-id="${initialSelectedPlaylistId}"]`,
-    );
-    if (targetEl) {
-      makeElementActive(targetEl);
-      const nameSpan = targetEl.querySelector("span");
-      const name = nameSpan ? nameSpan.textContent : "";
-      editSlideshowPlaylist(initialSelectedPlaylistId, name);
-      // consumed
-      initialSelectedPlaylistId = null;
-      return;
+    const targetPlaylist = slideshowPlaylists.find(pl => pl.id == initialSelectedPlaylistId);
+    if (targetPlaylist) {
+      const targetEl = list.querySelector(
+        `.playlist-item[data-id="${initialSelectedPlaylistId}"]`,
+      );
+      if (targetEl) {
+        makeElementActive(targetEl);
+        editSlideshowPlaylist(targetPlaylist);
+        // consumed
+        initialSelectedPlaylistId = null;
+        return;
+      }
     }
   }
 
@@ -133,7 +145,7 @@ function renderSlideshowPlaylists(slideshowPlaylists) {
     const firstPl = slideshowPlaylists[0];
     const firstItem = list.querySelector(".playlist-item");
     makeElementActive(firstItem);
-    editSlideshowPlaylist(firstPl.id, firstPl.name);
+    editSlideshowPlaylist(firstPl);
   }
 }
 
@@ -147,14 +159,19 @@ function openAddPlaylistModal() {
 async function submitAddPlaylist() {
   const form = document.getElementById("add-playlist-form");
   const input = document.getElementById("new-playlist-name");
+  const aspectRatioSelect = document.getElementById("playlist-aspect-ratio");
 
   if (!form.checkValidity()) {
     form.classList.add("was-validated");
     return;
   }
   const name = input.value.trim();
+  const aspectRatio = aspectRatioSelect.value;
+  
   if (!name)
     return showToast(gettext("Playlist name cannot be empty."), "Warning");
+  if (!aspectRatio)
+    return showToast(gettext("Please select an aspect ratio."), "Warning");
 
   try {
     const res = await fetch(
@@ -165,7 +182,7 @@ async function submitAddPlaylist() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, aspect_ratio: aspectRatio }),
       },
     );
     if (!res.ok) {
@@ -184,7 +201,7 @@ async function submitAddPlaylist() {
     currentSlideshowPlaylistId = newPl.id;
 
     await fetchSlideshowPlaylists();
-    editSlideshowPlaylist(newPl.id, newPl.name);
+    editSlideshowPlaylist(newPl);
   } catch {
     showToast(gettext("An unexpected error occurred."), "Error");
   }
@@ -294,9 +311,23 @@ window.openDeletePlaylistModal = (id, name) => {
   deleteModal.show();
 };
 
-function editSlideshowPlaylist(id, name) {
-  currentSlideshowPlaylistId = id;
-  document.getElementById("slideshow-playlist-name").textContent = name;
+function editSlideshowPlaylist(playlist) {
+  // Handle both old (id, name) and new (playlist object) parameter formats
+  if (typeof playlist === 'number' || typeof playlist === 'string') {
+    currentSlideshowPlaylistId = playlist;
+    currentSlideshowPlaylist = null; // Fallback - we don't have the full object
+    document.getElementById("slideshow-playlist-name").textContent = arguments[1] || 'Unknown';
+  } else {
+    currentSlideshowPlaylistId = playlist.id;
+    currentSlideshowPlaylist = playlist;
+    document.getElementById("slideshow-playlist-name").textContent = playlist.name;
+    
+    // Update aspect ratio display
+    const aspectRatioDisplay = document.getElementById("playlist-aspect-ratio-display");
+    if (aspectRatioDisplay) {
+      aspectRatioDisplay.textContent = playlist.aspect_ratio || "16:9";
+    }
+  }
 
   document.getElementById("playlist-selected-view").classList.remove("d-none");
   document.getElementById("no-playlist-selected-view").classList.add("d-none");
@@ -310,7 +341,7 @@ function editSlideshowPlaylist(id, name) {
   fetchSlideshowPlaylistItems();
 
   // Persist selection in the URL so direct links can open this playlist
-  setPlaylistQueryParam(id);
+  setPlaylistQueryParam(currentSlideshowPlaylistId);
 }
 
 function hideEditSection() {
@@ -485,14 +516,37 @@ async function fetchSlideshows() {
 
 function populateSlideshowSelect(slideshows) {
   const select = document.getElementById("slideshow-select");
-  select.innerHTML =
-    '<option value="" disabled selected>' +
-    gettext("Select a slideshow") +
-    "</option>";
-  slideshows.forEach((s) => {
+  select.innerHTML = "";
+
+  // Filter slideshows by current playlist's aspect ratio
+  let filteredSlideshows = slideshows;
+  if (currentSlideshowPlaylist && currentSlideshowPlaylist.aspect_ratio) {
+    filteredSlideshows = slideshows.filter(s => s.aspect_ratio === currentSlideshowPlaylist.aspect_ratio);
+  }
+
+  if (filteredSlideshows.length === 0) {
+    const noMatchOption = document.createElement("option");
+    noMatchOption.value = "";
+    noMatchOption.disabled = true;
+    noMatchOption.selected = true;
+    noMatchOption.textContent = currentSlideshowPlaylist 
+      ? gettext(`No slideshows available with aspect ratio ${currentSlideshowPlaylist.aspect_ratio}`)
+      : gettext("No slideshows available");
+    select.appendChild(noMatchOption);
+    return;
+  }
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.disabled = true;
+  defaultOption.selected = true;
+  defaultOption.textContent = gettext("Select a slideshow");
+  select.appendChild(defaultOption);
+
+  filteredSlideshows.forEach((s) => {
     const opt = document.createElement("option");
     opt.value = s.id;
-    opt.textContent = s.name;
+    opt.textContent = `${s.name} (${s.aspect_ratio})`;
     select.appendChild(opt);
   });
 }

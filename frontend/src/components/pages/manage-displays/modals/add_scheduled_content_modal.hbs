@@ -19,6 +19,9 @@
             {{#> base/form/dropdown id="scheduledGroup"}}
                 <!-- Populated by JS with existing groups -->
         {{/base/form/dropdown}}
+            <small class="text-muted" id="scheduledGroupAspectRatio" style="display: none;">
+                Aspect Ratio: <span class="fw-bold" id="scheduledGroupAspectRatioValue"></span>
+            </small>
         </div>
         <!-- Content Type Toggle -->
         <div class="mb-3">
@@ -35,6 +38,9 @@
                 {{> base/form/dropdown-option value="" text="Select a slideshow" disabled="true" selected="true"}}
                 <!-- Options populated by JS -->
         {{/base/form/dropdown}}
+            <small class="text-muted" id="scheduledSlideshowAspectRatio" style="display: none;">
+                Showing slideshows with aspect ratio: <span class="fw-bold" id="scheduledSlideshowAspectRatioValue"></span>
+            </small>
         </div>
         <!-- Dropdown for Scheduled Playlist (hidden by default) -->
         <div class="mb-3 hidden-container" id="scheduledPlaylistContainer">
@@ -43,6 +49,9 @@
                 {{> base/form/dropdown-option value="" text="Select a playlist" disabled="true" selected="true"}}
                 <!-- Options populated by JS -->
         {{/base/form/dropdown}}
+            <small class="text-muted" id="scheduledPlaylistAspectRatio" style="display: none;">
+                Showing playlists with aspect ratio: <span class="fw-bold" id="scheduledPlaylistAspectRatioValue"></span>
+            </small>
         </div>
         {{> base/form/input-pair
             leftId="scheduledStart"

@@ -14,6 +14,9 @@
             {{#> base/form/dropdown id="recurringScheduledGroup"}}
                 <!-- Populated by JS with existing groups -->
         {{/base/form/dropdown}}
+            <small class="text-muted" id="recurringScheduledGroupAspectRatio" style="display: none;">
+                Aspect Ratio: <span class="fw-bold" id="recurringScheduledGroupAspectRatioValue"></span>
+            </small>
         </div>
         <div class="mb-3">
             <label class="form-label">{% trans "Content Type" %}</label>
@@ -28,6 +31,9 @@
                 {{> base/form/dropdown-option value="" text="Select a slideshow" disabled="true" selected="true"}}
                 <!-- Options populated by JS -->
         {{/base/form/dropdown}}
+            <small class="text-muted" id="recurringScheduledSlideshowAspectRatio" style="display: none;">
+                Showing slideshows with aspect ratio: <span class="fw-bold" id="recurringScheduledSlideshowAspectRatioValue"></span>
+            </small>
         </div>
         <div class="mb-3 hidden-container"
              id="recurringScheduledPlaylistContainer">
@@ -36,6 +42,9 @@
                 {{> base/form/dropdown-option value="" text="Select a playlist" disabled="true" selected="true"}}
                 <!-- Options populated by JS -->
         {{/base/form/dropdown}}
+            <small class="text-muted" id="recurringScheduledPlaylistAspectRatio" style="display: none;">
+                Showing playlists with aspect ratio: <span class="fw-bold" id="recurringScheduledPlaylistAspectRatioValue"></span>
+            </small>
         </div>
         <div class="mb-3">
             {{> base/form/label for="recurringWeekday" text="Day of Week"}}

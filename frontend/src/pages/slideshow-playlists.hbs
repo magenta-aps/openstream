@@ -24,9 +24,14 @@ script-src="/src/assets/pages/slideshow-playlists/main.js" }}
                 <div class="p-3 d-flex flex-column h-100">
                     <div id="info-and-add-btn" class="d-flex mb-3 p-2">
                         <div id="playlist-selected-view" class="d-none d-flex justify-content-between align-items-center w-100">
-                            <h3 class="fw-normal">
-                                {% trans "Editing:" %}&nbsp;<span class="fw-normal" style="font-size: 1.25rem" id="slideshow-playlist-name"></span>
-                            </h3>
+                            <div>
+                                <h3 class="fw-normal mb-1">
+                                    {% trans "Editing:" %}&nbsp;<span class="fw-normal" style="font-size: 1.25rem" id="slideshow-playlist-name"></span>
+                                </h3>
+                                <small class="text-muted">
+                                    <strong>{% trans "Aspect Ratio:" %}</strong> <span id="playlist-aspect-ratio-display"></span>
+                                </small>
+                            </div>
                             <div class="d-flex">
                                 <button type="button" class="btn btn-secondary shadow-sm btn-sm me-2" id="rename-active-playlist-btn">
                                     <i class="material-symbols-outlined fs-extra-large">edit</i>{% trans "Rename Playlist" %}

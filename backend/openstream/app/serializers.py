@@ -231,9 +231,10 @@ class SlideshowSerializer(serializers.ModelSerializer):
             "previewHeight",
             "isCustomDimensions",
             "slideshow_data",
+            "aspect_ratio",  # read-only calculated property
         ]
         # If you want to prevent branch or created_by from changing:
-        read_only_fields = ("branch", "created_by")
+        read_only_fields = ("branch", "created_by", "aspect_ratio")
 
     def to_representation(self, instance):
         """

@@ -24,6 +24,51 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+
+###############################################################################
+# Utility Functions
+###############################################################################
+
+
+def calculate_aspect_ratio(width, height):
+    """
+    Calculate aspect ratio from width and height and return as a standardized string.
+    Common aspect ratios are simplified to their standard format.
+    """
+    from math import gcd
+    
+    if not width or not height or width <= 0 or height <= 0:
+        return "16:9"  # Default fallback
+    
+    # Calculate GCD to simplify the ratio
+    common_divisor = gcd(int(width), int(height))
+    simplified_width = int(width) // common_divisor
+    simplified_height = int(height) // common_divisor
+    
+    # Map common ratios to their standard representation
+    ratio_map = {
+        (16, 9): "16:9",
+        (4, 3): "4:3", 
+        (21, 9): "21:9",
+        (9, 16): "9:16",
+        (3, 4): "3:4",
+        (9, 21): "9:21",
+        (64, 27): "21:9",  # 2.37:1 mapped to 21:9
+        (37, 20): "1.85:1",  # Common cinema ratio
+        (239, 100): "2.39:1",  # Common widescreen ratio
+        (185, 100): "1.85:1",
+        (1, 1): "1:1",  # Square
+    }
+    
+    # Check if this matches a common ratio
+    ratio_key = (simplified_width, simplified_height)
+    if ratio_key in ratio_map:
+        return ratio_map[ratio_key]
+    
+    # For uncommon ratios, return the simplified form
+    return f"{simplified_width}:{simplified_height}"
+
+
 ###############################################################################
 # Organisations and Memberships
 ###############################################################################
@@ -350,6 +395,11 @@ class Slideshow(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def aspect_ratio(self):
+        """Calculate and return the aspect ratio based on previewWidth and previewHeight."""
+        return calculate_aspect_ratio(self.previewWidth, self.previewHeight)
+
 
 ###############################################################################
 # Wayfinding
@@ -407,6 +457,13 @@ class SlideshowPlaylist(models.Model):
     )
     # Track when this playlist was last edited (auto-updated on save)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Aspect ratio for this playlist - all slideshows in this playlist must match this ratio
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this playlist, e.g. "16:9", "4:3", "9:16". All slideshows in this playlist must have the same aspect ratio.',
+    )
 
     class Meta:
         ordering = ["name"]
@@ -438,6 +495,16 @@ class SlideshowPlaylistItem(models.Model):
             raise ValidationError(
                 _("Interactive manage_content cannot be added to playlists.")
             )
+        
+        # Ensure slideshow aspect ratio matches playlist aspect ratio
+        if self.slideshow and self.slideshow_playlist:
+            slideshow_aspect_ratio = self.slideshow.aspect_ratio
+            playlist_aspect_ratio = self.slideshow_playlist.aspect_ratio
+            if slideshow_aspect_ratio != playlist_aspect_ratio:
+                raise ValidationError(
+                    _(f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match playlist aspect ratio ({playlist_aspect_ratio}). Only slideshows with matching aspect ratios can be added to this playlist.")
+                )
+        
         super().clean()
 
     def save(self, *args, **kwargs):
@@ -504,6 +571,13 @@ class DisplayWebsiteGroup(models.Model):
         blank=True,
         related_name="default_playlist_groups",
     )
+    
+    # Aspect ratio for this display group - only displays with matching aspect ratios can be added
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this display group, e.g. "16:9", "4:3", "9:16". Only displays with matching aspect ratios can be added to this group.',
+    )
 
     def clean(self):
         # Ensure exactly one is set
@@ -513,6 +587,21 @@ class DisplayWebsiteGroup(models.Model):
             raise ValidationError(
                 "Exactly one of default_slideshow or default_playlist must be set."
             )
+        
+        # Validate aspect ratio compatibility with default content
+        if self.default_slideshow:
+            slideshow_aspect_ratio = self.default_slideshow.aspect_ratio
+            if slideshow_aspect_ratio != self.aspect_ratio:
+                raise ValidationError(
+                    f"Default slideshow aspect ratio ({slideshow_aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio})."
+                )
+        
+        if self.default_playlist:
+            playlist_aspect_ratio = self.default_playlist.aspect_ratio
+            if playlist_aspect_ratio != self.aspect_ratio:
+                raise ValidationError(
+                    f"Default playlist aspect ratio ({playlist_aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio})."
+                )
 
     def save(self, *args, **kwargs):
         self.clean()  # Validate before saving
@@ -538,6 +627,25 @@ class DisplayWebsite(models.Model):
         blank=True,
         related_name="display_websites",
     )
+    
+    # Aspect ratio for this screen/display
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this display screen, e.g. "16:9", "4:3", "9:16"',
+    )
+
+    def clean(self):
+        # Validate that the display's aspect ratio matches the group's aspect ratio
+        if self.display_website_group and self.display_website_group.aspect_ratio != self.aspect_ratio:
+            raise ValidationError(
+                f"Display aspect ratio ({self.aspect_ratio}) does not match group aspect ratio ({self.display_website_group.aspect_ratio}). Only displays with matching aspect ratios can be added to this group."
+            )
+        super().clean()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         # If you want the name unique within the Branch:
@@ -582,6 +690,24 @@ class ScheduledContent(models.Model):
             self.slideshow is not None and self.playlist is not None
         ):
             raise ValidationError("Exactly one of slideshow or playlist must be set.")
+
+        # Validate aspect ratio compatibility with the display group
+        if self.display_website_group:
+            group_aspect_ratio = self.display_website_group.aspect_ratio
+            
+            if self.slideshow:
+                slideshow_aspect_ratio = self.slideshow.aspect_ratio
+                if slideshow_aspect_ratio != group_aspect_ratio:
+                    raise ValidationError(
+                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
+                    )
+            
+            if self.playlist:
+                playlist_aspect_ratio = self.playlist.aspect_ratio
+                if playlist_aspect_ratio != group_aspect_ratio:
+                    raise ValidationError(
+                        f"Playlist aspect ratio ({playlist_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
+                    )
 
         # New validation:
         # Check if there is any scheduled content for the same group that overlaps this instance's time period
@@ -668,6 +794,24 @@ class RecurringScheduledContent(models.Model):
             self.slideshow is not None and self.playlist is not None
         ):
             raise ValidationError("Exactly one of slideshow or playlist must be set.")
+
+        # Validate aspect ratio compatibility with the display group
+        if self.display_website_group:
+            group_aspect_ratio = self.display_website_group.aspect_ratio
+            
+            if self.slideshow:
+                slideshow_aspect_ratio = self.slideshow.aspect_ratio
+                if slideshow_aspect_ratio != group_aspect_ratio:
+                    raise ValidationError(
+                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
+                    )
+            
+            if self.playlist:
+                playlist_aspect_ratio = self.playlist.aspect_ratio
+                if playlist_aspect_ratio != group_aspect_ratio:
+                    raise ValidationError(
+                        f"Playlist aspect ratio ({playlist_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
+                    )
 
         # Validate that start time is before end time
         if self.start_time >= self.end_time:
