@@ -2,20 +2,15 @@
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/containers/html-container title="DR Channel Stream Configuration" }}
 
-    <div class="container">
+    <div class="container p-0">
         <div class="row">
             <div class="col-12">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-header">
-                        <h5 class="mb-0 text-white">
-                            DR Channel Stream Configuration
-                        </h5>
-                    </div>
+                <div class="card border-gray">                    
                     <div class="card-body">
                         <!-- Channel Selection -->
                         <div class="mb-4">
-                            <label for="choose-channel" class="form-label text-white">Select Channel</label>
-                            <select id="choose-channel" class="form-select bg-secondary text-white border-secondary">
+                            <label for="choose-channel" class="form-label ">Select Channel</label>
+                            <select id="choose-channel" class="form-select   border-gray">
                                 <option value="https://drlivedr1hls.akamaized.net/hls/live/2113625/drlivedr1/6.m3u8">
                                     DR1
                                 </option>
@@ -33,17 +28,16 @@
 
                         <!-- Audio Options -->
                         <div class="mb-4">
-                            <label for="mute-toggle" class="form-label text-white">Audio Settings</label>
-                            <select id="mute-toggle" class="form-select bg-secondary text-white border-secondary">
-                                <option value="muted">
-                                    Muted (Recommended for displays)
-                                </option>
-                                <option value="sound">Sound Enabled</option>
-                            </select>
+                            <div class="form-check">
+                                <input class="form-check-input bg-secondary border-secondary " type="checkbox" id="mute-toggle" checked>
+                                <label class="form-check-label" for="mute-toggle">
+                                    Mute audio (Recommended for displays)
+                                </label>
+                            </div>
                         </div>
 
                         <!-- Info Section -->
-                        <div class="alert alert-info mb-4" role="alert">
+                        <div class="alert alert-info bg-secondary-accent-lighter border-gray mb-4" role="alert">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Note:</strong>
                             Streams are muted by default in edit mode. Audio settings only apply when the display is live.
