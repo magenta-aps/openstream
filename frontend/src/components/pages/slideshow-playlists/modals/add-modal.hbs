@@ -7,10 +7,20 @@
     {{/inline}}
 
         {{#*inline "body"}}
+        <div class="mb-3" id="playlist-aspect-ratio-info" style="display: none;">
+            <div class="alert alert-info mb-3">
+                <i class="material-symbols-outlined me-2">info</i>
+                <strong>Playlist Aspect Ratio:</strong> <span id="modal-playlist-aspect-ratio"></span><br>
+                <small>Only showing slideshows with matching aspect ratio</small>
+            </div>
+        </div>
         {{> base/form/label for="slideshow-select" text="Choose a Slideshow:"}}
         {{#> base/form/dropdown id="slideshow-select"}}
             {{> base/form/dropdown-option value="" text="Select a slideshow" disabled=true selected=true}}
         {{/base/form/dropdown}}
+        <small class="text-muted" id="slideshow-aspect-ratio-indicator" style="display: none;">
+            Showing slideshows with aspect ratio: <span class="fw-bold" id="slideshow-aspect-ratio-value"></span>
+        </small>
     {{/inline}}
 
     {{#*inline "footer"}}

@@ -518,6 +518,24 @@ function populateSlideshowSelect(slideshows) {
   const select = document.getElementById("slideshow-select");
   select.innerHTML = "";
 
+  // Get aspect ratio indicator elements
+  const playlistAspectRatioInfo = document.getElementById("playlist-aspect-ratio-info");
+  const modalPlaylistAspectRatio = document.getElementById("modal-playlist-aspect-ratio");
+  const slideshowAspectRatioIndicator = document.getElementById("slideshow-aspect-ratio-indicator");
+  const slideshowAspectRatioValue = document.getElementById("slideshow-aspect-ratio-value");
+
+  // Show playlist aspect ratio info if available
+  if (currentSlideshowPlaylist && currentSlideshowPlaylist.aspect_ratio) {
+    modalPlaylistAspectRatio.textContent = currentSlideshowPlaylist.aspect_ratio;
+    playlistAspectRatioInfo.style.display = "block";
+    
+    slideshowAspectRatioValue.textContent = currentSlideshowPlaylist.aspect_ratio;
+    slideshowAspectRatioIndicator.style.display = "block";
+  } else {
+    playlistAspectRatioInfo.style.display = "none";
+    slideshowAspectRatioIndicator.style.display = "none";
+  }
+
   // Filter slideshows by current playlist's aspect ratio
   let filteredSlideshows = slideshows;
   if (currentSlideshowPlaylist && currentSlideshowPlaylist.aspect_ratio) {
