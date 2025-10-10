@@ -16,6 +16,7 @@ import { BASE_URL } from "../../utils/constants";
 import { makeActiveInNav } from "../../utils/utils";
 import { updateNavbarUsername } from "../../utils/utils";
 import { setupDeleteConfirmation } from "../../utils/utils";
+import { initNavBarMediaQuery } from "../../utils/utils";
 
 let subOrgsData = [];
 let isActingUserOrgAdmin = false;
@@ -1305,6 +1306,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await fetchUserLangugage();
   translateHTML();
   makeActiveInNav("/select-sub-org");
+  // initNavBarMediaQuery(); // Testing navbar media query handling - js version
 
   await validateToken();
   await fetchSubOrgs();
