@@ -1,6 +1,6 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/containers/html-container title="Newsticker Configuration Form" }}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    {{#> base/containers/html-container title="Newsticker Configuration Form" }}
 
     <div class="container">
         <div class="row">
@@ -16,29 +16,34 @@
                         <div class="mb-4">
                             <h6 class="text-white mb-3">Display Components</h6>
                             <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="showNews-input" id="showNews-input" class="form-check-input" checked />
-                                        <label for="showNews-input" class="form-check-label text-white">
-                                            <i class="fas fa-newspaper me-2"></i>Include News
-                                        </label>
-                                    </div>
+
+                                <div class="form-check ms-3">
+                                    <input type="checkbox" name="showNews-input" id="showNews-input"
+                                        class="form-check-input" checked />
+                                    <label for="showNews-input" class="form-check-label text-white">
+                                        <i class="fas fa-newspaper me-2"></i>Include News
+                                    </label>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="showClock-input" id="showClock-input" class="form-check-input" checked />
-                                        <label for="showClock-input" class="form-check-label text-white">
-                                            <i class="fas fa-clock me-2"></i>Include Clock
-                                        </label>
-                                    </div>
+
+
+                                <br>
+
+                                <div class="form-check ms-3">
+                                    <input type="checkbox" name="showClock-input" id="showClock-input"
+                                        class="form-check-input" checked />
+                                    <label for="showClock-input" class="form-check-label text-white">
+                                        <i class="fas fa-clock me-2"></i>Include Clock
+                                    </label>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="showWeather-input" id="showWeather-input" class="form-check-input" checked />
-                                        <label for="showWeather-input" class="form-check-label text-white">
-                                            <i class="fas fa-cloud-sun me-2"></i>Include Weather
-                                        </label>
-                                    </div>
+
+                                <br>
+
+                                <div class="form-check ms-3">
+                                    <input type="checkbox" name="showWeather-input" id="showWeather-input"
+                                        class="form-check-input" checked />
+                                    <label for="showWeather-input" class="form-check-label text-white">
+                                        <i class="fas fa-cloud-sun me-2"></i>Include Weather
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -48,7 +53,8 @@
                             <label for="weather-location-input" class="form-label text-white">
                                 Weather Location
                             </label>
-                            <select name="weather-location-input" id="weather-location-input" class="form-select bg-secondary text-white border-secondary">
+                            <select name="weather-location-input" id="weather-location-input"
+                                class="form-select bg-secondary text-white border-secondary">
                                 <option value="">Select location...</option>
                             </select>
                         </div>
@@ -57,17 +63,24 @@
                         <div class="mb-4">
                             <h6 class="text-white mb-3">Ticker Settings</h6>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="ticker-speed-input" class="form-label text-white">
-                                        Ticker Speed (px/sec)
+                                <div class="col-md-6 mb-3 d-flex gap-1">
+                                    <label for="ticker-speed-input"
+                                        class="form-label text-white me-3 align-items-center" style="min-width: 25%">
+                                        Speed (px/sec):
                                     </label>
-                                    <input type="number" id="ticker-speed-input" name="ticker-speed-input" class="form-control bg-secondary text-white border-secondary" min="10" max="400" step="10" value="80" />
+                                    <input type="number" id="ticker-speed-input" name="ticker-speed-input"
+                                        class="form-control bg-secondary text-white border-secondary mb-0" min="10"
+                                        max="400" step="10" value="80" />
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="font-size-input" class="form-label text-white">
-                                        Font Size (rem)
+                                <br>
+                                <div class="col-md-6 mb-3 d-flex gap-1 align-items-center">
+                                    <label for="font-size-input" class="form-label text-white me-3"
+                                        style="min-width: 25%">
+                                        Font Size (rem):
                                     </label>
-                                    <input type="number" id="font-size-input" name="font-size-input" class="form-control bg-secondary text-white border-secondary" min="0.5" max="3" step="0.1" value="2" />
+                                    <input type="number" id="font-size-input" name="font-size-input"
+                                        class="form-control bg-secondary text-white border-secondary mb-0" min="0.5"
+                                        max="3" step="0.1" value="2" />
                                 </div>
                             </div>
                         </div>
@@ -75,7 +88,8 @@
                         <!-- Info Section -->
                         <div class="alert alert-info mb-4" role="alert">
                             <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> The ticker will appear at the bottom of your display and scroll continuously. You can move it by dragging it to your desired position.
+                            <strong>Note:</strong> The ticker will appear at the bottom of your display and scroll
+                            continuously. You can move it by dragging it to your desired position.
                         </div>
                     </div>
                 </div>
@@ -83,4 +97,4 @@
         </div>
     </div>
 
-{{/ base/containers/html-container }}
+    {{/ base/containers/html-container }}
