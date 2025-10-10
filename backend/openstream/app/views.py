@@ -1921,7 +1921,6 @@ class BranchUpcomingContentAPIView(APIView):
 
 class DocumentListView(APIView):
     permission_classes = [IsAuthenticated]
-    page_size = 10
 
     def post(self, request):
         # Returns a filtered and paginated list of media files
@@ -1995,8 +1994,23 @@ class DocumentListView(APIView):
         if tag_ids:
             docs = docs.filter(tags__id__in=tag_ids).distinct()
 
+        # Pagination
+        DEFAULT_PAGE_SIZE = 10
+        MAX_PAGE_SIZE = 100
+
+        # Validate and sanitize page_size param
+        try:
+            page_size = int(request.query_params.get("page_size", DEFAULT_PAGE_SIZE))
+        except ValueError:
+            page_size = DEFAULT_PAGE_SIZE
+
+        if page_size < 1:
+            page_size = DEFAULT_PAGE_SIZE  # Fallback for negative or zero page_size
+        elif page_size > MAX_PAGE_SIZE:
+            page_size = MAX_PAGE_SIZE
+
         # Paginate the results.
-        paginator = Paginator(docs, self.page_size)
+        paginator = Paginator(docs, page_size)
         page_number = request.query_params.get("page", 1)
         page_obj = paginator.get_page(page_number)
         serializer = DocumentSerializer(
@@ -2356,40 +2370,81 @@ class RegisteredSlideTypesAPIView(APIView):
     API view for fetching registered slide types for an organisation.
     - GET: Returns a list of registered slide types for the specified organisation
 
-    Query params:
+    Query params (for user authentication):
       - org_id (required): The organisation ID to fetch slide types for
+
+    Query params (for API key authentication):
+      - branch_id (optional): Required when using non-branch-limited API key
+
+    Authentication: Supports both user authentication and X-API-KEY header.
+    For API key authentication, organisation is derived from the branch.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = []  # We handle both user & API-key auth ourselves
 
     def get(self, request):
         """
         Returns a list of registered slide types for the specified organisation.
-        Users must belong to the organisation to access its slide types.
+        Supports both user authentication and API key authentication.
         """
-        org_id = request.query_params.get("org_id")
-        if not org_id:
-            return Response(
-                {"error": "org_id parameter is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # --- Authentication Section ---
+        api_key_value = request.headers.get("X-API-KEY")
 
-        try:
-            organisation = Organisation.objects.get(id=org_id)
-        except Organisation.DoesNotExist:
-            return Response(
-                {"error": "Organisation not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+        if api_key_value:
+            # API key authentication
+            key_obj = SlideshowPlayerAPIKey.objects.filter(
+                key=api_key_value, is_active=True
+            ).first()
+            if not key_obj:
+                return Response({"detail": "Invalid or inactive API key."}, status=403)
 
-        # Check if user belongs to this organisation or is super_admin
-        if not user_is_super_admin(request.user):
-            if not user_belongs_to_organisation(request.user, organisation):
+            # For API key access, get branch from the key or use branch_id param
+            if key_obj.branch:
+                branch = key_obj.branch
+            else:
+                # If API key is not branch-limited, require branch_id parameter
+                branch_id = request.query_params.get("branch_id")
+                if not branch_id:
+                    return Response(
+                        {
+                            "detail": "branch_id is required when using non-branch-limited API key."
+                        },
+                        status=400,
+                    )
+                branch = get_object_or_404(Branch, id=branch_id)
+
+            # Get organisation from the branch
+            organisation = branch.suborganisation.organisation
+        else:
+            # User authentication
+            if not request.user or not request.user.is_authenticated:
+                return Response({"detail": "Authentication required."}, status=401)
+
+            # For user authentication, org_id parameter is required
+            org_id = request.query_params.get("org_id")
+            if not org_id:
                 return Response(
-                    {
-                        "error": "You do not have permission to access slide types for this organisation"
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
+                    {"error": "org_id parameter is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            try:
+                organisation = Organisation.objects.get(id=org_id)
+            except Organisation.DoesNotExist:
+                return Response(
+                    {"error": "Organisation not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Check if user belongs to this organisation or is super_admin
+            if not user_is_super_admin(request.user):
+                if not user_belongs_to_organisation(request.user, organisation):
+                    return Response(
+                        {
+                            "error": "You do not have permission to access slide types for this organisation"
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
         # Fetch registered slide types for the organisation
         slide_types = RegisteredSlideTypes.objects.filter(
@@ -3223,7 +3278,7 @@ class SlideTemplateAPIView(APIView):
     def get(self, request, pk=None):
         """
         - If pk is provided, return that template detail (check membership).
-        - Otherwise, expect ?organisation_id=... to list all templates of that org.
+        - Otherwise, expect ?organisation_id=... to list all templates of that org (global templates only).
         """
         if pk:
             template = get_object_or_404(SlideTemplate, pk=pk)
@@ -3234,7 +3289,7 @@ class SlideTemplateAPIView(APIView):
             serializer = SlideTemplateSerializer(template)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        # List
+        # List - only global templates (no suborganisation)
         org_id = request.query_params.get("organisation_id")
         if not org_id:
             return Response(
@@ -3245,9 +3300,9 @@ class SlideTemplateAPIView(APIView):
         if not user_belongs_to_organisation(request.user, org):
             return Response({"detail": "Not allowed."}, status=403)
 
-        templates = SlideTemplate.objects.filter(organisation=org).order_by(
-            "slideData__id"
-        )
+        templates = SlideTemplate.objects.filter(
+            organisation=org, suborganisation__isnull=True
+        ).order_by("slideData__id")
         serializer = SlideTemplateSerializer(templates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -3307,6 +3362,194 @@ class SlideTemplateAPIView(APIView):
 
         # Ensure the user is an admin in the template's organisation
         if not user_is_admin_in_org(request.user, template.organisation):
+            return Response(
+                {"detail": "Not authorized to delete this template."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        template.delete()
+        return Response(
+            {"detail": "Template deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+###############################################################################
+# SubOrganisation Template Management
+###############################################################################
+
+
+class SuborgTemplateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        """
+        GET /api/suborg-templates/?suborg_id=<id> - List all templates available for a suborg
+          (includes global templates and suborg-specific templates)
+        GET /api/suborg-templates/<pk>/ - Get details of a specific template
+        """
+        if pk:
+            template = get_object_or_404(SlideTemplate, pk=pk)
+            # Check if user can access this template
+            if template.suborganisation:
+                if not user_can_manage_suborg(request.user, template.suborganisation):
+                    return Response(
+                        {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+                    )
+            else:
+                if not user_belongs_to_organisation(
+                    request.user, template.organisation
+                ):
+                    return Response(
+                        {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+                    )
+            serializer = SlideTemplateSerializer(template)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # List templates for a suborg
+        suborg_id = request.query_params.get("suborg_id")
+        if not suborg_id:
+            return Response(
+                {"detail": "suborg_id query param is required."}, status=400
+            )
+
+        suborg = get_object_or_404(SubOrganisation, pk=suborg_id)
+
+        # User must be able to access this suborg
+        if (
+            not user_can_access_branch(request.user, suborg.branches.first())
+            if suborg.branches.exists()
+            else user_can_manage_suborg(request.user, suborg)
+        ):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        # Get global templates (no suborganisation) and suborg-specific templates
+        global_templates = SlideTemplate.objects.filter(
+            organisation=suborg.organisation, suborganisation__isnull=True
+        )
+        suborg_templates = SlideTemplate.objects.filter(suborganisation=suborg)
+
+        templates = (global_templates | suborg_templates).distinct().order_by("name")
+        serializer = SlideTemplateSerializer(templates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        Create a new suborg template based on a global template.
+        Required: suborg_id, parent_template_id
+        Optional: name (defaults to parent template name)
+        """
+        suborg_id = request.data.get("suborg_id")
+        parent_template_id = request.data.get("parent_template_id")
+
+        if not suborg_id:
+            return Response(
+                {"detail": "suborg_id is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if not parent_template_id:
+            return Response(
+                {"detail": "parent_template_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        suborg = get_object_or_404(SubOrganisation, pk=suborg_id)
+        parent_template = get_object_or_404(SlideTemplate, pk=parent_template_id)
+
+        # Check permissions - user must be suborg_admin or org_admin
+        if not user_can_manage_suborg(request.user, suborg):
+            return Response(
+                {
+                    "detail": "Not authorized to create templates for this suborganisation."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Verify parent template is a global template from the same organisation
+        if parent_template.suborganisation is not None:
+            return Response(
+                {"detail": "Parent template must be a global template."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if parent_template.organisation != suborg.organisation:
+            return Response(
+                {"detail": "Parent template must belong to the same organisation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create the new suborg template
+        # Note: slideData is copied as-is, including any preventSettingsChanges flags
+        # from the parent template. These will be enforced in the frontend so that
+        # suborg admins cannot modify settings that were locked by the global template.
+        new_template_name = request.data.get("name", f"{parent_template.name} (Copy)")
+
+        data = {
+            "name": new_template_name,
+            "slideData": parent_template.slideData,
+            "organisation_id": suborg.organisation.id,
+            "suborganisation_id": suborg.id,
+            "parent_template_id": parent_template.id,
+            "aspect_ratio": parent_template.aspect_ratio,
+        }
+
+        if parent_template.category:
+            data["category_id"] = parent_template.category.id
+
+        serializer = SlideTemplateSerializer(data=data)
+        if serializer.is_valid():
+            template = serializer.save()
+            # Copy tags from parent
+            template.tags.set(parent_template.tags.all())
+            return Response(
+                SlideTemplateSerializer(template).data, status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        """
+        Update a suborg template.
+        Only the suborg_admin or org_admin can update.
+        """
+        template = get_object_or_404(SlideTemplate, pk=pk)
+
+        # Must be a suborg template
+        if not template.suborganisation:
+            return Response(
+                {"detail": "This endpoint is only for suborg templates."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user_can_manage_suborg(request.user, template.suborganisation):
+            return Response(
+                {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Don't allow changing organisation, suborganisation, or parent_template
+        data = request.data.copy()
+        data.pop("organisation_id", None)
+        data.pop("suborganisation_id", None)
+        data.pop("parent_template_id", None)
+
+        serializer = SlideTemplateSerializer(template, data=data, partial=True)
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response(SlideTemplateSerializer(updated).data, status=200)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        """
+        Delete a suborg template.
+        Only suborg_admin or org_admin can delete.
+        """
+        template = get_object_or_404(SlideTemplate, pk=pk)
+
+        # Must be a suborg template
+        if not template.suborganisation:
+            return Response(
+                {"detail": "This endpoint is only for suborg templates."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user_can_manage_suborg(request.user, template.suborganisation):
             return Response(
                 {"detail": "Not authorized to delete this template."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -3577,7 +3820,8 @@ class CustomColorAPIView(APIView):
 
 
 class CustomFontAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    # AllowAny because we perform our own auth check supporting X-API-KEY or user token
+    permission_classes = [AllowAny]
 
     def get(self, request, pk=None):
         """
@@ -3586,28 +3830,105 @@ class CustomFontAPIView(APIView):
         Optional: Provide pk to get a specific font.
         """
         org_id = request.query_params.get("organisation_id")
+        dw = None
+        # If no organisation_id provided, try to infer it from a display website id
+        # Support common param names used across the app: 'displayWebsiteId', 'display_website_id', or 'id'
         if not org_id:
-            return Response(
-                {"detail": "organisation_id parameter is required."},
-                status=status.HTTP_400_BAD_REQUEST,
+            display_website_id = (
+                request.query_params.get("displayWebsiteId")
+                or request.query_params.get("display_website_id")
+                or request.query_params.get("id")
             )
+            if not display_website_id:
+                return Response(
+                    {"detail": "organisation_id parameter is required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
-            return Response(
-                {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            # Resolve the display website and derive organisation from its branch
+            try:
+                dw = get_object_or_404(DisplayWebsite, id=display_website_id)
+            except Exception:
+                return Response(
+                    {"detail": "Display website not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        # Check if user has permission to access this organization
-        if not (
-            user_is_super_admin(request.user)
-            or user_belongs_to_organisation(request.user, organisation)
-        ):
-            return Response(
-                {"detail": "You don't have permission to access this organization."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            if not dw.branch or not dw.branch.suborganisation:
+                return Response(
+                    {"detail": "Display website missing branch/suborganisation."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            organisation = dw.branch.suborganisation.organisation
+            org_id = organisation.id
+        else:
+            try:
+                organisation = get_object_or_404(Organisation, pk=org_id)
+            except:
+                return Response(
+                    {"detail": "Organization not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        # Allow access via X-API-KEY (e.g. slideshow player) when the key belongs
+        # to a branch under the requested organisation. Otherwise validate the
+        # requesting user as before.
+        api_key = request.headers.get("X-API-KEY")
+        api_key_authenticated = False
+        if api_key:
+            try:
+                key_obj = SlideshowPlayerAPIKey.objects.filter(
+                    key=api_key, is_active=True
+                ).first()
+            except Exception:
+                key_obj = None
+
+            if not key_obj:
+                return Response(
+                    {"detail": "Invalid API key."}, status=status.HTTP_403_FORBIDDEN
+                )
+
+            # If we resolved a DisplayWebsite (dw) prefer to validate the api key against that branch.
+            if dw:
+                if key_obj.branch and key_obj.branch != dw.branch:
+                    return Response(
+                        {"detail": "API key not valid for this branch."},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            else:
+                # Fallback: ensure the api key's branch belongs to the requested organisation
+                try:
+                    key_org = key_obj.branch.suborganisation.organisation
+                except Exception:
+                    return Response(
+                        {"detail": "API key not linked to an organisation."},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                if str(key_org.id) != str(org_id):
+                    return Response(
+                        {
+                            "detail": "API key does not grant access to this organisation."
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+            api_key_authenticated = True
+
+        if not api_key_authenticated:
+            # Check if user has permission to access this organization
+            if not (
+                hasattr(request, "user")
+                and user_is_super_admin(request.user)
+                or user_belongs_to_organisation(request.user, organisation)
+            ):
+                return Response(
+                    {
+                        "detail": "You don't have permission to access this organization."
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         if pk:
             # Get a single font by ID
@@ -4911,25 +5232,21 @@ def fetch_weather_data(location):
 
         def get_precipitation_text(precip):
             if precip < 0.1:
-                return "Ingen regn"
-            elif precip < 1:
-                return "Let regn"
+                return ""
             elif precip < 5:
-                return "Regn"
-            elif precip < 10:
-                return "Kraftig regn"
+                return "💦"
             else:
-                return "Meget kraftig regn"
+                return ""
 
         def get_cloud_cover_text(cloud_cover):
             if cloud_cover < 10:
-                return "Klar himmel"
+                return "☀️"
             elif cloud_cover < 50:
-                return "Let skyet"
+                return "⛅"
             elif cloud_cover < 80:
-                return "Skyet"
+                return "☁️"
             else:
-                return "Overskyet"
+                return ""
 
         cached_weather_data[location] = {
             "temperature": temperature,

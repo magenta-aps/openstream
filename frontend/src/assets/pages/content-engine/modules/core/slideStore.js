@@ -26,4 +26,6 @@ export const store = {
   slideshowMode: null,
 
   currentTemplateSlideIndex: null,
+  // UI flags
+  showElementIndicators: true,
 };

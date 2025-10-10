@@ -14,6 +14,78 @@ import { gettext } from "../../../../utils/locales.js";
 import * as bootstrap from "bootstrap";
 let unifiedTemplates = [];
 let selectedUnifiedTemplate = null;
+
+/**
+ * Set the resolution based on aspect ratio and update resolution modal
+ */
+function setResolutionFromAspectRatio(aspectRatio) {
+  const aspectRatioMap = {
+    "16:9": { width: 1920, height: 1080 },
+    "4:3": { width: 1024, height: 768 },
+    "21:9": { width: 3440, height: 1440 },
+    "1.85:1": { width: 1998, height: 1080 },
+    "2.39:1": { width: 2048, height: 858 },
+    "9:16": { width: 1080, height: 1920 },
+    "3:4": { width: 768, height: 1024 },
+    "9:21": { width: 1440, height: 3440 },
+    "1:1.85": { width: 1080, height: 1998 },
+    "1:2.39": { width: 858, height: 2048 },
+    "3:2": { width: 1440, height: 960 }, // fallback
+    "1:1": { width: 1080, height: 1080 }, // fallback
+  };
+
+  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
+  store.emulatedWidth = resolution.width;
+  store.emulatedHeight = resolution.height;
+
+  // Update resolution modal to show the correct active option
+  updateResolutionModalSelection(resolution.width, resolution.height);
+
+  // Update the aspect ratio display in the UI
+  updateAspectRatioDisplay();
+
+  // Trigger zoom adjustment to fit the new aspect ratio
+  setTimeout(async () => {
+    const { scaleAllSlides } = await import("./renderSlide.js");
+    const { updateAllSlidesZoom } = await import("../utils/zoomController.js");
+    scaleAllSlides();
+    updateAllSlidesZoom();
+  }, 50);
+}
+
+/**
+ * Update the resolution modal to show the correct active selection
+ */
+function updateResolutionModalSelection(width, height) {
+  const options = document.querySelectorAll(".resolution-option");
+  options.forEach((option) => {
+    const optionWidth = parseInt(option.getAttribute("data-width"), 10);
+    const optionHeight = parseInt(option.getAttribute("data-height"), 10);
+
+    if (optionWidth === width && optionHeight === height) {
+      option.classList.add("active");
+    } else {
+      option.classList.remove("active");
+    }
+  });
+}
+
+/**
+ * Update the aspect ratio display in the UI
+ */
+function updateAspectRatioDisplay() {
+  const currentAspectRatio = getCurrentAspectRatio();
+
+  const aspectRatioElement = document.getElementById("aspect-ratio");
+  const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+
+  if (aspectRatioElement) {
+    aspectRatioElement.innerText = currentAspectRatio;
+  }
+  if (aspectRatioValueElement) {
+    aspectRatioValueElement.innerText = currentAspectRatio;
+  }
+}
 let filteredTemplates = [];
 let currentSort = { column: null, order: "asc" };
 
@@ -33,17 +105,20 @@ export function getCurrentAspectRatio() {
   const width = store.emulatedWidth;
   const height = store.emulatedHeight;
 
-  // Check for common aspect ratios based on dimensions
+  // Check for common aspect ratios based on dimensions (matching resolution modal)
   if (width === 1920 && height === 1080) return "16:9";
-  if (width === 1080 && height === 1920) return "9:16";
   if (width === 1024 && height === 768) return "4:3";
-  if (width === 768 && height === 1024) return "3:4";
   if (width === 3440 && height === 1440) return "21:9";
-  if (width === 1440 && height === 3440) return "9:21";
   if (width === 1998 && height === 1080) return "1.85:1";
-  if (width === 1080 && height === 1998) return "1:1.85";
   if (width === 2048 && height === 858) return "2.39:1";
+  if (width === 1080 && height === 1920) return "9:16";
+  if (width === 768 && height === 1024) return "3:4";
+  if (width === 1440 && height === 3440) return "9:21";
+  if (width === 1080 && height === 1998) return "1:1.85";
   if (width === 858 && height === 2048) return "1:2.39";
+  // Fallback ratios
+  if (width === 1440 && height === 960) return "3:2";
+  if (width === 1080 && height === 1080) return "1:1";
 
   // If dimensions don't match any predefined ratio, return a simplified ratio
   // This is a fallback but the UI only offers specific ratio options
@@ -60,6 +135,24 @@ const templateMiniSearcher = createMiniSearchInstance(
 const noTemplatesFoundAlert = document.getElementById(
   "no-templates-found-alert",
 );
+
+/**
+ * Determine if we're in suborg branch content creation mode
+ * (as opposed to suborg template management mode)
+ */
+function isSuborgContentCreationMode() {
+  // If we're managing templates, allow global templates
+  if (
+    store.editorMode === "template_editor" ||
+    store.editorMode === "suborg_templates"
+  ) {
+    return false;
+  }
+
+  // If we have a suborg selected but we're not managing templates,
+  // then we're creating content for the suborg branch
+  return true;
+}
 
 function updateCategorySidebar(templates) {
   // Create a map of unique categories (id => name)
@@ -110,23 +203,52 @@ function updateCategorySidebar(templates) {
 
 async function fetchUnifiedTemplates() {
   const orgId = localStorage.getItem("parentOrgID");
+  const suborgId = localStorage.getItem("selectedSubOrgID");
+
   try {
-    const resp = await fetch(
-      `${BASE_URL}/api/slide-templates/?organisation_id=${orgId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    let url;
+    // If we have a suborgId, fetch suborg-specific templates (includes global + suborg templates)
+    // Otherwise, fetch only global templates for the org
+    if (suborgId) {
+      url = `${BASE_URL}/api/suborg-templates/?suborg_id=${suborgId}`;
+    } else {
+      url = `${BASE_URL}/api/slide-templates/?organisation_id=${orgId}`;
+    }
+
+    const resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
     if (!resp.ok) {
       console.error("Failed to fetch templates", resp.status);
       return;
     }
     unifiedTemplates = await resp.json();
 
-    unifiedTemplates = unifiedTemplates.filter((template) =>
-      template.accepted_aspect_ratios.includes(getCurrentAspectRatio()),
-    );
+    // Filter out global templates when creating content for suborg branches
+    // Only allow global templates when managing suborg templates (editorMode = "suborg_templates")
+    if (suborgId && isSuborgContentCreationMode()) {
+      const originalCount = unifiedTemplates.length;
+      // Filter to only suborg-specific templates (suborganisation is not null)
+      // Global templates have suborganisation === null
+      unifiedTemplates = unifiedTemplates.filter(
+        (template) => template.suborganisation !== null,
+      );
+    }
 
+    // Filter templates by aspect ratio to match current slideshow aspect ratio
+    const currentAspectRatio = getCurrentAspectRatio();
+    if (currentAspectRatio) {
+      const originalCount = unifiedTemplates.length;
+      unifiedTemplates = unifiedTemplates.filter(
+        (template) => template.aspect_ratio === currentAspectRatio,
+      );
+      console.log(
+        `Filtered templates by aspect ratio ${currentAspectRatio}: ${originalCount} → ${unifiedTemplates.length}`,
+      );
+    }
+
+    // Templates now set their own aspect ratio automatically, so no filtering needed
     document.getElementById("aspect-ratio").innerText = getCurrentAspectRatio();
 
     templateMiniSearcher.removeAll();
@@ -150,12 +272,31 @@ function filterTemplates() {
     document.querySelectorAll(".category-filter:checked"),
   ).map((cb) => parseInt(cb.value, 10));
 
+  // Get the current aspect ratio for filtering
+  const currentAspectRatio = getCurrentAspectRatio();
+
+  console.log("Filtering templates:");
+  console.log("- Current aspect ratio:", currentAspectRatio);
+  console.log("- Total templates before filtering:", searchResults.length);
+
   filteredTemplates = searchResults.filter((t) => {
-    return (
+    const categoryMatch =
       selectedCategoryIds.length === 0 ||
-      selectedCategoryIds.includes(t.category?.id)
-    );
+      selectedCategoryIds.includes(t.category?.id);
+
+    // Filter by aspect ratio - template must match current aspect ratio
+    const aspectRatioMatch = t.aspect_ratio === currentAspectRatio;
+
+    if (!aspectRatioMatch) {
+      console.log(
+        `- Template "${t.name}" filtered out: has aspect ratio "${t.aspect_ratio}" but current is "${currentAspectRatio}"`,
+      );
+    }
+
+    return categoryMatch && aspectRatioMatch;
   });
+
+  console.log("- Templates after filtering:", filteredTemplates.length);
 }
 
 function sortAndRenderTemplates() {
@@ -270,30 +411,6 @@ function loadUnifiedTemplatePreview(template) {
 
 export function initAddSlide() {
   document
-    .querySelectorAll('input[name="slideType"]')
-    .forEach(function (radio) {
-      radio.addEventListener("change", async function () {
-        if (this.value === "blank") {
-          document.getElementById("blankSlideSection").style.display = "block";
-          document.getElementById("templateSlideSection").style.display =
-            "none";
-        } else {
-          await fetchUnifiedTemplates();
-          document.getElementById("blankSlideSection").style.display = "none";
-          document.getElementById("templateSlideSection").style.display =
-            "block";
-        }
-      });
-    });
-
-  const checkedRadio = document.querySelector(
-    'input[name="slideType"]:checked',
-  );
-  if (checkedRadio) {
-    checkedRadio.dispatchEvent(new Event("change"));
-  }
-
-  document
     .getElementById("templateSearch")
     .addEventListener("input", function () {
       filterTemplates();
@@ -302,7 +419,8 @@ export function initAddSlide() {
 
   document
     .getElementById("unifiedSlideModal")
-    .addEventListener("shown.bs.modal", () => {
+    .addEventListener("shown.bs.modal", async () => {
+      await fetchUnifiedTemplates();
       const tableBody = document.querySelector("#unifiedTemplateTable tbody");
       if (tableBody && tableBody.children.length > 0) {
         const firstRow = tableBody.children[0];
@@ -315,10 +433,6 @@ export function initAddSlide() {
   document
     .getElementById("unifiedSaveSlideBtn")
     .addEventListener("click", () => {
-      const selectedOption = document.querySelector(
-        'input[name="slideType"]:checked',
-      ).value;
-
       // Ensure slide and element ID counters are up-to-date to prevent conflicts.
       let maxSlideId = 0;
       store.slides.forEach((slide) => {
@@ -346,98 +460,64 @@ export function initAddSlide() {
         maxElementId + 1,
       );
 
-      if (selectedOption === "blank") {
-        const name = document.getElementById("slideName").value.trim();
-        const duration = parseInt(
-          document.getElementById("slideDuration").value,
-          10,
+      if (!selectedUnifiedTemplate) {
+        showToast(
+          gettext("Please select a template from the list."),
+          "Warning",
         );
-        if (!name || duration <= 0) {
-          showToast(
-            gettext("Please fill out slide name and duration correctly."),
-            "Warning",
-          );
-          return;
-        }
-        const newSlide = {
-          id: store.slideIdCounter++,
-          name: name,
-          duration: duration,
-          backgroundColor: "#ffffff",
-          elements: [],
-          undoStack: [],
-          redoStack: [],
-        };
-        store.slides.push(newSlide);
-        store.currentSlideIndex = store.slides.length - 1;
-        updateSlideSelector();
-        bootstrap.Modal.getInstance(
-          document.getElementById("unifiedSlideModal"),
-        ).hide();
-        loadSlide(newSlide);
+        return;
+      }
+      const templateSlide = selectedUnifiedTemplate.slideData;
+      const newSlide = JSON.parse(JSON.stringify(templateSlide));
+      newSlide.id = store.slideIdCounter++;
 
-        // Ensure proper scaling after adding blank slide
-        const previewContainer = document.querySelector(
-          ".slide-canvas .preview-container",
-        );
-        if (previewContainer) {
-          scaleSlide(previewContainer);
-        }
-      } else {
-        if (!selectedUnifiedTemplate) {
-          showToast(
-            gettext("Please select a template from the list."),
-            "Warning",
-          );
-          return;
-        }
-        const templateSlide = selectedUnifiedTemplate.slideData;
-        const newSlide = JSON.parse(JSON.stringify(templateSlide));
-        newSlide.id = store.slideIdCounter++;
+      // Set resolution based on template's aspect ratio
+      if (selectedUnifiedTemplate.aspect_ratio) {
+        setResolutionFromAspectRatio(selectedUnifiedTemplate.aspect_ratio);
+      }
 
-        const manualName = document
-          .getElementById("templateSlideName")
-          .value.trim();
-        const manualDuration = parseInt(
-          document.getElementById("templateSlideDuration").value,
-          10,
-        );
-        newSlide.name = manualName
-          ? manualName
-          : selectedUnifiedTemplate.name + gettext(" (From Template)");
-        if (!isNaN(manualDuration) && manualDuration > 0) {
-          newSlide.duration = manualDuration;
-        }
-        newSlide.undoStack = [];
-        newSlide.redoStack = [];
+      const manualName = document
+        .getElementById("templateSlideName")
+        .value.trim();
+      const manualDuration = parseInt(
+        document.getElementById("templateSlideDuration").value,
+        10,
+      );
+      newSlide.name = manualName
+        ? manualName
+        : selectedUnifiedTemplate.name + gettext(" (From Template)");
+      if (!isNaN(manualDuration) && manualDuration > 0) {
+        newSlide.duration = manualDuration;
+      }
+      newSlide.undoStack = [];
+      newSlide.redoStack = [];
 
-        // When creating a slide from a template, ensure all elements have new unique IDs
-        // and their `originSlideIndex` is updated to the new slide's index.
-        // Also, reset persistence.
-        const newSlideIndex = store.slides.length;
-        if (newSlide.elements && Array.isArray(newSlide.elements)) {
-          newSlide.elements.forEach((element) => {
-            element.id = store.elementIdCounter++;
-            element.originSlideIndex = newSlideIndex;
-            element.isPersistent = false;
-          });
-        }
+      // When creating a slide from a template, ensure all elements have new unique IDs
+      // and their `originSlideIndex` is updated to the new slide's index.
+      // Also, reset persistence.
+      const newSlideIndex = store.slides.length;
+      if (newSlide.elements && Array.isArray(newSlide.elements)) {
+        newSlide.elements.forEach((element) => {
+          element.id = store.elementIdCounter++;
+          element.originSlideIndex = newSlideIndex;
+          element.isPersistent = false;
+        });
+      }
 
-        store.slides.push(newSlide);
-        store.currentSlideIndex = store.slides.length - 1;
-        updateSlideSelector();
-        bootstrap.Modal.getInstance(
-          document.getElementById("unifiedSlideModal"),
-        ).hide();
-        loadSlide(newSlide);
+      store.slides.push(newSlide);
+      store.currentSlideIndex = store.slides.length - 1;
+      updateSlideSelector();
+      bootstrap.Modal.getInstance(
+        document.getElementById("unifiedSlideModal"),
+      ).hide();
+      loadSlide(newSlide);
 
-        // Ensure proper scaling after adding slide from template
-        const previewContainer = document.querySelector(
-          ".slide-canvas .preview-container",
-        );
-        if (previewContainer) {
-          scaleSlide(previewContainer);
-        }
+      // Ensure proper scaling after adding slide from template
+      const previewContainer =
+        document.querySelector(".preview-column .preview-container") ||
+        document.querySelector(".slide-canvas .preview-container");
+      if (previewContainer) {
+        scaleSlide(previewContainer);
       }
     });
 

@@ -1,0 +1,60 @@
+/* SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> */
+
+/* SPDX-License-Identifier: AGPL-3.0-only */
+@import "../../scss/main";
+
+.color-scheme-fonts-container {
+  height: 34rem;
+}
+
+.disabled {
+  opacity: 65%;
+  pointer-events: none;
+}
+
+/* Table styles */
+.table td {
+  vertical-align: middle;
+}
+
+.table tbody tr:last-of-type {
+  border-color: transparent;
+}
+
+.table .action-cell-td {
+  min-width: 7rem;
+}
+
+/* Styling for Manage Fonts */
+.font-preview-text {
+  display: block;
+  background-color: transparent;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Styling for Manage Color Scheme */
+.color-preview {
+  width: 2.5rem;
+  height: 1.3rem;
+  border: 1px solid $light-gray;
+  border-radius: 6px;
+}
+
+/* Color input styling */
+.form-control-color {
+  width: 3rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+}
+
+#modal-color-hex {
+  flex-grow: 1;
+  text-transform: uppercase;
+}
+
+.table-content-container {
+  /* This is some weird magic flexbox css, where overflow-scroll doesnt work properly on elements sized up with flex: 1 ,
+  for some reason it works if ANY height is set for the element together with the flex-grow: 1 */
+  height: 10px;
+}

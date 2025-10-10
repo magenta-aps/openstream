@@ -10,6 +10,10 @@ import {
 } from "../utils/mediaElementUtils.js";
 import { setupImageSizeMode } from "../elements/imageElement.js";
 import { setupTableToolbar } from "../elements/tableElement.js";
+import {
+  updateModeRadioButtons,
+  updateToolbarDropdowns,
+} from "../elements/textbox.js";
 
 // Helper function to safely access toolbar-general
 function setToolbarGeneralVisibility(visibility) {
@@ -27,6 +31,7 @@ import {
   isElementLocked,
 } from "../element_formatting/lockElement.js";
 import { gettext } from "../../../../utils/locales.js";
+import { showToast } from "../../../../utils/utils.js";
 // Helper function to create a temporary wrapper element with gradient border
 function createGradientWrapper(element) {
   // Remove any existing wrapper first
@@ -172,6 +177,15 @@ if (linkDropdown) {
 }
 
 export function selectElement(el, dataObj) {
+  // Respect selection-block flag to make elements unselectable even from sidebar/canvas
+  if (dataObj && dataObj.isSelectionBlocked) {
+    try {
+      showToast(gettext("Selection is blocked for this element"), "Info");
+    } catch (err) {
+      // ignore
+    }
+    return;
+  }
   const lockElementBtn = document.getElementById("lock-element-btn");
   if (lockElementBtn) {
     if (!dataObj.isLocked && queryParams.mode !== "template_editor") {
@@ -180,6 +194,18 @@ export function selectElement(el, dataObj) {
       lockElementBtn.classList.remove("d-none");
     }
   }
+
+  // Exit edit mode for contentEditable elements only if selecting a different element
+  const activeEditableElements = document.querySelectorAll(
+    '[contenteditable="true"]',
+  );
+  activeEditableElements.forEach((editableEl) => {
+    // Only exit edit mode if the new element being selected is not the same as or within the editable element
+    if (!editableEl.contains(el) && editableEl !== el) {
+      editableEl.blur();
+      editableEl.contentEditable = false;
+    }
+  });
 
   hideResizeHandles();
   // Make these globally accessible
@@ -212,8 +238,13 @@ export function selectElement(el, dataObj) {
   updateLockButtonForSelectedElement();
 
   // Show resizer, etc...
-  const resizer = el.querySelector(".resize-handle");
+  const resizer = el._resizeHandle || el.querySelector(".resize-handle");
   if (resizer) {
+    // Update position before showing
+    if (el._updateResizerPosition) {
+      el._updateResizerPosition();
+    }
+
     // Hide resize handle for locked elements in non-template editor mode
     if (queryParams.mode !== "template_editor" && isElementLocked(dataObj)) {
       resizer.style.display = "none";
@@ -244,9 +275,23 @@ export function selectElement(el, dataObj) {
     }
   }
 
+  const borderRadiusBtn = document.getElementById(
+    "selected-element-border-radius",
+  );
+  if (borderRadiusBtn) {
+    if (dataObj.borderRadius) {
+      borderRadiusBtn.style.border = "3px solid #007bff";
+    } else {
+      borderRadiusBtn.style.border = "";
+    }
+  }
+
   const boxShadowBtn = document.getElementById("selected-element-boxshadow");
   if (boxShadowBtn) {
-    if (dataObj.boxShadow) {
+    if (dataObj.boxShadowData) {
+      boxShadowBtn.style.border = `3px solid ${dataObj.boxShadowData.color}`;
+    } else if (dataObj.boxShadow) {
+      // Legacy support
       boxShadowBtn.style.border = "5px solid " + dataObj.boxShadow;
     } else {
       boxShadowBtn.style.border = "";
@@ -306,6 +351,10 @@ export function selectElement(el, dataObj) {
     el.style.outline = "3px dashed blue";
     // Create gradient wrapper instead of applying border image directly
     createGradientWrapper(el);
+    // Update mode radio buttons based on element's state
+    updateModeRadioButtons();
+    // Update toolbar dropdowns (font size, family, line height) based on element's properties
+    updateToolbarDropdowns();
   } else if (dataObj.type === "video") {
     setupMuteButtons();
     setupMediaAlignmentRadioButtons();
@@ -428,6 +477,15 @@ export function selectElement(el, dataObj) {
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";
     createGradientWrapper(el);
+  } else if (dataObj.type === "box") {
+    // Box: simple generic element, show box toolbar
+    hideElementToolbars();
+    document
+      .querySelector(".box-element-toolbar")
+      ?.classList.replace("d-none", "d-flex");
+    setToolbarGeneralVisibility("visible");
+    el.style.outline = "3px dashed blue";
+    createGradientWrapper(el);
   } else if (dataObj.type === "html") {
     // HTML Element handling
     hideElementToolbars();
@@ -533,13 +591,37 @@ export function selectElement(el, dataObj) {
     }
 
     // Show/hide or enable/disable based on slideshowMode
-    if (store.slideshowMode === "interactive" && queryParams.mode === "edit") {
-      linkDropdown.disabled = false;
-    } else {
-      linkDropdown.style.display = "none";
-      // either hide it, or simply disable it
-      linkDropdown.disabled = true;
-      // linkDropdown.value = ""; // or revert to “Open page by clicking ..”
-    }
+    linkDropdown.style.display = "none";
+    linkDropdown.disabled = true;
+  }
+}
+
+export function deselectElement() {
+  if (store.selectedElement || store.selectedElementData) {
+    // Exit edit mode for any currently contentEditable elements before deselecting
+    const activeEditableElements = document.querySelectorAll(
+      '[contenteditable="true"]',
+    );
+    activeEditableElements.forEach((editableEl) => {
+      editableEl.blur();
+      editableEl.contentEditable = false;
+    });
+
+    // Clear selection from store
+    store.selectedElement = null;
+    store.selectedElementData = null;
+    window.selectedElementForUpdate = null;
+
+    // Hide resize handles and toolbars
+    hideResizeHandles();
+    hideElementToolbars();
+
+    // Clear grid info from status bar
+    clearGridInfo();
+
+    // Remove any gradient wrappers
+    document
+      .querySelectorAll(".gradient-border-wrapper")
+      .forEach((node) => node.remove());
   }
 }

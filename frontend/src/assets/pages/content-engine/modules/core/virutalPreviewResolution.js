@@ -35,6 +35,13 @@ export function initVirtualPreviewResolution() {
     }
   });
 
+  // Initialize aspect ratio value display
+  const currentAspectRatio = getCurrentAspectRatio();
+  const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+  if (aspectRatioValueElement) {
+    aspectRatioValueElement.innerText = currentAspectRatio;
+  }
+
   options.forEach((option) => {
     option.addEventListener("click", () => {
       options.forEach((opt) => opt.classList.remove("active"));
@@ -51,6 +58,34 @@ export function initVirtualPreviewResolution() {
     .addEventListener("click", async () => {
       updateResolution(selectedResolution);
     });
+
+  // Update resolution modal selection when it's shown
+  const resolutionModal = document.getElementById("resolutionModal");
+  if (resolutionModal) {
+    resolutionModal.addEventListener("show.bs.modal", () => {
+      updateResolutionModalToCurrentState();
+    });
+  }
+}
+
+/**
+ * Update the resolution modal to reflect current emulated dimensions
+ */
+export function updateResolutionModalToCurrentState() {
+  const options = document.querySelectorAll(".resolution-option");
+  options.forEach((option) => {
+    const optionWidth = parseInt(option.getAttribute("data-width"), 10);
+    const optionHeight = parseInt(option.getAttribute("data-height"), 10);
+
+    if (
+      optionWidth === store.emulatedWidth &&
+      optionHeight === store.emulatedHeight
+    ) {
+      option.classList.add("active");
+    } else {
+      option.classList.remove("active");
+    }
+  });
 }
 
 export async function updateResolution(selectedResolution) {
@@ -59,8 +94,31 @@ export async function updateResolution(selectedResolution) {
     if (selectedResolution.width > 0 && selectedResolution.height > 0) {
       store.emulatedWidth = selectedResolution.width;
       store.emulatedHeight = selectedResolution.height;
-      document.getElementById("aspect-ratio").innerText =
-        getCurrentAspectRatio();
+      const currentAspectRatio = getCurrentAspectRatio();
+
+      // Update aspect ratio displays
+      const aspectRatioElement = document.getElementById("aspect-ratio");
+      if (aspectRatioElement) {
+        aspectRatioElement.innerText = currentAspectRatio;
+      }
+      const aspectRatioValueElement =
+        document.getElementById("aspect-ratio-value");
+      if (aspectRatioValueElement) {
+        aspectRatioValueElement.innerText = currentAspectRatio;
+      }
+
+      // Update template's aspect ratio in template mode
+      if (
+        (queryParams.mode === "template_editor" ||
+          queryParams.mode === "suborg_templates") &&
+        store.currentSlideIndex > -1 &&
+        store.slides[store.currentSlideIndex]
+      ) {
+        const currentTemplate = store.slides[store.currentSlideIndex];
+        currentTemplate.aspect_ratio = currentAspectRatio;
+        console.log(`Updated template aspect ratio to: ${currentAspectRatio}`);
+      }
+
       if (store.currentSlideIndex > -1) {
         loadSlide(
           store.slides[store.currentSlideIndex],

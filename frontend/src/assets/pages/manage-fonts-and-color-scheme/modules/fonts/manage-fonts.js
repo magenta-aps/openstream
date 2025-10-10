@@ -1,20 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
-import "./style.scss";
-import { fetchUserLangugage, translateHTML } from "../../utils/locales";
-import {
-  validateToken,
-  makeActiveInNav,
-  updateNavbarBranchName,
-  updateNavbarUsername,
-  showToast,
-  genericFetch,
-  parentOrgID,
-  initSignOutButton,
-} from "../../utils/utils";
+import { showToast, genericFetch, parentOrgID } from "../../../../utils/utils";
 import * as bootstrap from "bootstrap";
-import { BASE_URL } from "../../utils/constants";
-import { gettext } from "../../utils/locales";
+import { BASE_URL } from "../../../../utils/constants";
+import { gettext } from "../../../../utils/locales";
 
 // Global variables
 let isAdmin = false;
@@ -24,8 +13,10 @@ let deleteId = null;
 // DOM elements
 const fontsTableBody = document.getElementById("fonts-table-body");
 const noFontsMessage = document.getElementById("no-fonts-message");
-const loadingSpinner = document.getElementById("loading-spinner");
-const adminRequiredMessage = document.getElementById("admin-required-message");
+const loadingSpinner = document.getElementById("loading-spinner-fonts");
+const adminRequiredMessage = document.getElementById(
+  "admin-required-message-fonts",
+);
 
 // Add Font Modal elements
 const addFontModalBtn = document.getElementById("add-font-modal-btn");
@@ -50,14 +41,23 @@ const editFontFileInput = document.getElementById("edit-font-file");
 const confirmEditFontBtn = document.getElementById("confirm-edit-font-btn");
 
 // Delete Modal elements
-const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+const confirmDeleteBtn = document.getElementById("confirm-delete-font-btn");
 const deleteFontNameEl = document.getElementById("delete-font-name");
-const deleteModal = new bootstrap.Modal(document.getElementById("deleteModal"));
+const deleteModal = new bootstrap.Modal(
+  document.getElementById("deleteFontModal"),
+);
+
+/**
+ * Initialize fonts management
+ */
+export default async function initializeManageFonts() {
+  await loadFonts();
+  setupEventListeners();
+}
 
 /**
  * Load fonts from the API
  */
-
 async function loadFonts() {
   try {
     loadingSpinner.classList.remove("d-none");
@@ -197,19 +197,21 @@ function renderFonts() {
 
     // Create actions cell
     const actionsCell = document.createElement("td");
+    actionsCell.className = "action-cell-td";
 
     // Only show edit/delete buttons if user is admin
     if (isAdmin) {
       const editBtn = document.createElement("button");
-      editBtn.className = "btn btn-sm btn-outline-secondary me-2";
-      editBtn.innerHTML = '<span class="material-symbols-outlined">edit</span>';
+      editBtn.className = "btn btn-sm btn-outline-secondary-light me-2";
+      editBtn.innerHTML =
+        '<span class="material-symbols-outlined text-secondary-hover">edit</span>';
       editBtn.title = gettext("Edit");
       editBtn.addEventListener("click", () => openEditModal(font));
 
       const deleteBtn = document.createElement("button");
-      deleteBtn.className = "btn btn-sm btn-outline-danger";
+      deleteBtn.className = "btn btn-sm btn-outline-secondary-light";
       deleteBtn.innerHTML =
-        '<span class="material-symbols-outlined">delete</span>';
+        '<span class="material-symbols-outlined text-secondary-hover">delete_forever</span>';
       deleteBtn.title = gettext("Delete");
       deleteBtn.addEventListener("click", () => showDeleteConfirmation(font));
 
@@ -324,7 +326,6 @@ async function addFont() {
     if (file) {
       body = new FormData();
       body.append("name", name);
-      // Use original file name; backend will suffix with a content hash
       body.append("file", file);
     } else {
       body = { name, font_url: addFontUrlInput.value.trim() };
@@ -388,7 +389,6 @@ async function updateFont() {
     if (newFile) {
       body = new FormData();
       body.append("name", formData.name);
-      // Use original file name; backend will suffix with a content hash
       body.append("file", newFile);
     } else {
       body = { name: formData.name };
@@ -480,24 +480,3 @@ function setupEventListeners() {
   // Confirm delete button
   confirmDeleteBtn.addEventListener("click", deleteFont);
 }
-
-function activateNavLink() {
-  const navLink = document.querySelector('a[href="/manage-fonts"]');
-  if (navLink) navLink.classList.add("active");
-}
-setTimeout(activateNavLink, 200);
-
-// On page load
-document.addEventListener("DOMContentLoaded", async function () {
-  initSignOutButton();
-  await fetchUserLangugage();
-  translateHTML();
-  makeActiveInNav("/manage-fonts");
-  await validateToken();
-  updateNavbarBranchName();
-  updateNavbarUsername();
-  // Fetch and display fonts
-  await loadFonts();
-  // Set up event listeners
-  setupEventListeners();
-});

@@ -40,8 +40,10 @@ function createStatusBar() {
   if (!statusBar) {
     statusBar = document.createElement("div");
     statusBar.className = "content-engine-status-bar";
+    // Use static positioning and let layout handle sizing. We'll wrap
+    // the preview area and append the status bar as a flex child so it
+    // automatically fills available width and sits below the preview.
     statusBar.style.cssText = `
-      width: 100%;
       height: 32px;
       background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);
       border-top: 1px solid #34495e;
@@ -51,11 +53,12 @@ function createStatusBar() {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       font-size: 12px;
       color: #ecf0f1;
-      z-index: 99;
-      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      z-index: 10;
       opacity: 0;
       transform: translateY(100%);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 100%;
     `;
 
     // Create content container (left side for grid info)
@@ -122,7 +125,32 @@ function createStatusBar() {
     statusBar.appendChild(statusBarContent);
     statusBar.appendChild(rightSection);
 
-    document.querySelector(".slide-canvas").appendChild(statusBar);
+    // Ensure preview area is wrapped so the status bar can sit below it
+    const slideCanvas = document.querySelector(".slide-canvas");
+    if (slideCanvas) {
+      // Look for an existing preview-column wrapper
+      let previewColumn = slideCanvas.querySelector(".preview-column");
+      const previewContainer = slideCanvas.querySelector(".preview-container");
+
+      if (!previewColumn) {
+        // Create a column wrapper that stacks the preview and status bar
+        previewColumn = document.createElement("div");
+        previewColumn.className = "preview-column";
+        // Move preview-container into the new column if present
+        if (previewContainer) {
+          slideCanvas.insertBefore(previewColumn, previewContainer);
+          previewColumn.appendChild(previewContainer);
+        } else {
+          slideCanvas.appendChild(previewColumn);
+        }
+      }
+
+      // Append status bar to the preview column so it fills the width
+      previewColumn.appendChild(statusBar);
+    } else {
+      // Fallback: append directly to body
+      document.body.appendChild(statusBar);
+    }
   }
   return statusBar;
 }
@@ -218,7 +246,11 @@ export function addToRightSection(element) {
  */
 function createZoomControls(rightSection) {
   // Only show zoom controls in edit modes
-  if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor") {
+  if (
+    queryParams.mode !== "edit" &&
+    queryParams.mode !== "template_editor" &&
+    queryParams.mode !== "suborg_templates"
+  ) {
     return;
   }
 

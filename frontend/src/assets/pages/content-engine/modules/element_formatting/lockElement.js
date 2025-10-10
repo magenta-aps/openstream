@@ -4,18 +4,14 @@ import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
 import { queryParams } from "../../../../utils/utils.js";
 import { gettext } from "../../../../utils/locales.js";
+import { showToast } from "../../../../utils/utils.js";
 
 export function initLockElement() {
   const lockButton = document.getElementById("lock-element-btn");
   if (lockButton) {
-    // Hide button initially if not in template editor mode
-    if (queryParams.mode !== "template_editor") {
-      lockButton.style.display = "none";
-    }
-
+    // Show/hide and allow toggling depending on selection; handler toggles lock in any mode
     lockButton.addEventListener("click", () => {
-      // Only allow toggling in template editor mode
-      if (queryParams.mode === "template_editor" && store.selectedElementData) {
+      if (store.selectedElementData) {
         toggleElementLock();
       }
     });
@@ -24,6 +20,19 @@ export function initLockElement() {
 
 function toggleElementLock() {
   if (!store.selectedElementData) return;
+  // Prevent toggling when template enforces settings and we're outside template editor
+  if (
+    queryParams.mode !== "template_editor" &&
+    store.selectedElementData.preventSettingsChanges
+  ) {
+    try {
+      showToast(
+        gettext("This element's settings are enforced by the template."),
+        "Info",
+      );
+    } catch (err) {}
+    return;
+  }
 
   pushCurrentSlideState();
 
@@ -74,28 +83,46 @@ function addLockIndicator(element) {
   removeLockIndicator(element);
 
   const lockIndicator = document.createElement("div");
-  lockIndicator.classList.add("lock-indicator");
+  lockIndicator.classList.add("lock-indicator", "element-indicator");
   lockIndicator.innerHTML = '<i class="material-symbols-outlined">lock</i>';
-  lockIndicator.style.cssText = `
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: #dc3545;
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    z-index: 1000;
-    pointer-events: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    border: 2px solid white;
-  `;
+  // Position lock to the right by default; if a persistent (pin) indicator
+  // exists we shift it left so it sits to the left of the pin.
+  // Prefer placing inside the indicators wrapper for consistent layout
+  try {
+    // Only show lock indicators in editor/template modes (not during playback)
+    if (queryParams.mode !== "edit" && queryParams.mode !== "template_editor") {
+      return;
+    }
 
-  element.appendChild(lockIndicator);
+    // Respect per-slide override if present, otherwise use global flag
+    const slide =
+      store && Array.isArray(store.slides)
+        ? store.slides[store.currentSlideIndex]
+        : null;
+    const show =
+      slide && typeof slide.showElementIndicators !== "undefined"
+        ? slide.showElementIndicators
+        : typeof window !== "undefined" &&
+            window.store &&
+            typeof window.store.showElementIndicators !== "undefined"
+          ? window.store.showElementIndicators
+          : true;
+    const wrapper = element.querySelector(".element-indicators-wrapper");
+    if (wrapper) {
+      // rely on CSS for visuals; only adjust wrapper visibility from here
+      wrapper.appendChild(lockIndicator);
+      if (!show) wrapper.style.visibility = "hidden";
+    } else {
+      // Fallback: position absolutely but still use class-based visuals
+      lockIndicator.style.position = "absolute";
+      lockIndicator.style.top = "8px";
+      lockIndicator.style.right = "8px";
+      element.appendChild(lockIndicator);
+    }
+  } catch (err) {
+    // On any error, append as fallback
+    element.appendChild(lockIndicator);
+  }
 }
 
 function removeLockIndicator(element) {
@@ -108,31 +135,14 @@ function removeLockIndicator(element) {
 export function updateLockButtonForSelectedElement() {
   const lockButton = document.getElementById("lock-element-btn");
   if (!lockButton) return;
-
-  // Always hide button in non-template mode, regardless of selection
-  if (queryParams.mode !== "template_editor") {
-    // In non-template mode, show visual state but make non-interactive
-    if (store.selectedElementData && store.selectedElementData.isLocked) {
-      // Show as locked (red/primary state) but non-interactive
-      lockButton.classList.remove("btn-secondary");
-      lockButton.classList.add("btn-primary");
-      lockButton.querySelector(".material-symbols-outlined").textContent =
-        "lock";
-      lockButton.style.display = "flex";
-      lockButton.style.pointerEvents = "none"; // Make non-interactive
-      lockButton.style.opacity = "0.8"; // Slightly dimmed to show it's non-interactive
-    } else {
-      lockButton.style.display = "none";
-    }
-    return;
-  }
-
   if (store.selectedElementData) {
     const isLocked = store.selectedElementData.isLocked || false;
     updateLockButtonState(lockButton, isLocked);
     lockButton.style.display = "flex";
-    lockButton.style.pointerEvents = "auto"; // Make interactive in template mode
-    lockButton.style.opacity = "1"; // Full opacity in template mode
+    // Make interactive in any mode; if you want non-interactive in non-template mode,
+    // we can change this to pointerEvents = 'none' when queryParams.mode !== 'template_editor'
+    lockButton.style.pointerEvents = "auto";
+    lockButton.style.opacity = "1";
   } else {
     lockButton.style.display = "none";
   }

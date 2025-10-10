@@ -5,65 +5,21 @@
 
 /* Manage Tags and Categories Page Styles */
 
-.page-header {
-  border-radius: 4px;
-  margin-bottom: 20px;
+/* Table styling */
+.table td {
+  vertical-align: middle;
 }
 
-.list-container {
-  max-height: 500px;
-  overflow-y: auto;
-  border-radius: 4px;
+.table tbody tr:last-of-type {
+  border-color: transparent;
 }
 
-.list-item {
-  transition: background-color 0.2s;
+.table .action-cell-td {
+  min-width: 7rem;
 }
 
-.list-item:hover {
-  background-color: $lightest-gray;
-}
-
-.item-name {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* Custom scrollbar */
-.list-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.list-container::-webkit-scrollbar-track {
-  background: $lighter-gray;
-  border-radius: 4px;
-}
-
-.list-container::-webkit-scrollbar-thumb {
-  background: $gray;
-  border-radius: 4px;
-}
-
-.list-container::-webkit-scrollbar-thumb:hover {
-  background: $dark-gray;
-}
-
-/* Card styles */
-.card {
-  border: none;
-  box-shadow: 0 2px 10px rgba($black, 0.05);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.card:hover {
-  box-shadow: 0 5px 15px rgba($black, 0.1);
-}
-
-/* Alert styles */
-.alert-info {
-  background-color: $neutral-blue-light;
-  border-color: $neutral-blue-light;
-  color: $neutral-blue;
+.table-content-container {
+  /* This is some weird magic flexbox css, where overflow-scroll doesnt work properly on elements sized up with flex: 1 ,
+  for some reason it works if ANY height is set for the element together with the flex-grow: 1 */
+  height: 10px;
 }

@@ -1,8 +1,8 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/modal/modal id="deleteModal" ariaLabelledby="deleteModalLabel" }}
+{{#> base/modal/modal id="deleteFontModal" ariaLabelledby="deleteFontModalLabel" }}
     {{#*inline "header"}}
-        {{> base/modal/modal-title title="Confirm Delete" id="deleteModalLabel"}}
+        {{> base/modal/modal-title title="Confirm Delete" id="deleteFontModalLabel"}}
         {{> base/modal/modal-header-close}}
     {{/inline}}
 
@@ -14,6 +14,6 @@
 
     {{#*inline "footer"}}
         {{> base/modal/modal-footer-close btn-text="Cancel"}}
-        {{> base/buttons/icon-button type='button' id='confirm-delete-btn' variant='danger' icon='delete' text='{% trans "Delete" %}'}}
+        {{> base/buttons/icon-button type='button' id='confirm-delete-font-btn' variant='danger' icon='delete' text='{% trans "Delete" %}'}}
     {{/inline}}
 {{/base/modal/modal}}

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // htmlElement.js
 // Handles creation, editing and rendering of custom HTML elements that are “sandboxed”
-// inside iframes.  Uses Monaco (if present) but gracefully falls back to plain <textarea>
+// inside iframes.  Uses Monaco (if present) but gracefully falls     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
+
 // if Monaco failed to load.
 
 /*********************************
@@ -279,6 +280,7 @@ function saveHtmlElement(existingElement = null) {
       zIndex: getNewZIndex(),
       originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
       isLocked: false, // Initialize lock state
+      isHidden: false, // Initialize visibility state
     };
 
     const slide = store.slides[store.currentSlideIndex];

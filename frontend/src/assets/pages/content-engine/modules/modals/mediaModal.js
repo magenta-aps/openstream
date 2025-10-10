@@ -33,6 +33,7 @@ import * as bootstrap from "bootstrap";
 // Modal Elements - Check if they exist before initializing
 const mediaListModalEl = document.getElementById("mediaListModal");
 const submitMediaModalEl = document.getElementById("submitMediaModal");
+const previewMediaModalEl = document.getElementById("previewMediaModal");
 
 // Only initialize modals if elements exist
 const bsMediaListModal = mediaListModalEl
@@ -41,9 +42,13 @@ const bsMediaListModal = mediaListModalEl
 const bsSubmitModal = submitMediaModalEl
   ? bootstrap.Modal.getOrCreateInstance(submitMediaModalEl)
   : null;
+const bsPreviewModal = previewMediaModalEl
+  ? bootstrap.Modal.getOrCreateInstance(previewMediaModalEl)
+  : null;
 
 const tagsContainer = document.querySelector("#mediaEditTagsContainer");
 const submitMediaForm = document.querySelector("#submitMediaForm");
+const previewContainer = document.querySelector("#preview-media-container");
 const deleteMediaBtn = document.querySelector("#btnDeleteMedia");
 const fileInput = document.querySelector("#mediaFileInput");
 const titleInput = document.querySelector("#titleSearchInput");
@@ -201,22 +206,53 @@ export async function displayMediaModal(
 
         // Create the bottom info section
         const infoDiv = document.createElement("div");
-        infoDiv.className = "media-info";
+        infoDiv.className = "media-info d-flex gap-1 align-items-center mt-2";
 
         const titleP = document.createElement("p");
-        titleP.className = "media-title small";
+        titleP.className = "media-title small flex-grow-1 m-0 text-truncate";
+        titleP.title = `${file.title}.${file.file_type?.toLowerCase()}`;
         titleP.textContent = `${file.title}.${file.file_type?.toLowerCase()}`;
         infoDiv.appendChild(titleP);
 
         // Create and add edit button conditionally
-        let editButtonHTML = "";
-        if (file.is_owned_by_branch) {
-          editButtonHTML = `
-            <button class="btn btn-info btn-sm edit-media-btn">
-                <span class="material-symbols-outlined">edit</span>
-            </button>`;
+        let actionButtonHTML = "";
+        if (file.is_owned_by_branch) {  
+          // Show edit and preview actions btns
+          actionButtonHTML = 
+            `<div class="dropdown">
+                <button class="btn btn-secondary btn-sm px-1 py-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="material-symbols-outlined">more_horiz</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">
+                  <li>
+                    <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center edit-media-btn">
+                      <span class="material-symbols-outlined">edit</span> ${gettext("Edit")}
+                    </button>
+                  </li>
+                  <li class="mt-2">
+                    <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center preview-media-btn">
+                      <span class="material-symbols-outlined">zoom_in</span> ${gettext("Preview")}
+                    </button>
+                  </li>
+                </ul>
+            </div>`
+        } else {
+          // Show preview action btn only
+          actionButtonHTML = 
+            `<div class="dropdown">
+                <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="material-symbols-outlined">more_horiz</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-lighter-gray shadow-xl p-2">
+                  <li class="mt-2">
+                    <button class="btn btn-secondary btn-sm d-flex gap-1 align-items-center preview-media-btn">
+                      <span class="material-symbols-outlined">zoom_in</span> ${gettext("Preview")}
+                    </button>
+                  </li>
+                </ul>
+            </div>`
         }
-
+        
         // Set innerHTML for the main mediaBox
         mediaBox.innerHTML = `
           <div class="checkerboard-bg">
@@ -224,11 +260,11 @@ export async function displayMediaModal(
           </div>
         `;
 
-        infoDiv.insertAdjacentHTML("beforeend", editButtonHTML);
+        infoDiv.insertAdjacentHTML("beforeend", actionButtonHTML);
         mediaBox.appendChild(infoDiv);
 
         mediaBox.addEventListener("click", (e) => {
-          if (e.target.closest(".edit-media-btn")) {
+          if (e.target.closest(".dropdown")) {
             return;
           }
           if (bsMediaListModal) {
@@ -245,6 +281,13 @@ export async function displayMediaModal(
           currentlyEditingMedia = file;
           createOrUpdateMediaClicked(currentInputType);
         });
+        
+        const previewBtn = mediaBox.querySelector(".preview-media-btn");
+        previewBtn?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          currentlyEditingMedia = file;
+          openPreviewMediaModal();
+        })
 
         mediaGrid.appendChild(mediaBox);
       });
@@ -333,6 +376,33 @@ async function initMediaModalInternal() {
   }
   await createUploadedBySelect();
   initEventListeners();
+  // When preview modal is open and the user presses Escape, don't close the modal
+  // but instead return to the media list overview. We attach the keydown listener
+  // in the capture phase when the preview modal is shown so we can intercept the
+  // Escape key before Bootstrap's default handler.
+  if (previewMediaModalEl) {
+    const _previewEscapeHandler = (e) => {
+      if (e.key === "Escape") {
+        // Prevent default modal-close behavior and stop other handlers
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (bsPreviewModal) {
+          bsPreviewModal.hide();
+        }
+        if (bsMediaListModal) {
+          bsMediaListModal.show();
+        }
+      }
+    };
+
+    // Add on show/hide so we don't leak global listeners
+    previewMediaModalEl.addEventListener("shown.bs.modal", () => {
+      document.addEventListener("keydown", _previewEscapeHandler, true); // capture
+    });
+    previewMediaModalEl.addEventListener("hidden.bs.modal", () => {
+      document.removeEventListener("keydown", _previewEscapeHandler, true);
+    });
+  }
 }
 
 function createExtensionSelect() {
@@ -623,6 +693,26 @@ async function deleteMediaClicked() {
     bsSubmitModal,
     bsMediaListModal, // Return to list modal after delete prompt
   );
+}
+
+function openPreviewMediaModal(){
+  if (videoExtensionsList.includes(currentlyEditingMedia["file_type"]?.toLowerCase())) {
+    previewContainer.innerHTML = `
+      <video loop muted autoplay controls playsinline class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">
+        <source src="${currentlyEditingMedia['file_url']}" type="video/${currentlyEditingMedia['file_type']?.toLowerCase()}">
+        ${gettext("Your browser does not support the video tag.")}
+      </video>`;
+  } else {
+    previewContainer.innerHTML = `
+      <img src="${currentlyEditingMedia['file_url']}" alt="${currentlyEditingMedia['title']}" class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">`;
+  }
+
+  if (bsMediaListModal) {
+    bsMediaListModal.hide();
+  }
+  if (bsPreviewModal) {
+    bsPreviewModal.show();
+  }
 }
 
 // ================ API Functions ================
@@ -1042,25 +1132,37 @@ function initEventListeners() {
       displaySelectedFiles();
     });
 
-    // Background Pattern Toggle Buttons
-    const lightPatternBtn = document.getElementById("lightPattern");
-    const darkPatternBtn = document.getElementById("darkPattern");
+    // Background Pattern on Media preview (in mediaGrid and media_preview_modal) Toggle Buttons
+    const lightPatternBtns = document.querySelectorAll(".pattern-light-btn");
+    const darkPatternBtns = document.querySelectorAll(".pattern-dark-btn");
 
-    if (lightPatternBtn && darkPatternBtn && imageGrid) {
-      lightPatternBtn.addEventListener("change", () => {
-        if (lightPatternBtn.checked) {
-          imageGrid.classList.remove("checkerboard-dark");
-          imageGrid.classList.add("checkerboard-light");
+    lightPatternBtns?.forEach((btn) => {
+      btn.addEventListener("change", () => {
+        if (btn.checked) {
+          imageGrid?.classList.remove("checkerboard-dark");
+          imageGrid?.classList.add("checkerboard-light");
+          previewContainer?.classList.remove("checkerboard-dark");
+          previewContainer?.classList.add("checkerboard-light");
+
+          // Make every lightPattern button be checked
+          lightPatternBtns.forEach((b) => (b.checked = true));
         }
       });
-
-      darkPatternBtn.addEventListener("change", () => {
-        if (darkPatternBtn.checked) {
-          imageGrid.classList.remove("checkerboard-light");
-          imageGrid.classList.add("checkerboard-dark");
+    });
+    
+    darkPatternBtns?.forEach((btn)=>{
+      btn.addEventListener("change", () => {
+        if (btn.checked) {
+          imageGrid?.classList.remove("checkerboard-light");
+          imageGrid?.classList.add("checkerboard-dark");
+          previewContainer?.classList.remove("checkerboard-light");
+          previewContainer?.classList.add("checkerboard-dark");
+      
+          // Make every darkPattern button be checked
+          darkPatternBtns.forEach((b) => (b.checked = true));
         }
       });
-    }
+    });
 
     // Filter Collapse Toggle
     const collapseEl = document.getElementById("filterCollapse");

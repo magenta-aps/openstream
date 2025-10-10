@@ -3,22 +3,37 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
 @import "../../scss/main";
 
+/* Sidebar */
+.page-size-dropdown {
+  width: fit-content;
+}
+
 /* Media grid styles */
+.dotted-light-bg {
+  background-color: $white;
+  background-image: radial-gradient($light-gray 10%, transparent 11%);
+  background-size: 20px 20px;
+  background-position: 0 0;
+}
+
 .media-box {
   width: 200px;
+  height: 200px;
+  display: inline-block;
   border-radius: 6px;
-  overflow: hidden;
+  padding: 8px;
   border: 1px solid $gray;
   box-shadow: 0 2px 4px rgba($black, 0.05);
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  background-color: $white;
+  transform 0.2s,
+  box-shadow 0.2s;
+  background-color: $lighter-gray;
+  margin-bottom: 0.5rem;
+
 }
 
-.media-box:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba($black, 0.1);
+.media-box.pseudo-item {
+  visibility: hidden;
 }
 
 .preview-container {
@@ -39,12 +54,6 @@
   object-fit: contain;
 }
 
-.media-info {
-  padding: 8px;
-  border-top: 1px solid $gray;
-  background-color: $lightest-gray;
-}
-
 .media-title {
   margin: 0;
   font-size: 0.875rem;
@@ -54,11 +63,46 @@
   margin-bottom: 5px;
 }
 
-.media-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 5px;
+/* Base style for the element that will have the pattern */
+.checkerboard-bg {
+  background-size: 20px 20px;
+
+  /* Size of the squares */
+  background-position:
+    0 0,
+    10px 10px;
+
+  /* Offset for the second layer */
+  background-repeat: repeat;
+  padding: 5px;
+  border: 1px solid $light-gray;
+  border-radius: 4px;
 }
+
+/* Light theme for the checkerboard */
+.checkerboard-light .checkerboard-bg {
+  background-image:
+    linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
+    linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
+    linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
+  background-color: $white;
+
+  /* Light background */
+}
+
+/* Dark theme for the checkerboard */
+.checkerboard-dark .checkerboard-bg {
+  background-image:
+    linear-gradient(45deg, $darkest-gray 25%, transparent 25%),
+    linear-gradient(-45deg, $darkest-gray 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, $darkest-gray 75%),
+    linear-gradient(-45deg, transparent 75%, $darkest-gray 75%);
+  background-color: $black;
+
+  /* Dark background */
+}
+
 
 /* Filter section styles */
 .filter-controls {
@@ -66,10 +110,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-}
-
-.filter-dropdown {
-  min-width: 160px;
 }
 
 @media (width <= 992px) {
@@ -89,35 +129,14 @@
   }
 }
 
-/* Checkerboard backgrounds for transparency visualization */
-.checkerboard-light {
-  background-color: $white;
-  background-image:
-    linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
-    linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
-    linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
-  background-size: 20px 20px;
-  background-position:
-    0 0,
-    0 10px,
-    10px -10px,
-    -10px 0;
-}
-
-.checkerboard-dark {
-  background-color: $darkest-gray;
-  background-image:
-    linear-gradient(45deg, $darker-gray 25%, transparent 25%),
-    linear-gradient(-45deg, $darker-gray 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, $darker-gray 75%),
-    linear-gradient(-45deg, transparent 75%, $darker-gray 75%);
-  background-size: 20px 20px;
-  background-position:
-    0 0,
-    0 10px,
-    10px -10px,
-    -10px 0;
+/* Search Input */
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* Spinner overlay */
@@ -138,22 +157,6 @@
 .loading-overlay .spinner-border {
   width: 3rem;
   height: 3rem;
-}
-
-/* Tag styles */
-.tag-badge {
-  display: inline-flex;
-  align-items: center;
-  margin: 0 4px 4px 0;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  background-color: $lighter-gray;
-  border-radius: 0.25rem;
-}
-
-.tag-badge .remove-tag {
-  margin-left: 5px;
-  cursor: pointer;
 }
 
 /* Filter styles */

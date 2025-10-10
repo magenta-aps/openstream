@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((d) => {
         const w = d.weather;
-        weatherEl.innerHTML = `${w.temperature}&deg;C&nbsp;|&nbsp;${w.precipitationText}&nbsp;|&nbsp;${w.cloudCoverText}`;
+        weatherEl.innerHTML = `${w.temperature}&deg;&nbsp;${w.precipitationText}&nbsp;${w.cloudCoverText}`;
       })
       .catch((e) => {
         console.error("Weather error:", e);

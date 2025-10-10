@@ -756,6 +756,26 @@ class Document(models.Model):
         ext = self.clean()
         detected_type = self.VALID_EXTENSIONS[ext]
 
+        # If this is an existing instance and the file attribute hasn't changed
+        # we should skip all file-processing and storage operations. This avoids
+        # unnecessary reads/writes to S3/MinIO which can mutate object ACLs.
+        if self.pk:
+            try:
+                orig = type(self).objects.get(pk=self.pk)
+                # If both original and current refer to the same storage name,
+                # assume no file update was intended and just persist metadata.
+                if (
+                    getattr(orig, "file", None)
+                    and getattr(self, "file", None)
+                    and orig.file.name == self.file.name
+                ):
+                    # Preserve file_type if already present, else use detected
+                    self.file_type = orig.file_type or detected_type
+                    return super().save(*args, **kwargs)
+            except type(self).DoesNotExist:
+                # New object race — continue with normal save flow
+                pass
+
         # Helper to produce a filename suffixed with a short content hash
         def _name_with_hash(filename, content_bytes):
             base, extension = os.path.splitext(filename)
@@ -984,6 +1004,22 @@ class SlideTemplate(models.Model):
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="slide_templates"
     )
+    suborganisation = models.ForeignKey(
+        SubOrganisation,
+        on_delete=models.CASCADE,
+        related_name="slide_templates",
+        null=True,
+        blank=True,
+        help_text="If set, this template is only available to branches in this suborganisation",
+    )
+    parent_template = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="suborg_copies",
+        help_text="If this is a suborg template, reference to the global template it was created from",
+    )
 
     name = models.CharField(max_length=255)
     slideData = models.JSONField(default=dict, blank=True, null=True)
@@ -996,10 +1032,10 @@ class SlideTemplate(models.Model):
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="slide_templates")
 
-    accepted_aspect_ratios = models.JSONField(
-        default=list,
-        blank=True,
-        help_text='List of supported aspect ratios, e.g. ["16:9","4:3","9:16"]',
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
     )
 
     class Meta:

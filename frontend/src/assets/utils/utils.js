@@ -378,7 +378,7 @@ export function promptDelete(
   let deleteModalEl = document.querySelector("#deleteConfirmModal");
   if (!deleteModalEl) {
     // Dynamically insert a modal if it's not already found. This way the function can be used anywhere
-    document.querySelector("#main-content")?.insertAdjacentHTML(
+    document.querySelector("#main-container")?.insertAdjacentHTML(
       "beforeend",
       `
             <div class="modal fade"
@@ -413,7 +413,7 @@ export function promptDelete(
     deleteModalEl = document.querySelector("#deleteConfirmModal");
     if (!deleteModalEl)
       return console.error(
-        gettext("Unable to insert the delete modal. #main-content not found"),
+        "Unable to insert the delete modal. #main-content not found",
       );
   } else {
     deleteModalEl = cloneAndReplaceNode(deleteModalEl); // clean any previous events
@@ -475,7 +475,7 @@ export function createPageSelector(pageData, updateFunc) {
       <small class="text-muted">
         ${(pageData.current_page - 1) * pageData.items_per_page + 1}–
         ${Math.min(pageData.current_page * pageData.items_per_page, pageData.count)}
-        ${gettext("of")} ${pageData.count}
+        ${gettext("of")} ${pageData.count} ${gettext("files")}
       </small>
     </div>
     <nav aria-label="Page navigation">
@@ -536,10 +536,10 @@ export function addTagToDisplay(container, tag, callBack) {
   if (isStreamlined) {
     // Create new styled tag badge
     const tagBadge = document.createElement("div");
-    tagBadge.classList.add("tag-badge");
+    tagBadge.classList.add("border", "border-light-gray", "d-inline-flex", "gap-2", "align-items-center", "rounded", "p-1");
     tagBadge.innerHTML = `
       ${tag}
-      <button type="button" class="remove-tag" data-id="${tag}">
+      <button type="button" class="btn p-0" data-id="${tag}">
         <span class="material-symbols-outlined">close</span>
       </button>
     `;
@@ -563,135 +563,21 @@ export function createCheckboxDropdown(
   container,
   buttonText,
   options,
-  checkAll = true,
+  checkAll = false,
 ) {
   // Options should be an array of objects with a "value" key and an optional "display" key
   // If no "display" key is provided, the "value" value will be used both as a display and internal input value attribute
   // Display can be replaced with a "name" attribute and "value" can be replaced with "id"
-  // Check if container has streamlined-dropdown class for special styling
-  const isStreamlined = container.classList.contains("streamlined-dropdown");
 
-  if (isStreamlined) {
-    // Create streamlined dropdown for media modal
-    createStreamlinedDropdown(container, buttonText, options, checkAll);
-  } else {
-    // Create original dropdown for backwards compatibility
-    createOriginalDropdown(container, buttonText, options, checkAll);
-  }
-}
-
-function createStreamlinedDropdown(container, buttonText, options, checkAll) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "dropdown w-100";
-
-  // Count selected items for display
-  const selectedCount = options.filter(
-    (entry) =>
-      checkAll || (entry.selected !== undefined ? entry.selected : false),
-  ).length;
-
-  const displayText =
-    selectedCount > 0
-      ? selectedCount === 1
-        ? `${selectedCount} ${gettext("item selected")}`
-        : `${selectedCount} ${gettext("items selected")}`
-      : `${gettext("Select")} ${buttonText.toLowerCase()}...`;
-
-  wrapper.innerHTML = `
-    <button class="dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <span class="dropdown-text">${displayText}</span>
-    </button>
-    <ul class="dropdown-menu">
-      <li class="border-bottom">
-        <label class="form-check">
-          <input id="toggleAll" class="form-check-input" type="checkbox" ${checkAll ? "checked" : ""} value="all">
-          <span class="form-check-label">${gettext("Select all")}</span>
-        </label>
-      </li>
-    </ul>`;
-
-  const ul = wrapper.querySelector("ul");
-  const dropdownToggle = wrapper.querySelector(".dropdown-toggle");
-  const dropdownText = wrapper.querySelector(".dropdown-text");
-
-  options.forEach((entry) => {
-    const isSelected =
-      checkAll || (entry.selected !== undefined ? entry.selected : false);
-    ul.insertAdjacentHTML(
-      "beforeend",
-      `
-        <li>
-          <label class="form-check">
-            <input class="form-check-input extension-checkbox" type="checkbox" ${isSelected ? "checked" : ""} value="${entry.value ?? entry.id}">
-            <span class="form-check-label">${entry.display ?? entry.name ?? entry.value ?? entry.id}</span>
-          </label>
-        </li>
-      `,
-    );
-  });
-
-  // Prevent the dropdown from closing when clicking inside
-  ul.addEventListener("click", (e) => e.stopPropagation());
-
-  const checkBoxes = wrapper.querySelectorAll(".extension-checkbox");
-  const toggleAll = wrapper.querySelector("#toggleAll");
-
-  // Function to update the display text
-  function updateDisplayText() {
-    const selectedBoxes = Array.from(checkBoxes).filter((box) => box.checked);
-    const selectedCount = selectedBoxes.length;
-
-    if (selectedCount === 0) {
-      dropdownText.textContent = `${gettext("Select")} ${buttonText.toLowerCase()}...`;
-    } else if (selectedCount === 1) {
-      const selectedLabel =
-        selectedBoxes[0].parentElement.querySelector(
-          ".form-check-label",
-        ).textContent;
-      dropdownText.textContent = selectedLabel;
-    } else if (selectedCount <= 3) {
-      const selectedLabels = selectedBoxes.map(
-        (box) =>
-          box.parentElement.querySelector(".form-check-label").textContent,
-      );
-      dropdownText.textContent = selectedLabels.join(", ");
-    } else {
-      dropdownText.textContent = `${selectedCount} ${gettext("items selected")}`;
-    }
-  }
-
-  // Toggle all functionality
-  toggleAll.addEventListener("input", () => {
-    checkBoxes.forEach((box) => (box.checked = toggleAll.checked));
-    updateDisplayText();
-  });
-
-  // Individual checkbox functionality
-  checkBoxes.forEach((box) => {
-    box.addEventListener("change", () => {
-      // Update toggle all state
-      const allChecked = Array.from(checkBoxes).every((cb) => cb.checked);
-      const noneChecked = Array.from(checkBoxes).every((cb) => !cb.checked);
-
-      toggleAll.checked = allChecked;
-      toggleAll.indeterminate = !allChecked && !noneChecked;
-
-      updateDisplayText();
-    });
-  });
-
-  // Initial display update
-  updateDisplayText();
-
-  container.innerHTML = "";
-  container.appendChild(wrapper);
+  // Create original dropdown for backwards compatibility
+  createOriginalDropdown(container, buttonText, options, checkAll);
 }
 
 function createOriginalDropdown(container, buttonText, options, checkAll) {
   const wrapper = document.createElement("div");
-  wrapper.className = "dropdown m-3";
+  wrapper.className = "dropdown";
   wrapper.innerHTML = `
-    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="form-select py-2 fs-5 rounded text-black w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
     ${buttonText}
     </button>
     <ul class="dropdown-menu p-2" id="extensionDropdown" style="max-height: 500px; overflow-y: auto;">

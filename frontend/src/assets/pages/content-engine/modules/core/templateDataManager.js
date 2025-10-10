@@ -6,12 +6,87 @@ import { updateSlideSelector } from "./slideSelector.js";
 import { showToast, token, parentOrgID } from "../../../../utils/utils.js";
 import { showSavingStatus } from "./slideshowDataManager.js"; // Assuming this can be reused
 import { updateResolution } from "./virutalPreviewResolution.js";
+import { updateAllSlidesZoom } from "../utils/zoomController.js";
+import { getCurrentAspectRatio } from "./addSlide.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
 
 let templateAutosaveTimer = null;
 
 let lastStoredSingleSlideStr = null;
+
+/**
+ * Set the resolution based on aspect ratio and update resolution modal
+ */
+function setResolutionFromAspectRatio(aspectRatio) {
+  const aspectRatioMap = {
+    "16:9": { width: 1920, height: 1080 },
+    "4:3": { width: 1024, height: 768 },
+    "21:9": { width: 3440, height: 1440 },
+    "1.85:1": { width: 1998, height: 1080 },
+    "2.39:1": { width: 2048, height: 858 },
+    "9:16": { width: 1080, height: 1920 },
+    "3:4": { width: 768, height: 1024 },
+    "9:21": { width: 1440, height: 3440 },
+    "1:1.85": { width: 1080, height: 1998 },
+    "1:2.39": { width: 858, height: 2048 },
+    "3:2": { width: 1440, height: 960 }, // fallback
+    "1:1": { width: 1080, height: 1080 }, // fallback
+  };
+
+  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
+  store.emulatedWidth = resolution.width;
+  store.emulatedHeight = resolution.height;
+
+  // Update resolution modal to show the correct active option
+  updateResolutionModalSelection(resolution.width, resolution.height);
+
+  // Update the aspect ratio display in the UI
+  updateAspectRatioDisplay();
+
+  // Trigger zoom adjustment to fit the new aspect ratio
+  setTimeout(() => {
+    scaleAllSlides();
+    updateAllSlidesZoom();
+  }, 50);
+
+  console.log(
+    `Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`,
+  );
+}
+
+/**
+ * Update the resolution modal to show the correct active selection
+ */
+function updateResolutionModalSelection(width, height) {
+  const options = document.querySelectorAll(".resolution-option");
+  options.forEach((option) => {
+    const optionWidth = parseInt(option.getAttribute("data-width"), 10);
+    const optionHeight = parseInt(option.getAttribute("data-height"), 10);
+
+    if (optionWidth === width && optionHeight === height) {
+      option.classList.add("active");
+    } else {
+      option.classList.remove("active");
+    }
+  });
+}
+
+/**
+ * Update the aspect ratio display in the UI
+ */
+function updateAspectRatioDisplay() {
+  const currentAspectRatio = getCurrentAspectRatio();
+  const aspectRatioElement = document.getElementById("aspect-ratio");
+  const aspectRatioValueElement = document.getElementById("aspect-ratio-value");
+
+  if (aspectRatioElement) {
+    aspectRatioElement.innerText = currentAspectRatio;
+  }
+  if (aspectRatioValueElement) {
+    aspectRatioValueElement.innerText = currentAspectRatio;
+  }
+}
 
 export async function fetchAllOrgTemplatesAndPopulateStore(
   templateIdToPreserve = null,
@@ -59,8 +134,7 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
         slideObject.templateId = template.id;
         slideObject.templateOriginalName = template.name;
         slideObject.name = template.name;
-        slideObject.accepted_aspect_ratios =
-          template.accepted_aspect_ratios || [];
+        slideObject.aspect_ratio = template.aspect_ratio || "16:9";
 
         slideObject.categoryId =
           template.category_id ||
@@ -136,8 +210,16 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
 
     if (store.currentSlideIndex !== -1) {
       const currentTemplateSlide = store.slides[store.currentSlideIndex];
-      store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-      store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+
+      // Set resolution based on template's aspect ratio
+      const aspectRatio = currentTemplateSlide.aspect_ratio || "16:9";
+      setResolutionFromAspectRatio(aspectRatio);
+
+      // Fallback to previewWidth/Height if needed
+      if (!store.emulatedWidth || !store.emulatedHeight) {
+        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
+        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+      }
 
       loadSlide(currentTemplateSlide);
       scaleAllSlides();
@@ -190,29 +272,56 @@ export async function saveCurrentTemplateData() {
   delete slideDataToSave.previewHeight;
   delete slideDataToSave.categoryId;
   delete slideDataToSave.tagIds;
-  delete slideDataToSave.accepted_aspect_ratios;
+  delete slideDataToSave.aspect_ratio;
+  delete slideDataToSave.isSuborgTemplate;
+  delete slideDataToSave.isGlobalTemplate;
+  delete slideDataToSave.organisationId;
+  delete slideDataToSave.suborganisationId;
+  delete slideDataToSave.parentTemplate;
+
+  // Remove frontend-only properties from elements
+  if (slideDataToSave.elements && Array.isArray(slideDataToSave.elements)) {
+    slideDataToSave.elements.forEach((element) => {
+      delete element.lockedFromParent;
+    });
+  }
+
+  // For suborg templates, use organisationId from slide object; otherwise use parentOrgID
+  const orgId =
+    currentSlideObject.isSuborgTemplate && currentSlideObject.organisationId
+      ? currentSlideObject.organisationId
+      : parentOrgID;
 
   const payload = {
     name: currentSlideObject.name,
     slideData: slideDataToSave,
     previewWidth: store.emulatedWidth,
     previewHeight: store.emulatedHeight,
-    organisation_id: parentOrgID,
-    accepted_aspect_ratios: currentSlideObject.accepted_aspect_ratios || [],
+    organisation_id: orgId,
+    aspect_ratio: currentSlideObject.aspect_ratio || "16:9",
   };
 
+  // Use the correct endpoint based on whether it's a suborg template or global template
+  const isSuborgTemplate = currentSlideObject.isSuborgTemplate === true;
+  const apiEndpoint = isSuborgTemplate
+    ? `${BASE_URL}/api/suborg-templates/${templateIdToSave}/`
+    : `${BASE_URL}/api/slide-templates/${templateIdToSave}/`;
+
+  console.log(`Saving template ${templateIdToSave} to ${apiEndpoint}`, {
+    isSuborgTemplate,
+    editorMode: store.editorMode,
+    templateId: templateIdToSave,
+  });
+
   try {
-    const resp = await fetch(
-      `${BASE_URL}/api/slide-templates/${templateIdToSave}/`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+    const resp = await fetch(apiEndpoint, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify(payload),
+    });
 
     if (!resp.ok) {
       const errTxt = await resp.text();
@@ -224,8 +333,8 @@ export async function saveCurrentTemplateData() {
     currentSlideObject.templateOriginalName = updatedTemplateFromServer.name;
     currentSlideObject.previewWidth = updatedTemplateFromServer.previewWidth;
     currentSlideObject.previewHeight = updatedTemplateFromServer.previewHeight;
-    currentSlideObject.accepted_aspect_ratios =
-      updatedTemplateFromServer.accepted_aspect_ratios || [];
+    currentSlideObject.aspect_ratio =
+      updatedTemplateFromServer.aspect_ratio || "16:9";
 
     lastStoredSingleSlideStr = JSON.stringify(currentSlideObject);
 
@@ -238,17 +347,27 @@ export async function saveCurrentTemplateData() {
 }
 
 export function initTemplateAutoSave() {
+  console.log("initTemplateAutoSave called", {
+    editorMode: store.editorMode,
+    currentSlideIndex: store.currentSlideIndex,
+    hasSlide: !!store.slides[store.currentSlideIndex],
+  });
+
   if (templateAutosaveTimer) {
     clearInterval(templateAutosaveTimer);
   }
   if (
     store.currentSlideIndex === -1 ||
-    store.editorMode !== "template_editor" ||
+    (store.editorMode !== "template_editor" &&
+      store.editorMode !== "suborg_templates") ||
     !store.slides[store.currentSlideIndex]
   ) {
+    console.warn("Auto-save not initialized - conditions not met");
     lastStoredSingleSlideStr = null;
     return;
   }
+
+  console.log("Auto-save initialized successfully for template mode");
   lastStoredSingleSlideStr = JSON.stringify(
     store.slides[store.currentSlideIndex],
   );
@@ -265,8 +384,13 @@ export function initTemplateAutoSave() {
     const currentStateStr = JSON.stringify(currentSlideObject);
 
     if (currentStateStr !== lastStoredSingleSlideStr) {
+      console.log("Template changed - auto-saving...", {
+        templateId: currentSlideObject.templateId,
+        isSuborgTemplate: currentSlideObject.isSuborgTemplate,
+      });
       saveCurrentTemplateData()
         .then(() => {
+          console.log("Auto-save successful");
           showSavingStatus();
         })
         .catch((err) => {
@@ -356,7 +480,7 @@ export async function duplicateTemplateOnBackend(templateId) {
       slideData: originalTemplate.slideData,
       previewWidth: originalTemplate.previewWidth,
       previewHeight: originalTemplate.previewHeight,
-      accepted_aspect_ratios: originalTemplate.accepted_aspect_ratios || [],
+      aspect_ratio: originalTemplate.aspect_ratio || "16:9",
       category_id: originalTemplate.category_id,
       tags: originalTemplate.tags || [],
     };
@@ -405,8 +529,19 @@ export async function deleteTemplateOnBackend(templateId) {
     showToast(gettext("Cannot delete: Template ID is missing."), "Error");
     return false;
   }
+
+  // Check if we're in suborg templates mode
+  const queryParams = new URLSearchParams(window.location.search);
+  const isSuborgMode = queryParams.get("mode") === "suborg_templates";
+  const suborgId = queryParams.get("suborg_id");
+
   try {
-    const resp = await fetch(`${BASE_URL}/api/slide-templates/${templateId}/`, {
+    // Use appropriate endpoint based on mode
+    const endpoint = isSuborgMode
+      ? `${BASE_URL}/api/suborg-templates/${templateId}/`
+      : `${BASE_URL}/api/slide-templates/${templateId}/`;
+
+    const resp = await fetch(endpoint, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -419,14 +554,25 @@ export async function deleteTemplateOnBackend(templateId) {
       );
     }
     showToast(gettext("Template deleted successfully."), "success");
-    if (parentOrgID) {
+
+    // Refresh the appropriate template list
+    if (isSuborgMode && suborgId) {
+      // Import and call suborg template refresh
+      const { fetchAllSuborgTemplatesAndPopulateStore } = await import(
+        "./suborgTemplateDataManager.js"
+      );
       let selectedResolution = {
         width: store.emulatedWidth,
         height: store.emulatedHeight,
       };
-
+      await fetchAllSuborgTemplatesAndPopulateStore(suborgId);
+      updateResolution(selectedResolution);
+    } else if (parentOrgID) {
+      let selectedResolution = {
+        width: store.emulatedWidth,
+        height: store.emulatedHeight,
+      };
       await fetchAllOrgTemplatesAndPopulateStore(parentOrgID);
-
       updateResolution(selectedResolution);
     }
     return true;

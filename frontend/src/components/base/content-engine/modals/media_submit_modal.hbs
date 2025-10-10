@@ -26,7 +26,7 @@
                         class="btn-close"
                         data-bs-target="#mediaListModal"
                         data-bs-toggle="modal"
-                        aria-label="{% trans "Close" %}"></button>
+                        aria-label='{% trans "Close" %}'></button>
             </div>
             <form id="submitMediaForm">
                 <div class="modal-body">
@@ -40,7 +40,7 @@
                             <input type="file"
                                    class="form-control form-control-lg"
                                    id="mediaFileInput"
-                                   placeholder="{% trans "Select files" %}"
+                                   placeholder='{% trans "Select files" %}'
                                    accept=".pdf,.png,.jpeg,.jpg,.svg,.gif,.mp4,.webp,.webm"
                                    name="file"
                                    autocomplete="off"
@@ -71,11 +71,11 @@
                             <input type="text"
                                    class="form-control form-control-lg pe-5"
                                    id="fileNameInput"
-                                   placeholder="{% trans "File name" %}"
+                                   placeholder='{% trans "File name" %}'
                                    name="title"
                                    data-bs-toggle="tooltip"
                                    data-bs-placement="top"
-                                   title="{% trans "Unable to modify file names when uploading multiple files at once" %}" />
+                                   title='{% trans "Unable to modify file names when uploading multiple files at once" %}' />
                             <span id="fileExtensionDisplay"
                                   class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted user-select-none"></span>
                             <label for="fileNameInput">{% trans "Enter file name" %}</label>
@@ -88,8 +88,8 @@
                             <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">sell</span>
                             {% trans "Tags" %}
                         </label>
-                        <div id="mediaEditTagsSelect" class="streamlined-dropdown dropdown-start"></div>
-                        <div id="mediaEditTagsContainer" class="selected-tags-container mt-2"></div>
+                        <div id="mediaEditTagsSelect" class="dropdown-start"></div>
+                        <div id="mediaEditTagsContainer" class="selected-tags-container mt-2 d-flex gap-2 "></div>
                     </div>
                     <hr class="my-4">
                     <!-- Category Section -->
@@ -99,7 +99,7 @@
                             {% trans "Category" %}
                         </label>
                         <select id="submitMediaCtgSelect"
-                                class="form-select form-select-lg"
+                                class="form-select py-2 fs-5 rounded"
                                 aria-label="{% trans "Category select" %}"
                                 name="category">
                             <option value="">{% trans "Select a category..." %}</option>

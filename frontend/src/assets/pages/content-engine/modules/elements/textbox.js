@@ -23,6 +23,8 @@ import { gettext } from "../../../../utils/locales.js";
 const fontSizeSelect = document.querySelector(".font-size-select");
 const fontFamilySelect = document.querySelector(".font-family-select");
 const lineHeightSelect = document.querySelector(".line-height-select");
+const letterSpacingSelect = document.querySelector(".letter-spacing-select");
+const fontWeightSelect = document.querySelector(".font-weight-select");
 const textColorPicker = document.querySelector(".text-color-picker");
 
 const boldBtn = document.querySelector("#boldBtn");
@@ -36,45 +38,199 @@ const alignTopBtn = document.querySelector("#alignTextTopBtn");
 const alignMiddleBtn = document.querySelector("#alignTextMiddleBtn");
 const alignBottomBtn = document.querySelector("#alignTextBottomBtn");
 
+const richTextModeRadio = document.querySelector("#richTextMode");
+const simpleTextModeRadio = document.querySelector("#simpleTextMode");
+
+const horizontalTextModeRadio = document.querySelector("#horizontalTextMode");
+const verticalTextModeRadio = document.querySelector("#verticalTextMode");
+
 // ─────────────────────────────────────────────────────────────
 // 3) FONT SIZE MAPPING
 // ─────────────────────────────────────────────────────────────
 export const fontSizeMapping = {
-  1: "calc(10px + 0.5vw)",
-  2: "calc(11px + 0.5vw)",
-  3: "calc(12px + 0.5vw)",
-  4: "calc(14px + 0.5vw)",
-  5: "calc(16px + 0.5vw)",
-  6: "calc(18px + 0.5vw)",
-  7: "calc(20px + 0.5vw)",
-  8: "calc(24px + 0.5vw)",
-  9: "calc(28px + 0.5vw)",
-  10: "calc(32px + 0.5vw)",
-  11: "calc(36px + 0.5vw)",
-  12: "calc(40px + 0.5vw)",
-  13: "calc(44px + 0.5vw)",
-  14: "calc(48px + 0.5vw)",
-  15: "calc(52px + 0.5vw)",
-  16: "calc(56px + 0.5vw)",
-  17: "calc(60px + 0.5vw)",
-  18: "calc(64px + 0.5vw)",
-  19: "calc(68px + 0.5vw)",
-  20: "calc(72px + 0.5vw)",
-  21: "calc(80px + 0.5vw)",
-  22: "calc(88px + 0.5vw)",
-  23: "calc(96px + 0.5vw)",
-  24: "calc(104px + 0.5vw)",
-  25: "calc(112px + 0.5vw)",
-  26: "calc(120px + 0.5vw)",
-  27: "calc(128px + 0.5vw)",
+  1: "1.02vw",
+  2: "1.07vw",
+  3: "1.13vw",
+  4: "1.23vw",
+  5: "1.33vw",
+  6: "1.44vw",
+  7: "1.54vw",
+  8: "1.75vw",
+  9: "1.96vw",
+  10: "2.17vw",
+  11: "2.38vw",
+  12: "2.58vw",
+  13: "2.79vw",
+  14: "3.00vw",
+  15: "3.21vw",
+  16: "3.42vw",
+  17: "3.63vw",
+  18: "3.83vw",
+  19: "4.04vw",
+  20: "4.25vw",
+  21: "4.67vw",
+  22: "5.08vw",
+  23: "5.50vw",
+  24: "5.92vw",
+  25: "6.33vw",
+  26: "6.75vw",
+  27: "7.17vw",
+  28: "8.00vw",
+  29: "8.83vw",
+  30: "9.67vw",
+  31: "10.50vw",
+  32: "11.33vw",
+  33: "12.17vw",
+  34: "13.00vw",
+  35: "13.83vw",
+  36: "14.67vw",
+  37: "15.50vw",
+  38: "16.33vw",
+  39: "17.17vw",
+  40: "18.00vw",
+  41: "18.83vw",
+  42: "19.67vw",
+  43: "20.50vw",
+  44: "21.33vw",
+  45: "22.17vw",
+  46: "23.00vw",
+  47: "23.83vw",
+  48: "24.67vw",
+  49: "25.50vw",
+  50: "26.33vw",
+  51: "27.17vw",
 };
 
 export const lineHeightMapping = {
+  0.5: "0.5",
+  0.6: "0.6",
+  0.7: "0.7",
+  0.8: "0.8",
+  0.9: "0.9",
   1: "1",
+  1.1: "1.1",
   1.2: "1.2",
+  1.3: "1.3",
+  1.4: "1.4",
   1.5: "1.5",
+  1.6: "1.6",
+  1.8: "1.8",
   2: "2",
+  2.2: "2.2",
+  2.5: "2.5",
+  3: "3",
 };
+
+export const letterSpacingMapping = {
+  "-0.1": "-0.1vw",
+  "-0.05": "-0.05vw",
+  "-0.02": "-0.02vw",
+  normal: "normal",
+  0.01: "0.01vw",
+  0.02: "0.02vw",
+  0.03: "0.03vw",
+  0.04: "0.04vw",
+  0.05: "0.05vw",
+  0.06: "0.06vw",
+  0.07: "0.07vw",
+  0.08: "0.08vw",
+  0.09: "0.09vw",
+  0.1: "0.1vw",
+  0.12: "0.12vw",
+  0.15: "0.15vw",
+  0.18: "0.18vw",
+  0.2: "0.2vw",
+  0.25: "0.25vw",
+  0.3: "0.3vw",
+  0.4: "0.4vw",
+  0.5: "0.5vw",
+  0.6: "0.6vw",
+  0.7: "0.7vw",
+  0.8: "0.8vw",
+  0.9: "0.9vw",
+  1: "1vw",
+  1.2: "1.2vw",
+  1.5: "1.5vw",
+  1.8: "1.8vw",
+  2: "2vw",
+};
+
+export const textDirectionMapping = {
+  horizontal: "horizontal-tb",
+  vertical: "vertical-rl",
+};
+
+export const fontWeightMapping = {
+  normal: "normal",
+  100: "100",
+  200: "200",
+  300: "300",
+  400: "400",
+  500: "500",
+  600: "600",
+  700: "700",
+  800: "800",
+  900: "900",
+};
+
+// ------------------------------------------------------------------
+// Container-based font-size helpers
+// ------------------------------------------------------------------
+
+/**
+ * Returns the closest slide/container width in pixels to base font-size calculations on.
+ * Falls back to store.emulatedWidth when DOM lookup fails.
+ */
+function getContainerWidthForElement(el) {
+  try {
+    // Prefer the zoom-wrapper width if available
+    const zoom = el?.closest?.(".zoom-wrapper");
+    if (zoom && zoom.clientWidth) return zoom.clientWidth;
+
+    // Otherwise look for the grid container or slide-element parent
+    const grid = el?.closest?.(".grid-container");
+    if (grid && grid.clientWidth) return grid.clientWidth;
+
+    const slideEl = el?.closest?.(".preview-slide");
+    if (slideEl && slideEl.clientWidth) return slideEl.clientWidth;
+  } catch (err) {
+    // ignore and fallback
+  }
+
+  // Final fallback to store.emulatedWidth
+  return store?.emulatedWidth || window.innerWidth || 1000;
+}
+
+/**
+ * Convert a font-size string value (e.g. "1.02vw" or "16px") to a css px value
+ * based on the given containerWidth. If value is already px, return as-is.
+ */
+function fontSizeValueToPx(value, containerWidth) {
+  if (!value) return "";
+  const trimmed = String(value).trim();
+  if (trimmed.endsWith("px")) return trimmed;
+  if (trimmed.endsWith("vw")) {
+    const num = parseFloat(trimmed.replace("vw", ""));
+    if (Number.isNaN(num)) return "";
+    // vw is percent of viewport width; here we use containerWidth instead
+    const px = (num / 100) * containerWidth;
+    return Math.round(px) + "px";
+  }
+  // If it's a plain number, assume px
+  const parsed = parseFloat(trimmed);
+  if (!Number.isNaN(parsed)) return Math.round(parsed) + "px";
+  return trimmed; // unknown unit, return raw
+}
+
+/**
+ * Given a font size key (the mapping key like "12"), return a px value
+ * computed for the container that contains `referenceEl`.
+ */
+function fontSizeKeyToPx(sizeKey, referenceEl) {
+  const raw = fontSizeMapping[sizeKey] || fontSizeMapping["12"];
+  const width = getContainerWidthForElement(referenceEl || document.body);
+  return fontSizeValueToPx(raw, width);
+}
 
 // ─────────────────────────────────────────────────────────────
 // 4) SMALL HELPER UTILITIES
@@ -125,6 +281,166 @@ function restoreSelection(range) {
     sel.removeAllRanges();
     sel.addRange(range);
   }
+}
+
+/**
+ * Strip all formatting from HTML except <br> and <div> tags to preserve line breaks.
+ * Divs are preserved but stripped of styling since contentEditable creates them for paragraphs.
+ */
+function stripFormattingToPlainText(html) {
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+
+  // Process nodes while preserving <br> and clean <div> tags
+  function processNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const tagName = node.tagName.toLowerCase();
+
+      if (tagName === "br") {
+        // Keep <br> tags as-is
+        return "<br>";
+      } else if (tagName === "div") {
+        // Keep <div> tags but strip all attributes/styling
+        let result = "<div>";
+        for (const child of node.childNodes) {
+          result += processNode(child);
+        }
+        result += "</div>";
+        return result;
+      } else {
+        // For all other elements, just process their children (strip the tags but keep content)
+        let result = "";
+        for (const child of node.childNodes) {
+          result += processNode(child);
+        }
+        return result;
+      }
+    }
+    return "";
+  }
+
+  return processNode(temp);
+}
+
+/**
+ * Apply uniform styling to a simple text mode textbox.
+ */
+function applySimpleModeStyles(textElement, elData) {
+  const fontSize = fontSizeKeyToPx(elData.fontSize || "12", textElement);
+  const fontFamily = elData.fontFamily || getDefaultFont();
+  const lineHeight = lineHeightMapping[elData.lineHeight] || "1.2";
+  const letterSpacing = letterSpacingMapping[elData.letterSpacing] || "normal";
+  const textColor = elData.textColor || "#000000";
+  const fontWeight = elData.fontWeight || "normal";
+  const fontStyle = elData.fontStyle || "normal";
+  const textDecoration = elData.textDecoration || "none";
+  const textAlign = elData.textAlign || "left";
+  const textDirection =
+    textDirectionMapping[elData.textDirection] || "horizontal-tb";
+
+  textElement.style.fontSize = fontSize;
+  textElement.style.fontFamily = `"${fontFamily}"`;
+  textElement.style.lineHeight = lineHeight;
+  textElement.style.letterSpacing = letterSpacing;
+  textElement.style.color = textColor;
+  textElement.style.fontWeight = fontWeight;
+  textElement.style.fontStyle = fontStyle;
+  textElement.style.textDecoration = textDecoration;
+  textElement.style.textAlign = textAlign;
+  textElement.style.writingMode = textDirection;
+}
+
+/**
+ * Map a horizontal textAlign value to a sensible textAlign when in vertical mode.
+ * For example, "left" in horizontal corresponds to "start" in vertical writing mode.
+ */
+function mapTextAlignForDirection(textAlign, direction) {
+  if (direction === "vertical") {
+    // Use CSS logical values to remain consistent across directions
+    if (textAlign === "left") return "start";
+    if (textAlign === "right") return "end";
+    return "center"; // center remains center
+  }
+  // Default: return as-is for horizontal
+  return textAlign;
+}
+
+/**
+ * Update the mode radio buttons based on the selected element's state.
+ */
+export function updateModeRadioButtons() {
+  if (!store.selectedElementData) return;
+
+  const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+  const textDirection = store.selectedElementData.textDirection || "horizontal";
+
+  if (isSimpleMode) {
+    simpleTextModeRadio.checked = true;
+    richTextModeRadio.checked = false;
+  } else {
+    richTextModeRadio.checked = true;
+    simpleTextModeRadio.checked = false;
+  }
+
+  if (textDirection === "vertical") {
+    verticalTextModeRadio.checked = true;
+    horizontalTextModeRadio.checked = false;
+  } else {
+    horizontalTextModeRadio.checked = true;
+    verticalTextModeRadio.checked = false;
+  }
+
+  // Update font weight dropdown state based on mode
+  updateFontWeightDropdownState();
+}
+
+/**
+ * Update the toolbar dropdowns based on the selected textbox's properties.
+ * This function reads the fontSize, fontFamily, lineHeight, letterSpacing, and textDirection from the
+ * selected element's data and updates the toolbar selects accordingly.
+ */
+export function updateToolbarDropdowns() {
+  if (!store.selectedElementData) return;
+
+  // Update font size dropdown
+  if (store.selectedElementData.fontSize) {
+    fontSizeSelect.value = store.selectedElementData.fontSize;
+  }
+
+  // Update font family dropdown
+  if (store.selectedElementData.fontFamily) {
+    fontFamilySelect.value = store.selectedElementData.fontFamily;
+  }
+
+  // Update line height dropdown
+  if (store.selectedElementData.lineHeight) {
+    lineHeightSelect.value = store.selectedElementData.lineHeight;
+  }
+
+  // Update letter spacing dropdown
+  if (store.selectedElementData.letterSpacing) {
+    letterSpacingSelect.value = store.selectedElementData.letterSpacing;
+  }
+
+  // Update font weight dropdown
+  if (store.selectedElementData.fontWeight) {
+    fontWeightSelect.value = store.selectedElementData.fontWeight;
+  }
+
+  // Update text direction radio buttons
+  const textDirection = store.selectedElementData.textDirection || "horizontal";
+  if (textDirection === "vertical") {
+    verticalTextModeRadio.checked = true;
+    horizontalTextModeRadio.checked = false;
+  } else {
+    horizontalTextModeRadio.checked = true;
+    verticalTextModeRadio.checked = false;
+  }
+
+  // Update font weight dropdown state based on mode
+  updateFontWeightDropdownState();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -206,9 +522,8 @@ function normalizeNestedSpans(textContentElement) {
 }
 
 function applyCustomFontSize(sizeKey) {
-  // fontSizeMapping should be defined elsewhere (e.g., { small: '12px', medium: '16px', large: '20px' }).
-  const desiredSize = fontSizeMapping[sizeKey];
-  if (!desiredSize) return;
+  // Ensure key exists in mapping
+  if (!fontSizeMapping[sizeKey]) return;
 
   const sel = window.getSelection();
   if (sel.rangeCount > 0) {
@@ -223,7 +538,9 @@ function applyCustomFontSize(sizeKey) {
 
     // 3) Create a new wrapper that applies the uniform font size.
     const wrapperSpan = document.createElement("span");
-    wrapperSpan.style.fontSize = desiredSize;
+    // Compute px based on the selection container (closest text-content)
+    const referenceEl = range.startContainer?.parentElement || document.body;
+    wrapperSpan.style.fontSize = fontSizeKeyToPx(sizeKey, referenceEl);
     wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
     wrapperSpan.setAttribute("data-font-size-key", sizeKey);
 
@@ -434,8 +751,22 @@ function applyCustomFontFamily(family) {
     wrapperSpan.style.fontFamily = `"${family}"`; // Ensure font names with spaces are quoted
     wrapperSpan.style.lineHeight = "1.2"; // Set consistent line height to prevent inheritance issues
     wrapperSpan.setAttribute("data-font-family", family);
+    // If the fragment contains spans with data-font-size-key, convert their fontSize values
+    // to px relative to the current container so pasted/wrapped text remains sized correctly.
 
     // 4) Append the cleaned content into the wrapper.
+    // Convert any data-font-size-key placeholders inside the cleanContent
+    const referenceEl = range.startContainer?.parentElement || document.body;
+    const spans = Array.from(
+      cleanContent.querySelectorAll
+        ? cleanContent.querySelectorAll("span[data-font-size-key]")
+        : [],
+    );
+    spans.forEach((s) => {
+      const key = s.getAttribute("data-font-size-key");
+      if (key) s.style.fontSize = fontSizeKeyToPx(key, referenceEl);
+    });
+
     wrapperSpan.appendChild(cleanContent);
 
     // 5) Insert the new node back into the document.
@@ -622,6 +953,44 @@ function handleLineHeightIndicator() {
   // lineHeightSelect.value = "";
 }
 
+/**
+ * Climbs up from the caret/selection to find data-letter-spacing and updates
+ * the .letter-spacing-select dropdown accordingly.
+ */
+function handleLetterSpacingIndicator() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+
+  const range = sel.getRangeAt(0);
+  const contentEl = store.selectedElement?.querySelector?.(".text-content");
+  if (!contentEl) return;
+
+  // Only proceed if the selection is within the current textbox content
+  const anchor = range.commonAncestorContainer || range.startContainer;
+  if (!contentEl.contains(anchor)) return;
+
+  let node = range.startContainer;
+  if (node.nodeType === Node.TEXT_NODE) {
+    node = node.parentNode;
+  }
+
+  while (
+    node &&
+    node !== contentEl &&
+    !node.classList?.contains("text-content")
+  ) {
+    const letterSpacing = node?.getAttribute?.("data-letter-spacing");
+    if (letterSpacing) {
+      letterSpacingSelect.value = letterSpacing;
+      return;
+    }
+    node = node.parentNode;
+  }
+
+  // If none found, you could reset:
+  // letterSpacingSelect.value = "";
+}
+
 // ─────────────────────────────────────────────────────────────
 // 7) INDIVIDUAL EVENT HANDLER FUNCTIONS
 // ─────────────────────────────────────────────────────────────
@@ -631,11 +1000,20 @@ function handleFontSizeChange(e) {
   withSelectedTextbox(() => {
     const target = store.selectedElement.querySelector(".text-content");
     if (target) {
-      target.contentEditable = "true";
-      target.focus();
-      applyCustomFontSize(fontSizeSelect.value);
-      store.selectedElementData.fontSize = fontSizeSelect.value;
-      normalizeNestedSpans(target);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, apply font size to the entire container
+        store.selectedElementData.fontSize = fontSizeSelect.value;
+        applySimpleModeStyles(target, store.selectedElementData);
+      } else {
+        // In rich text mode, apply to selection
+        target.contentEditable = "true";
+        target.focus();
+        applyCustomFontSize(fontSizeSelect.value);
+        store.selectedElementData.fontSize = fontSizeSelect.value;
+        normalizeNestedSpans(target);
+      }
     }
   });
 }
@@ -645,11 +1023,20 @@ function handleFontFamilyChange(e) {
   withSelectedTextbox(() => {
     const target = store.selectedElement.querySelector(".text-content");
     if (target) {
-      target.contentEditable = "true";
-      target.focus();
-      applyCustomFontFamily(fontFamilySelect.value);
-      store.selectedElementData.fontFamily = fontFamilySelect.value;
-      normalizeNestedSpans(target);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, apply font family to the entire container
+        store.selectedElementData.fontFamily = fontFamilySelect.value;
+        applySimpleModeStyles(target, store.selectedElementData);
+      } else {
+        // In rich text mode, apply to selection
+        target.contentEditable = "true";
+        target.focus();
+        applyCustomFontFamily(fontFamilySelect.value);
+        store.selectedElementData.fontFamily = fontFamilySelect.value;
+        normalizeNestedSpans(target);
+      }
     }
   });
 }
@@ -666,47 +1053,211 @@ function handleLineHeightChange(e) {
     if (elData) elData.lineHeight = key;
     const content = store.selectedElement.querySelector(".text-content");
     if (content) {
-      content.style.lineHeight = lineHeightMapping[key];
-      // apply line-height to all inner spans so they don't override the wrapper
-      content.querySelectorAll("span").forEach((span) => {
-        span.style.lineHeight = lineHeightMapping[key];
-      });
+      const isSimpleMode = elData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, apply line height to the container
+        applySimpleModeStyles(content, elData);
+      } else {
+        // In rich text mode, apply to container and all inner spans
+        content.style.lineHeight = lineHeightMapping[key];
+        content.querySelectorAll("span").forEach((span) => {
+          span.style.lineHeight = lineHeightMapping[key];
+        });
+      }
+    }
+  });
+}
+
+function handleLetterSpacingChange(e) {
+  e.preventDefault();
+  pushCurrentSlideState();
+  withSelectedTextbox(() => {
+    const key = letterSpacingSelect.value;
+    const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
+    const elData = store.slides[store.currentSlideIndex].elements.find(
+      (el) => el.id === id,
+    );
+    if (elData) elData.letterSpacing = key;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (content) {
+      const isSimpleMode = elData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, apply letter spacing to the container
+        applySimpleModeStyles(content, elData);
+      } else {
+        // In rich text mode, apply to container and all inner spans
+        content.style.letterSpacing = letterSpacingMapping[key];
+        content.querySelectorAll("span").forEach((span) => {
+          span.style.letterSpacing = letterSpacingMapping[key];
+        });
+      }
+    }
+  });
+}
+
+function handleFontWeightChange(e) {
+  e.preventDefault();
+  pushCurrentSlideState();
+  withSelectedTextbox(() => {
+    const newFontWeight = e.target.value;
+    const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
+    const elData = store.slides[store.currentSlideIndex].elements.find(
+      (el) => el.id === id,
+    );
+
+    // Only apply font weight changes in Simple Text mode
+    const isSimpleMode = elData?.isSimpleTextMode || false;
+    if (!isSimpleMode) {
+      console.warn("Font weight can only be changed in Simple Text mode.");
+      return;
+    }
+
+    if (elData) elData.fontWeight = newFontWeight;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (content) {
+      // In simple mode, apply font weight to the container
+      applySimpleModeStyles(content, elData);
+    }
+  });
+}
+
+function handleTextDirectionChange(e) {
+  e.preventDefault();
+  pushCurrentSlideState();
+  withSelectedTextbox(() => {
+    const direction = e.target.value;
+    const id = parseInt(store.selectedElement.id.replace("el-", ""), 10);
+    const elData = store.slides[store.currentSlideIndex].elements.find(
+      (el) => el.id === id,
+    );
+    if (elData) elData.textDirection = direction;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (content) {
+      const writingMode = textDirectionMapping[direction];
+      content.style.writingMode = writingMode;
+
+      // Also apply to the container element for better display
+      const container = store.selectedElement;
+      if (container) {
+        container.style.writingMode = writingMode;
+
+        // Adjust text alignment for vertical text
+        if (direction === "vertical") {
+          // Map stored horizontal alignment into an appropriate vertical-mode value
+          const rawAlign = elData.textAlign || "left";
+          content.style.textAlign = mapTextAlignForDirection(
+            rawAlign,
+            "vertical",
+          );
+        } else {
+          // Restore original text alignment from element data for horizontal mode
+          const textAlign = elData.textAlign || "left";
+          content.style.textAlign = textAlign;
+        }
+      }
     }
   });
 }
 
 function handleTextColorPickerClick() {
   withSelectedTextbox(() => {
-    savedRange = saveSelection();
-    showColorPalette(
-      textColorPicker,
-      (chosenColor) => {
-        restoreSelection(savedRange);
-        const target = store.selectedElement.querySelector(".text-content");
-        if (target) {
-          target.contentEditable = "true";
-          target.focus();
-          document.execCommand("styleWithCSS", false, true);
-          if (chosenColor) {
-            document.execCommand("foreColor", false, chosenColor);
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      // In simple mode, apply color to entire textbox
+      showColorPalette(
+        textColorPicker,
+        (chosenColor) => {
+          const target = store.selectedElement.querySelector(".text-content");
+          if (target && chosenColor) {
+            store.selectedElementData.textColor = chosenColor;
+            applySimpleModeStyles(target, store.selectedElementData);
           }
-        }
-      },
-      { allowRemove: false },
-    );
+        },
+        { allowRemove: false },
+      );
+    } else {
+      // In rich text mode, apply to selection
+      savedRange = saveSelection();
+      showColorPalette(
+        textColorPicker,
+        (chosenColor) => {
+          restoreSelection(savedRange);
+          const target = store.selectedElement.querySelector(".text-content");
+          if (target) {
+            target.contentEditable = "true";
+            target.focus();
+            document.execCommand("styleWithCSS", false, true);
+            if (chosenColor) {
+              document.execCommand("foreColor", false, chosenColor);
+            }
+          }
+        },
+        { allowRemove: false },
+      );
+    }
   });
 }
 
 function handleBoldClick() {
-  applyTextCommand("bold");
+  withSelectedTextbox(() => {
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      // In simple mode, toggle bold for entire textbox
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const currentWeight = target.style.fontWeight;
+        target.style.fontWeight = currentWeight === "bold" ? "normal" : "bold";
+        store.selectedElementData.fontWeight = target.style.fontWeight;
+      }
+    } else {
+      // In rich text mode, apply to selection
+      applyTextCommand("bold");
+    }
+  });
 }
 
 function handleItalicClick() {
-  applyTextCommand("italic");
+  withSelectedTextbox(() => {
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      // In simple mode, toggle italic for entire textbox
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const currentStyle = target.style.fontStyle;
+        target.style.fontStyle =
+          currentStyle === "italic" ? "normal" : "italic";
+        store.selectedElementData.fontStyle = target.style.fontStyle;
+      }
+    } else {
+      // In rich text mode, apply to selection
+      applyTextCommand("italic");
+    }
+  });
 }
 
 function handleUnderlineClick() {
-  applyTextCommand("underline");
+  withSelectedTextbox(() => {
+    const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      // In simple mode, toggle underline for entire textbox
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const currentDecoration = target.style.textDecoration;
+        target.style.textDecoration =
+          currentDecoration === "underline" ? "none" : "underline";
+        store.selectedElementData.textDecoration = target.style.textDecoration;
+      }
+    } else {
+      // In rich text mode, apply to selection
+      applyTextCommand("underline");
+    }
+  });
 }
 
 function handleAlignLeft() {
@@ -714,9 +1265,22 @@ function handleAlignLeft() {
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
     if (textEl) {
-      textEl.contentEditable = "true";
-      textEl.focus();
-      document.execCommand("justifyLeft", false, null);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, update data model and apply style directly
+        store.selectedElementData.textAlign = "left";
+        textEl.style.textAlign = "left";
+      } else {
+        // In rich mode, use execCommand
+        textEl.contentEditable = "true";
+        textEl.focus();
+        document.execCommand("justifyLeft", false, null);
+        // Persist the logical text alignment so it survives reloads
+        if (store && store.selectedElementData) {
+          store.selectedElementData.textAlign = "left";
+        }
+      }
     }
   });
 }
@@ -726,9 +1290,21 @@ function handleAlignCenter() {
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
     if (textEl) {
-      textEl.contentEditable = "true";
-      textEl.focus();
-      document.execCommand("justifyCenter", false, null);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, update data model and apply style directly
+        store.selectedElementData.textAlign = "center";
+        textEl.style.textAlign = "center";
+      } else {
+        // In rich mode, use execCommand
+        textEl.contentEditable = "true";
+        textEl.focus();
+        document.execCommand("justifyCenter", false, null);
+        if (store && store.selectedElementData) {
+          store.selectedElementData.textAlign = "center";
+        }
+      }
     }
   });
 }
@@ -738,9 +1314,21 @@ function handleAlignRight() {
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
     if (textEl) {
-      textEl.contentEditable = "true";
-      textEl.focus();
-      document.execCommand("justifyRight", false, null);
+      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+
+      if (isSimpleMode) {
+        // In simple mode, update data model and apply style directly
+        store.selectedElementData.textAlign = "right";
+        textEl.style.textAlign = "right";
+      } else {
+        // In rich mode, use execCommand
+        textEl.contentEditable = "true";
+        textEl.focus();
+        document.execCommand("justifyRight", false, null);
+        if (store && store.selectedElementData) {
+          store.selectedElementData.textAlign = "right";
+        }
+      }
     }
   });
 }
@@ -800,18 +1388,19 @@ function addTextboxToSlide() {
 
   // Default font-size key and family
   const defaultFontSizeKey = "12";
-  const defaultFontSizeValue = fontSizeMapping[defaultFontSizeKey];
   // Use the first available custom font or a system default
   const defaultFontFamily = getDefaultFont();
 
   const newTextbox = {
     id: store.elementIdCounter++,
     type: "textbox",
-    // Wrap the default text in a <span> with data attributes:
+    // Wrap the default text in a <span> with data attributes. We compute an initial px
+    // font-size using the document body as reference; it will be recomputed when rendered
+    // inside the actual slide container.
     text: `<span><span 
              data-font-size-key="${defaultFontSizeKey}"
              data-font-family="${defaultFontFamily}"
-             style="font-size: ${defaultFontSizeValue}; font-family: '${defaultFontFamily}'; line-height: 1.2;"
+             style="font-size: ${fontSizeKeyToPx(defaultFontSizeKey, document.body)}; font-family: '${defaultFontFamily}'; line-height: 1.2;"
            >
              ${gettext("Double click to edit text")}
            </span>
@@ -827,13 +1416,18 @@ function addTextboxToSlide() {
     fontFamily: defaultFontFamily,
     fontSize: defaultFontSizeKey,
     lineHeight: "1.2",
+    letterSpacing: "normal",
     textColor: "#000000",
     fontWeight: "normal",
+    fontStyle: "normal",
     textDecoration: "none",
     textAlign: "left",
+    textDirection: "horizontal", // Initialize as horizontal text by default
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
+    isHidden: false, // Initialize visibility state
+    isSimpleTextMode: true, // Initialize as simple text mode by default
   };
 
   store.slides[store.currentSlideIndex].elements.push(newTextbox);
@@ -841,6 +1435,109 @@ function addTextboxToSlide() {
 
   const newElDom = document.getElementById("el-" + newTextbox.id);
   selectElement(newElDom, newTextbox);
+}
+
+/**
+ * Handle mode toggle between rich text and simple text modes.
+ */
+function handleModeToggle(e) {
+  const newMode = e.target.value;
+  const isSimpleMode = newMode === "simple";
+
+  withSelectedTextbox(() => {
+    const currentIsSimple = store.selectedElementData.isSimpleTextMode || false;
+
+    // If switching to simple mode from rich mode, warn about formatting loss
+    if (isSimpleMode && !currentIsSimple) {
+      const confirmed = confirm(
+        gettext(
+          "Switching to simple text mode will remove all formatting (bold, italic, colors, etc.). Do you want to continue?",
+        ),
+      );
+
+      if (!confirmed) {
+        // Revert radio button selection
+        richTextModeRadio.checked = true;
+        simpleTextModeRadio.checked = false;
+        return;
+      }
+
+      pushCurrentSlideState();
+
+      // Strip all formatting except <br> tags to preserve line breaks
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        const plainTextWithBreaks = stripFormattingToPlainText(
+          target.innerHTML,
+        );
+        target.innerHTML = plainTextWithBreaks;
+
+        // Update data model
+        store.selectedElementData.isSimpleTextMode = true;
+        store.selectedElementData.text = plainTextWithBreaks;
+
+        // Apply simple mode styles
+        applySimpleModeStyles(target, store.selectedElementData);
+      }
+    } else if (!isSimpleMode && currentIsSimple) {
+      // Switching from simple to rich mode
+      pushCurrentSlideState();
+
+      const target = store.selectedElement.querySelector(".text-content");
+      if (target) {
+        // Get current content (preserve line breaks as <br> tags)
+        const currentContent = target.innerHTML;
+
+        // Wrap in span with current settings
+        const fontSize = store.selectedElementData.fontSize || "12";
+        const fontFamily =
+          store.selectedElementData.fontFamily || getDefaultFont();
+
+        // Compute px based on the actual target container
+        const computedFontSize = fontSizeKeyToPx(fontSize, target);
+
+        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${computedFontSize}; font-family: '${fontFamily}'; line-height: 1.2;">${currentContent}</span>`;
+
+        // Update data model
+        store.selectedElementData.isSimpleTextMode = false;
+        store.selectedElementData.text = target.innerHTML;
+
+        // Clear simple mode styles from container
+        target.style.fontSize = "";
+        target.style.fontFamily = "";
+        target.style.color = "";
+        target.style.fontWeight = "";
+        target.style.fontStyle = "";
+        target.style.textDecoration = "";
+      }
+    }
+
+    // Update font weight dropdown state based on mode
+    updateFontWeightDropdownState();
+  });
+}
+
+/**
+ * Enable/disable font weight dropdown based on text mode.
+ * Font weight is only available in Simple Text mode.
+ */
+function updateFontWeightDropdownState() {
+  if (!store.selectedElementData) {
+    fontWeightSelect.disabled = true;
+    return;
+  }
+
+  const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+  fontWeightSelect.disabled = !isSimpleMode;
+
+  // Add visual styling for disabled state
+  if (!isSimpleMode) {
+    fontWeightSelect.style.opacity = "0.5";
+    fontWeightSelect.style.cursor = "not-allowed";
+  } else {
+    fontWeightSelect.style.opacity = "1";
+    fontWeightSelect.style.cursor = "pointer";
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -885,10 +1582,20 @@ export function initTextbox() {
     .querySelector('[data-type="textbox"]')
     .addEventListener("click", addTextboxToSlide);
 
+  // Mode toggle
+  richTextModeRadio.addEventListener("change", handleModeToggle);
+  simpleTextModeRadio.addEventListener("change", handleModeToggle);
+
+  // Text direction toggle
+  horizontalTextModeRadio.addEventListener("change", handleTextDirectionChange);
+  verticalTextModeRadio.addEventListener("change", handleTextDirectionChange);
+
   // Font size + font family changes
   fontSizeSelect.addEventListener("change", handleFontSizeChange);
   fontFamilySelect.addEventListener("change", handleFontFamilyChange);
   lineHeightSelect.addEventListener("change", handleLineHeightChange);
+  letterSpacingSelect.addEventListener("change", handleLetterSpacingChange);
+  fontWeightSelect.addEventListener("change", handleFontWeightChange);
 
   // Text color picker
   textColorPicker.addEventListener("click", handleTextColorPickerClick);
@@ -917,49 +1624,104 @@ export function initTextbox() {
 function handleInputOnEmpty(e) {
   const textContentElement = e.target; // This is the .text-content div
 
-  // CONDITION: Act only if the div contains exactly one child, and it's a text node.
-  if (
-    textContentElement.childNodes.length === 1 &&
-    textContentElement.firstChild.nodeType === Node.TEXT_NODE
-  ) {
-    const textNode = textContentElement.firstChild;
+  // This function used to only handle the exact case where the div had a single
+  // text node. In practice users often replace/clear content (Ctrl+A, Delete)
+  // or paste, leaving direct text nodes or unwrapped elements in the
+  // contenteditable. When that happens the new text inherits no font-size
+  // wrapper and can appear very small. To avoid that we now:
+  // - Wrap any direct text nodes or unwrapped elements in a span carrying
+  //   the current toolbar font/size/family data attributes.
+  // - Remove empty/whitespace-only text nodes.
+  // - Preserve existing spans that already have `data-font-size-key` or
+  //   `data-font-family`.
 
-    // Don't do anything if the input was just a deletion that emptied the node
-    if (textNode.textContent.length === 0) {
+  // Only operate for rich text mode; in simple mode the container holds
+  // uniform styles.
+  const isSimpleMode = store.selectedElementData?.isSimpleTextMode || false;
+  if (isSimpleMode) return;
+
+  // 1. Get the desired style from the toolbar's current state.
+  const currentSizeKey = fontSizeSelect.value;
+  const currentFontSize = fontSizeKeyToPx(
+    currentSizeKey || "12",
+    textContentElement,
+  );
+  const currentFontFamily = fontFamilySelect.value;
+
+  if (!currentFontSize) {
+    console.warn("No font size selected. Cannot apply style.");
+    return; // Safety check
+  }
+
+  let madeChange = false;
+
+  // Make a static copy because we'll modify the DOM while iterating.
+  const children = Array.from(textContentElement.childNodes);
+
+  children.forEach((node) => {
+    // Remove empty/whitespace-only text nodes
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!node.textContent || !node.textContent.trim()) {
+        node.parentNode && node.parentNode.removeChild(node);
+        madeChange = true;
+        return;
+      }
+
+      // Wrap plain text nodes
+      const wrapperSpan = document.createElement("span");
+      wrapperSpan.style.fontSize = currentFontSize;
+      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+      wrapperSpan.style.lineHeight = "1.2";
+      wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
+      wrapperSpan.setAttribute("data-font-family", currentFontFamily);
+
+      // Replace the text node with the wrapper, then move the text node into it.
+      textContentElement.replaceChild(wrapperSpan, node);
+      wrapperSpan.appendChild(node);
+      madeChange = true;
       return;
     }
 
-    // 1. Get the desired style from the toolbar's current state.
-    const currentSizeKey = fontSizeSelect.value;
-    const currentFontSize = fontSizeMapping[currentSizeKey];
-    const currentFontFamily = fontFamilySelect.value;
-
-    if (!currentFontSize) {
-      console.warn("No font size selected. Cannot apply style.");
-      return; // Safety check
+    // If it's already a span with our data attributes, leave it alone.
+    if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      node.tagName === "SPAN" &&
+      (node.hasAttribute("data-font-size-key") ||
+        node.hasAttribute("data-font-family"))
+    ) {
+      return;
     }
 
-    // 2. Create the wrapper span with all the correct styles and data attributes.
-    const wrapperSpan = document.createElement("span");
-    wrapperSpan.style.fontSize = currentFontSize;
-    wrapperSpan.style.fontFamily = `"${currentFontFamily}"`; // Quote font name for safety
-    wrapperSpan.style.lineHeight = "1.2"; // Maintain consistent line height
-    wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
-    wrapperSpan.setAttribute("data-font-family", currentFontFamily);
+    // For any other element (e.g., <b>, <i>, <div>, <br>, etc.) wrap it so
+    // that toolbar styles apply uniformly. This preserves formatting tags
+    // while ensuring the wrapper controls font size/family.
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const wrapperSpan = document.createElement("span");
+      wrapperSpan.style.fontSize = currentFontSize;
+      wrapperSpan.style.fontFamily = `"${currentFontFamily}"`;
+      wrapperSpan.style.lineHeight = "1.2";
+      wrapperSpan.setAttribute("data-font-size-key", currentSizeKey);
+      wrapperSpan.setAttribute("data-font-family", currentFontFamily);
 
-    // 3. Move the text from the raw text node into our new span.
-    wrapperSpan.appendChild(textNode);
+      textContentElement.replaceChild(wrapperSpan, node);
+      wrapperSpan.appendChild(node);
+      madeChange = true;
+      return;
+    }
+  });
 
-    // 4. Replace the div's content with the new, wrapped span.
-    textContentElement.appendChild(wrapperSpan);
-
-    // 5. CRUCIAL: Restore the selection/cursor to the end of the text.
-    const sel = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(wrapperSpan);
-    range.collapse(false); // 'false' collapses the range to its end point
-    sel.removeAllRanges();
-    sel.addRange(range);
+  if (madeChange) {
+    // Move caret to the end of the last child to give a natural typing
+    // experience after wrapping.
+    const lastChild = textContentElement.lastChild;
+    if (lastChild) {
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(lastChild);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
   }
 }
 
@@ -978,8 +1740,35 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
   textWrapper.setAttribute("autocapitalize", "off");
   textWrapper.setAttribute("spellcheck", "false");
 
-  // Fix line height issues in existing content
-  fixLineHeightInTextbox(textWrapper);
+  const isSimpleMode = el.isSimpleTextMode || false;
+
+  if (isSimpleMode) {
+    // In simple mode, strip all formatting except <br> tags and apply uniform styles
+    const plainTextWithBreaks = stripFormattingToPlainText(
+      textWrapper.innerHTML,
+    );
+    textWrapper.innerHTML = plainTextWithBreaks;
+    applySimpleModeStyles(textWrapper, el);
+  } else {
+    // In rich text mode, fix line height issues in existing content
+    fixLineHeightInTextbox(textWrapper);
+
+    textWrapper.style.lineHeight = el.lineHeight || "1.2";
+    // ensure all spans inside respect the wrapper's line-height and convert vw sizes to px
+    textWrapper.querySelectorAll("span").forEach((span) => {
+      span.style.lineHeight = el.lineHeight || "1.2";
+      if (span.hasAttribute("data-font-size-key")) {
+        const key = span.getAttribute("data-font-size-key");
+        span.style.fontSize = fontSizeKeyToPx(key, textWrapper);
+      } else if (span.style.fontSize) {
+        // Convert any vw-based inline font sizes to px relative to this container
+        span.style.fontSize = fontSizeValueToPx(
+          span.style.fontSize,
+          getContainerWidthForElement(textWrapper),
+        );
+      }
+    });
+  }
 
   // Vertical alignment
   if (el.verticalAlign) {
@@ -994,15 +1783,33 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
     }
   }
 
-  textWrapper.style.lineHeight = el.lineHeight || "1.2";
-  // ensure all spans inside respect the wrapper's line-height
-  textWrapper.querySelectorAll("span").forEach((span) => {
-    span.style.lineHeight = el.lineHeight || "1.2";
-  });
+  // Text direction (writing mode)
+  if (el.textDirection) {
+    const writingMode =
+      textDirectionMapping[el.textDirection] || "horizontal-tb";
+    textWrapper.style.writingMode = writingMode;
+
+    // Also apply to the container element for better display
+    container.style.writingMode = writingMode;
+
+    // Adjust text alignment for vertical text
+    if (el.textDirection === "vertical") {
+      const rawAlign = el.textAlign || "left";
+      textWrapper.style.textAlign = mapTextAlignForDirection(
+        rawAlign,
+        "vertical",
+      );
+    } else {
+      // Restore original text alignment from element data
+      const textAlign = el.textAlign || "left";
+      textWrapper.style.textAlign = textAlign;
+    }
+  }
 
   if (
     (!isInteractivePlayback && queryParams.mode === "edit") ||
-    (!isInteractivePlayback && queryParams.mode === "template_editor")
+    (!isInteractivePlayback && queryParams.mode === "template_editor") ||
+    (!isInteractivePlayback && queryParams.mode === "suborg_templates")
   ) {
     textWrapper.addEventListener("dblclick", (e) => {
       e.stopPropagation();
@@ -1020,19 +1827,73 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
         // If no other text-content is active, finalize
         if (!document.activeElement?.closest(".text-content")) {
           textWrapper.contentEditable = false;
-          normalizeNestedSpans(textWrapper);
-          el.text = textWrapper.innerHTML;
-          // Fix line height issues after editing
-          fixLineHeightInTextbox(textWrapper);
+
+          if (isSimpleMode) {
+            // In simple mode, preserve line breaks as <br> tags
+            el.text = textWrapper.innerHTML;
+          } else {
+            // In rich mode, normalize and fix formatting
+            normalizeNestedSpans(textWrapper);
+            el.text = textWrapper.innerHTML;
+            fixLineHeightInTextbox(textWrapper);
+          }
         }
       }, 0);
     });
 
     textWrapper.addEventListener("input", () => {
       autoResizeTextbox(textWrapper, container, el);
-      // Also fix line height issues when content changes
-      fixLineHeightInTextbox(textWrapper);
-      handleInputOnEmpty({ target: textWrapper }); // Call the new handler
+
+      if (!isSimpleMode) {
+        // Only fix line heights and handle empty spans in rich mode
+        fixLineHeightInTextbox(textWrapper);
+        handleInputOnEmpty({ target: textWrapper });
+      }
+    });
+
+    // Force plain-text paste and ensure pasted text gets wrapped with the
+    // current toolbar styles in rich text mode so it doesn't become tiny.
+    textWrapper.addEventListener("paste", (pasteEvent) => {
+      // Always prevent the browser from inserting rich HTML
+      pasteEvent.preventDefault();
+
+      const clipboardData = pasteEvent.clipboardData || window.clipboardData;
+      const pasteText =
+        clipboardData && clipboardData.getData
+          ? clipboardData.getData("text/plain")
+          : "";
+
+      if (!pasteText) return;
+
+      // Insert plain text at the current selection/caret
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) {
+        // Fallback: append at end
+        textWrapper.appendChild(document.createTextNode(pasteText));
+      } else {
+        const range = sel.getRangeAt(0);
+        // Replace selection
+        range.deleteContents();
+        const textNode = document.createTextNode(pasteText);
+        range.insertNode(textNode);
+
+        // Move caret after inserted text
+        const newRange = document.createRange();
+        newRange.setStartAfter(textNode);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+
+      // If in rich mode, ensure the newly-inserted plain text is wrapped
+      // so toolbar font/size applies. In simple mode we want plain text only.
+      if (!isSimpleMode) {
+        // Run our wrapper logic which will wrap direct text nodes.
+        handleInputOnEmpty({ target: textWrapper });
+        // Also normalize line-height issues
+        normalizeNestedSpans(textWrapper);
+        fixLineHeightInTextbox(textWrapper);
+      }
     });
   }
 
@@ -1041,11 +1902,13 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
     handleFontSizeIndicator();
     handleFontFamilyIndicator();
     handleLineHeightIndicator();
+    handleLetterSpacingIndicator();
   });
   textWrapper.addEventListener("keyup", () => {
     handleFontSizeIndicator();
     handleFontFamilyIndicator();
     handleLineHeightIndicator();
+    handleLetterSpacingIndicator();
   });
 
   container.appendChild(textWrapper);

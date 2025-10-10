@@ -12,6 +12,12 @@ const config = {
     : [],
 };
 
+// Continuous scroll options from query params
+const continuousScroll =
+  queryParams.continuous_scroll === "1" ||
+  String(queryParams.continuous_scroll).toLowerCase() === "true";
+const scrollSpeed = Number(queryParams.scroll_speed) || 100; // pixels per second
+
 const baseUrl = queryParams.baseUrl || BASE_URL;
 
 // Authentication setup
@@ -192,9 +198,94 @@ function displayBookingsInCarousel(locationBookings) {
   }
 
   // Start carousel rotation if multiple pages
-  if (totalPagesLocal > 1) {
+  if (continuousScroll) {
+    startContinuousScroll();
+  } else if (totalPagesLocal > 1) {
     startCarousel(bookings.length);
   }
+}
+
+function clearExistingAnimations() {
+  if (window.winkasCarouselInterval) {
+    clearInterval(window.winkasCarouselInterval);
+    window.winkasCarouselInterval = null;
+  }
+  if (window.winkasContinuousRAF) {
+    cancelAnimationFrame(window.winkasContinuousRAF);
+    window.winkasContinuousRAF = null;
+  }
+}
+
+function startContinuousScroll() {
+  // Ensure previous animations cleared
+  clearExistingAnimations();
+
+  const carousel = document.querySelector("#booking-carousel");
+  const bookingBody = document.getElementById("booking-body");
+  if (!carousel || !bookingBody) return;
+
+  // Build a single column list of booking entries (flatten pages)
+  const entries = Array.from(carousel.querySelectorAll(".booking-entry"));
+  if (entries.length === 0) return;
+
+  // Create wrapper and content containers
+  carousel.innerHTML = "";
+  const wrapper = document.createElement("div");
+  wrapper.className = "booking-list-wrapper";
+  wrapper.style.willChange = "transform";
+  wrapper.style.position = "relative";
+  wrapper.style.display = "block";
+
+  const list = document.createElement("div");
+  list.className = "booking-list";
+  list.style.display = "flex";
+  list.style.flexDirection = "column";
+  list.style.rowGap = "8px";
+
+  // Move existing entries into the list (they were created as children of page divs)
+  entries.forEach((entry) => {
+    // ensure entry has block display
+    entry.style.display = "block";
+    entry.style.width = "100%";
+    list.appendChild(entry);
+  });
+
+  // Append two copies for seamless looping
+  wrapper.appendChild(list);
+  const clone = list.cloneNode(true);
+  wrapper.appendChild(clone);
+
+  // Ensure carousel has overflow hidden and fixed height
+  carousel.style.overflow = "hidden";
+  carousel.appendChild(wrapper);
+
+  // Measure the height of one list
+  // Force reflow
+  const originalHeight = list.offsetHeight;
+  if (originalHeight === 0) return; // nothing to scroll
+
+  let translateY = 0;
+  let lastTs = null;
+
+  function step(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = (ts - lastTs) / 1000; // seconds
+    lastTs = ts;
+
+    // Move up at scrollSpeed pixels per second
+    translateY -= scrollSpeed * dt;
+
+    // When we've scrolled past the first list, wrap back
+    if (Math.abs(translateY) >= originalHeight) {
+      translateY += originalHeight;
+    }
+
+    wrapper.style.transform = `translateY(${translateY}px)`;
+
+    window.winkasContinuousRAF = requestAnimationFrame(step);
+  }
+
+  window.winkasContinuousRAF = requestAnimationFrame(step);
 }
 
 // Parse WinKAS timestamp formats into JS Date objects.

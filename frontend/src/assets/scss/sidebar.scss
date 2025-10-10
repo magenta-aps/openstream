@@ -2,7 +2,7 @@
 
 /* SPDX-License-Identifier: AGPL-3.0-only */
 #sidebar {
-  width: 18rem;
+  flex: 0 0 18rem;
   height: 100%;
   background-color: $secondary-accent;
   border-right: 1px solid $dark-gray;

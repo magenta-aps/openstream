@@ -550,7 +550,7 @@ function renderUpcoming(items) {
 }
 
 if (localStorage.getItem("selectedSubOrgName") === "Global") {
-  window.location.href = "/manage-color-scheme";
+  window.location.href = "/manage-fonts-and-color-scheme";
 }
 
 // Initial upcoming load

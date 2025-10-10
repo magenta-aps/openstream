@@ -251,7 +251,36 @@ class FrontendSlideTypeModal {
     // If editing existing element, preselect its slide type
     if (existingElement?.slideTypeId) {
       setTimeout(() => {
-        this.selectSlideType(existingElement.slideTypeId);
+        // Try to resolve numeric id first
+        const candidate = existingElement.slideTypeId;
+        const numeric = Number(candidate);
+        if (
+          Number.isInteger(numeric) &&
+          slideTypeRegistry.getSlideType(numeric)
+        ) {
+          this.selectSlideType(numeric);
+          return;
+        }
+
+        // If candidate is a string identifier (legacy), attempt to find the
+        // registered slide type whose metadata matches that identifier.
+        const lowerCandidate = String(candidate).toLowerCase();
+        for (const [key, slideType] of slideTypeRegistry.slideTypes.entries()) {
+          // Check common properties that may match the legacy id
+          if (
+            (slideType.slideTypeId &&
+              String(slideType.slideTypeId).toLowerCase() === lowerCandidate) ||
+            (slideType.id && String(slideType.id) === String(candidate)) ||
+            (slideType.name &&
+              slideType.name.toLowerCase().includes(lowerCandidate))
+          ) {
+            this.selectSlideType(key);
+            return;
+          }
+        }
+
+        // Fallback: try selecting by numeric conversion again (no-op if invalid)
+        this.selectSlideType(numeric);
       }, 200);
     }
   }
@@ -657,12 +686,41 @@ class FrontendSlideTypeModal {
       // Get slide type info
       const slideType = slideTypeRegistry.getSlideType(this.currentSlideTypeId);
 
-      // Create the iframe element
-      addIframe(slideHTML, {
+      // Get slide data which may include default size properties
+      const slideData = slideTypeRegistry.generateSlideData(
+        this.currentSlideTypeId,
+      );
+
+      // Ensure slideData cannot override the numeric slideTypeId (some slide types
+      // incorrectly return a string id like "winkas" which breaks later lookup).
+      if (
+        slideData &&
+        Object.prototype.hasOwnProperty.call(slideData, "slideTypeId")
+      ) {
+        delete slideData.slideTypeId;
+      }
+
+      // Prepare overrides - start with slide data defaults. Explicitly set the
+      // numeric slideTypeId (this.currentSlideTypeId) so slideData can't override it.
+      const overrides = {
+        ...slideData, // include defaults from the slide type (without slideTypeId)
         slideTypeId: this.currentSlideTypeId,
         config: config,
         integrationName: slideType.name,
-      });
+        ...slideData, // re-apply slideData to allow its config to be present
+      };
+
+      // If we're updating an existing element (e.g., from placeholder conversion),
+      // remove size properties so we preserve the existing element's size
+      if (window.selectedElementForUpdate) {
+        delete overrides.gridX;
+        delete overrides.gridY;
+        delete overrides.gridWidth;
+        delete overrides.gridHeight;
+      }
+
+      // Create the iframe element
+      addIframe(slideHTML, overrides);
 
       // Close modal
       this.hide();

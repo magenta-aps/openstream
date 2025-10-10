@@ -22,6 +22,11 @@ let isActingUserOrgAdmin = false;
 let currentSelectedUserId = null;
 let isSuborgAdmin = false;
 
+// Helper function to filter out suborg_templates branches (magic branches used for template management)
+function filterVisibleBranches(branches) {
+  return branches.filter(branch => !branch.name.includes('suborg_templates'));
+}
+
 function showAddSuborgModal() {
   document.getElementById("suborgNameInput").value = "";
   const modal = new bootstrap.Modal(document.getElementById("addSuborgModal"));
@@ -565,7 +570,7 @@ function populateBranchSelectManage() {
     (s) => String(s.id) === String(chosenSuborgId),
   );
   if (!suborgObj || !suborgObj.branches) return;
-  suborgObj.branches.forEach((b) => {
+  filterVisibleBranches(suborgObj.branches).forEach((b) => {
     const opt = document.createElement("option");
     opt.value = b.id;
     opt.textContent = b.name;
@@ -653,11 +658,12 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
   let nrOfSubOrgs = null;
 
   suborgList.forEach((suborg) => {
-    nrOfSubOrgs += suborg.branches.length;
+    nrOfSubOrgs += filterVisibleBranches(suborg.branches).length;
   });
 
   if (nrOfSubOrgs === 1 && !isAnyTypeOfAdmin) {
-    let branch = suborgList[0].branches[0];
+    let visibleBranches = filterVisibleBranches(suborgList[0].branches);
+    let branch = visibleBranches[0];
     selectBranch(
       branch.id,
       branch.name,
@@ -680,7 +686,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         selectBtn.className =
           "btn btn-tertiary btn-sm ms-2 d-flex align-items-center justify-content-center global-settings-btn";
 
-        suborg.branches.forEach((branch) => {
+        filterVisibleBranches(suborg.branches).forEach((branch) => {
           selectBtn.onclick = function () {
             selectBranch(
               branch.id,
@@ -709,6 +715,19 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         // Add buttons container for suborg actions
         const suborgButtonsContainer = document.createElement("div");
         suborgButtonsContainer.className = "d-flex align-items-center ms-auto";
+
+        // Manage Templates button (for org_admin or suborg_admin)
+        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
+          const manageTemplatesBtn = document.createElement("button");
+          manageTemplatesBtn.className =
+            "btn btn-sm btn-secondary me-2 d-flex align-items-center";
+          manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext("Manage Templates")}`;
+          manageTemplatesBtn.onclick = function (e) {
+            e.stopPropagation();
+            window.location.href = `/manage-templates?mode=suborg_templates&suborg_id=${suborg.id}`;
+          };
+          suborgButtonsContainer.appendChild(manageTemplatesBtn);
+        }
 
         // Add branch button (for org_admin or suborg_admin)
         if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
@@ -762,7 +781,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         cardBody.style.boxShadow = "1px 1px 10px 5px rgba(72, 99, 115, 0.12)";
         cardBody.style.overflow = "hidden";
 
-        if (suborg.branches && suborg.branches.length > 0) {
+        const visibleBranches = filterVisibleBranches(suborg.branches || []);
+        if (visibleBranches.length > 0) {
           const table = document.createElement("table");
           table.className = "table table-sm mb-0";
           table.style.border = "none";
@@ -806,7 +826,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
 
           // Create table body
           const tbody = document.createElement("tbody");
-          suborg.branches.forEach((branch, index) => {
+          visibleBranches.forEach((branch, index) => {
             const row = document.createElement("tr");
 
             // Branch name cell
@@ -818,7 +838,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
             branchCell.style.padding = "12px 16px";
             branchCell.style.width = "25%";
             branchCell.style.fontSize = "1rem";
-            if (index < suborg.branches.length - 1) {
+            if (index < visibleBranches.length - 1) {
               branchCell.style.borderBottom = "1px solid #dee2e6";
             }
 
@@ -829,7 +849,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
             actionsCell.style.border = "none";
             actionsCell.style.padding = "12px 16px";
             actionsCell.style.width = "25%";
-            if (index < suborg.branches.length - 1) {
+            if (index < visibleBranches.length - 1) {
               actionsCell.style.borderBottom = "1px solid #dee2e6";
             }
 
@@ -895,7 +915,7 @@ arrow_outward
             fillerCell.style.border = "none";
             fillerCell.style.padding = "12px 16px";
             fillerCell.style.width = "50%";
-            if (index < suborg.branches.length - 1) {
+            if (index < visibleBranches.length - 1) {
               fillerCell.style.borderBottom = "1px solid #dee2e6";
             }
 
@@ -1165,7 +1185,7 @@ function populateBranchSelect(suborgId) {
   const suborgObj = subOrgsData.find((s) => String(s.id) === String(suborgId));
   if (!suborgObj || !suborgObj.branches) return;
 
-  suborgObj.branches.forEach((branch) => {
+  filterVisibleBranches(suborgObj.branches).forEach((branch) => {
     if (branch.name !== "Global") {
       const opt = document.createElement("option");
       opt.value = branch.id;

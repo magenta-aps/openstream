@@ -15,8 +15,12 @@
                 {{> base/form/invalid-feedback text="Please provide a name."}}
             </div>
             <div class="mb-3">
-                {{> base/form/label for="modal-color-hex" text="Hex Value"}}
-                {{> base/form/input type="color" id="modal-color-hex" extraClass="form-control-color" value="#000000" required=true}}
+                {{> base/form/label for="modal-color-hex" text="Color"}}
+                <div class="d-flex gap-2 align-items-center">
+                    {{> base/form/input type="color" id="modal-color-picker" extraClass="form-control-color" value="#000000" required=true}}
+                    {{> base/form/input type="text" id="modal-color-hex" placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" maxlength="7" required=true}}
+                </div>
+                <div class="form-text">{% trans "Use the color picker or enter a hex value (e.g., #FF5733)" %}</div>
             </div>
             <div class="mb-3">
                 {{> base/form/label for="modal-color-type" text="Type"}}

@@ -31,6 +31,7 @@ function addPlaceholderToSlide() {
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,
     isLocked: false,
+    isHidden: false, // Initialize visibility state
   };
 
   store.slides[store.currentSlideIndex].elements.push(newPlaceholder);
@@ -200,7 +201,10 @@ export function initPlaceholderElement() {
   if (addPlaceholderBtn) {
     addPlaceholderBtn.addEventListener("click", addPlaceholderToSlide);
 
-    if (queryParams.mode === "template_editor") {
+    if (
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates"
+    ) {
       addPlaceholderBtn.classList.remove("d-none");
     }
   }

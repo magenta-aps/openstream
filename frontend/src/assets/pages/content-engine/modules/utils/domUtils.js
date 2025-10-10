@@ -41,5 +41,7 @@ export function getAllRelevantElements() {
 export function getNewZIndex() {
   const allElements = getAllRelevantElements();
   if (allElements.length === 0) return 1;
-  return Math.max(...allElements.map((el) => el.zIndex || 1)) + 1;
+  const nonAlwaysElements = allElements.filter((el) => !el.isAlwaysOnTop);
+  if (nonAlwaysElements.length === 0) return 1;
+  return Math.max(...nonAlwaysElements.map((el) => el.zIndex || 1)) + 1;
 }

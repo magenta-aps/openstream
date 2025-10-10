@@ -17,7 +17,11 @@ path = [
     "**.ico",
     "**.xlsx",
     "**.mp4",
-    "**.env"
+    "**.env",
+    "**.jpg",
+    "**.woff",
+    "**.ttf",
+    "**.woff2"
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Magenta ApS <info@magenta.dk>"
@@ -27,3 +31,9 @@ SPDX-License-Identifier = "AGPL-3.0-only"
 path = "**.json"
 SPDX-FileCopyrightText = "2025 Magenta ApS <info@magenta.dk>"
 SPDX-License-Identifier = "AGPL-3.0-only"
+
+# Third-party media files - NOT owned by Magenta ApS
+[[annotations]]
+path = "dev-environment/minio_test_media/**"
+SPDX-FileCopyrightText = "Various third-party authors"
+SPDX-License-Identifier = "LicenseRef-ThirdParty"

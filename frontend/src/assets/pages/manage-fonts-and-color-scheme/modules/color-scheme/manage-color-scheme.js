@@ -1,39 +1,24 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import * as bootstrap from "bootstrap";
-import "./style.scss";
-import {
-  translateHTML,
-  gettext,
-  fetchUserLangugage,
-} from "../../utils/locales";
-import {
-  token,
-  myUserId,
-  signOut,
-  validateToken,
-  makeActiveInNav,
-  updateNavbarUsername,
-  updateNavbarBranchName,
-  genericFetch,
-  showToast,
-  parentOrgID,
-  initSignOutButton,
-} from "../../utils/utils";
-import { BASE_URL } from "../../utils/constants";
+import { gettext } from "../../../../utils/locales";
+import { genericFetch, showToast, parentOrgID } from "../../../../utils/utils";
+import { BASE_URL } from "../../../../utils/constants";
 
 let colors = [];
 let colorBeingEdited = null;
 let deleteId = null;
 
 // DOM elements
-const adminRequiredMessage = document.getElementById("admin-required-message");
-const loadingSpinner = document.getElementById("loading-spinner");
+const adminRequiredMessage = document.getElementById(
+  "admin-required-message-colors",
+);
+const loadingSpinner = document.getElementById("loading-spinner-colors");
 const colorsTable = document.getElementById("colors-table");
 const colorsTableBody = document.getElementById("colors-table-body");
-const deleteModalEl = document.getElementById("deleteModal");
+const deleteModalEl = document.getElementById("deleteColorModal");
 const deleteModal = new bootstrap.Modal(deleteModalEl);
-const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+const confirmDeleteBtn = document.getElementById("confirm-delete-color-btn");
 const deleteNameEl = document.getElementById("delete-color-name");
 
 // Modal elements
@@ -41,23 +26,20 @@ const colorModal = new bootstrap.Modal(document.getElementById("colorModal"));
 const openModalBtn = document.getElementById("open-color-modal-btn");
 const modalNameInput = document.getElementById("modal-color-name");
 const modalHexInput = document.getElementById("modal-color-hex");
+const modalColorPicker = document.getElementById("modal-color-picker");
 const modalTypeSelect = document.getElementById("modal-color-type");
 const modalEditIdInput = document.getElementById("modal-edit-color-id");
 const modalSaveBtn = document.getElementById("modal-save-btn");
 
-// Initialize page on load
-document.addEventListener("DOMContentLoaded", async () => {
-  await fetchUserLangugage();
-  translateHTML();
-  makeActiveInNav("/manage-color-scheme");
-  await validateToken();
-  updateNavbarBranchName();
-  updateNavbarUsername();
+/**
+ * Initialize color scheme management
+ */
+export default async function initializeManageColorScheme() {
   await loadColors();
   setupEventListeners();
-});
+}
 
-// Load colors from API
+/** Load colors from API */
 async function loadColors() {
   show(loadingSpinner);
   hide(colorsTable);
@@ -81,7 +63,7 @@ async function loadColors() {
   }
 }
 
-// Render colors table
+/** Render colors table */
 function renderColors() {
   colorsTableBody.innerHTML = "";
   if (!colors || colors.length === 0) {
@@ -98,20 +80,26 @@ function renderColors() {
     const previewTd = document.createElement("td");
     const previewDiv = document.createElement("div");
     previewDiv.className = "color-preview";
-    previewDiv.style.backgroundColor = color.hex_value || color.hexValue || "";
+    previewDiv.style.backgroundColor = color.hexValue;
     previewTd.appendChild(previewDiv);
+    // HEX value
+    const hexTd = document.createElement("td");
+    hexTd.textContent = color.hexValue;
     // Actions
     const actionsTd = document.createElement("td");
+    actionsTd.className = "action-cell-td";
     // Edit
     const editBtn = document.createElement("button");
-    editBtn.className = "btn btn-sm btn-outline-secondary me-2";
-    editBtn.innerHTML = '<span class="material-symbols-outlined">edit</span>';
+    editBtn.className = "btn btn-sm btn-outline-secondary-light me-2";
+    editBtn.innerHTML =
+      '<span class="material-symbols-outlined text-secondary-hover">edit</span>';
     editBtn.title = gettext("Edit");
     editBtn.addEventListener("click", () => openEditModal(color));
     // Delete
     const delBtn = document.createElement("button");
-    delBtn.className = "btn btn-sm btn-outline-danger";
-    delBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+    delBtn.className = "btn btn-sm btn-outline-secondary-light";
+    delBtn.innerHTML =
+      '<span class="material-symbols-outlined text-secondary-hover">delete_forever</span>';
     delBtn.title = gettext("Delete");
     delBtn.addEventListener("click", () => showDeleteConfirmation(color));
     actionsTd.appendChild(editBtn);
@@ -122,6 +110,7 @@ function renderColors() {
     // Append
     row.appendChild(nameTd);
     row.appendChild(previewTd);
+    row.appendChild(hexTd);
     row.appendChild(typeTd);
     row.appendChild(actionsTd);
     colorsTableBody.appendChild(row);
@@ -129,11 +118,12 @@ function renderColors() {
   show(colorsTable);
 }
 
-// Open add color modal
+/** Open add color modal */
 function openAddModal() {
   modalEditIdInput.value = "";
   modalNameInput.value = "";
   modalHexInput.value = "#000000";
+  modalColorPicker.value = "#000000";
   modalTypeSelect.value = "primary";
   document.getElementById("colorModalLabel").textContent = gettext("Add Color");
   modalSaveBtn.textContent = gettext("Save");
@@ -141,12 +131,14 @@ function openAddModal() {
   colorModal.show();
 }
 
-// Open edit color modal
+/** Open edit color modal */
 function openEditModal(color) {
   colorBeingEdited = color;
   modalEditIdInput.value = color.id;
   modalNameInput.value = color.name;
-  modalHexInput.value = color.hex_value || color.hexValue;
+  const hexValue = color.hexValue;
+  modalHexInput.value = hexValue;
+  modalColorPicker.value = hexValue;
   modalTypeSelect.value = color.type;
   document.getElementById("colorModalLabel").textContent =
     gettext("Edit Color");
@@ -154,11 +146,21 @@ function openEditModal(color) {
   colorModal.show();
 }
 
-// Handle modal save
+/** Handle modal save */
 async function handleModalSave() {
+  // Validate hex input before saving
+  const hexValue = modalHexInput.value;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+    modalHexInput.setCustomValidity(
+      gettext("Please enter a valid hex color (e.g., #FF5733)"),
+    );
+    modalHexInput.reportValidity();
+    return;
+  }
+
   const payload = {
     name: modalNameInput.value,
-    hexValue: modalHexInput.value,
+    hexValue: hexValue,
     type: modalTypeSelect.value,
   };
   try {
@@ -190,14 +192,14 @@ async function handleModalSave() {
   }
 }
 
-// Show delete confirmation
+/** Show delete confirmation */
 function showDeleteConfirmation(color) {
   deleteId = color.id;
   deleteNameEl.textContent = color.name;
   deleteModal.show();
 }
 
-// Delete color
+/** Delete color */
 async function deleteColor() {
   if (!deleteId) return;
   try {
@@ -219,7 +221,7 @@ async function deleteColor() {
   }
 }
 
-// Utility show/hide
+/** Utility show/hide */
 function show(el) {
   if (el) el.classList.remove("d-none");
 }
@@ -227,16 +229,36 @@ function hide(el) {
   if (el) el.classList.add("d-none");
 }
 
+/** Setup EventListeners */
 function setupEventListeners() {
   openModalBtn.addEventListener("click", openAddModal);
   modalSaveBtn.addEventListener("click", handleModalSave);
   confirmDeleteBtn.addEventListener("click", deleteColor);
-}
 
-function activateNavLink() {
-  const navLink = document.querySelector('a[href="/manage-color-scheme"]');
-  if (navLink) navLink.classList.add("active");
-}
-setTimeout(activateNavLink, 200);
+  // Synchronize color picker and hex input
+  modalColorPicker.addEventListener("input", (e) => {
+    modalHexInput.value = e.target.value.toUpperCase();
+  });
 
-initSignOutButton();
+  modalHexInput.addEventListener("input", (e) => {
+    const hexValue = e.target.value;
+    // Validate hex format
+    if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
+      modalColorPicker.value = hexValue;
+      e.target.setCustomValidity(""); // Clear any validation errors
+    } else if (hexValue === "") {
+      e.target.setCustomValidity(""); // Allow empty for now, required will handle it
+    } else {
+      e.target.setCustomValidity(
+        gettext("Please enter a valid hex color (e.g., #FF5733)"),
+      );
+    }
+  });
+
+  // Ensure hex input starts with # when user starts typing
+  modalHexInput.addEventListener("keydown", (e) => {
+    if (e.target.value === "" && e.key.match(/[0-9A-Fa-f]/)) {
+      e.target.value = "#";
+    }
+  });
+}

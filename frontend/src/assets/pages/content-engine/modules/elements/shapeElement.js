@@ -169,6 +169,7 @@ function addShapeElement() {
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
+    isHidden: false, // Initialize visibility state
   };
 
   store.slides[store.currentSlideIndex].elements.push(newShape);

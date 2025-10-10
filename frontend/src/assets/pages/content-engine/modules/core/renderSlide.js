@@ -7,22 +7,24 @@ import {
 } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { _renderBackgroundColor } from "../element_formatting/backgroundColor.js";
-import {
-  _renderBorder,
-  _renderBorderRadius,
-} from "../element_formatting/border.js";
+import { _renderBorder } from "../element_formatting/border.js";
+import { _renderBorderRadius } from "../element_formatting/borderRadius.js";
 import { _renderBoxShadow } from "../element_formatting/boxShadow.js";
 import { _renderZIndex } from "../element_formatting/bringFrontBack.js";
 import { _renderOffset } from "../element_formatting/offset.js";
 import { _renderOpacity } from "../element_formatting/opacity.js";
 import { _renderPadding } from "../element_formatting/padding.js";
 import { _renderRotate } from "../element_formatting/rotate.js";
+import { _renderMirror } from "../element_formatting/mirror.js";
 import { _renderScale } from "../element_formatting/scale.js";
+import { _renderBlur } from "../element_formatting/blur.js";
+import { _renderGrayscale } from "../element_formatting/grayscale.js";
 import { _renderEmbedWebsite } from "../elements/embedWebsiteElement.js";
 import { _renderHtmlElement } from "../elements/htmlElement.js";
 import { _renderIframe } from "../elements/iframeElement.js";
 import { _renderImage } from "../elements/imageElement.js";
 import { _renderShape } from "../elements/shapeElement.js";
+import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
 import { _renderList } from "../elements/listElement.js";
 import { _renderTextbox } from "../elements/textbox.js";
@@ -219,11 +221,23 @@ export function loadSlide(
     else gridContainer.classList.remove("show-grid"); // Ensure grid class is removed if needed
 
     // Attach listeners only when creating/clearing the grid
-    gridContainer.addEventListener("click", () => {
-      hideElementToolbars();
-      hideResizeHandles();
-      window.selectedElementForUpdate = null;
-      store.selectedElement = null;
+    gridContainer.addEventListener("click", (event) => {
+      // Only deselect if clicking directly on the grid container (empty space), not on child elements
+      if (event.target === gridContainer) {
+        // Exit edit mode for any currently contentEditable elements
+        const activeEditableElements = document.querySelectorAll(
+          '[contenteditable="true"]',
+        );
+        activeEditableElements.forEach((editableEl) => {
+          editableEl.blur();
+          editableEl.contentEditable = false;
+        });
+
+        hideElementToolbars();
+        hideResizeHandles();
+        window.selectedElementForUpdate = null;
+        store.selectedElement = null;
+      }
     });
     gridContainer.addEventListener("click", () => {
       document.querySelectorAll(".popover").forEach((popover) => {
@@ -263,6 +277,11 @@ export function loadSlide(
   }
 
   // Render elements - _renderSlideElement handles checking if element already exists
+  // Defensive check: ensure slide has elements array
+  if (!slide.elements) {
+    slide.elements = [];
+  }
+
   slide.elements.forEach((el) => {
     if (!el.isPersistent) {
       _renderSlideElement(el, false, gridContainer);
@@ -271,6 +290,10 @@ export function loadSlide(
 
   // Render persistent elements from all slides, plus unpinned elements on their origin slide
   store.slides.forEach((s, slideIndex) => {
+    // Defensive check: ensure each slide has elements array
+    if (!s.elements) {
+      s.elements = [];
+    }
     s.elements.forEach((el) => {
       if (el.isPersistent) {
         // Render persistent elements on all slides
@@ -311,6 +334,43 @@ export function renderPersistentElements() {
   });
 }
 
+/**
+ * Update a single element by removing it and re-rendering it with updated data.
+ * This is more efficient than reloading the entire slide when only one element changes.
+ *
+ * @param {Object} elementData - The updated element data object
+ */
+export function updateSlideElement(elementData) {
+  if (!elementData || !elementData.id) {
+    console.error("updateSlideElement: Invalid element data");
+    return;
+  }
+
+  // Find the grid container where this element should be rendered
+  const previewSlide = document.querySelector(".preview-slide");
+  if (!previewSlide) {
+    console.error("updateSlideElement: Preview slide not found");
+    return;
+  }
+
+  const gridContainer = previewSlide.querySelector(
+    ".zoom-wrapper .grid-container",
+  );
+  if (!gridContainer) {
+    console.error("updateSlideElement: Grid container not found");
+    return;
+  }
+
+  // Remove the old element DOM node if it exists
+  const oldElement = gridContainer.querySelector(`#el-${elementData.id}`);
+  if (oldElement) {
+    oldElement.remove();
+  }
+
+  // Re-render the element with updated data
+  _renderSlideElement(elementData, false, gridContainer);
+}
+
 export function scaleSlide(previewContainer) {
   const zoomInfo = getCurrentZoomInfo();
 
@@ -338,33 +398,36 @@ export function scaleSlide(previewContainer) {
 export function scaleAllSlides() {
   const zoomInfo = getCurrentZoomInfo();
 
-  document
-    .querySelectorAll(".slide-canvas .preview-container")
-    .forEach((container) => {
-      const previewSlide = container.querySelector(".preview-slide");
-      // Update zoomWrapper and gridContainer dimensions here as well,
-      // because scaleAllSlides might be called independently after resolution change
-      const zoomWrapper = previewSlide?.querySelector(".zoom-wrapper");
-      const gridContainer = zoomWrapper?.querySelector(".grid-container");
+  // Use the same selector pattern as zoom controller to get the correct preview containers
+  const previewContainers = document.querySelectorAll(
+    ".preview-column .preview-container, .slide-canvas .preview-container:not(.preview-column .preview-container)",
+  );
 
-      if (zoomWrapper) {
-        zoomWrapper.style.width = `${store.emulatedWidth}px`;
-        zoomWrapper.style.height = `${store.emulatedHeight}px`;
-      }
-      if (gridContainer) {
-        gridContainer.style.width = `${store.emulatedWidth}px`;
-        gridContainer.style.height = `${store.emulatedHeight}px`;
-      }
+  previewContainers.forEach((container) => {
+    const previewSlide = container.querySelector(".preview-slide");
+    // Update zoomWrapper and gridContainer dimensions here as well,
+    // because scaleAllSlides might be called independently after resolution change
+    const zoomWrapper = previewSlide?.querySelector(".zoom-wrapper");
+    const gridContainer = zoomWrapper?.querySelector(".grid-container");
 
-      if (previewSlide) {
-        if (zoomInfo.mode === "fit") {
-          scaleSlide(container); // Scale the container based on the new dimensions
-        } else {
-          // In zoom mode, just update the zoom
-          updateAllSlidesZoom();
-        }
+    if (zoomWrapper) {
+      zoomWrapper.style.width = `${store.emulatedWidth}px`;
+      zoomWrapper.style.height = `${store.emulatedHeight}px`;
+    }
+    if (gridContainer) {
+      gridContainer.style.width = `${store.emulatedWidth}px`;
+      gridContainer.style.height = `${store.emulatedHeight}px`;
+    }
+
+    if (previewSlide) {
+      if (zoomInfo.mode === "fit") {
+        scaleSlide(container); // Scale the container based on the new dimensions
+      } else {
+        // In zoom mode, just update the zoom
+        updateAllSlidesZoom();
       }
-    });
+    }
+  });
 }
 
 export function initSlideshowPlayerMode() {
@@ -394,6 +457,33 @@ export function initSlideshowPlayerMode() {
 
 async function _startSlideshowPlayer() {
   const apiKey = queryParams.apiKey;
+
+  // Re-fetch and ensure fonts are ready BEFORE loading any content
+  console.log("Re-fetching fonts for slideshow-player mode with API key...");
+  const { fetchAndInitializeFonts, waitForFontsReady } = await import(
+    "../utils/fontUtils.js"
+  );
+  await fetchAndInitializeFonts();
+
+  console.log(
+    "Ensuring fonts are fully ready before loading slideshow content...",
+  );
+
+  // Wait for browser font loading to complete
+  try {
+    console.log("Waiting for document.fonts.ready...");
+    await document.fonts.ready;
+    console.log("✓ document.fonts.ready resolved");
+  } catch (e) {
+    console.warn("document.fonts.ready failed:", e);
+  }
+
+  // Custom readiness check with longer timeout
+  await waitForFontsReady(5000);
+
+  // Extra buffer for font processing
+  console.log("Adding 500ms buffer for font processing...");
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   await (async function fetchActiveContent() {
     try {
@@ -527,6 +617,15 @@ async function _startSlideshowPlayer() {
 }
 
 function _resetEditorSelection(wysiwygToolbar) {
+  // Exit edit mode for any currently contentEditable elements
+  const activeEditableElements = document.querySelectorAll(
+    '[contenteditable="true"]',
+  );
+  activeEditableElements.forEach((editableEl) => {
+    editableEl.blur();
+    editableEl.contentEditable = false;
+  });
+
   if (wysiwygToolbar) {
     wysiwygToolbar.classList.add("disabled");
   }
@@ -571,7 +670,14 @@ function _syncSlideBgColorIcon(backgroundColor) {
 }
 
 function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
-  if (queryParams.mode !== "edit" && store.slideshowMode === "interactive") {
+  // Consider this an interactive playback render when we're not in the
+  // editor or template editor modes. That covers slideshow and interactive
+  // playback contexts where we shouldn't show editor-only indicators.
+  if (
+    queryParams.mode !== "edit" &&
+    queryParams.mode !== "template_editor" &&
+    queryParams.mode !== "suborg_templates"
+  ) {
     isInteractivePlayback = true;
   }
 
@@ -598,67 +704,24 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     });
   });
 
-  // Add persistent element indicator in editor mode
-  if (
-    el.isPersistent &&
-    (queryParams.mode === "edit" || queryParams.mode === "template_editor")
-  ) {
-    const persistentIndicator = document.createElement("div");
-    persistentIndicator.className = "persistent-indicator";
-    persistentIndicator.innerHTML =
-      '<span class="material-symbols-outlined">push_pin</span>';
-    persistentIndicator.style.cssText = `
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 40px;
-      height: 40px;
-      background-color: black;
-      color: white;
-      border: 3px solid white;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      z-index: 1000;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.5);
-      pointer-events: none;
-    `;
-    persistentIndicator.querySelector(
-      ".material-symbols-outlined",
-    ).style.fontVariationSettings = "'FILL' 1";
-    container.appendChild(persistentIndicator);
+  // If element blocks selection, mark visually and disable pointer events
+  if (el.isSelectionBlocked) {
+    container.classList.add("is-selection-blocked");
+    // Prevent clicks and interactions that would select/edit the element
+    container.style.pointerEvents = "none";
   }
 
-  // Add lock element indicator in template editor mode
-  if (el.isLocked && queryParams.mode === "template_editor") {
-    const lockIndicator = document.createElement("div");
-    lockIndicator.className = "lock-indicator";
-    lockIndicator.innerHTML = '<i class="material-symbols-outlined">lock</i>';
-    lockIndicator.style.cssText = `
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #dc3545;
-      color: white;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      z-index: 1000;
-      pointer-events: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    `;
-    container.appendChild(lockIndicator);
+  // Add is-locked class if element is locked
+  if (el.isLocked) {
     container.classList.add("is-locked");
   }
 
   if (el.rotation) {
     _renderRotate(container, el);
+  }
+
+  if (el.mirror) {
+    _renderMirror(container, el);
   }
 
   if (el.scale) {
@@ -668,18 +731,26 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   if (el.opacity) {
     _renderOpacity(container, el);
   }
-  if (el.rounded) {
+  if (el.rounded || el.borderRadius) {
     _renderBorderRadius(container, el);
   }
 
   if (el.backgroundColor) {
     _renderBackgroundColor(container, el);
   }
-  if (el.border) {
+  if (el.border || el.borderData) {
     _renderBorder(container, el);
   }
-  if (el.boxShadow) {
+  if (el.boxShadow || el.boxShadowData) {
     _renderBoxShadow(container, el);
+  }
+
+  if (el.blur) {
+    _renderBlur(container, el);
+  }
+
+  if (el.grayscale) {
+    _renderGrayscale(container, el);
   }
 
   if (el.zIndex) {
@@ -694,17 +765,46 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderPadding(container, el);
   }
 
+  // Handle element visibility (default to visible if property is undefined)
+  if (el.isHidden === true) {
+    container.style.visibility = "hidden";
+  } else {
+    container.style.visibility = "visible";
+  }
+
   const resizer = document.createElement("div");
   resizer.classList.add("resize-handle");
   container.appendChild(resizer);
 
-  if (queryParams.mode === "edit" || queryParams.mode === "template_editor") {
-    container.addEventListener("click", (ev) => {
-      ev.stopPropagation();
-      selectElement(container, el);
-    });
-    makeDraggable(container, el);
-    makeResizable(container, el);
+  if (
+    queryParams.mode === "edit" ||
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates"
+  ) {
+    if (!el.isSelectionBlocked) {
+      container.addEventListener("click", (ev) => {
+        // Check if we're clicking within a contentEditable element that's already in edit mode
+        const clickedEditableElement = ev.target.closest(
+          '[contenteditable="true"]',
+        );
+
+        // If clicking within an already-editable element, don't trigger selection
+        if (
+          clickedEditableElement &&
+          clickedEditableElement.isContentEditable
+        ) {
+          return; // Let the text editing happen naturally
+        }
+
+        ev.stopPropagation();
+        selectElement(container, el);
+      });
+      makeDraggable(container, el);
+      makeResizable(container, el);
+    } else {
+      // Visual only; don't attach interactive handlers
+      container.style.cursor = "default";
+    }
   }
 
   if (store.slideshowMode === "interactive" && queryParams.mode !== "edit") {
@@ -734,6 +834,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderVideo(el, container);
   } else if (el.type === "shape") {
     _renderShape(el, container);
+  } else if (el.type === "box") {
+    _renderBox(el, container);
   } else if (el.type === "html") {
     _renderHtmlElement(el, container);
   } else if (el.type === "table") {
@@ -745,4 +847,49 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   }
 
   gridContainer.appendChild(container);
+
+  // Now that container is in the DOM, set up the resize handle as a sibling
+  // to avoid it being clipped by border-radius
+  const resizerHandle = container.querySelector(".resize-handle");
+  if (resizerHandle && container.parentNode) {
+    // Remove from container and re-add as sibling
+    resizerHandle.remove();
+    resizerHandle.style.cssText = `
+      display: none;
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: #696969;
+      cursor: se-resize;
+      user-select: none;
+      z-index: 9999;
+      pointer-events: auto;
+    `;
+
+    // Position the resizer at the bottom-right corner of the container
+    const updateResizerPosition = () => {
+      resizerHandle.style.left =
+        container.offsetLeft + container.offsetWidth - 15 + "px";
+      resizerHandle.style.top =
+        container.offsetTop + container.offsetHeight - 15 + "px";
+    };
+
+    // Insert resizer as sibling, not child, so it won't be clipped by border-radius
+    container.parentNode.insertBefore(resizerHandle, container.nextSibling);
+    updateResizerPosition();
+
+    // Store reference and update function on container
+    container._resizeHandle = resizerHandle;
+    container._updateResizerPosition = updateResizerPosition;
+
+    // Add mutation observer to track position/size changes
+    const resizerObserver = new MutationObserver(() => {
+      updateResizerPosition();
+    });
+    resizerObserver.observe(container, {
+      attributes: true,
+      attributeFilter: ["style", "class"],
+    });
+    container._resizerObserver = resizerObserver;
+  }
 }

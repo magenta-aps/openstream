@@ -1396,6 +1396,24 @@
   }
 },
 {
+  "model": "auth.user",
+  "pk": 33,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$zgxFcS3ZL95SsuxwJAqyeS$yvTyXWsfGH+air12mrGKZQuz/4xVrdsi+Lk3/TyxTP4=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "tets",
+    "first_name": "test",
+    "last_name": "test",
+    "email": "test@openstream.dk",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-10-09T11:37:26.221Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
   "model": "sessions.session",
   "pk": "075xg8ncazrn3nacc4pxyewz5lzleio3",
   "fields": {
@@ -1496,7 +1514,15 @@
   "pk": 28,
   "fields": {
     "user": 32,
-    "language_preference": "da"
+    "language_preference": "en"
+  }
+},
+{
+  "model": "app.userextended",
+  "pk": 29,
+  "fields": {
+    "user": 33,
+    "language_preference": "en"
   }
 },
 {
@@ -1786,6 +1812,30 @@
   }
 },
 {
+  "model": "app.branch",
+  "pk": 39,
+  "fields": {
+    "name": "suborg_templates",
+    "suborganisation": 1
+  }
+},
+{
+  "model": "app.branch",
+  "pk": 40,
+  "fields": {
+    "name": "suborg_templates",
+    "suborganisation": 13
+  }
+},
+{
+  "model": "app.branch",
+  "pk": 41,
+  "fields": {
+    "name": "suborg_templates",
+    "suborganisation": 15
+  }
+},
+{
   "model": "app.organisationmembership",
   "pk": 31,
   "fields": {
@@ -1966,16 +2016,6 @@
 },
 {
   "model": "app.slideshowplaylist",
-  "pk": 1,
-  "fields": {
-    "name": "Playlist til Borgerservice",
-    "branch": 14,
-    "created_by": null,
-    "updated_at": "2025-01-01T12:00:00Z"
-  }
-},
-{
-  "model": "app.slideshowplaylist",
   "pk": 2,
   "fields": {
     "name": "Test",
@@ -1985,23 +2025,80 @@
   }
 },
 {
-  "model": "app.customcolor",
-  "pk": 3,
+  "model": "app.displaywebsitegroup",
+  "pk": 1,
   "fields": {
-    "organisation": 1,
-    "name": "Logo guld – 1300",
-    "hexValue": "#635438",
-    "type": "primary"
+    "name": "Crazy time",
+    "branch": 15,
+    "default_slideshow": null,
+    "default_playlist": null
   }
 },
 {
-  "model": "app.customcolor",
+  "model": "app.displaywebsitegroup",
+  "pk": 2,
+  "fields": {
+    "name": "group 2",
+    "branch": 15,
+    "default_slideshow": null,
+    "default_playlist": null
+  }
+},
+{
+  "model": "app.displaywebsite",
+  "pk": 1,
+  "fields": {
+    "name": "SCR1",
+    "display_website_group": 1,
+    "branch": 15
+  }
+},
+{
+  "model": "app.displaywebsite",
+  "pk": 2,
+  "fields": {
+    "name": "SCR2",
+    "display_website_group": 2,
+    "branch": 15
+  }
+},
+{
+  "model": "app.document",
   "pk": 4,
   "fields": {
-    "organisation": 1,
-    "name": "Logo guld – 1100",
-    "hexValue": "#947E54",
-    "type": "primary"
+    "file_type": "jpeg",
+    "title": "1600px_colourbox64593484",
+    "file": "uploads/1600px_colourbox64593484-093596c13ede.jpg",
+    "uploaded_at": "2025-10-03T08:53:55.872Z",
+    "category": null,
+    "branch": 15,
+    "tags": []
+  }
+},
+{
+  "model": "app.document",
+  "pk": 9,
+  "fields": {
+    "file_type": "png",
+    "title": "LTK_Logo_VE-neg",
+    "file": "uploads/LTK_Logo_VE-neg-5c2a712ace02.png",
+    "uploaded_at": "2025-10-03T11:47:16.894Z",
+    "category": null,
+    "branch": 15,
+    "tags": []
+  }
+},
+{
+  "model": "app.document",
+  "pk": 14,
+  "fields": {
+    "file_type": "mp4",
+    "title": "beach",
+    "file": "uploads/13394724_2160_3840_25fps-0983518d86dd.mp4",
+    "uploaded_at": "2025-10-09T11:59:30.215Z",
+    "category": null,
+    "branch": 36,
+    "tags": []
   }
 },
 {
@@ -2110,7 +2207,7 @@
   "fields": {
     "organisation": 1,
     "name": "Logo blå – 1300",
-    "hexValue": "#084163",
+    "hexValue": "#e01b24",
     "type": "primary"
   }
 },
@@ -2785,75 +2882,13 @@
   }
 },
 {
-  "model": "app.customfont",
-  "pk": 1,
+  "model": "app.customcolor",
+  "pk": 83,
   "fields": {
     "organisation": 1,
-    "name": "Flama Book",
-    "font_url": "https://infoscreen.fra1.digitaloceanspaces.com/ltk_fonts/Flama-Book.woff"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 2,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Book Italic",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-BookItalic.woff2"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 3,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Light",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-Light.woff2"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 4,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Light Italic",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-LightItalic.woff2"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 5,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Medium",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-Medium.woff2"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 6,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Medium Italic",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-MediumItalic.woff2"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 7,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Semibold",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-Semibold.woff2"
-  }
-},
-{
-  "model": "app.customfont",
-  "pk": 8,
-  "fields": {
-    "organisation": 1,
-    "name": "Flama Semibold Italic",
-    "font_url": "https://infoscreen.fra1.cdn.digitaloceanspaces.com/ltk_fonts/Flama-SemiboldItalic.woff2"
+    "name": "Special Red",
+    "hexValue": "#d1506c",
+    "type": "primary"
   }
 },
 {
@@ -2866,3465 +2901,93 @@
   }
 },
 {
-  "model": "app.slidetemplate",
-  "pk": 1,
-  "fields": {
-    "organisation": 1,
-    "name": "Åbningstider",
-    "slideData": {
-      "name": "Åbningstider",
-      "duration": 5,
-      "elements": [
-        {
-          "id": 9,
-          "fill": "#000000",
-          "type": "shape",
-          "gridX": 0,
-          "gridY": 0,
-          "shape": "square",
-          "stroke": "#000000",
-          "zIndex": 1,
-          "fitMode": "stretch",
-          "opacity": 0.29,
-          "isLocked": false,
-          "alignment": {
-            "h": "center",
-            "v": "middle"
-          },
-          "gridWidth": 200,
-          "gridHeight": 200,
-          "strokeWidth": 10,
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 1
-        },
-        {
-          "id": 1,
-          "fill": "#E4EFF9",
-          "type": "shape",
-          "gridX": 19,
-          "gridY": 23,
-          "shape": "square",
-          "stroke": "#E4EFF9",
-          "zIndex": 2,
-          "fitMode": "stretch",
-          "opacity": 0.81,
-          "isLocked": false,
-          "alignment": {
-            "h": "center",
-            "v": "middle"
-          },
-          "gridWidth": 160,
-          "gridHeight": 162,
-          "strokeWidth": 10,
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 1
-        },
-        {
-          "id": 4,
-          "cols": 2,
-          "data": [
-            [
-              "Åbningstider",
-              ""
-            ],
-            [
-              "Mandag",
-              "07:00 - 23:00"
-            ],
-            [
-              "Tirsdag",
-              "07:00 - 20:00"
-            ],
-            [
-              "Onsdag",
-              "07:00 - 20:00"
-            ],
-            [
-              "Fredag",
-              "08:00 - 20:00"
-            ],
-            [
-              "Lørdag",
-              "10:00 - 16:00"
-            ],
-            [
-              "Søndag",
-              "10:00 - 16:00"
-            ]
-          ],
-          "rows": 7,
-          "type": "table",
-          "gridX": 39,
-          "gridY": 42,
-          "zIndex": 3,
-          "striped": false,
-          "bordered": false,
-          "isLocked": false,
-          "fontColor": "#212529",
-          "gridWidth": 120,
-          "cellSizing": "even",
-          "gridHeight": 132,
-          "useBgColor": false,
-          "borderColor": "#dee2e6",
-          "rowFontSize": 2.3,
-          "stripedColor": "#f8f9fa",
-          "tableBgColor": "#ffffff",
-          "headerBgColor": "#f8f9fa",
-          "rowFontFamily": "Flama Light",
-          "headerFontSize": 2.5,
-          "borderThickness": 1,
-          "headerFontColor": "#212529",
-          "headerFontFamily": "Flama Book",
-          "originSlideIndex": 0,
-          "stripedFontColor": "#212529",
-          "useHeaderBgColor": false
-        },
-        {
-          "id": 7,
-          "type": "image",
-          "gridX": 0,
-          "gridY": 2,
-          "zIndex": 4,
-          "content": 11,
-          "opacity": 1,
-          "isLocked": false,
-          "gridWidth": 200,
-          "gridHeight": 18,
-          "sizingMode": "scaled",
-          "objectPosition": "right center",
-          "backgroundColor": "",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 0.24
-        },
-        {
-          "id": 8,
-          "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-          "type": "textbox",
-          "gridX": 40,
-          "gridY": 30,
-          "border": false,
-          "zIndex": 5,
-          "fontSize": "6",
-          "isLocked": false,
-          "gridWidth": 95,
-          "textAlign": "left",
-          "textColor": "#000000",
-          "fontFamily": "Flama Book",
-          "fontWeight": "normal",
-          "gridHeight": 11,
-          "lineHeight": "1.2",
-          "verticalAlign": "center",
-          "textDecoration": "none",
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0
-        }
-      ],
-      "redoStack": [],
-      "undoStack": [
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 18,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.71,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 34,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 25,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 18,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.71,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 34,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 25,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 19,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 34,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 25,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 34,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 25,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 39,
-            "gridY": 26,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#000000",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 1,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 2,
-            "zIndex": 4,
-            "content": 11,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabeloncafén</span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ]
-      ],
-      "activationDate": null,
-      "backgroundSize": "100% 100%",
-      "backgroundColor": "#ffffff",
-      "backgroundImage": 12,
-      "backgroundRepeat": "no-repeat",
-      "deactivationDate": null,
-      "activationEnabled": false,
-      "backgroundPosition": "center"
-    },
-    "category": 7,
-    "accepted_aspect_ratios": [
-      "16:9",
-      "4:3",
-      "21:9",
-      "1.85:1",
-      "2.39:1",
-      "9:16",
-      "3:4",
-      "9:21",
-      "1:1.85",
-      "1:2.39"
-    ],
-    "tags": [
-      13,
-      14,
-      15
-    ]
-  }
-},
-{
-  "model": "app.slidetemplate",
-  "pk": 2,
+  "model": "app.customfont",
+  "pk": 13,
   "fields": {
     "organisation": 3,
-    "name": "Åbningstider",
-    "slideData": {
-      "name": "Åbningstider",
-      "duration": 5,
-      "elements": [
-        {
-          "id": 9,
-          "fill": "#000000",
-          "type": "shape",
-          "gridX": 0,
-          "gridY": 0,
-          "shape": "square",
-          "stroke": "#000000",
-          "zIndex": 1,
-          "fitMode": "stretch",
-          "opacity": 0.29,
-          "isLocked": false,
-          "alignment": {
-            "h": "center",
-            "v": "middle"
-          },
-          "gridWidth": 200,
-          "gridHeight": 200,
-          "strokeWidth": 10,
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 1
-        },
-        {
-          "id": 1,
-          "fill": "#E4EFF9",
-          "type": "shape",
-          "gridX": 19,
-          "gridY": 23,
-          "shape": "square",
-          "stroke": "#E4EFF9",
-          "zIndex": 2,
-          "fitMode": "stretch",
-          "opacity": 0.81,
-          "isLocked": false,
-          "alignment": {
-            "h": "center",
-            "v": "middle"
-          },
-          "gridWidth": 160,
-          "gridHeight": 162,
-          "strokeWidth": 10,
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 1
-        },
-        {
-          "id": 4,
-          "cols": 2,
-          "data": [
-            [
-              "Åbningstider",
-              ""
-            ],
-            [
-              "Mandag",
-              "07:00 - 23:00"
-            ],
-            [
-              "Tirsdag",
-              "07:00 - 20:00"
-            ],
-            [
-              "Onsdag",
-              "07:00 - 20:00"
-            ],
-            [
-              "Fredag",
-              "08:00 - 20:00"
-            ],
-            [
-              "Lørdag",
-              "10:00 - 16:00"
-            ],
-            [
-              "Søndag",
-              "10:00 - 16:00"
-            ]
-          ],
-          "rows": 7,
-          "type": "table",
-          "gridX": 39,
-          "gridY": 42,
-          "zIndex": 3,
-          "striped": false,
-          "bordered": false,
-          "isLocked": false,
-          "fontColor": "#212529",
-          "gridWidth": 120,
-          "cellSizing": "even",
-          "gridHeight": 132,
-          "useBgColor": false,
-          "borderColor": "#dee2e6",
-          "rowFontSize": 2.3,
-          "stripedColor": "#f8f9fa",
-          "tableBgColor": "#ffffff",
-          "headerBgColor": "#f8f9fa",
-          "rowFontFamily": "Flama Light",
-          "headerFontSize": 2.5,
-          "borderThickness": 1,
-          "headerFontColor": "#212529",
-          "headerFontFamily": "Flama Book",
-          "originSlideIndex": 0,
-          "stripedFontColor": "#212529",
-          "useHeaderBgColor": false
-        },
-        {
-          "id": 7,
-          "type": "image",
-          "gridX": 0,
-          "gridY": 0,
-          "zIndex": 4,
-          "content": 15,
-          "opacity": 1,
-          "padding": "0.8%",
-          "isLocked": false,
-          "gridWidth": 200,
-          "gridHeight": 23,
-          "sizingMode": "scaled",
-          "objectPosition": "right center",
-          "backgroundColor": "",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 0.54
-        },
-        {
-          "id": 8,
-          "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-          "type": "textbox",
-          "gridX": 40,
-          "gridY": 30,
-          "border": false,
-          "zIndex": 5,
-          "fontSize": "6",
-          "isLocked": false,
-          "gridWidth": 95,
-          "textAlign": "left",
-          "textColor": "#000000",
-          "fontFamily": "Flama Book",
-          "fontWeight": "normal",
-          "gridHeight": 11,
-          "lineHeight": "1.2",
-          "verticalAlign": "center",
-          "textDecoration": "none",
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0
-        }
-      ],
-      "redoStack": [],
-      "undoStack": [
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 2,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 199,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 1,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 18,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#FFFFFF",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.24
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#FFFFFF",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 13,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#FFFFFF",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ],
-        [
-          {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
-            "gridX": 0,
-            "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
-            "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 200,
-            "gridHeight": 200,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 0,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 15,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 200,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "#FFFFFF",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
-            "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
-            "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
-            "isLocked": false,
-            "gridWidth": 95,
-            "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
-            "textDecoration": "none",
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0
-          }
-        ]
-      ],
-      "activationDate": null,
-      "backgroundSize": "100% 100%",
-      "backgroundColor": "#ffffff",
-      "backgroundImage": 14,
-      "backgroundRepeat": "no-repeat",
-      "deactivationDate": null,
-      "activationEnabled": false,
-      "backgroundPosition": "center"
-    },
-    "category": null,
-    "accepted_aspect_ratios": [],
-    "tags": []
+    "name": "WorkSans",
+    "font_url": "http://localhost:9000/infoscreen/uploads/fonts/3/WorkSans-VariableFont_wght-70e7eb1d903f.ttf"
   }
 },
 {
   "model": "app.slidetemplate",
-  "pk": 3,
+  "pk": 25,
   "fields": {
-    "organisation": 4,
-    "name": "Åbningstider",
+    "organisation": 3,
+    "suborganisation": null,
+    "parent_template": null,
+    "name": "Demo Template",
     "slideData": {
-      "name": "Åbningstider",
+      "name": "Demo Template",
       "duration": 5,
       "elements": [
         {
-          "id": 9,
-          "fill": "#000000",
-          "type": "shape",
+          "id": 1,
+          "type": "video",
           "gridX": 0,
           "gridY": 0,
-          "shape": "square",
-          "stroke": "#000000",
+          "muted": true,
           "zIndex": 1,
-          "fitMode": "stretch",
-          "opacity": 0.29,
+          "content": 14,
+          "isHidden": false,
           "isLocked": false,
-          "alignment": {
-            "h": "center",
-            "v": "middle"
-          },
           "gridWidth": 200,
           "gridHeight": 200,
-          "strokeWidth": 10,
+          "objectPosition": "center center",
           "backgroundColor": "transparent",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 1
+          "originSlideIndex": 0
         },
         {
-          "id": 1,
-          "fill": "#E4EFF9",
-          "type": "shape",
-          "gridX": 19,
-          "gridY": 23,
-          "shape": "square",
-          "stroke": "#E4EFF9",
-          "zIndex": 2,
-          "fitMode": "stretch",
-          "opacity": 0.81,
-          "isLocked": false,
-          "alignment": {
-            "h": "center",
-            "v": "middle"
-          },
-          "gridWidth": 160,
-          "gridHeight": 162,
-          "strokeWidth": 10,
-          "backgroundColor": "transparent",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 1
-        },
-        {
-          "id": 4,
-          "cols": 2,
-          "data": [
-            [
-              "Åbningstider",
-              ""
-            ],
-            [
-              "Mandag",
-              "07:00 - 23:00"
-            ],
-            [
-              "Tirsdag",
-              "07:00 - 20:00"
-            ],
-            [
-              "Onsdag",
-              "07:00 - 20:00"
-            ],
-            [
-              "Fredag",
-              "08:00 - 20:00"
-            ],
-            [
-              "Lørdag",
-              "10:00 - 16:00"
-            ],
-            [
-              "Søndag",
-              "10:00 - 16:00"
-            ]
-          ],
-          "rows": 7,
-          "type": "table",
-          "gridX": 39,
-          "gridY": 42,
-          "zIndex": 3,
-          "striped": false,
-          "bordered": false,
-          "isLocked": false,
-          "fontColor": "#212529",
-          "gridWidth": 120,
-          "cellSizing": "even",
-          "gridHeight": 132,
-          "useBgColor": false,
-          "borderColor": "#dee2e6",
-          "rowFontSize": 2.3,
-          "stripedColor": "#f8f9fa",
-          "tableBgColor": "#ffffff",
-          "headerBgColor": "#f8f9fa",
-          "rowFontFamily": "Flama Light",
-          "headerFontSize": 2.5,
-          "borderThickness": 1,
-          "headerFontColor": "#212529",
-          "headerFontFamily": "Flama Book",
-          "originSlideIndex": 0,
-          "stripedFontColor": "#212529",
-          "useHeaderBgColor": false
-        },
-        {
-          "id": 7,
-          "type": "image",
-          "gridX": 174,
-          "gridY": 0,
-          "zIndex": 4,
-          "content": 17,
-          "opacity": 1,
-          "padding": "0.8%",
-          "isLocked": false,
-          "gridWidth": 24,
-          "gridHeight": 23,
-          "sizingMode": "scaled",
-          "objectPosition": "right center",
-          "backgroundColor": "",
-          "originSlideIndex": 0,
-          "backgroundOpacity": 0.54
-        },
-        {
-          "id": 8,
-          "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+          "id": 2,
+          "text": "<div>Velkommen</div>",
           "type": "textbox",
-          "gridX": 40,
-          "gridY": 30,
+          "gridX": 14,
+          "gridY": 54,
           "border": false,
-          "zIndex": 5,
-          "fontSize": "6",
+          "zIndex": 2,
+          "fontSize": "35",
+          "isHidden": false,
           "isLocked": false,
-          "gridWidth": 95,
+          "fontStyle": "normal",
+          "gridWidth": 181,
           "textAlign": "left",
-          "textColor": "#000000",
-          "fontFamily": "Flama Book",
-          "fontWeight": "normal",
-          "gridHeight": 11,
-          "lineHeight": "1.2",
-          "verticalAlign": "center",
+          "textColor": "#FFFFFF",
+          "fontFamily": "WorkSans",
+          "fontWeight": "800",
+          "gridHeight": 60,
+          "lineHeight": "1.3",
+          "letterSpacing": "0.2",
+          "textDirection": "horizontal",
           "textDecoration": "none",
           "backgroundColor": "transparent",
+          "isSimpleTextMode": true,
+          "originSlideIndex": 0
+        },
+        {
+          "id": 3,
+          "text": "<div>openstream.dk</div>",
+          "type": "textbox",
+          "gridX": 76,
+          "gridY": 161,
+          "border": false,
+          "zIndex": 3,
+          "fontSize": "23",
+          "isHidden": false,
+          "isLocked": false,
+          "fontStyle": "normal",
+          "gridWidth": 110,
+          "textAlign": "right",
+          "textColor": "#000000",
+          "fontFamily": "WorkSans",
+          "fontWeight": "300",
+          "gridHeight": 35,
+          "lineHeight": "1.2",
+          "letterSpacing": "normal",
+          "textDirection": "horizontal",
+          "verticalAlign": "flex-end",
+          "textDecoration": "none",
+          "backgroundColor": "transparent",
+          "isSimpleTextMode": true,
           "originSlideIndex": 0
         }
       ],
@@ -6332,1496 +2995,722 @@
       "undoStack": [
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 176,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 22,
-            "gridHeight": 27,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 6,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "37",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 174,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 22,
-            "gridHeight": 27,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 5,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "37",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 174,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 32,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 5,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "37",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.05",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 174,
-            "gridY": 1,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 6,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "37",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.05",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 174,
-            "gridY": 3,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 5,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "37",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.05",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 173,
-            "gridY": 2,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 25,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 5,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "32",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.2",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 173,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 25,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 6,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "32",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.2",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 173,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 10,
+            "gridY": 5,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "35",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.2",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 174,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 15,
+            "gridY": 52,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "35",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.2",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ],
         [
           {
-            "id": 9,
-            "fill": "#000000",
-            "type": "shape",
+            "id": 1,
+            "type": "video",
             "gridX": 0,
             "gridY": 0,
-            "shape": "square",
-            "stroke": "#000000",
+            "muted": true,
             "zIndex": 1,
-            "fitMode": "stretch",
-            "opacity": 0.29,
+            "content": 14,
+            "isHidden": false,
             "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
             "gridWidth": 200,
             "gridHeight": 200,
-            "strokeWidth": 10,
+            "objectPosition": "center center",
             "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
+            "originSlideIndex": 0
           },
           {
-            "id": 1,
-            "fill": "#E4EFF9",
-            "type": "shape",
-            "gridX": 19,
-            "gridY": 23,
-            "shape": "square",
-            "stroke": "#E4EFF9",
-            "zIndex": 2,
-            "fitMode": "stretch",
-            "opacity": 0.81,
-            "isLocked": false,
-            "alignment": {
-              "h": "center",
-              "v": "middle"
-            },
-            "gridWidth": 160,
-            "gridHeight": 162,
-            "strokeWidth": 10,
-            "backgroundColor": "transparent",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 1
-          },
-          {
-            "id": 4,
-            "cols": 2,
-            "data": [
-              [
-                "Åbningstider",
-                ""
-              ],
-              [
-                "Mandag",
-                "07:00 - 23:00"
-              ],
-              [
-                "Tirsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Onsdag",
-                "07:00 - 20:00"
-              ],
-              [
-                "Fredag",
-                "08:00 - 20:00"
-              ],
-              [
-                "Lørdag",
-                "10:00 - 16:00"
-              ],
-              [
-                "Søndag",
-                "10:00 - 16:00"
-              ]
-            ],
-            "rows": 7,
-            "type": "table",
-            "gridX": 39,
-            "gridY": 42,
-            "zIndex": 3,
-            "striped": false,
-            "bordered": false,
-            "isLocked": false,
-            "fontColor": "#212529",
-            "gridWidth": 120,
-            "cellSizing": "even",
-            "gridHeight": 132,
-            "useBgColor": false,
-            "borderColor": "#dee2e6",
-            "rowFontSize": 2.3,
-            "stripedColor": "#f8f9fa",
-            "tableBgColor": "#ffffff",
-            "headerBgColor": "#f8f9fa",
-            "rowFontFamily": "Flama Light",
-            "headerFontSize": 2.5,
-            "borderThickness": 1,
-            "headerFontColor": "#212529",
-            "headerFontFamily": "Flama Book",
-            "originSlideIndex": 0,
-            "stripedFontColor": "#212529",
-            "useHeaderBgColor": false
-          },
-          {
-            "id": 7,
-            "type": "image",
-            "gridX": 176,
-            "gridY": 0,
-            "zIndex": 4,
-            "content": 17,
-            "opacity": 1,
-            "padding": "0.8%",
-            "isLocked": false,
-            "gridWidth": 24,
-            "gridHeight": 23,
-            "sizingMode": "scaled",
-            "objectPosition": "right center",
-            "backgroundColor": "",
-            "originSlideIndex": 0,
-            "backgroundOpacity": 0.54
-          },
-          {
-            "id": 8,
-            "text": "<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">Skabelons Caf<span style=\"font-size: calc(18px + 0.5vw); font-family: &quot;Flama Book&quot;; line-height: 1.2;\" data-font-size-key=\"6\" data-font-family=\"Flama Book\">é</span></span>",
+            "id": 2,
+            "text": "<div>Velkommen</div>",
             "type": "textbox",
-            "gridX": 40,
-            "gridY": 30,
+            "gridX": 14,
+            "gridY": 54,
             "border": false,
-            "zIndex": 5,
-            "fontSize": "6",
+            "zIndex": 2,
+            "fontSize": "35",
+            "isHidden": false,
             "isLocked": false,
-            "gridWidth": 95,
+            "fontStyle": "normal",
+            "gridWidth": 181,
             "textAlign": "left",
-            "textColor": "#000000",
-            "fontFamily": "Flama Book",
-            "fontWeight": "normal",
-            "gridHeight": 11,
-            "lineHeight": "1.2",
-            "verticalAlign": "center",
+            "textColor": "#FFFFFF",
+            "fontFamily": "WorkSans",
+            "fontWeight": "800",
+            "gridHeight": 60,
+            "lineHeight": "1.3",
+            "letterSpacing": "0.2",
+            "textDirection": "horizontal",
             "textDecoration": "none",
             "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
+            "originSlideIndex": 0
+          },
+          {
+            "id": 3,
+            "text": "<div>openstream.dk</div>",
+            "type": "textbox",
+            "gridX": 76,
+            "gridY": 161,
+            "border": false,
+            "zIndex": 3,
+            "fontSize": "23",
+            "isHidden": false,
+            "isLocked": false,
+            "fontStyle": "normal",
+            "gridWidth": 110,
+            "textAlign": "right",
+            "textColor": "#000000",
+            "fontFamily": "WorkSans",
+            "fontWeight": "300",
+            "gridHeight": 35,
+            "lineHeight": "1.2",
+            "letterSpacing": "normal",
+            "textDirection": "horizontal",
+            "verticalAlign": "flex-end",
+            "textDecoration": "none",
+            "backgroundColor": "transparent",
+            "isSimpleTextMode": true,
             "originSlideIndex": 0
           }
         ]
       ],
       "activationDate": null,
-      "backgroundSize": "100% 100%",
       "backgroundColor": "#ffffff",
-      "backgroundImage": 16,
-      "backgroundRepeat": "no-repeat",
       "deactivationDate": null,
-      "activationEnabled": false,
-      "backgroundPosition": "center"
+      "activationEnabled": false
     },
     "category": null,
-    "accepted_aspect_ratios": [],
+    "aspect_ratio": "9:16",
     "tags": []
   }
 },

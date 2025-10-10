@@ -1055,13 +1055,15 @@ class UserMembershipDetailSerializer(serializers.ModelSerializer):
 class SlideTemplateSerializer(serializers.ModelSerializer):
     """
     Serializer for the SlideTemplate model.
-    - Includes read-only nested Category, Tag, and Organisation.
-    - Allows writing by specifying `category_id`, `tag_ids`, and `organisation_id`.
+    - Includes read-only nested Category, Tag, Organisation, and SubOrganisation.
+    - Allows writing by specifying `category_id`, `tag_ids`, `organisation_id`, `suborganisation_id`, and `parent_template_id`.
     """
 
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     organisation = OrganisationSerializer(read_only=True)
+    suborganisation = SubOrganisationSerializer(read_only=True)
+    parent_template = serializers.SerializerMethodField()
 
     category_id = serializers.PrimaryKeyRelatedField(
         source="category",
@@ -1082,6 +1084,28 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.all(),
         write_only=True,
     )
+    suborganisation_id = serializers.PrimaryKeyRelatedField(
+        source="suborganisation",
+        queryset=SubOrganisation.objects.all(),
+        write_only=True,
+        allow_null=True,
+        required=False,
+    )
+    parent_template_id = serializers.PrimaryKeyRelatedField(
+        source="parent_template",
+        queryset=SlideTemplate.objects.all(),
+        write_only=True,
+        allow_null=True,
+        required=False,
+    )
+
+    def get_parent_template(self, obj):
+        if obj.parent_template:
+            return {
+                "id": obj.parent_template.id,
+                "name": obj.parent_template.name,
+            }
+        return None
 
     class Meta:
         model = SlideTemplate
@@ -1092,10 +1116,14 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
             "category",
             "tags",
             "organisation",
+            "suborganisation",
+            "parent_template",
             "category_id",
             "tag_ids",
             "organisation_id",
-            "accepted_aspect_ratios",
+            "suborganisation_id",
+            "parent_template_id",
+            "aspect_ratio",
         ]
 
     def create(self, validated_data):

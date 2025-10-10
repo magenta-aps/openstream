@@ -49,6 +49,7 @@ from app.views import (
     BranchDetailAPIView,
     BranchAPIKeyView,
     SlideTemplateAPIView,
+    SuborgTemplateAPIView,
     FrontdeskAPIKey,
     BranchURLCollectionItemAPIView,
     DocumentListView,
@@ -339,6 +340,16 @@ urlpatterns = [
         "api/slide-templates/<int:pk>/",
         SlideTemplateAPIView.as_view(),
         name="slide_templates_detail",
+    ),
+    path(
+        "api/suborg-templates/",
+        SuborgTemplateAPIView.as_view(),
+        name="suborg_templates_list_create",
+    ),
+    path(
+        "api/suborg-templates/<int:pk>/",
+        SuborgTemplateAPIView.as_view(),
+        name="suborg_templates_detail",
     ),
     path(
         "api/frontdesk_ltk_borgerservice_api_key",

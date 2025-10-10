@@ -111,6 +111,11 @@ function getElementDefaults() {
       alignment: { h: "center", v: "middle" },
     },
 
+    box: {
+      type: "box",
+      backgroundColor: "#000000",
+    },
+
     html: {
       type: "html",
       html: '<div class="example">\n  <h2>Hello World</h2>\n  <p>This is an example HTML element.</p>\n</div>',
@@ -177,6 +182,10 @@ const preservedProperties = [
   "originSlideIndex",
   "isPersistent",
   "isLocked",
+  "isSelectionBlocked",
+  "isAlwaysOnTop",
+  "preventSettingsChanges",
+  "goToSlideIndex",
 ];
 
 /**
@@ -206,11 +215,10 @@ export function convertElementType(sourceElement, targetType) {
     id: store.elementIdCounter++,
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,
-    isLocked: false,
-    isPersistent: false,
   };
 
   // Preserve size, position and other important properties
+  // This includes all element settings like isLocked, isPersistent, preventSettingsChanges, etc.
   preservedProperties.forEach((prop) => {
     if (sourceElement.hasOwnProperty(prop)) {
       newElement[prop] = sourceElement[prop];
@@ -319,6 +327,7 @@ export function getAvailableElementTypes() {
     { type: "table", name: "Table", icon: "table" },
     { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
+    { type: "box", name: "Box", icon: "crop_din" },
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
     { type: "dynamic-element", name: "Dynamic Content", icon: "dynamic_feed" },
@@ -337,6 +346,7 @@ export function getAllElementTypes() {
     { type: "table", name: "Table", icon: "table" },
     { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
+    { type: "box", name: "Box", icon: "crop_din" },
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
     { type: "dynamic-element", name: "Dynamic Content", icon: "dynamic_feed" },
@@ -551,8 +561,8 @@ function handleMediaSelection(element, elementType) {
     );
   } else if (elementType === "dynamic-element") {
     // Set up the global state like the change-dynamic-content-btn does
-    import("../modals/dynamicModal.js")
-      .then(({ showSlideTypeModal }) => {
+    import("../slideTypes/frontendSlideTypeModal.js")
+      .then(({ showFrontendSlideTypeModal }) => {
         store.dynamicContentUpdateMode = true;
         window.selectedElementForUpdate = document.getElementById(
           "el-" + element.id,
@@ -561,12 +571,12 @@ function handleMediaSelection(element, elementType) {
         // Make sure the store has the updated element data
         store.selectedElementData = element;
 
-        // Pass the element data to showSlideTypeModal (like in iframeElement.js)
-        if (element?.slideTypeId) {
-          showSlideTypeModal(element);
+        // Pass the element data to showFrontendSlideTypeModal (like in iframeElement.js)
+        if (element?.isDynamic && element?.slideTypeId) {
+          showFrontendSlideTypeModal(element);
         } else {
           // For new dynamic elements, show the selection
-          showSlideTypeModal();
+          showFrontendSlideTypeModal();
         }
       })
       .catch((err) => {

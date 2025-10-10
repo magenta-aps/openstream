@@ -15,9 +15,6 @@ import {
   showToast,
   genericFetch,
   parentOrgID,
-  debounce,
-  createMiniSearchInstance,
-  searchItems,
   initSignOutButton,
 } from "../../utils/utils";
 import { BASE_URL } from "../../utils/constants";
@@ -28,12 +25,11 @@ import { BASE_URL } from "../../utils/constants";
  */
 
 // DOM Elements - Categories
-
-const categoriesContainer = document.getElementById("categories-container");
+const categoryTableBody = document.getElementById("cateogry-table-body");
 const categoriesLoading = document.getElementById("categories-loading");
 const noCategoriesAlert = document.getElementById("no-categories-alert");
-const categorySearch = document.getElementById("category-search");
 const addCategoryBtn = document.getElementById("add-category-btn");
+// Category Modal
 const categoryModal = new bootstrap.Modal(
   document.getElementById("category-modal"),
 );
@@ -43,11 +39,11 @@ const categoryNameInput = document.getElementById("category-name");
 const saveCategoryBtn = document.getElementById("save-category-btn");
 
 // DOM Elements - Tags
-const tagsContainer = document.getElementById("tags-container");
+const tagsTableBody = document.getElementById("tags-table-body");
 const tagsLoading = document.getElementById("tags-loading");
 const noTagsAlert = document.getElementById("no-tags-alert");
-const tagSearch = document.getElementById("tag-search");
 const addTagBtn = document.getElementById("add-tag-btn");
+// Tags Modal
 const tagModal = new bootstrap.Modal(document.getElementById("tag-modal"));
 const tagModalLabel = document.getElementById("tagModalLabel");
 const tagIdInput = document.getElementById("tag-id");
@@ -62,16 +58,8 @@ const deleteItemName = document.getElementById("delete-item-name");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 
 // Data and State
-let allCategories = [];
-let allTags = [];
-let categorySearchQuery = "";
-let tagSearchQuery = "";
 let itemToDelete = null;
 let deleteType = null; // "category" or "tag"
-
-// Create MiniSearch instances for searching
-const categoryMiniSearch = createMiniSearchInstance(["name"]);
-const tagMiniSearch = createMiniSearchInstance(["name"]);
 
 // Initialize the page
 document.addEventListener("DOMContentLoaded", async () => {
@@ -88,12 +76,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Set up event listeners
   setupEventListeners();
-
-  // Mark side nav as active
-  const sideNavLink = document.querySelector(
-    'a[href="/manage-tags-categories"]',
-  );
-  if (sideNavLink) sideNavLink.classList.add("active");
 });
 
 // Fetch all categories from the API
@@ -111,9 +93,6 @@ async function fetchCategories() {
     const categories = await genericFetch(
       `${BASE_URL}/api/categories/?organisation_id=${parentOrgID}`,
     );
-    allCategories = categories;
-    categoryMiniSearch.removeAll();
-    categoryMiniSearch.addAll(categories);
     renderCategories(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -138,9 +117,6 @@ async function fetchTags() {
     const tags = await genericFetch(
       `${BASE_URL}/api/tags/?organisation_id=${parentOrgID}`,
     );
-    allTags = tags;
-    tagMiniSearch.removeAll();
-    tagMiniSearch.addAll(tags);
     renderTags(tags);
   } catch (error) {
     console.error("Error fetching tags:", error);
@@ -152,24 +128,6 @@ async function fetchTags() {
 
 // Setup all event listeners
 function setupEventListeners() {
-  // Category search
-  categorySearch.addEventListener(
-    "input",
-    debounce(() => {
-      categorySearchQuery = categorySearch.value.trim().toLowerCase();
-      searchAndRenderCategories();
-    }, 300),
-  );
-
-  // Tag search
-  tagSearch.addEventListener(
-    "input",
-    debounce(() => {
-      tagSearchQuery = tagSearch.value.trim().toLowerCase();
-      searchAndRenderTags();
-    }, 300),
-  );
-
   // Category modal events
   addCategoryBtn.addEventListener("click", () => showAddCategoryModal());
   saveCategoryBtn.addEventListener("click", saveCategory);
@@ -331,75 +289,56 @@ async function confirmDelete() {
   }
 }
 
-// Search and render categories
-function searchAndRenderCategories() {
-  if (!categorySearchQuery) {
-    renderCategories(allCategories);
-    return;
-  }
-
-  const results = searchItems(
-    categorySearchQuery,
-    allCategories,
-    categoryMiniSearch,
-  );
-  renderCategories(results);
-}
-
-// Search and render tags
-function searchAndRenderTags() {
-  if (!tagSearchQuery) {
-    renderTags(allTags);
-    return;
-  }
-
-  const results = searchItems(tagSearchQuery, allTags, tagMiniSearch);
-  renderTags(results);
-}
-
 // Render categories to the DOM
 function renderCategories(categories) {
   categoriesLoading.classList.add("d-none");
 
+  // Clear the table
+  categoryTableBody.innerHTML = "";
+
   if (!categories || categories.length === 0) {
+    // Show no categories message
     noCategoriesAlert.classList.remove("d-none");
-    categoriesContainer.innerHTML = ""; // Clear existing categories
     return;
   }
 
+  // Hide no categories message
   noCategoriesAlert.classList.add("d-none");
-  categoriesContainer.innerHTML = ""; // Clear existing categories
 
   categories.forEach((category) => {
-    const categoryEl = document.createElement("div");
-    categoryEl.className =
-      "list-item d-flex justify-content-between align-items-center p-3 border-bottom";
-    categoryEl.innerHTML = `
-            <div class="d-flex align-items-center">
-                <span class="material-symbols-outlined me-2">category</span>
-                <span class="item-name">${category.name}</span>
-            </div>
-            <div class="actions">
-                <button class="btn btn-sm btn-outline-primary edit-btn me-2">
-                    <span class="material-symbols-outlined">edit</span>
-                </button>
-                <button class="btn btn-sm btn-outline-danger delete-btn">
-                    <span class="material-symbols-outlined">delete</span>
-                </button>
-            </div>
-        `;
+    const row = document.createElement("tr");
 
-    // Add event listeners
-    categoryEl
-      .querySelector(".edit-btn")
-      .addEventListener("click", () => showEditCategoryModal(category));
-    categoryEl
-      .querySelector(".delete-btn")
-      .addEventListener("click", () =>
-        showDeleteConfirmation(category, "category"),
-      );
+    // Create category name cell
+    const nameCell = document.createElement("td");
+    nameCell.textContent = category.name;
+    
+    // Create actions cell
+    const actionsCell = document.createElement("td");
+    actionsCell.className = "action-cell-td";
 
-    categoriesContainer.appendChild(categoryEl);
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn btn-sm btn-outline-secondary-light me-2 text-secondary";
+    editBtn.innerHTML =
+      `<span class="material-symbols-outlined text-secondary-hover">edit</span> ${gettext("Edit")}`;
+    editBtn.title = gettext("Edit");
+    editBtn.addEventListener("click", () => showEditCategoryModal(category));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn btn-sm btn-outline-secondary-light text-secondary";
+    deleteBtn.innerHTML =
+      `<span class="material-symbols-outlined text-secondary-hover">delete_forever</span> ${gettext("Delete")}`;
+    deleteBtn.title = gettext("Delete");
+    deleteBtn.addEventListener("click", () => showDeleteConfirmation(category, "category"));
+
+    actionsCell.appendChild(editBtn);
+    actionsCell.appendChild(deleteBtn);
+
+    // Add cells to row
+    row.appendChild(nameCell);
+    row.appendChild(actionsCell);
+
+    // Add row to table
+    categoryTableBody.appendChild(row);
   });
 }
 
@@ -407,48 +346,51 @@ function renderCategories(categories) {
 function renderTags(tags) {
   tagsLoading.classList.add("d-none");
 
+  // Clear the table
+  tagsTableBody.innerHTML = "";
+
   if (!tags || tags.length === 0) {
+    // Show no tags message
     noTagsAlert.classList.remove("d-none");
-    tagsContainer.innerHTML = ""; // Clear existing tags
     return;
   }
 
+  // Hide no tags message
   noTagsAlert.classList.add("d-none");
-  tagsContainer.innerHTML = ""; // Clear existing tags
 
-  tags.forEach((tag) => {
-    const tagEl = document.createElement("div");
-    tagEl.className =
-      "list-item d-flex justify-content-between align-items-center p-3 border-bottom";
-    tagEl.innerHTML = `
-            <div class="d-flex align-items-center">
-                <span class="material-symbols-outlined me-2">sell</span>
-                <span class="item-name">${tag.name}</span>
-            </div>
-            <div class="actions">
-                <button class="btn btn-sm btn-outline-primary edit-btn me-2">
-                    <span class="material-symbols-outlined">edit</span>
-                </button>
-                <button class="btn btn-sm btn-outline-danger delete-btn">
-                    <span class="material-symbols-outlined">delete</span>
-                </button>
-            </div>
-        `;
+   tags.forEach((tag) => {
+     const row = document.createElement("tr");
+     
+     // Create tags name cell
+    const nameCell = document.createElement("td");
+    nameCell.textContent = tag.name;
+    
+    // Create actions cell
+    const actionsCell = document.createElement("td");
+    actionsCell.className = "action-cell-td";
 
-    // Add event listeners
-    tagEl
-      .querySelector(".edit-btn")
-      .addEventListener("click", () => showEditTagModal(tag));
-    tagEl
-      .querySelector(".delete-btn")
-      .addEventListener("click", () => showDeleteConfirmation(tag, "tag"));
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn btn-sm btn-outline-secondary-light me-2 text-secondary";
+    editBtn.innerHTML =
+      `<span class="material-symbols-outlined text-secondary-hover">edit</span> ${gettext("Edit")}`;
+    editBtn.title = gettext("Edit");
+    editBtn.addEventListener("click", () => showEditTagModal(tag));
 
-    tagsContainer.appendChild(tagEl);
-  });
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn btn-sm btn-outline-secondary-light text-secondary";
+    deleteBtn.innerHTML =
+      `<span class="material-symbols-outlined text-secondary-hover">delete_forever</span> ${gettext("Delete")}`;
+    deleteBtn.title = gettext("Delete");
+    deleteBtn.addEventListener("click", () => showDeleteConfirmation(tag, "tag"));
+
+    actionsCell.appendChild(editBtn);
+    actionsCell.appendChild(deleteBtn);
+    
+    // Add cells to row
+    row.appendChild(nameCell);
+    row.appendChild(actionsCell);
+    
+    // Add row to table
+    tagsTableBody.appendChild(row);
+   });
 }
-
-function activateNavLink() {
-  const navLink = document.querySelector('a[href="/manage-tags-categories"]');
-  if (navLink) navLink.classList.add("active");
-}
-setTimeout(activateNavLink, 200);

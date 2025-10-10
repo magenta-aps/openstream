@@ -156,10 +156,22 @@
     "da": "Ingen wayfinding systemer fundet"
   },
   "Media Management": {
-    "da": "Medieadministration"
+    "da": "Administrér medier"
+  },
+  "Media Library": {
+    "da":"Mediebibliotek"
+  },
+  "Global media files are files that are available throughout the whole organization and in templates. Here files such as logos will be uploaded.":{
+    "da":"Globale mediefiler er filer som er tilgængelige i hele organisationen og i skabeloner. Her vil filer såsom logoer blive uploadet."
+  },
+  "files": {
+    "da":"filer"
+  },
+  "Results per site:": {
+    "da":"Resultater per side:"
   },
   "Upload New Media": {
-    "da": "Upload Ny Medie"
+    "da": "Upload ny mediefil"
   },
   "Title": {
     "da": "Titel"
@@ -167,11 +179,14 @@
   "Search by Title": {
     "da": "Søg efter Titel"
   },
-  "Manage Fonts": {
-    "da": "Administrer Skrifttyper"
+  "Search for media file" : {
+    "da": "Søg efter mediefil"
   },
-  "Manage custom fonts for your organization. These fonts will be available across all departments.": {
-    "da": "Administrer brugerdefinerede skrifttyper for din organisation. Disse skrifttyper vil være tilgængelige på tværs af alle afdelinger."
+  "Manage Fonts and Color Scheme": {
+    "da": "Administrér skrifttyper og farver"
+  },
+  "Manage custom fonts and colors for your organization. These will be available across all branches.": {
+    "da": "Administrer brugerdefinerede skrifttyper og farver for din organisation. Disse vil være tilgængelige på tværs af alle afdelinger."
   },
   "You must be an organization admin to add or modify fonts.": {
     "da": "Du skal være organisationsadministrator for at tilføje eller ændre skrifttyper."
@@ -224,8 +239,8 @@
   "No\n            slideshows found": {
     "da": "Ingen slideshows fundet"
   },
-  "Manage Color Scheme": {
-    "da": "Administrer Farveskema"
+  "Custom Color Scheme": {
+    "da": "Brugerdefinerede Farver"
   },
   "Add Color": {
     "da": "Tilføj Farve"
@@ -249,10 +264,10 @@
     "da": "Sekundær"
   },
   "Manage Categories and Tags": {
-    "da": "Administrer Kategorier og Tags"
+    "da": "Administrér kategorier og tags"
   },
-  "Add, edit, or delete tags and categories for your organisation": {
-    "da": "Tilføj, rediger eller slet tags og kategorier for din organisation"
+  "Add, edit, or delete tags and categories for your organisation.": {
+    "da": "Tilføj, rediger eller slet tags og kategorier for din organisation."
   },
   "Categories": {
     "da": "Kategorier"
@@ -460,6 +475,15 @@
   },
   "Rotate": {
     "da": "Roter"
+  },
+  " Mirror/Flip": {
+    "da": " Spejl/Vend"
+  },
+  " Mirror/Flip Selected Element": {
+    "da": " Spejl/Vend Valgt Element"
+  },
+  "Mirror/Flip": {
+    "da": "Spejl/Vend"
   },
   " Border": {
     "da": " Kant"
@@ -881,11 +905,17 @@
   "Upload Media": {
     "da": "Upload Medie"
   },
+  "Preview Media":{
+    "da": "Forhåndsvisning af Medie"
+  },
   "None": {
     "da": "Ingen"
   },
   "File extensions": {
-    "da": "Fil udvidelser"
+    "da": "Filtyper"
+  },
+  "Nothing selected":{
+    "da": "Intet valgt"
   },
   "Error fetching tags": {
     "da": "Fejl ved hentning af tags"
@@ -2504,11 +2534,8 @@
   "title": {
     "da": "titel"
   },
-  "Color Scheme": {
-    "da": "Farveskema"
-  },
-  "Fonts": {
-    "da": "Skrifttyper"
+  "Fonts & Color Scheme": {
+    "da": "Skrifttyper & farver"
   },
   "Categories & Tags": {
     "da": "Kategorier & Tags"
@@ -2684,6 +2711,9 @@
   "Add Content": {
     "da": "Tilføj indhold"
   },
+  "No content found. Use the 'Add Slideshow' button to the left": {
+    "da": "Intet indhold fundet. Klik på 'Tilføj Slideshow' knappen til venstre"
+  },
   "Filter by Categories": {
     "da": "Filtrer efter kategorier"
   },
@@ -2772,7 +2802,7 @@
     "da": "Navn på skrifttypen (f.eks., 'Open Sans')"
   },
   "The quick brown fox jumps over the lazy dog": {
-    "da": "Den hurtige brune ræv hopper over den dovne hund"
+    "da": "Quizdeltagerne spiste jordbær med fløde, mens cirkusklovnen Walther spillede på xylofon"
   },
   "Please provide a name.": {
     "da": "Angiv et navn."
@@ -2857,5 +2887,146 @@
   },
   "Branch Subpages": {
     "da": "Afdelingsundersider"
+  },
+  "Please enter a valid hex color (e.g., #FF5733)": {
+    "da": "Indtast en gyldig hex farve (f.eks., #FF5733)"
+  },
+  "Use the color picker or enter a hex value (e.g., #FF5733)": {
+    "da": "Brug farvevælgeren eller indtast en hex værdi (f.eks., #FF5733)"
+  },
+  "Blur": {
+    "da": "Sløring"
+  },
+  "Elements": {
+    "da": "Elementer"
+  },
+  "Hide Icons": {
+    "da": "Skjul Ikoner"
+  },
+  "HTML": {
+    "da": "HTML"
+  },
+  "CSS": {
+    "da": "CSS"
+  },
+  "JavaScript": {
+    "da": "JavaScript"
+  },
+  " Add Blur To Selected Element": {
+    "da": "Tilføj Sløring Til Valgte Element"
+  },
+  "Prevent moving or resizing this element": {
+    "da": "Forhindrer flytning eller ændring af størrelse på dette element"
+  },
+  "Block selection": {
+    "da": "Bloker Markering"
+  },
+  "Element cannot be selected on the canvas": {
+    "da": "Element kan ikke vælges på lærredet"
+  },
+  "Always on top": {
+    "da": "Altid Øverst"
+  },
+  "Element stays above all other elements": {
+    "da": "Element forbliver over alle andre elementer"
+  },
+  "Lock element settings for template users": {
+    "da": "Lås elementindstillinger for skabelonbrugere"
+  },
+  "Prevent template users from changing element settings": {
+    "da": "Forhindrer skabelonbrugere i at ændre elementindstillinger"
+  },
+  "Delete element": {
+    "da": "Slet Element"
+  },
+  "Element settings": {
+    "da": "Elementindstillinger"
+  },
+  "Element Settings": {
+    "da": "Elementindstillinger"
+  },
+  "Element name": {
+    "da": "Elementnavn"
+  },
+  "Position & Size": {
+    "da": "Position & Størrelse"
+  },
+  "X Position": {
+    "da": "X Position"
+  },
+  "Y Position": {
+    "da": "Y Position"
+  },
+  "Width": {
+    "da": "Bredde"
+  },
+  "Height": {
+    "da": "Højde"
+  },
+  "Pin element": {
+    "da": "Fastgør Element"
+  },
+  "Element appears on all slides": {
+    "da": "Element vises på alle slides"
+  },
+  "Lock position & size": {
+    "da": "Lås Position & Størrelse"
+  },
+  "Box": {
+    "da": "Boks"
+  },
+  "Layers": {
+    "da": "Lag"
+  },
+  " Add Box": {
+    "da": " Tilføj Boks"
+  },
+  " Border Radius": {
+    "da": " Kant Radius"
+  },
+  " Add Border Radius To Selected Element": {
+    "da": " Tilføj Kant Radius Til Valgt Element"
+  },
+  " Blur": {
+    "da": "Slør"
+  },
+  "Grayscale": {
+    "da": "Gråskala"
+  },
+  " Add Grayscale To Selected Element": {
+    "da": " Tilføj Gråskala Til Valgt Element"
+  },
+  "Simple Text Mode": {
+    "da": "Simpel Tekst Tilstand"
+  },
+  "Rich Text Mode": {
+    "da": "Rig Tekst Tilstand"
+  },
+  "Horizontal Text": {
+    "da": "Horisontal Tekst"
+  },
+  "Vertical Text": {
+    "da": "Vertikal Tekst"
+  },
+  "https://example.com": {
+    "da": "https://eksempel.com"
+  },
+  "Toggle visibility": {
+    "da": "Skift Synlighed"
+  },
+  "Toggle details": {
+    "da": "Skift Detaljer"
+  },
+  "Prevent users from modifying this element's position, size, and other settings when using this template": {
+    "da": "Forhindr brugere i at ændre dette elements position, størrelse og andre indstillinger når du bruger denne skabelon"
+  },
+  "Block editing of element settings": {
+    "da": "Bloker redigering af elementindstillinger"
+  },
+  "Hide element": {
+    "da": "Skjul element"
+  },
+  "Show details": {
+    "da": "Vis detaljer"
   }
 }

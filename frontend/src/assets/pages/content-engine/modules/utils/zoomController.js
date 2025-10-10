@@ -11,6 +11,15 @@ import { queryParams } from "../../../../utils/utils.js";
 let isInitialized = false;
 
 /**
+ * Get the correct preview containers, handling both new layout (with preview-column) and old layout
+ */
+function getPreviewContainers() {
+  return document.querySelectorAll(
+    ".preview-column .preview-container, .slide-canvas .preview-container:not(.preview-column .preview-container)",
+  );
+}
+
+/**
  * Initialize the zoom controller
  */
 export function initZoomController() {
@@ -51,7 +60,11 @@ function handleWheelZoom(event) {
 
   // Check if the wheel event is over a slide preview container
   const target = event.target;
-  const previewContainer = target.closest(".slide-canvas .preview-container");
+  const previewContainer =
+    target.closest(".preview-column .preview-container") ||
+    target.closest(
+      ".slide-canvas .preview-container:not(.preview-column .preview-container)",
+    );
 
   if (!previewContainer) {
     return;
@@ -92,7 +105,11 @@ function handleWheelZoom(event) {
  */
 function handleZoomChange(mode, level) {
   // Only apply zoom in edit and template_editor modes
-  if (queryParams.mode === "edit" || queryParams.mode === "template_editor") {
+  if (
+    queryParams.mode === "edit" ||
+    queryParams.mode === "template_editor" ||
+    queryParams.mode === "suborg_templates"
+  ) {
     if (mode === "fit") {
       enableFitToWindowMode();
     } else if (mode === "zoom") {
@@ -108,11 +125,15 @@ function handleZoomChange(mode, level) {
  * Enable fit-to-window mode (current default behavior)
  */
 function enableFitToWindowMode() {
-  const previewContainers = document.querySelectorAll(
-    ".slide-canvas .preview-container",
-  );
+  console.log("Zoom Controller: Switching to fit-to-window mode");
+  const previewContainers = getPreviewContainers();
 
   previewContainers.forEach((container) => {
+    // Skip if this is the sidebar (safety check)
+    if (container.closest(".slide-right-sidebar")) {
+      return;
+    }
+
     // Reset scroll position
     container.scrollTo(0, 0);
 
@@ -153,11 +174,15 @@ function enableFitToWindowMode() {
  * Enable zoom mode with scrolling
  */
 function enableZoomMode(zoomLevel) {
-  const previewContainers = document.querySelectorAll(
-    ".slide-canvas .preview-container",
-  );
+  console.log(`Zoom Controller: Switching to zoom mode at ${zoomLevel}%`);
+  const previewContainers = getPreviewContainers();
 
   previewContainers.forEach((container) => {
+    // Skip if this is the sidebar (safety check)
+    if (container.closest(".slide-right-sidebar")) {
+      return;
+    }
+
     // Add zoom mode class and enable scrolling
     container.classList.add("zoom-mode");
     container.style.overflow = "auto";
@@ -191,12 +216,12 @@ function enableZoomMode(zoomLevel) {
         }
 
         // Calculate the actual rendered size after scaling
-        const scaledWidth = store.emulatedWidth * zoomScale;
-        const scaledHeight = store.emulatedHeight * zoomScale;
+        // const scaledWidth = store.emulatedWidth * zoomScale;
+        // const scaledHeight = store.emulatedHeight * zoomScale;
 
         // Set the preview slide dimensions to the scaled size to provide proper scrollable area
-        previewSlide.style.width = `${scaledWidth}px`;
-        previewSlide.style.height = `${scaledHeight}px`;
+        // previewSlide.style.width = `${scaledWidth}px`;
+        // previewSlide.style.height = `${scaledHeight}px`;
 
         // Reset any container constraints that might interfere with scrolling
         container.style.minWidth = "auto";
@@ -236,6 +261,12 @@ function scaleSlideToFit(previewContainer) {
  * Update zoom for all slides (called when resolution changes, etc.)
  */
 export function updateAllSlidesZoom() {
+  // For slideshow-player mode, always use fit mode regardless of status bar state
+  if (queryParams.mode === "slideshow-player") {
+    enableFitToWindowMode();
+    return;
+  }
+
   // Get current zoom state from status bar
   const statusBar = document.querySelector(".content-engine-status-bar");
   if (!statusBar) return;
