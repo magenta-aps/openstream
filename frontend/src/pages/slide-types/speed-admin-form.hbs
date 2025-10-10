@@ -1,60 +1,53 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/containers/html-container title="Speed Admin Configuration Form" }}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    {{#> base/containers/html-container title="Speed Admin Configuration Form" }}
 
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-header">
-                        <h5 class="mb-0 text-white">Speed Admin School Schedule</h5>
+    <div>
+        <div class="card-body">
+            <!-- Description Section -->
+            <div class="alert alert-info mb-4 bg-secondary-accent-lighter border-gray" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>About this widget:</strong> Displays the daily schedule for a selected school from Speed Admin,
+                showing courses, rooms, times, and teachers.
+            </div>
+
+            <!-- School Selection -->
+            <div class="mb-4">
+                <label for="location_name-input" class="form-label ">
+                    Select School
+                </label>
+                <select name="location_name-input" id="location_name-input"
+                    class="form-select border-gray">
+                    <option disabled selected>Select location</option>
+                </select>
+            </div>
+
+            <!-- Features List -->
+            <div class="mb-4">
+                <h6 class=" mb-3">Displayed Information</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center ">
+                            <i class="fas fa-book me-2 text-primary"></i>
+                            <span>Course Titles</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <!-- Description Section -->
-                        <div class="alert alert-info mb-4" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>About this widget:</strong> Displays the daily schedule for a selected school from Speed Admin, showing courses, rooms, times, and teachers.
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center ">
+                            <i class="fas fa-door-open me-2 text-primary"></i>
+                            <span>Room Assignments</span>
                         </div>
-
-                        <!-- School Selection -->
-                        <div class="mb-4">
-                            <label for="location_name-input" class="form-label text-white">
-                                Select School
-                            </label>
-                            <select name="location_name-input" id="location_name-input" class="form-select bg-secondary text-white border-secondary">
-                                <option disabled selected>Select location</option>
-                            </select>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center ">
+                            <i class="fas fa-clock me-2 text-primary"></i>
+                            <span>Start & End Times</span>
                         </div>
-
-                        <!-- Features List -->
-                        <div class="mb-4">
-                            <h6 class="text-white mb-3">Displayed Information</h6>
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <div class="d-flex align-items-center text-white">
-                                        <i class="fas fa-book me-2 text-primary"></i>
-                                        <span>Course Titles</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="d-flex align-items-center text-white">
-                                        <i class="fas fa-door-open me-2 text-primary"></i>
-                                        <span>Room Assignments</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="d-flex align-items-center text-white">
-                                        <i class="fas fa-clock me-2 text-primary"></i>
-                                        <span>Start & End Times</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="d-flex align-items-center text-white">
-                                        <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
-                                        <span>Teacher Information</span>
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center ">
+                            <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
+                            <span>Teacher Information</span>
                         </div>
                     </div>
                 </div>
@@ -62,4 +55,5 @@
         </div>
     </div>
 
-{{/ base/containers/html-container }}
+
+    {{/ base/containers/html-container }}

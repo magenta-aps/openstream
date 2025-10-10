@@ -184,6 +184,32 @@ export const DdbEventsApiSlideType = {
       (event) => this.updateLibraryOptions(event.target.value),
       this,
     );
+
+    // Handle layout selection changes
+    const layoutRadios = document.querySelectorAll('input[name="layout"]');
+    layoutRadios.forEach(radio => {
+        radio.addEventListener('change', this.updateLayoutVisuals.bind(this));
+    });
+
+    // Set initial state
+    this.updateLayoutVisuals();
+  },
+
+  updateLayoutVisuals() {
+      const layoutRadios = document.querySelectorAll('input[name="layout"]');
+      const visualRadios = document.querySelectorAll('input[name="layout-visual"]');
+      const selectedValue = document.querySelector('input[name="layout"]:checked')?.value;
+
+      layoutRadios.forEach((r, index) => {
+          const card = r.closest('label').querySelector('.card');
+          if (r.checked) {
+              card.classList.add('bg-secondary-accent-lighter');
+              if(visualRadios[index]) visualRadios[index].checked = true;
+          } else {
+              card.classList.remove('bg-secondary-accent-lighter');
+              if(visualRadios[index]) visualRadios[index].checked = false;
+          }
+      });
   },
 
   cleanupFormEventListeners() {
