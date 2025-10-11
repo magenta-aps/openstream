@@ -149,7 +149,13 @@ function showConfirmModal(message, onConfirm) {
 }
 
 async function deleteDisplay() {
-  const displayId = document.getElementById("editDisplayId").value;
+  const displayIdEl = document.getElementById("editDisplayId");
+  if (!displayIdEl) {
+    console.error("deleteDisplay: editDisplayId element not found");
+    showToast(gettext("Internal error: missing display id."), gettext("Error"));
+    return;
+  }
+  const displayId = displayIdEl.value;
   showConfirmModal(
     gettext("Are you sure you want to delete this display?"),
     async () => {
@@ -434,26 +440,41 @@ async function deleteGroup() {
 }
 
 function openEditDisplayModal(groupId, displayId) {
-  document.getElementById("copyNotification").style.display = "none";
-  const group = groupsData.find((g) => g.id === groupId);
-  if (!group) return;
-  const display = group.displays.find((d) => d.id === displayId);
-  if (!display) return;
+  const copyNotification = document.getElementById("copyNotification");
+  if (copyNotification) copyNotification.style.display = "none";
 
-  document.getElementById("editDisplayGroupId").value = groupId;
-  document.getElementById("editDisplayId").value = displayId;
-  document.getElementById("editDisplayName").value = display.name;
-  document.getElementById("editDisplayAspectRatio").value = display.aspect_ratio || "16:9";
+  const group = groupsData.find((g) => g.id === groupId);
+  if (!group) {
+    console.warn("openEditDisplayModal: group not found", groupId);
+    return;
+  }
+  const display = group.displays && group.displays.find((d) => d.id === displayId);
+  if (!display) {
+    console.warn("openEditDisplayModal: display not found", displayId);
+    return;
+  }
+
+  const editDisplayGroupIdEl = document.getElementById("editDisplayGroupId");
+  const editDisplayIdEl = document.getElementById("editDisplayId");
+  const editDisplayNameEl = document.getElementById("editDisplayName");
+  const editDisplayAspectRatioEl = document.getElementById("editDisplayAspectRatio");
+  const editDisplayUrlInputEl = document.getElementById("editDisplayUrlInput");
+
+  if (editDisplayGroupIdEl) editDisplayGroupIdEl.value = groupId;
+  if (editDisplayIdEl) editDisplayIdEl.value = displayId;
+  if (editDisplayNameEl) editDisplayNameEl.value = display.name || "";
+  if (editDisplayAspectRatioEl)
+    editDisplayAspectRatioEl.value = display.aspect_ratio || "16:9";
 
   // Build URL dynamically using current domain
   const urlPath =
     "/open-screen?displayWebsiteId=" +
     display.id +
     "&apiKey=" +
-    apiKey +
+    (apiKey || "") +
     "&mode=slideshow-player";
   const fullUrl = window.location.origin + urlPath;
-  document.getElementById("editDisplayUrlInput").value = fullUrl;
+  if (editDisplayUrlInputEl) editDisplayUrlInputEl.value = fullUrl;
 
   if (editDisplayModal) {
     editDisplayModal.show();
@@ -461,11 +482,18 @@ function openEditDisplayModal(groupId, displayId) {
 }
 
 function copyDisplayUrl() {
-  const url = document.getElementById("editDisplayUrlInput").value;
+  const inputEl = document.getElementById("editDisplayUrlInput");
+  if (!inputEl) {
+    console.warn("copyDisplayUrl: editDisplayUrlInput not found");
+    showToast(gettext("No URL to copy."), gettext("Error"));
+    return;
+  }
+  const url = inputEl.value || "";
   navigator.clipboard
     .writeText(url)
     .then(() => {
-      document.getElementById("copyNotification").style.display = "block";
+      const note = document.getElementById("copyNotification");
+      if (note) note.style.display = "block";
     })
     .catch((err) => {
       console.error("Failed to copy: ", err);
@@ -476,10 +504,19 @@ function copyDisplayUrl() {
 // copyRegistrationUrl implemented later with aspect_ratio support and improved UX
 
 async function saveDisplayChanges() {
-  const displayId = document.getElementById("editDisplayId").value;
-  const displayName = document.getElementById("editDisplayName").value.trim();
-  const aspectRatio = document.getElementById("editDisplayAspectRatio").value;
-  
+  const displayIdEl = document.getElementById("editDisplayId");
+  const displayNameEl = document.getElementById("editDisplayName");
+  const aspectRatioEl = document.getElementById("editDisplayAspectRatio");
+
+  if (!displayIdEl) {
+    console.error("saveDisplayChanges: editDisplayId element not found");
+    showToast(gettext("Internal error: missing display id."), gettext("Error"));
+    return;
+  }
+  const displayId = displayIdEl.value;
+  const displayName = displayNameEl ? displayNameEl.value.trim() : "";
+  const aspectRatio = aspectRatioEl ? aspectRatioEl.value : "";
+
   if (!displayName) {
     alert(gettext("Display name cannot be empty!"));
     return;
@@ -919,7 +956,25 @@ async function copyAPIKey() {
     }
 
     // Set the URL into the modal's input.
-    document.getElementById("registrationUrlInput").value = registrationUrl;
+    const regUrlInputEl = document.getElementById("registrationUrlInput");
+    if (regUrlInputEl) {
+      regUrlInputEl.value = registrationUrl;
+    }
+
+    // Also set the API key into the dedicated API key field (read-only)
+    const regApiKeyInputEl = document.getElementById("registrationApiKeyInput");
+    if (regApiKeyInputEl) {
+      regApiKeyInputEl.value = apiKey || "";
+    }
+
+    // Show which branch this registration applies to (if available in localStorage)
+    const branchNameEl = document.getElementById("registrationBranchName");
+    try {
+      const branchName = localStorage.getItem("selectedBranchName") || "";
+      if (branchNameEl) branchNameEl.innerText = branchName || "(unknown)";
+    } catch (e) {
+      // ignore localStorage access errors
+    }
 
     // If the user changes the aspect ratio in the modal, update the input live.
     const aspectSelector = document.getElementById("registrationAspectRatio");
@@ -1010,6 +1065,31 @@ function initEventListeners() {
     .getElementById("copy-registration-url-btn")
     ?.addEventListener("click", () => {
   copyRegistrationUrl();
+    });
+
+  // Copy API key button in registration modal
+  document
+    .getElementById("copy-registration-api-key-btn")
+    ?.addEventListener("click", async () => {
+      const inputEl = document.getElementById("registrationApiKeyInput");
+      const notifId = "registrationApiKeyCopyNotification";
+      if (!inputEl) {
+        console.warn("registrationApiKeyInput not found");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(inputEl.value || "");
+        const notif = document.getElementById(notifId);
+        if (notif) {
+          notif.style.display = "inline-block";
+          setTimeout(() => {
+            notif.style.display = "none";
+          }, 1500);
+        }
+      } catch (e) {
+        console.error("Failed to copy API key:", e);
+        alert(gettext("Failed to copy API key to clipboard."));
+      }
     });
 
   document

@@ -1,30 +1,66 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/modal/modal id="registrationUrlModal" }}
+{{#> base/modal/modal id="registrationUrlModal" size="modal-xl" }}
     {{#*inline "header"}}
         {{> base/modal/modal-title title="Screen Registration URL"}}
         {{> base/modal/modal-header-close}}
     {{/inline}}
 
     {{#*inline "body"}}
-        <p>{% trans "Open this URL on the Display you want to register:" %}</p>
         <div class="mb-3">
-            <label for="registrationAspectRatio" class="form-label">{% trans "Aspect ratio (optional)" %}</label>
-            <select id="registrationAspectRatio" class="form-select">
-                <option value="">{% trans "Default (16:9)" %}</option>
-                <option value="16:9">16:9</option>
-                <option value="9:16">9:16</option>
-                <option value="4:3">4:3</option>
-            </select>
+            <p class="small">{% trans "This modal helps you register a new screen. Use the browser registration option if you want to open a registration URL directly on the display, or use the API key if you register the screen from an external tool. Registrations apply to the currently selected branch:" %} <span id="registrationBranchName" class="fw-semibold"></span></p><hr>
         </div>
-        {{> base/form/copyable-input
-            inputId="registrationUrlInput"
-            buttonId="copy-registration-url-btn"
-            notificationId="registrationCopyNotification"
-            inputClass="form-bold-input"
-            buttonClass="btn btn-secondary"
-            icon="content_copy"
-            notificationText="Copied!"}}
+
+        <section class="registration-section mb-3">
+            <h5 class="mb-2"><strong>{% trans "Register in a web browser" %}</strong></h5>
+            <p class="alert alert-info">{% trans "Registering screens via web browser has one limitation: embedding external websites is not supported due to iframe restrictions. Use the Electron version of OpenStream to embed any website — it uses separate webviews for each embedded page, bypassing browser limitations. The OS2BorgerPC integration uses the Electron version of OpenStream." %}</p>
+            <p class="small">{% trans "Open the following URL on the display you wish to register. You can optionally set an aspect ratio before copying the URL." %}</p>
+
+            <div class="mb-2">
+                <label for="registrationAspectRatio" class="form-label">{% trans "Aspect ratio" %}</label>
+                <select id="registrationAspectRatio" class="form-select">
+                    <option value="">{% trans "Default (16:9)" %}</option>
+                    <option value="16:9">16:9</option>
+                    <option value="9:16">9:16</option>
+                    <option value="4:3">4:3</option>
+                    <option value="3:4">3:4</option>
+                    <option value="1:1">1:1</option>
+                    <option value="3:2">3:2</option>
+                    <option value="2.39:1">2.39:1</option>
+                    <option value="21:9">21:9</option>
+                </select>
+            </div>
+
+            {{> base/form/copyable-input
+                inputId="registrationUrlInput"
+                buttonId="copy-registration-url-btn"
+                notificationId="registrationCopyNotification"
+                inputClass="form-input"
+                buttonClass="btn btn-secondary"
+                icon="content_copy"
+                notificationText="Copied!"}}
+        </section>
+
+        <hr />
+
+        <section class="registration-section">
+            <h5 class="mb-2"><strong>{% trans "Register with an external tool" %}</strong></h5>
+            <p class="small">{% trans "If registering the screen with an external tool (for example OS2BorgerPC or our Electron app), copy the API key below and paste it into the tool's registration dialog." %}</p>
+
+            <div class="mt-2">
+                <label for="registrationApiKeyInput" class="form-label">{% trans "API key for external tools" %}</label>
+                {{> base/form/copyable-input
+                    inputId="registrationApiKeyInput"
+                    buttonId="copy-registration-api-key-btn"
+                    notificationId="registrationApiKeyCopyNotification"
+                    inputClass="form-control form-mono"
+                    buttonClass="btn btn-secondary"
+                    icon="content_copy"
+                    notificationText="Copied!"
+                    readonly=true
+                }}
+            </div>
+        </section>
     {{/inline}}
 
     {{#*inline "footer"}}
