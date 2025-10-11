@@ -473,27 +473,7 @@ function copyDisplayUrl() {
     });
 }
 
-function copyRegistrationUrl() {
-  const urlInput = document.getElementById("registrationUrlInput");
-  // Select the text inside the input.
-  urlInput.select();
-  urlInput.setSelectionRange(0, 99999); // For mobile devices.
-
-  navigator.clipboard
-    .writeText(urlInput.value)
-    .then(() => {
-      const notification = document.getElementById(
-        "registrationCopyNotification",
-      );
-      notification.style.display = "block";
-      setTimeout(() => {
-        notification.style.display = "none";
-      }, 2000);
-    })
-    .catch((err) => {
-      console.error("Failed to copy: ", err);
-    });
-}
+// copyRegistrationUrl implemented later with aspect_ratio support and improved UX
 
 async function saveDisplayChanges() {
   const displayId = document.getElementById("editDisplayId").value;
@@ -932,10 +912,45 @@ async function copyAPIKey() {
     const apiKey = data.api_key;
 
     // Build the full registration URL. Adjust the base URL if needed.
-    const registrationUrl = `${window.location.origin}/connect-screen?apiKey=${apiKey}`;
+    let registrationUrl = `${window.location.origin}/connect-screen?apiKey=${apiKey}`;
+    const selector = document.getElementById("registrationAspectRatio");
+    if (selector && selector.value) {
+      registrationUrl += `&aspect_ratio=${encodeURIComponent(selector.value)}`;
+    }
 
     // Set the URL into the modal's input.
     document.getElementById("registrationUrlInput").value = registrationUrl;
+
+    // If the user changes the aspect ratio in the modal, update the input live.
+    const aspectSelector = document.getElementById("registrationAspectRatio");
+    const updateRegistrationUrlInput = () => {
+      const inputEl = document.getElementById("registrationUrlInput");
+      if (!inputEl) return;
+      let url = inputEl.value || "";
+      try {
+        const u = new URL(url);
+        // remove any existing aspect_ratio param
+        u.searchParams.delete("aspect_ratio");
+        if (aspectSelector && aspectSelector.value) {
+          u.searchParams.set("aspect_ratio", aspectSelector.value);
+        }
+        inputEl.value = u.toString();
+      } catch (e) {
+        // fallback: simple append/remove
+        url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
+        url = url.replace(/[?&]$/, "");
+        if (aspectSelector && aspectSelector.value) {
+          url += (url.includes("?") ? "&" : "?") + `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
+        }
+        inputEl.value = url;
+      }
+    };
+
+    if (aspectSelector) {
+      // Make sure we don't attach multiple listeners if modal opened repeatedly
+      aspectSelector.removeEventListener("change", updateRegistrationUrlInput);
+      aspectSelector.addEventListener("change", updateRegistrationUrlInput);
+    }
 
     // Show the modal.
     if (registrationUrlModal) {
@@ -994,7 +1009,7 @@ function initEventListeners() {
   document
     .getElementById("copy-registration-url-btn")
     ?.addEventListener("click", () => {
-      copyRegistrationUrl();
+  copyRegistrationUrl();
     });
 
   document
@@ -1228,6 +1243,46 @@ function initEventListeners() {
         syncDefaultToggleAndGroup();
       });
   });
+}
+
+function copyRegistrationUrl() {
+  const input = document.getElementById("registrationUrlInput");
+  const selector = document.getElementById("registrationAspectRatio");
+
+  if (!input) return;
+
+  // If user changed selector after the modal opened, update the URL.
+  let url = input.value || "";
+  if (selector && selector.value) {
+    try {
+      const u = new URL(url);
+      u.searchParams.delete("aspect_ratio");
+      u.searchParams.set("aspect_ratio", selector.value);
+      url = u.toString();
+    } catch (e) {
+      // fallback: append
+      url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
+      url = url.replace(/[?&]$/, "");
+      url += (url.includes("?") ? "&" : "?") + `aspect_ratio=${encodeURIComponent(selector.value)}`;
+    }
+  }
+
+  input.value = url;
+
+  // Programmatic copy: copy the input value to clipboard and show notification if present
+  try {
+    navigator.clipboard.writeText(url);
+    const note = document.getElementById("registrationCopyNotification");
+    if (note) {
+      note.textContent = gettext("Copied!");
+      note.classList.add("show");
+      setTimeout(() => note.classList.remove("show"), 1200);
+    }
+  } catch (err) {
+    // Fallback to selecting the input and using execCommand
+    input.select();
+    document.execCommand("copy");
+  }
 }
 
 // Helper functions to refresh scheduled content dropdowns based on selected group's aspect ratio

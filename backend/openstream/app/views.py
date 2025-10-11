@@ -4558,7 +4558,17 @@ class CreateScreenAPIView(APIView):
         import uuid
 
         temp_name = f"SCR-temp-{uuid.uuid4().hex[:8]}"
-        screen = DisplayWebsite.objects.create(branch=branch, name=temp_name)
+
+        # Accept optional aspect_ratio from request body or query params
+        aspect_ratio = (
+            request.data.get("aspect_ratio")
+            or request.query_params.get("aspect_ratio")
+            or DisplayWebsite._meta.get_field("aspect_ratio").get_default()
+        )
+
+        screen = DisplayWebsite.objects.create(
+            branch=branch, name=temp_name, aspect_ratio=aspect_ratio
+        )
 
         # Now set the desired name using the assigned id and save again.
         screen.name = f"SCR{screen.id}"

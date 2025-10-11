@@ -8,6 +8,15 @@
 
     {{#*inline "body"}}
         <p>{% trans "Open this URL on the Display you want to register:" %}</p>
+        <div class="mb-3">
+            <label for="registrationAspectRatio" class="form-label">{% trans "Aspect ratio (optional)" %}</label>
+            <select id="registrationAspectRatio" class="form-select">
+                <option value="">{% trans "Default (16:9)" %}</option>
+                <option value="16:9">16:9</option>
+                <option value="9:16">9:16</option>
+                <option value="4:3">4:3</option>
+            </select>
+        </div>
         {{> base/form/copyable-input
             inputId="registrationUrlInput"
             buttonId="copy-registration-url-btn"

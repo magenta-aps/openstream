@@ -17,6 +17,7 @@ import {
 // Get API key from URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const apiKey = urlParams.get("apiKey");
+const aspectRatio = urlParams.get("aspect_ratio");
 
 // DOM elements
 const loadingState = document.getElementById("loading-state");
@@ -64,12 +65,15 @@ function showRegistration(screenId) {
  */
 async function createScreen() {
   try {
+    const body = { apiKey: apiKey };
+    if (aspectRatio) body.aspect_ratio = aspectRatio;
+
     const response = await fetch(`${BASE_URL}/api/create-screen/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ apiKey: apiKey }),
+      body: JSON.stringify(body),
     });
 
     const parsed = await parseJsonSafe(response);
