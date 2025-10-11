@@ -1,0 +1,28 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="qrcode-toolbar" title="QR Code" }}
+    <div class="d-flex align-items-center gap-3 mx-3">
+        <label for="qrcode-url-input" class="form-label mb-0">{% trans "URL" %}</label>
+        <input type="url" class="form-control form-control-sm" id="qrcode-url-input" placeholder="https://example.com" style="min-width: 200px;">
+    </div>
+    <div class="vr m-2"></div>
+    <div class="d-flex align-items-center gap-2 mx-3">
+        <label class="form-label mb-0">{% trans "Foreground" %}</label>
+        <button type="button" id="qrcode-dark-btn" class="btn btn-outline-secondary btn-sm org-color-btn" title="{% trans "Foreground" %}" style="width:40px; height:32px; padding:0; border-width:3px;"></button>
+    </div>
+    <div class="d-flex align-items-center gap-2 mx-3">
+        <label class="form-label mb-0">{% trans "Background" %}</label>
+        <button type="button" id="qrcode-light-btn" class="btn btn-outline-secondary btn-sm org-color-btn" title="{% trans "Background" %}" style="width:40px; height:32px; padding:0; border-width:3px;"></button>
+    </div>
+    <div class="vr m-2"></div>
+    <div class="d-flex align-items-center gap-2 mx-3">
+        <label for="qrcode-size-select" class="form-label mb-0">{% trans "Quality" %}</label>
+        <select class="form-select form-select-sm" id="qrcode-size-select" style="min-width: 80px;">
+            <option value="200">{% trans "Low" %}</option>
+            <option value="300" selected>{% trans "Medium" %}</option>
+            <option value="400">{% trans "High" %}</option>
+            <option value="600">{% trans "Ultra" %}</option>
+        </select>
+    </div>
+    {{!-- Margin option removed; QR codes always render with no margin --}}
+{{/base/content-engine/element-type-toolbars/containers/element-type-toolbars-container}}

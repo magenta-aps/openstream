@@ -57,6 +57,7 @@ import { initListElement } from "./modules/elements/listElement.js";
 import { initTextbox } from "./modules/elements/textbox.js";
 import { initVideoElement } from "./modules/elements/videoElement.js";
 import { initPlaceholderElement } from "./modules/elements/placeholderElement.js";
+import { initQRCodeElement } from "./modules/elements/qrcodeElement.js";
 import { openSaveAsTemplateModal } from "./modules/modals/templatesModal.js";
 import {
   initActivationModal,
@@ -133,6 +134,7 @@ const initCommonEditorFeatures = () => {
   initPersistElement();
   initLockElement();
   initPlaceholderElement();
+  initQRCodeElement();
 };
 
 if (queryParams.mode === "edit") {

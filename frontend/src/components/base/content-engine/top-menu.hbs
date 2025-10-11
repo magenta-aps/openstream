@@ -79,6 +79,9 @@
                         <button class="btn btn-secondary btn-sm d-flex align-items-center" data-type="list" data-bs-toggle="tooltip" data-bs-title='{% trans " Add List" %}'>
                             <i class="material-symbols-outlined">format_list_bulleted</i>
                         </button>
+                        <button class="btn btn-secondary btn-sm d-flex align-items-center" data-type="qrcode" data-bs-toggle="tooltip" data-bs-title='{% trans " Add QR Code" %}'>
+                            <i class="material-symbols-outlined">qr_code</i>
+                        </button>
                         <button class="btn btn-secondary btn-sm d-flex align-items-center d-none" data-type="placeholder" data-bs-toggle="tooltip" data-bs-title='{% trans " Add Placeholder for Template Structure" %}'>
                             <i class="material-symbols-outlined">crop_free</i>
                         </button>
@@ -143,6 +146,7 @@
             {{> base/content-engine/element-type-toolbars/placeholder-toolbar }}
             {{> base/content-engine/element-type-toolbars/video-toolbar }}
             {{> base/content-engine/element-type-toolbars/box-element-toolbar }}
+            {{> base/content-engine/element-type-toolbars/qrcode-toolbar }}
             </div>
         </div>
     </div>
