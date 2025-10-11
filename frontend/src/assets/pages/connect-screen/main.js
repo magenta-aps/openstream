@@ -26,6 +26,20 @@ const screenIdElement = document.getElementById("screen-id");
 const errorMessageElement = document.getElementById("error-message");
 
 /**
+ * Safely parse a Response as JSON. If response body is not JSON, return
+ * an object containing the raw text under __rawText so callers can handle it.
+ */
+async function parseJsonSafe(response) {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    return { __rawText: text };
+  }
+}
+
+/**
  * Show error state with a specific message
  */
 function showError(message) {
@@ -55,18 +69,25 @@ async function createScreen() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        apiKey: apiKey,
-      }),
+      body: JSON.stringify({ apiKey: apiKey }),
     });
 
+    const parsed = await parseJsonSafe(response);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      const raw = parsed && parsed.__rawText ? parsed.__rawText : JSON.stringify(parsed || {});
+      console.error("Create screen failed (raw):", raw);
+      const message = parsed && parsed.error ? parsed.error : `HTTP ${response.status}`;
+      throw new Error(message);
     }
 
-    const data = await response.json();
-    return data.screenId;
+    if (parsed && parsed.__rawText) {
+      // Server returned non-JSON body even though request succeeded.
+      console.warn("createScreen: server returned non-JSON response:", parsed.__rawText);
+      throw new Error(gettext("Unexpected server response when creating screen."));
+    }
+
+    return parsed && parsed.screenId;
   } catch (error) {
     console.error("Error creating screen:", error);
     throw error;
@@ -86,8 +107,14 @@ async function checkForGroupAssignment(screenId) {
     );
 
     if (response.ok) {
-      const data = await response.json();
-      if (data.groupId) {
+      const data = await parseJsonSafe(response);
+      if (data && data.__rawText) {
+        console.warn("checkForGroupAssignment: server returned non-JSON response:", data.__rawText);
+        // Treat as not assigned so we show registration and continue polling
+        return false;
+      }
+
+      if (data && data.groupId) {
         // Redirect to the open-screen URL when a group is assigned.
         window.location.href = `/open-screen?displayWebsiteId=${screenId}&apiKey=${apiKey}&mode=slideshow-player`;
         return true;
@@ -100,8 +127,11 @@ async function checkForGroupAssignment(screenId) {
       showRegistration(newScreenId);
       return false;
     } else {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      const parsed = await parseJsonSafe(response);
+      const raw = parsed && parsed.__rawText ? parsed.__rawText : JSON.stringify(parsed || {});
+      console.error("checkForGroupAssignment failed (raw):", raw);
+      const message = parsed && parsed.error ? parsed.error : `HTTP ${response.status}`;
+      throw new Error(message);
     }
   } catch (error) {
     console.error("Error checking group assignment:", error);

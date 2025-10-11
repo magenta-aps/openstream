@@ -4551,8 +4551,16 @@ class CreateScreenAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create a new DisplayWebsite record (with no group)
-        screen = DisplayWebsite.objects.create(branch=branch)
+        # Create a new DisplayWebsite record. The model validates that
+        # `name` is non-blank on save, so provide a temporary unique
+        # name when creating, then update it to the desired `SCR{ id }`
+        # format after the object has an id.
+        import uuid
+
+        temp_name = f"SCR-temp-{uuid.uuid4().hex[:8]}"
+        screen = DisplayWebsite.objects.create(branch=branch, name=temp_name)
+
+        # Now set the desired name using the assigned id and save again.
         screen.name = f"SCR{screen.id}"
         screen.save()
 
