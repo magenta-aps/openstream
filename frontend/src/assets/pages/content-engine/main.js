@@ -15,6 +15,7 @@ import {
   makeActiveInNav,
   initSignOutButton,
 } from "../../utils/utils.js";
+import { getCurrentAspectRatio } from "./modules/core/addSlide.js";
 import { initAddSlide } from "./modules/core/addSlide.js";
 import { initContextMenu } from "./modules/core/contextMenu.js";
 import { initDeleteElement } from "./modules/core/deleteElement.js";
@@ -138,6 +139,18 @@ const initCommonEditorFeatures = () => {
 };
 
 if (queryParams.mode === "edit") {
+
+  const button = document.querySelector("#aspect-ratio-container button");
+  const aspectRatioSeparator = document.getElementById("aspect-ratio-separator");
+
+  if (button) {
+    button.remove();
+  }
+
+  if (aspectRatioSeparator) {
+    aspectRatioSeparator.remove();
+  }
+
   makeActiveInNav("/manage-content");
   initSlideshowPlayer();
   const navbar = document.getElementById("navbar");
