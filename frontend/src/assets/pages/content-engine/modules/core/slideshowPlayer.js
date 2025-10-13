@@ -35,7 +35,7 @@ export async function playSlideshow(showInfoBox = true) {
 
   let slideshowRunning = true;
   const previewContainer = document.querySelector(".preview-container");
-  const navbar = document.querySelector(".slim-navbar");
+  const navbar = document.querySelector("#navigation");
 
   // Only hide navbar if it exists (it won't exist in slideshow-player mode)
   if (navbar) {
@@ -264,7 +264,7 @@ export async function playSlideshow(showInfoBox = true) {
 
 function showInteractivePreviewFromEditor() {
   const previewContainer = document.querySelector(".preview-container");
-  const navbar = document.querySelector(".slim-navbar");
+  const navbar = document.querySelector("#navigation");
 
   if (navbar) {
     navbar.classList.add("d-none");
