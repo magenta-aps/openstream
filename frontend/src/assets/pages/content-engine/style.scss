@@ -45,8 +45,8 @@ body.player-mode .toolbar-general,
 body.player-mode .top-panel,
 body.player-mode .toolbar-section,
 body.player-mode .wysiwyg-toolbar,
-body.player-mode .sidebar-and-content-container > .left-sidebar,
-body.player-mode .main-content > :not(.slide-canvas),
+body.player-mode .sidebar-and-content-container>.left-sidebar,
+body.player-mode .main-content> :not(.slide-canvas),
 body.player-mode .slide-item,
 body.player-mode .content-engine-status-bar,
 body.player-mode .slide-list {
@@ -85,11 +85,13 @@ body.player-mode .persistent-elements-container {
 
 /* Status bar styles and layout adjustments */
 .content-engine-status-bar {
-  font-feature-settings: "tnum"; /* Tabular numbers for consistent spacing */
+  font-feature-settings: "tnum";
+  /* Tabular numbers for consistent spacing */
 }
 
 .main-content {
-  padding-bottom: 32px; /* Account for status bar height */
+  padding-bottom: 32px;
+  /* Account for status bar height */
 }
 
 /* Ensure the image container is positioned relatively */
@@ -183,7 +185,8 @@ body {
 
 /* Sidebar pin icon styling */
 .pin-icon {
-  font-size: 18px; /* slightly larger than normal material icon */
+  font-size: 18px;
+  /* slightly larger than normal material icon */
   line-height: 1;
   vertical-align: middle;
   color: var(--bs-secondary, #6c757d);
@@ -264,7 +267,8 @@ body {
   gap: 8px;
   align-items: center;
   z-index: 1015;
-  pointer-events: none; /* don't block interactions */
+  pointer-events: none;
+  /* don't block interactions */
 }
 
 .element-indicators-wrapper div {
@@ -302,7 +306,8 @@ body {
 
 .element-indicators-wrapper .blocked-indicator {
   background: rgb(0 0 0 / 80%);
-  z-index: 1016; /* sits above other indicators */
+  z-index: 1016;
+  /* sits above other indicators */
 }
 
 /* When using the new wrapper, existing indicator classes may have absolute positioning.
@@ -522,7 +527,7 @@ span {
 
 /* Ensure flex children can shrink properly */
 .container-flex,
-.container-flex > .main-content,
+.container-flex>.main-content,
 .slide-canvas {
   min-height: 0;
 }
@@ -544,6 +549,32 @@ span {
   cursor: pointer;
   text-align: center;
 }
+
+.slide-right-sidebar.collapsed {
+  width: 2rem !important;
+}
+
+.slide-right-sidebar .sidebar-section {
+  transition: opacity 120ms ease;
+}
+
+.slide-right-sidebar.collapsed .sidebar-section {
+  visibility: hidden;
+}
+
+.sidebar-collapse-btn {
+  position: absolute;
+  right: 0;
+  width: 2rem;
+  background-color: transparent !important;
+  border: none;
+}
+
+.sidebar-collapse-btn .collapse-icon {
+  font-weight: 700;
+  color: $darker-gray;
+}
+
 
 .top-option-utils {
   cursor: pointer;
@@ -736,7 +767,8 @@ span {
 
 /* Right sidebar (10rem) that sits to the right of the slide preview */
 .slide-right-sidebar {
-  width: 14rem; /* fixed width requirement */
+  width: 14rem;
+  /* fixed width requirement */
   height: 100%;
   background: $lighter-gray;
   border-left: 1px solid $dark-gray;
@@ -1052,15 +1084,17 @@ span {
 
 /* Ensure slide-canvas lays out preview and right sidebar side-by-side */
 .slide-canvas {
-  flex-direction: row; /* override earlier column so children are horizontal */
+  flex-direction: row;
+  /* override earlier column so children are horizontal */
   align-items: stretch;
 }
 
 /* Reserve space for the right sidebar so preview-container doesn't overlap */
-.slide-canvas > .preview-container {
+.slide-canvas>.preview-container {
   /* Take remaining space left of the sidebar */
   width: calc(100% - 10rem);
-  min-width: 0; /* allow flex shrink */
+  min-width: 0;
+  /* allow flex shrink */
 }
 
 /* Preview column: stacks preview-container and the status bar vertically
@@ -1068,13 +1102,14 @@ span {
 .preview-column {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto; /* take remaining horizontal space in .slide-canvas */
+  flex: 1 1 auto;
+  /* take remaining horizontal space in .slide-canvas */
   min-width: 0;
 }
 
 /* Make preview-container take remaining vertical space inside the column
    and allow the status bar to occupy its own 32px height below it */
-.preview-column > .preview-container {
+.preview-column>.preview-container {
   height: calc(100% - 32px);
   width: 100%;
   min-width: 0;
@@ -1090,7 +1125,8 @@ span {
 
 /* Ensure the main-content padding accounts for status bar height */
 .main-content {
-  padding-bottom: 32px; /* matches status bar height */
+  padding-bottom: 32px;
+  /* matches status bar height */
 }
 
 /* Zoom mode styling for scrollable container */
@@ -1237,8 +1273,7 @@ span {
   background-image:
     linear-gradient(to right, rgba($black, 0.2) 1px, transparent 1px),
     linear-gradient(to bottom, rgba($black, 0.2) 1px, transparent 1px);
-  background-size: calc(100% / var(--grid-columns, 100))
-    calc(100% / var(--grid-rows, 100));
+  background-size: calc(100% / var(--grid-columns, 100)) calc(100% / var(--grid-rows, 100));
 }
 
 /* Slide-element styling */
@@ -2066,7 +2101,8 @@ span {
   top: 8px;
   right: 8px;
   z-index: 1000;
-  border-radius: 50%; /* keep circular lock for better affordance */
+  border-radius: 50%;
+  /* keep circular lock for better affordance */
 }
 
 /* Locked element visual styling */
@@ -2091,7 +2127,8 @@ span {
   top: 8px;
   right: 8px;
   z-index: 1000;
-  background: #6c757d; /* match neutral gray used in JS */
+  background: #6c757d;
+  /* match neutral gray used in JS */
   box-shadow: 0 3px 8px rgb(0 0 0 / 50%);
 }
 
@@ -2112,7 +2149,8 @@ span {
   right: 8px;
   z-index: 1000;
   font-size: 20px;
-  background: $secondary; /* use secondary theme color */
+  background: $secondary;
+  /* use secondary theme color */
 }
 
 /* When element is persistent, offset the force-settings indicator to avoid overlap */
@@ -2132,19 +2170,20 @@ span {
   right: 8px;
   z-index: 1000;
   font-size: 20px;
-  background: $neutral-blue; /* choose a distinct but consistent color */
+  background: $neutral-blue;
+  /* choose a distinct but consistent color */
 }
 
 /* Offsetting handled in JS to prevent complicated combinatorial CSS rules */
 
-.slide-element.placeholder-element > div {
+.slide-element.placeholder-element>div {
   /* The inner wrapper already has margin: 4px from JS,
      but we'll add some additional styling for better visual separation */
   position: relative;
   transition: all 0.2s ease;
 }
 
-.slide-element.placeholder-element:hover > div {
+.slide-element.placeholder-element:hover>div {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba($black, 0.15);
   border-color: $neutral-blue;
@@ -2152,22 +2191,20 @@ span {
 }
 
 /* When placeholder is selected, make it more prominent */
-.slide-element.placeholder-element.selected > div {
+.slide-element.placeholder-element.selected>div {
   border-color: $neutral-blue;
   background-color: $lightest-gray;
   box-shadow: 0 0 0 3px rgba($neutral-blue, 0.25);
 }
 
 /* Ensure placeholders maintain visual separation even when grid cells are adjacent */
-.grid-container
-  .slide-element.placeholder-element
-  + .slide-element.placeholder-element {
+.grid-container .slide-element.placeholder-element+.slide-element.placeholder-element {
   /* Add extra visual separation for adjacent placeholders */
   position: relative;
 }
 
 /* Add subtle animation to placeholder elements */
-.slide-element.placeholder-element > div {
+.slide-element.placeholder-element>div {
   animation: placeholder-pulse 3s ease-in-out infinite;
 }
 
@@ -2176,6 +2213,7 @@ span {
 }
 
 @keyframes placeholder-pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -2257,7 +2295,7 @@ span {
   border-color: #6c757d;
 }
 
-#backgroundPatternToggle .btn-check:checked + .btn {
+#backgroundPatternToggle .btn-check:checked+.btn {
   background-color: #6c757d;
   border-color: #6c757d;
   color: white;

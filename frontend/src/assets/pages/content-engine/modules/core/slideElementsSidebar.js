@@ -24,6 +24,9 @@ const POPOVER_MIN_WIDTH = 200;
 const POLL_INTERVAL_MS = 600;
 const NO_ELEMENTS_HTML = `<div class="text-muted small">No elements</div>`;
 
+// Sidebar collapse state key
+const SIDEBAR_COLLAPSED_KEY = "os_slide_elements_sidebar_collapsed";
+
 let globalExpandState = false; // Track global expand/collapse state
 
 function safePushCurrentSlideState() {
@@ -248,6 +251,43 @@ function createRenderState(container, openPopovers) {
     showLinkSelect: isInteractiveEditMode(),
     rerender: renderSlideElementsSidebar,
   };
+}
+
+function isSidebarCollapsed() {
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  } catch (err) {
+    return false;
+  }
+}
+
+function setSidebarCollapsed(collapsed) {
+  try {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? "1" : "0");
+  } catch (err) {
+    // ignore
+  }
+}
+
+function applySidebarCollapsedState(container, collapsed) {
+  const sidebar = container.closest('.slide-right-sidebar') || document.querySelector('.slide-right-sidebar');
+  if (!sidebar) return;
+
+  if (collapsed) {
+    sidebar.classList.add('collapsed');
+  } else {
+    sidebar.classList.remove('collapsed');
+  }
+
+  // Update collapse button icon
+  const btn = sidebar.querySelector('.sidebar-collapse-btn');
+  if (btn) {
+    const icon = btn.querySelector('.collapse-icon');
+    if (icon) {
+      icon.textContent = collapsed ? '<<' : '>>';
+    }
+    btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+  }
 }
 
 function createElementRow(elData, state) {
@@ -1694,6 +1734,26 @@ function createExpandCollapseButton() {
   return button;
 }
 
+
+
+function attachSidebarToggleHandler() {
+  const btn = document.querySelector('.slide-right-sidebar .sidebar-collapse-btn');
+  if (!btn) return;
+  const sidebar = btn.closest('.slide-right-sidebar');
+  if (!sidebar) return;
+  // prevent double attaching
+  if (btn.__osToggleAttached) return;
+  btn.__osToggleAttached = true;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const collapsed = sidebar.classList.toggle('collapsed');
+    setSidebarCollapsed(collapsed);
+    const container = document.getElementById('slide-elements-list');
+    if (container) applySidebarCollapsedState(container, collapsed);
+  });
+}
+
 export function renderSlideElementsSidebar() {
   const container = document.getElementById("slide-elements-list");
   if (!container) return;
@@ -1764,7 +1824,13 @@ function startSidebarPolling() {
 }
 
 export function initSlideElementsSidebar() {
+  // Apply persisted collapsed state before initial render
+  const collapsed = isSidebarCollapsed();
+  const container = document.getElementById('slide-elements-list');
+  if (container) applySidebarCollapsedState(container, collapsed);
+
   renderSlideElementsSidebar();
+  attachSidebarToggleHandler();
   startSidebarPolling();
 }
 
