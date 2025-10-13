@@ -1,27 +1,4 @@
-{{!-- SPDX-        <div class="mb-3">
-            {{> base/form/label for="editDisplayName" text="Display Name"}}
-            {{> base/form/input type="text" id="editDisplayName"}}
-            {{> base/form/invalid-feedback id="editDisplayNameFeedback" text="Please enter a valid display name"}}
-        </div>
-        <!-- Aspect Ratio Selection -->
-        <div class="mb-3">
-            {{> base/form/label for="editDisplayAspectRatio" text="Aspect Ratio"}}
-            {{#> base/form/dropdown id="editDisplayAspectRatio" required=true}}
-                {{> base/form/dropdown-option value="" text="Select aspect ratio" disabled=true}}
-                {{> base/form/dropdown-option value="16:9" text="16:9 (Landscape - Full HD)"}}
-                {{> base/form/dropdown-option value="4:3" text="4:3 (Landscape - Traditional)"}}
-                {{> base/form/dropdown-option value="21:9" text="21:9 (Landscape - Ultrawide)"}}
-                {{> base/form/dropdown-option value="1.85:1" text="1.85:1 (Landscape - Cinema)"}}
-                {{> base/form/dropdown-option value="2.39:1" text="2.39:1 (Landscape - Widescreen)"}}
-                {{> base/form/dropdown-option value="9:16" text="9:16 (Portrait - Mobile)"}}
-                {{> base/form/dropdown-option value="3:4" text="3:4 (Portrait - Traditional)"}}
-                {{> base/form/dropdown-option value="9:21" text="9:21 (Portrait - Ultrawide)"}}
-                {{> base/form/dropdown-option value="1:1.85" text="1:1.85 (Portrait - Cinema)"}}
-                {{> base/form/dropdown-option value="1:2.39" text="1:2.39 (Portrait - Widescreen)"}}
-{{/base/form/dropdown}}
-            {{> base/form/invalid-feedback text="Please select an aspect ratio."}}
-        </div>
-        <div class="mb-3":pyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/modal/modal id="editDisplayModal" }}
     {{#*inline "header"}}
@@ -36,6 +13,24 @@
             {{> base/form/label for="editDisplayName" text="Display Name"}}
             {{> base/form/input type="text" id="editDisplayName"}}
             {{> base/form/invalid-feedback id="editDisplayNameFeedback" text="Please enter a valid display name"}}
+        </div>
+        <!-- Aspect Ratio Selection -->
+        <div class="mb-3">
+            {{> base/form/label for="editDisplayAspectRatio" text="Aspect Ratio"}}
+            {{#> base/form/dropdown id="editDisplayAspectRatio" required=true}}
+                {{> base/form/dropdown-option value="" text="Select aspect ratio" disabled=true selected=true}}
+                {{> base/form/dropdown-option value="16:9" text="16:9 (Landscape - Full HD)"}}
+                {{> base/form/dropdown-option value="4:3" text="4:3 (Landscape - Traditional)"}}
+                {{> base/form/dropdown-option value="21:9" text="21:9 (Landscape - Ultrawide)"}}
+                {{> base/form/dropdown-option value="1.85:1" text="1.85:1 (Landscape - Cinema)"}}
+                {{> base/form/dropdown-option value="2.39:1" text="2.39:1 (Landscape - Widescreen)"}}
+                {{> base/form/dropdown-option value="9:16" text="9:16 (Portrait)"}}
+                {{> base/form/dropdown-option value="3:4" text="3:4"}}
+                {{> base/form/dropdown-option value="9:21" text="9:21 (Portrait - Ultrawide)"}}
+                {{> base/form/dropdown-option value="1:1.85" text="1:1.85 (Portrait - Cinema)"}}
+                {{> base/form/dropdown-option value="1:2.39" text="1:2.39 (Portrait - Widescreen)"}}
+            {{/base/form/dropdown}}
+            {{> base/form/invalid-feedback text="Please select an aspect ratio."}}
         </div>
         <div class="mb-3">
             <label class="form-label">{% trans "Display URL" %}</label>
