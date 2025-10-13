@@ -47,7 +47,7 @@ function showBorderPopover(button, currentBorderData, callback) {
   let thicknessSlider = document.createElement("input");
   thicknessSlider.type = "range";
   thicknessSlider.min = "1";
-  thicknessSlider.max = "20";
+  thicknessSlider.max = "60";
   thicknessSlider.value = currentThickness;
   thicknessSlider.className = "form-range";
   thicknessSlider.style.flex = "1";
@@ -55,7 +55,7 @@ function showBorderPopover(button, currentBorderData, callback) {
   let thicknessValue = document.createElement("input");
   thicknessValue.type = "number";
   thicknessValue.min = "1";
-  thicknessValue.max = "20";
+  thicknessValue.max = "60";
   thicknessValue.value = currentThickness;
   thicknessValue.className = "form-control";
   thicknessValue.style.width = "70px";
@@ -219,7 +219,7 @@ function showBorderPopover(button, currentBorderData, callback) {
   thicknessValue.addEventListener("input", () => {
     let val = parseInt(thicknessValue.value);
     if (!isNaN(val)) {
-      thicknessSlider.value = Math.min(20, Math.max(1, val));
+      thicknessSlider.value = Math.min(60, Math.max(1, val));
       applyBorderRealtime();
     }
   });

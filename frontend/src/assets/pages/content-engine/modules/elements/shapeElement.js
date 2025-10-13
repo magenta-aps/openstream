@@ -51,6 +51,7 @@ const shapeMap = {
     `<polygon points="30,0 70,0 100,30 100,70 70,100 30,100 0,70 0,30" ${attrs}/>`,
   cloud: (attrs) =>
     `<path d="M20,60 Q10,40 20,20 Q35,5 50,20 Q65,5 80,20 Q90,40 80,60 Q95,75 80,90 Q65,95 50,90 Q35,95 20,90 Q10,75 20,60 Z" ${attrs}/>`,
+  "half-triangle": (attrs) => `<polygon points="0,100 100,100 100,0" ${attrs}/>`,
 };
 
 /**
@@ -75,6 +76,7 @@ function getShapeSVG(
   alignment = { h: "center", v: "middle" },
   strokeWidth = 10,
   nonScalingStroke = true, // new parameter; default true for slide rendering
+  useOutline = true, // new parameter to control outline visibility
 ) {
   // Calculate margin and scale to accommodate the stroke.
   const margin = strokeWidth / 2;
@@ -116,7 +118,10 @@ function getShapeSVG(
     : "";
 
   // Prepare common SVG attributes.
-  const commonAttributes = `fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" ${vectorEffect}`;
+  const strokeAttributes = useOutline 
+    ? `stroke="${stroke}" stroke-width="${strokeWidth}" ${vectorEffect}`
+    : `stroke="none" stroke-width="0"`;
+  const commonAttributes = `fill="${fill}" ${strokeAttributes}`;
 
   // Select the shape SVG from the shapeMap or fallback to square.
   const key = shape.toLowerCase();
@@ -163,6 +168,7 @@ function addShapeElement() {
     backgroundColor: "transparent",
     fill: defaultFill,
     stroke: defaultStroke,
+    useOutline: true, // Toggle for outline visibility
     fitMode: "scale",
     strokeWidth: 10,
     alignment: { h: "center", v: "middle" },
@@ -199,6 +205,8 @@ export function _renderShape(el, container) {
     el.fitMode,
     el.alignment,
     el.strokeWidth,
+    true, // nonScalingStroke
+    el.useOutline,
   );
 
   // Prepend the svg container. The resizer is already
@@ -234,6 +242,7 @@ export function initShape() {
     );
     const fillBtn = shapeToolbar.querySelector("#shape-fill-btn");
     const outlineBtn = shapeToolbar.querySelector("#shape-outline-btn");
+    const outlineToggleBtn = shapeToolbar.querySelector("#shape-outline-toggle-btn");
     // The radio partial renders an <input id="..."> and a <label for="...">.
     // Query the label by its for-attribute so we still find the associated label
     // after switching to the `base/form/radio` partial which doesn't add label IDs.
@@ -310,6 +319,8 @@ export function initShape() {
             elementData.fitMode,
             elementData.alignment,
             elementData.strokeWidth,
+            true, // nonScalingStroke
+            elementData.useOutline,
           );
         }
         const popover = bootstrap.Popover.getInstance(shapeTypePopoverBtn);
@@ -350,6 +361,8 @@ export function initShape() {
                   elementData.fitMode,
                   elementData.alignment,
                   elementData.strokeWidth,
+                  true, // nonScalingStroke
+                  elementData.useOutline,
                 );
               }
             }
@@ -389,10 +402,58 @@ export function initShape() {
                   elementData.fitMode,
                   elementData.alignment,
                   elementData.strokeWidth,
+                  true, // nonScalingStroke
+                  elementData.useOutline,
                 );
               }
             }
           });
+        }
+      });
+    }
+
+    // Outline toggle
+    if (outlineToggleBtn) {
+      // Initialize toggle state
+      if (
+        window.selectedElementForUpdate &&
+        window.selectedElementForUpdate.element.useOutline !== undefined
+      ) {
+        const isOutlineEnabled = window.selectedElementForUpdate.element.useOutline;
+        outlineToggleBtn.classList.toggle("active", isOutlineEnabled);
+        outlineToggleBtn.innerHTML = isOutlineEnabled ? 
+          '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+      }
+      
+      outlineToggleBtn.addEventListener("click", () => {
+        if (
+          window.selectedElementForUpdate &&
+          window.selectedElementForUpdate.element.type === "shape"
+        ) {
+          pushCurrentSlideState();
+          const elementData = window.selectedElementForUpdate.element;
+          elementData.useOutline = !elementData.useOutline;
+          
+          // Update button appearance
+          outlineToggleBtn.classList.toggle("active", elementData.useOutline);
+          outlineToggleBtn.innerHTML = elementData.useOutline ? 
+            '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+          
+          // Update the shape rendering
+          const elementDom = window.selectedElementForUpdate.container;
+          const svgContainer = elementDom.querySelector(".shape-svg-container");
+          if (svgContainer) {
+            svgContainer.innerHTML = getShapeSVG(
+              elementData.shape,
+              elementData.fill,
+              elementData.stroke,
+              elementData.fitMode,
+              elementData.alignment,
+              elementData.strokeWidth,
+              true, // nonScalingStroke
+              elementData.useOutline,
+            );
+          }
         }
       });
     }
@@ -442,6 +503,8 @@ export function initShape() {
               elementData.fitMode,
               elementData.alignment,
               elementData.strokeWidth,
+              true, // nonScalingStroke
+              elementData.useOutline,
             );
           }
           scaleLabel.classList.add("active");
@@ -468,6 +531,8 @@ export function initShape() {
               elementData.fitMode,
               elementData.alignment,
               elementData.strokeWidth,
+              true, // nonScalingStroke
+              elementData.useOutline,
             );
           }
           stretchLabel.classList.add("active");
