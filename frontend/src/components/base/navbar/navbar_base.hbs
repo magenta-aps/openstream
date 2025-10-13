@@ -1,65 +1,23 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 
-{{!-- NEW NAVBAR IN PROCESS --}}
-{{!-- <nav id="navbar" class="navbar shadow navbar-expand-lg">
-    <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <a href="/select-sub-org"><img src="/openstream_logo_light.svg" class="rounded openstream-logo" alt="Openstream Logo" /></a> 
-        <div class="collapse navbar-collapse" id="navbarToggler">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item me-4 d-flex align-items-center">
-                <a href="/select-sub-org"><img src="/openstream_logo_light.svg"
-                        class="rounded openstream-logo"
-                        alt="Openstream Logo" /></a> 
-                </li>
-                {{> nav-links }}
-            </ul>
-        </div>
-        <div class="d-flex align-items-center">
-            {{> user-actions }}
-        </div>
-    </div>
-</nav>  --}}
-
-{{!-- BOOTSTRAP NAV --}}
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+<nav class="navbar navbar-expand-xl pt-1" id="navigation">
+  <div class="container-fluid bg-secondary w-100 d-flex align-items-center shadow">
+    <!-- Burger menu (for small screens) + Logo wrapper -->
+    <button class="navbar-toggler me-2 border-0 focus-ring" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="material-symbols-outlined text-white" id="open-menu-icon">menu</span>
+      <span class="material-symbols-outlined text-white d-none" id="close-menu-icon">close</span>
     </button>
-    <a href="/select-sub-org"><img src="/openstream_logo_light.svg" class="rounded openstream-logo" alt="Openstream Logo" /></a>
-    <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-        </li>
+    <a href="/select-sub-org" class="me-4 order-xl-0 focus-ring" id="logo-link"><img src="/openstream_logo_light.svg" class="rounded openstream-logo" alt="Openstream Logo" /></a>
+    <!-- User action group -->
+    <div class="d-flex align-items-center ms-auto order-xl-2">
+        {{> user-actions }}
+    </div>
+    <!-- Collapsible nav links -->
+    <div class="collapse navbar-collapse order-xl-1 pt-2 pt-xl-0" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+        {{> nav-links }}
       </ul>
     </div>
   </div>
 </nav>
-
-{{!-- OLD NAV --}}
-{{!-- <nav id="navbar" class="navbar navbar-light slim-navbar shadow">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <ul class="navbar-nav d-flex flex-row align-items-center">
-            <li class="nav-item me-4 d-flex align-items-center">
-               <a href="/select-sub-org"><img src="/openstream_logo_light.svg"
-                     class="rounded openstream-logo"
-                     alt="Openstream Logo" /></a> 
-            </li>
-            {{> nav-links }}
-        </ul>
-        <div class="d-flex align-items-center">
-            {{> user-actions }}
-        </div>
-    </div>
-</nav> --}}

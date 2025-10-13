@@ -4,28 +4,40 @@
 .navbar {
   background-color: $secondary !important;
   height: 3.5rem;
+
+  /* Ensure navbar is above other elements (ex. Bootstraps dropdowns) */
+  position: relative;
+  z-index: 1050;
 }
 
-.navbar-text {
-  color: $white;
+#logo-link {
+  padding: 0.6rem 0; /* To ensure the height of the nav does jump */
 }
 
-/* Base navbar styling to match main template */
-.slim-navbar {
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 0.5px $dark-gray;
-  background-color: $secondary !important;
+.openstream-logo {
+  height: 1.5rem;
 }
 
 .nav-link span {
   font-size: $h6-font-size;
 }
 
-.nav-link.active {
+.nav-link:hover, .nav-link.active {
   background-color: $secondary-tab !important;
+}
+
+.navbar-text {
+  color: $white;
+}
+
+/* Shows close burger-menu icon when menu is open */
+.navbar-toggler[aria-expanded=true] {
+  #close-menu-icon {
+    display: inline !important;
+  };
+  #open-menu-icon {
+    display: none !important;
+  };
 }
 
 /* User dropdown styling to match base template buttons */
@@ -42,8 +54,4 @@
 
 .dropdown-item .material-symbols-outlined {
   font-size: 1.1rem;
-}
-
-.openstream-logo {
-  height: 1.5rem;
 }
