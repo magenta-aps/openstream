@@ -447,7 +447,7 @@ function renderLatestPlaylists(items) {
     btn.className = "btn btn-sm dashboard-btn-outline";
     btn.textContent = gettext("Open");
     btn.addEventListener("click", () => {
-      window.location.href = "/slideshow-playlists/?playlist_id=" + it.id;
+      window.location.href = "/slideshow-playlists?playlist_id=" + it.id;
     });
 
     details.appendChild(btn);
