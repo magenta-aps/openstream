@@ -351,26 +351,6 @@ export function makeActiveInNav(href) {
   }
 }
 
-// Control media query for navbar in JS
-export function initNavBarMediaQuery() {
-  const mediaQuery = window.matchMedia("(max-width: 1150px)");
-  const navItems = document.querySelectorAll(".nav-item");
-  
-  window.onresize = () => {
-    console.log("Media query initialized:", mediaQuery.matches);
-    if (mediaQuery.matches) {
-      navItems.forEach(nav => {
-        nav.classList.add("d-none");
-      })
-    } else {
-      navItems.forEach(nav => {
-        nav.classList.remove("d-none");
-      })
-    };
-  };
-
-}
-
 export function updateNavbarUsername() {
   const navbarUsername = document.getElementById("navbar-username");
   if (navbarUsername) {
