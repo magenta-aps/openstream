@@ -505,16 +505,13 @@ export async function duplicateTemplateOnBackend(templateId) {
 
     const duplicatedTemplate = await createResp.json();
     showToast(gettext("Template duplicated successfully."), "success");
-
-    let selectedResolution = {
-      width: store.emulatedWidth,
-      height: store.emulatedHeight,
-    };
-
     // Refresh the template list and preserve selection of the new duplicate
     await fetchAllOrgTemplatesAndPopulateStore(duplicatedTemplate.id);
 
-    updateResolution(selectedResolution);
+    // Note: fetchAllOrgTemplatesAndPopulateStore will set the correct
+    // resolution/aspect-ratio based on the preserved template id. Do not
+    // reapply a previously captured resolution here as it may override
+    // the freshly loaded template's aspect ratio.
 
     return duplicatedTemplate;
   } catch (err) {
@@ -561,19 +558,15 @@ export async function deleteTemplateOnBackend(templateId) {
       const { fetchAllSuborgTemplatesAndPopulateStore } = await import(
         "./suborgTemplateDataManager.js"
       );
-      let selectedResolution = {
-        width: store.emulatedWidth,
-        height: store.emulatedHeight,
-      };
+      // Refresh suborg templates; do not reapply a previously captured
+      // resolution. The populate function will set resolution based on
+      // the currently selected template (or defaults) when applicable.
       await fetchAllSuborgTemplatesAndPopulateStore(suborgId);
-      updateResolution(selectedResolution);
     } else if (parentOrgID) {
-      let selectedResolution = {
-        width: store.emulatedWidth,
-        height: store.emulatedHeight,
-      };
+      // Refresh org templates; do not reapply a previously captured
+      // resolution. The populate function will set resolution based on
+      // the currently selected template (or defaults) when applicable.
       await fetchAllOrgTemplatesAndPopulateStore(parentOrgID);
-      updateResolution(selectedResolution);
     }
     return true;
   } catch (err) {

@@ -338,6 +338,7 @@ function updateTagsDropdownState() {
 
 if (confirmBtn) {
   confirmBtn.addEventListener("click", async () => {
+    // Start with current emulated resolution as fallback
     let selectedResolution = {
       width: store.emulatedWidth,
       height: store.emulatedHeight,
@@ -351,6 +352,32 @@ if (confirmBtn) {
 
     // Get selected aspect ratio
     const aspectRatio = document.getElementById("templateAspectRatio").value;
+
+    // Map common aspect ratios to sensible preview resolutions.
+    // This ensures the server receives previewWidth/previewHeight matching
+    // the chosen aspect ratio instead of the currently selected template's values.
+    const aspectRatioMap = {
+      "16:9": { width: 1920, height: 1080 },
+      "4:3": { width: 1024, height: 768 },
+      "21:9": { width: 3440, height: 1440 },
+      "1.85:1": { width: 1998, height: 1080 },
+      "2.39:1": { width: 2048, height: 858 },
+      "9:16": { width: 1080, height: 1920 },
+      "3:4": { width: 768, height: 1024 },
+      "9:21": { width: 1440, height: 3440 },
+      "1:1.85": { width: 1080, height: 1998 },
+      "1:2.39": { width: 858, height: 2048 },
+      "3:2": { width: 1440, height: 960 },
+      "1:1": { width: 1080, height: 1080 },
+    };
+
+    // Use the mapped resolution for the selected aspect ratio if available
+    if (aspectRatio && aspectRatioMap[aspectRatio]) {
+      selectedResolution = {
+        width: aspectRatioMap[aspectRatio].width,
+        height: aspectRatioMap[aspectRatio].height,
+      };
+    }
 
     if (!name) {
       showToast(gettext("Please enter a template name."), "Warning");
@@ -466,8 +493,9 @@ if (confirmBtn) {
         tag_ids: tagValues.map((t) => parseInt(t)),
         aspect_ratio: aspectRatio,
         slideData: slideData,
-        previewWidth: store.emulatedWidth || 1920,
-        previewHeight: store.emulatedHeight || 1080,
+    // Prefer the resolution derived from the selected aspect ratio.
+    previewWidth: selectedResolution.width || store.emulatedWidth || 1920,
+    previewHeight: selectedResolution.height || store.emulatedHeight || 1080,
         // organisation_id is part of the URL for POST
       };
 
