@@ -125,7 +125,9 @@ function renderSlideshowPlaylists(slideshowPlaylists) {
 
   // If the page was opened with a playlist_id query param, try to auto-select it
   if (!currentSlideshowPlaylistId && initialSelectedPlaylistId) {
-    const targetPlaylist = slideshowPlaylists.find(pl => pl.id == initialSelectedPlaylistId);
+    const targetPlaylist = slideshowPlaylists.find(
+      (pl) => pl.id == initialSelectedPlaylistId,
+    );
     if (targetPlaylist) {
       const targetEl = list.querySelector(
         `.playlist-item[data-id="${initialSelectedPlaylistId}"]`,
@@ -167,7 +169,7 @@ async function submitAddPlaylist() {
   }
   const name = input.value.trim();
   const aspectRatio = aspectRatioSelect.value;
-  
+
   if (!name)
     return showToast(gettext("Playlist name cannot be empty."), "Warning");
   if (!aspectRatio)
@@ -313,17 +315,21 @@ window.openDeletePlaylistModal = (id, name) => {
 
 function editSlideshowPlaylist(playlist) {
   // Handle both old (id, name) and new (playlist object) parameter formats
-  if (typeof playlist === 'number' || typeof playlist === 'string') {
+  if (typeof playlist === "number" || typeof playlist === "string") {
     currentSlideshowPlaylistId = playlist;
     currentSlideshowPlaylist = null; // Fallback - we don't have the full object
-    document.getElementById("slideshow-playlist-name").textContent = arguments[1] || 'Unknown';
+    document.getElementById("slideshow-playlist-name").textContent =
+      arguments[1] || "Unknown";
   } else {
     currentSlideshowPlaylistId = playlist.id;
     currentSlideshowPlaylist = playlist;
-    document.getElementById("slideshow-playlist-name").textContent = playlist.name;
-    
+    document.getElementById("slideshow-playlist-name").textContent =
+      playlist.name;
+
     // Update aspect ratio display
-    const aspectRatioDisplay = document.getElementById("playlist-aspect-ratio-display");
+    const aspectRatioDisplay = document.getElementById(
+      "playlist-aspect-ratio-display",
+    );
     if (aspectRatioDisplay) {
       aspectRatioDisplay.textContent = playlist.aspect_ratio || "16:9";
     }
@@ -519,17 +525,27 @@ function populateSlideshowSelect(slideshows) {
   select.innerHTML = "";
 
   // Get aspect ratio indicator elements
-  const playlistAspectRatioInfo = document.getElementById("playlist-aspect-ratio-info");
-  const modalPlaylistAspectRatio = document.getElementById("modal-playlist-aspect-ratio");
-  const slideshowAspectRatioIndicator = document.getElementById("slideshow-aspect-ratio-indicator");
-  const slideshowAspectRatioValue = document.getElementById("slideshow-aspect-ratio-value");
+  const playlistAspectRatioInfo = document.getElementById(
+    "playlist-aspect-ratio-info",
+  );
+  const modalPlaylistAspectRatio = document.getElementById(
+    "modal-playlist-aspect-ratio",
+  );
+  const slideshowAspectRatioIndicator = document.getElementById(
+    "slideshow-aspect-ratio-indicator",
+  );
+  const slideshowAspectRatioValue = document.getElementById(
+    "slideshow-aspect-ratio-value",
+  );
 
   // Show playlist aspect ratio info if available
   if (currentSlideshowPlaylist && currentSlideshowPlaylist.aspect_ratio) {
-    modalPlaylistAspectRatio.textContent = currentSlideshowPlaylist.aspect_ratio;
+    modalPlaylistAspectRatio.textContent =
+      currentSlideshowPlaylist.aspect_ratio;
     playlistAspectRatioInfo.style.display = "block";
-    
-    slideshowAspectRatioValue.textContent = currentSlideshowPlaylist.aspect_ratio;
+
+    slideshowAspectRatioValue.textContent =
+      currentSlideshowPlaylist.aspect_ratio;
     slideshowAspectRatioIndicator.style.display = "block";
   } else {
     playlistAspectRatioInfo.style.display = "none";
@@ -539,7 +555,9 @@ function populateSlideshowSelect(slideshows) {
   // Filter slideshows by current playlist's aspect ratio
   let filteredSlideshows = slideshows;
   if (currentSlideshowPlaylist && currentSlideshowPlaylist.aspect_ratio) {
-    filteredSlideshows = slideshows.filter(s => s.aspect_ratio === currentSlideshowPlaylist.aspect_ratio);
+    filteredSlideshows = slideshows.filter(
+      (s) => s.aspect_ratio === currentSlideshowPlaylist.aspect_ratio,
+    );
   }
 
   if (filteredSlideshows.length === 0) {
@@ -547,8 +565,10 @@ function populateSlideshowSelect(slideshows) {
     noMatchOption.value = "";
     noMatchOption.disabled = true;
     noMatchOption.selected = true;
-    noMatchOption.textContent = currentSlideshowPlaylist 
-      ? gettext(`No slideshows available with aspect ratio ${currentSlideshowPlaylist.aspect_ratio}`)
+    noMatchOption.textContent = currentSlideshowPlaylist
+      ? gettext(
+          `No slideshows available with aspect ratio ${currentSlideshowPlaylist.aspect_ratio}`,
+        )
       : gettext("No slideshows available");
     select.appendChild(noMatchOption);
     return;

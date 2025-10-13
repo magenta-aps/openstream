@@ -79,16 +79,25 @@ async function createScreen() {
     const parsed = await parseJsonSafe(response);
 
     if (!response.ok) {
-      const raw = parsed && parsed.__rawText ? parsed.__rawText : JSON.stringify(parsed || {});
+      const raw =
+        parsed && parsed.__rawText
+          ? parsed.__rawText
+          : JSON.stringify(parsed || {});
       console.error("Create screen failed (raw):", raw);
-      const message = parsed && parsed.error ? parsed.error : `HTTP ${response.status}`;
+      const message =
+        parsed && parsed.error ? parsed.error : `HTTP ${response.status}`;
       throw new Error(message);
     }
 
     if (parsed && parsed.__rawText) {
       // Server returned non-JSON body even though request succeeded.
-      console.warn("createScreen: server returned non-JSON response:", parsed.__rawText);
-      throw new Error(gettext("Unexpected server response when creating screen."));
+      console.warn(
+        "createScreen: server returned non-JSON response:",
+        parsed.__rawText,
+      );
+      throw new Error(
+        gettext("Unexpected server response when creating screen."),
+      );
     }
 
     return parsed && parsed.screenId;
@@ -113,7 +122,10 @@ async function checkForGroupAssignment(screenId) {
     if (response.ok) {
       const data = await parseJsonSafe(response);
       if (data && data.__rawText) {
-        console.warn("checkForGroupAssignment: server returned non-JSON response:", data.__rawText);
+        console.warn(
+          "checkForGroupAssignment: server returned non-JSON response:",
+          data.__rawText,
+        );
         // Treat as not assigned so we show registration and continue polling
         return false;
       }
@@ -132,9 +144,13 @@ async function checkForGroupAssignment(screenId) {
       return false;
     } else {
       const parsed = await parseJsonSafe(response);
-      const raw = parsed && parsed.__rawText ? parsed.__rawText : JSON.stringify(parsed || {});
+      const raw =
+        parsed && parsed.__rawText
+          ? parsed.__rawText
+          : JSON.stringify(parsed || {});
       console.error("checkForGroupAssignment failed (raw):", raw);
-      const message = parsed && parsed.error ? parsed.error : `HTTP ${response.status}`;
+      const message =
+        parsed && parsed.error ? parsed.error : `HTTP ${response.status}`;
       throw new Error(message);
     }
   } catch (error) {

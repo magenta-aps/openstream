@@ -51,7 +51,8 @@ const shapeMap = {
     `<polygon points="30,0 70,0 100,30 100,70 70,100 30,100 0,70 0,30" ${attrs}/>`,
   cloud: (attrs) =>
     `<path d="M20,60 Q10,40 20,20 Q35,5 50,20 Q65,5 80,20 Q90,40 80,60 Q95,75 80,90 Q65,95 50,90 Q35,95 20,90 Q10,75 20,60 Z" ${attrs}/>`,
-  "half-triangle": (attrs) => `<polygon points="0,100 100,100 100,0" ${attrs}/>`,
+  "half-triangle": (attrs) =>
+    `<polygon points="0,100 100,100 100,0" ${attrs}/>`,
 };
 
 /**
@@ -118,7 +119,7 @@ function getShapeSVG(
     : "";
 
   // Prepare common SVG attributes.
-  const strokeAttributes = useOutline 
+  const strokeAttributes = useOutline
     ? `stroke="${stroke}" stroke-width="${strokeWidth}" ${vectorEffect}`
     : `stroke="none" stroke-width="0"`;
   const commonAttributes = `fill="${fill}" ${strokeAttributes}`;
@@ -242,7 +243,9 @@ export function initShape() {
     );
     const fillBtn = shapeToolbar.querySelector("#shape-fill-btn");
     const outlineBtn = shapeToolbar.querySelector("#shape-outline-btn");
-    const outlineToggleBtn = shapeToolbar.querySelector("#shape-outline-toggle-btn");
+    const outlineToggleBtn = shapeToolbar.querySelector(
+      "#shape-outline-toggle-btn",
+    );
     // The radio partial renders an <input id="..."> and a <label for="...">.
     // Query the label by its for-attribute so we still find the associated label
     // after switching to the `base/form/radio` partial which doesn't add label IDs.
@@ -419,12 +422,14 @@ export function initShape() {
         window.selectedElementForUpdate &&
         window.selectedElementForUpdate.element.useOutline !== undefined
       ) {
-        const isOutlineEnabled = window.selectedElementForUpdate.element.useOutline;
+        const isOutlineEnabled =
+          window.selectedElementForUpdate.element.useOutline;
         outlineToggleBtn.classList.toggle("active", isOutlineEnabled);
-        outlineToggleBtn.innerHTML = isOutlineEnabled ? 
-          '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        outlineToggleBtn.innerHTML = isOutlineEnabled
+          ? '<i class="bi bi-eye"></i>'
+          : '<i class="bi bi-eye-slash"></i>';
       }
-      
+
       outlineToggleBtn.addEventListener("click", () => {
         if (
           window.selectedElementForUpdate &&
@@ -433,12 +438,13 @@ export function initShape() {
           pushCurrentSlideState();
           const elementData = window.selectedElementForUpdate.element;
           elementData.useOutline = !elementData.useOutline;
-          
+
           // Update button appearance
           outlineToggleBtn.classList.toggle("active", elementData.useOutline);
-          outlineToggleBtn.innerHTML = elementData.useOutline ? 
-            '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
-          
+          outlineToggleBtn.innerHTML = elementData.useOutline
+            ? '<i class="bi bi-eye"></i>'
+            : '<i class="bi bi-eye-slash"></i>';
+
           // Update the shape rendering
           const elementDom = window.selectedElementForUpdate.container;
           const svgContainer = elementDom.querySelector(".shape-svg-container");

@@ -22,7 +22,12 @@ function parseSpan(value, fallback = 1) {
 
 document.addEventListener("keydown", (e) => {
   // Ignore when editing text or in input controls
-  if (e.target && e.target.matches && e.target.matches("input, textarea, [contenteditable]")) return;
+  if (
+    e.target &&
+    e.target.matches &&
+    e.target.matches("input, textarea, [contenteditable]")
+  )
+    return;
 
   const selData = store.selectedElementData;
   const selEl = store.selectedElement;
@@ -43,10 +48,22 @@ document.addEventListener("keydown", (e) => {
   if (!e.repeat) pushCurrentSlideState();
 
   // Derive current grid values (gridX/gridY are 0-based)
-  const currentX = typeof selData.gridX === "number" ? selData.gridX : Math.max(0, (parseInt(selEl.style.gridColumnStart, 10) || 1) - 1);
-  const currentY = typeof selData.gridY === "number" ? selData.gridY : Math.max(0, (parseInt(selEl.style.gridRowStart, 10) || 1) - 1);
-  const currentWidth = typeof selData.gridWidth === "number" ? selData.gridWidth : parseSpan(selEl.style.gridColumnEnd, 1);
-  const currentHeight = typeof selData.gridHeight === "number" ? selData.gridHeight : parseSpan(selEl.style.gridRowEnd, 1);
+  const currentX =
+    typeof selData.gridX === "number"
+      ? selData.gridX
+      : Math.max(0, (parseInt(selEl.style.gridColumnStart, 10) || 1) - 1);
+  const currentY =
+    typeof selData.gridY === "number"
+      ? selData.gridY
+      : Math.max(0, (parseInt(selEl.style.gridRowStart, 10) || 1) - 1);
+  const currentWidth =
+    typeof selData.gridWidth === "number"
+      ? selData.gridWidth
+      : parseSpan(selEl.style.gridColumnEnd, 1);
+  const currentHeight =
+    typeof selData.gridHeight === "number"
+      ? selData.gridHeight
+      : parseSpan(selEl.style.gridRowEnd, 1);
 
   let newX = currentX;
   let newY = currentY;
@@ -90,7 +107,12 @@ document.addEventListener("keydown", (e) => {
   if (key === "ArrowUp") newY = currentY - 1;
 
   // Constrain within grid
-  const constrained = GridUtils.constrainPosition(newX, newY, currentWidth, currentHeight);
+  const constrained = GridUtils.constrainPosition(
+    newX,
+    newY,
+    currentWidth,
+    currentHeight,
+  );
   newX = constrained.x;
   newY = constrained.y;
 
@@ -102,7 +124,12 @@ document.addEventListener("keydown", (e) => {
 
   // Update resizer and status
   if (selEl._updateResizerPosition) selEl._updateResizerPosition();
-  const info = GridUtils.formatGridInfoCompact(newX, newY, currentWidth, currentHeight);
+  const info = GridUtils.formatGridInfoCompact(
+    newX,
+    newY,
+    currentWidth,
+    currentHeight,
+  );
   updateGridInfo(info);
 
   e.preventDefault();

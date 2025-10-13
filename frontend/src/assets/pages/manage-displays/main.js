@@ -192,20 +192,20 @@ function getDistinctColor(id) {
 
 function validateDisplayGroupAspectRatio(displayId, targetGroupId) {
   // Find the display
-  const display = displaysData.find(d => d.id === displayId);
+  const display = displaysData.find((d) => d.id === displayId);
   if (!display) return false;
-  
+
   // If moving to ungrouped (targetGroupId is null), allow it
   if (targetGroupId === null) return true;
-  
+
   // Find the target group
-  const targetGroup = groupsData.find(g => g.id === targetGroupId);
+  const targetGroup = groupsData.find((g) => g.id === targetGroupId);
   if (!targetGroup) return false;
-  
+
   // Check if aspect ratios match
   const displayAspectRatio = display.aspect_ratio || "16:9";
   const groupAspectRatio = targetGroup.aspect_ratio || "16:9";
-  
+
   return displayAspectRatio === groupAspectRatio;
 }
 
@@ -217,7 +217,9 @@ function populateSlideshowPlaylistDropdown(
 ) {
   let filteredPlaylists = slideshowPlaylists;
   if (aspectRatioFilter) {
-    filteredPlaylists = slideshowPlaylists.filter(playlist => playlist.aspect_ratio === aspectRatioFilter);
+    filteredPlaylists = slideshowPlaylists.filter(
+      (playlist) => playlist.aspect_ratio === aspectRatioFilter,
+    );
   }
   populateDropdown(dropdownId, filteredPlaylists, placeholder, selectedValue);
 }
@@ -266,7 +268,7 @@ function openAddGroupModal() {
       "addGroupDefaultSlideshow",
       null,
       gettext("Select a default slideshow"),
-      "16:9" // Default aspect ratio
+      "16:9", // Default aspect ratio
     );
   } else {
     // Show playlist container, hide slideshow container.
@@ -279,7 +281,7 @@ function openAddGroupModal() {
       "addGroupDefaultPlaylist",
       null,
       gettext("Select a default slideshow playlist"),
-      "16:9" // Default aspect ratio
+      "16:9", // Default aspect ratio
     );
   }
 
@@ -293,7 +295,8 @@ function openEditGroupModal(groupId) {
   if (!group) return;
   document.getElementById("editGroupId").value = group.id;
   document.getElementById("editGroupName").value = group.name;
-  document.getElementById("editGroupAspectRatio").value = group.aspect_ratio || "16:9";
+  document.getElementById("editGroupAspectRatio").value =
+    group.aspect_ratio || "16:9";
 
   // Check which default content is set
   if (group.default_slideshow) {
@@ -309,7 +312,7 @@ function openEditGroupModal(groupId) {
       "editGroupDefaultSlideshow",
       group.default_slideshow.id,
       gettext("Select a default slideshow"),
-      group.aspect_ratio || "16:9"
+      group.aspect_ratio || "16:9",
     );
   } else if (group.default_playlist) {
     // Set the radio button for playlist
@@ -324,7 +327,7 @@ function openEditGroupModal(groupId) {
       "editGroupDefaultPlaylist",
       group.default_playlist.id,
       gettext("Select a default slideshow playlist"),
-      group.aspect_ratio || "16:9"
+      group.aspect_ratio || "16:9",
     );
   }
   if (editGroupModal) {
@@ -448,7 +451,8 @@ function openEditDisplayModal(groupId, displayId) {
     console.warn("openEditDisplayModal: group not found", groupId);
     return;
   }
-  const display = group.displays && group.displays.find((d) => d.id === displayId);
+  const display =
+    group.displays && group.displays.find((d) => d.id === displayId);
   if (!display) {
     console.warn("openEditDisplayModal: display not found", displayId);
     return;
@@ -457,7 +461,9 @@ function openEditDisplayModal(groupId, displayId) {
   const editDisplayGroupIdEl = document.getElementById("editDisplayGroupId");
   const editDisplayIdEl = document.getElementById("editDisplayId");
   const editDisplayNameEl = document.getElementById("editDisplayName");
-  const editDisplayAspectRatioEl = document.getElementById("editDisplayAspectRatio");
+  const editDisplayAspectRatioEl = document.getElementById(
+    "editDisplayAspectRatio",
+  );
   const editDisplayUrlInputEl = document.getElementById("editDisplayUrlInput");
 
   if (editDisplayGroupIdEl) editDisplayGroupIdEl.value = groupId;
@@ -525,7 +531,7 @@ async function saveDisplayChanges() {
     alert(gettext("Please select an aspect ratio."));
     return;
   }
-  
+
   try {
     const res = await fetch(
       `${BASE_URL}/api/display-websites/${displayId}/?branch_id=${selectedBranchID}`,
@@ -646,7 +652,7 @@ async function loadRecurringScheduledEvents() {
 async function saveNewGroup() {
   const groupName = document.getElementById("addGroupName").value.trim();
   const aspectRatio = document.getElementById("addGroupAspectRatio").value;
-  
+
   if (!groupName) {
     alert(gettext("Please enter a group name."));
     return;
@@ -655,7 +661,7 @@ async function saveNewGroup() {
     alert(gettext("Please select an aspect ratio."));
     return;
   }
-  
+
   // Determine selected default content type
   const contentType = document.querySelector(
     'input[name="defaultContentType"]:checked',
@@ -814,16 +820,20 @@ function renderUngroupedDisplays() {
 
       // Validate aspect ratio compatibility before making API call
       if (!validateDisplayGroupAspectRatio(movedDisplayId, newGroupId)) {
-        const display = displaysData.find(d => d.id === movedDisplayId);
-        const targetGroup = newGroupId ? groupsData.find(g => g.id === newGroupId) : null;
-        
+        const display = displaysData.find((d) => d.id === movedDisplayId);
+        const targetGroup = newGroupId
+          ? groupsData.find((g) => g.id === newGroupId)
+          : null;
+
         if (targetGroup) {
           showToast(
-            gettext(`Cannot move display "${display.name}" (${display.aspect_ratio || "16:9"}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || "16:9"}). Aspect ratios must match.`),
-            "Error"
+            gettext(
+              `Cannot move display "${display.name}" (${display.aspect_ratio || "16:9"}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || "16:9"}). Aspect ratios must match.`,
+            ),
+            "Error",
           );
         }
-        
+
         // Revert the UI change by refreshing
         await refreshData();
         return;
@@ -851,7 +861,7 @@ function renderUngroupedDisplays() {
         }
       } catch (error) {
         console.error("Error updating display group:", error);
-        showToast(gettext("Error updating display group"), "Error"); 
+        showToast(gettext("Error updating display group"), "Error");
         // Revert the UI change
         await refreshData();
       }
@@ -995,7 +1005,9 @@ async function copyAPIKey() {
         url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
         url = url.replace(/[?&]$/, "");
         if (aspectSelector && aspectSelector.value) {
-          url += (url.includes("?") ? "&" : "?") + `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
+          url +=
+            (url.includes("?") ? "&" : "?") +
+            `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
         }
         inputEl.value = url;
       }
@@ -1064,7 +1076,7 @@ function initEventListeners() {
   document
     .getElementById("copy-registration-url-btn")
     ?.addEventListener("click", () => {
-  copyRegistrationUrl();
+      copyRegistrationUrl();
     });
 
   // Copy API key button in registration modal
@@ -1144,21 +1156,23 @@ function initEventListeners() {
   // Helper function to refresh edit group content dropdowns based on aspect ratio
   function refreshEditGroupContentDropdowns() {
     const aspectRatio = document.getElementById("editGroupAspectRatio").value;
-    const contentType = document.querySelector('input[name="editDefaultContentType"]:checked')?.value;
-    
+    const contentType = document.querySelector(
+      'input[name="editDefaultContentType"]:checked',
+    )?.value;
+
     if (contentType === "slideshow") {
       populateSlideshowsDropdown(
         "editGroupDefaultSlideshow",
         null,
         gettext("Select a default slideshow"),
-        aspectRatio
+        aspectRatio,
       );
     } else if (contentType === "playlist") {
       populateSlideshowPlaylistDropdown(
         "editGroupDefaultPlaylist",
         null,
         gettext("Select a default slideshow playlist"),
-        aspectRatio
+        aspectRatio,
       );
     }
   }
@@ -1168,13 +1182,19 @@ function initEventListeners() {
     .getElementById("editGroupAspectRatio")
     ?.addEventListener("change", refreshEditGroupContentDropdowns);
 
-
-
   // Add group change listeners for scheduled content
-  document.getElementById("scheduledGroup")?.addEventListener("change", refreshScheduledContentDropdowns);
-  document.getElementById("editScheduledGroup")?.addEventListener("change", refreshEditScheduledContentDropdowns);
-  document.getElementById("recurringScheduledGroup")?.addEventListener("change", refreshRecurringScheduledContentDropdowns);
-  document.getElementById("editRecurringScheduledGroup")?.addEventListener("change", refreshEditRecurringScheduledContentDropdowns);
+  document
+    .getElementById("scheduledGroup")
+    ?.addEventListener("change", refreshScheduledContentDropdowns);
+  document
+    .getElementById("editScheduledGroup")
+    ?.addEventListener("change", refreshEditScheduledContentDropdowns);
+  document
+    .getElementById("recurringScheduledGroup")
+    ?.addEventListener("change", refreshRecurringScheduledContentDropdowns);
+  document
+    .getElementById("editRecurringScheduledGroup")
+    ?.addEventListener("change", refreshEditRecurringScheduledContentDropdowns);
 
   // Content type toggle event listeners
   document.getElementsByName("editDefaultContentType").forEach((elem) => {
@@ -1198,21 +1218,23 @@ function initEventListeners() {
   // Helper function to refresh add group content dropdowns based on aspect ratio
   function refreshAddGroupContentDropdowns() {
     const aspectRatio = document.getElementById("addGroupAspectRatio").value;
-    const contentType = document.querySelector('input[name="defaultContentType"]:checked')?.value;
-    
+    const contentType = document.querySelector(
+      'input[name="defaultContentType"]:checked',
+    )?.value;
+
     if (contentType === "slideshow") {
       populateSlideshowsDropdown(
         "addGroupDefaultSlideshow",
         null,
         gettext("Select a default slideshow"),
-        aspectRatio
+        aspectRatio,
       );
     } else if (contentType === "playlist") {
       populateSlideshowPlaylistDropdown(
         "addGroupDefaultPlaylist",
         null,
         gettext("Select a default slideshow playlist"),
-        aspectRatio
+        aspectRatio,
       );
     }
   }
@@ -1343,7 +1365,9 @@ function copyRegistrationUrl() {
       // fallback: append
       url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
       url = url.replace(/[?&]$/, "");
-      url += (url.includes("?") ? "&" : "?") + `aspect_ratio=${encodeURIComponent(selector.value)}`;
+      url +=
+        (url.includes("?") ? "&" : "?") +
+        `aspect_ratio=${encodeURIComponent(selector.value)}`;
     }
   }
 
@@ -1370,24 +1394,38 @@ function refreshScheduledContentDropdowns() {
   const groupId = document.getElementById("scheduledGroup")?.value;
   const slideshowSelect = document.getElementById("scheduledSlideshowSelect");
   const playlistSelect = document.getElementById("scheduledPlaylistSelect");
-  
+
   // Group aspect ratio indicator
-  const groupAspectRatioIndicator = document.getElementById("scheduledGroupAspectRatio");
-  const groupAspectRatioValue = document.getElementById("scheduledGroupAspectRatioValue");
-  
+  const groupAspectRatioIndicator = document.getElementById(
+    "scheduledGroupAspectRatio",
+  );
+  const groupAspectRatioValue = document.getElementById(
+    "scheduledGroupAspectRatioValue",
+  );
+
   // Content aspect ratio indicators
-  const slideshowAspectRatioIndicator = document.getElementById("scheduledSlideshowAspectRatio");
-  const slideshowAspectRatioValue = document.getElementById("scheduledSlideshowAspectRatioValue");
-  const playlistAspectRatioIndicator = document.getElementById("scheduledPlaylistAspectRatio");
-  const playlistAspectRatioValue = document.getElementById("scheduledPlaylistAspectRatioValue");
-  
+  const slideshowAspectRatioIndicator = document.getElementById(
+    "scheduledSlideshowAspectRatio",
+  );
+  const slideshowAspectRatioValue = document.getElementById(
+    "scheduledSlideshowAspectRatioValue",
+  );
+  const playlistAspectRatioIndicator = document.getElementById(
+    "scheduledPlaylistAspectRatio",
+  );
+  const playlistAspectRatioValue = document.getElementById(
+    "scheduledPlaylistAspectRatioValue",
+  );
+
   if (!groupId || groupId === "") {
     // Disable content dropdowns if no group selected
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
-    slideshowSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
-    playlistSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
-    
+    slideshowSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
+    playlistSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
+
     // Hide aspect ratio indicators
     groupAspectRatioIndicator.style.display = "none";
     slideshowAspectRatioIndicator.style.display = "none";
@@ -1399,9 +1437,9 @@ function refreshScheduledContentDropdowns() {
   slideshowSelect.disabled = false;
   playlistSelect.disabled = false;
 
-  const group = groupsData.find(g => g.id == groupId);
+  const group = groupsData.find((g) => g.id == groupId);
   const aspectRatio = group ? group.aspect_ratio : null;
-  
+
   // Show group aspect ratio
   if (aspectRatio) {
     groupAspectRatioValue.textContent = aspectRatio;
@@ -1409,11 +1447,18 @@ function refreshScheduledContentDropdowns() {
   } else {
     groupAspectRatioIndicator.style.display = "none";
   }
-  
-  const contentType = document.querySelector('input[name="scheduledContentType"]:checked')?.value;
-  
+
+  const contentType = document.querySelector(
+    'input[name="scheduledContentType"]:checked',
+  )?.value;
+
   if (contentType === "slideshow") {
-    populateSlideshowsDropdown("scheduledSlideshowSelect", null, gettext("Select a slideshow"), aspectRatio);
+    populateSlideshowsDropdown(
+      "scheduledSlideshowSelect",
+      null,
+      gettext("Select a slideshow"),
+      aspectRatio,
+    );
     if (aspectRatio) {
       slideshowAspectRatioValue.textContent = aspectRatio;
       slideshowAspectRatioIndicator.style.display = "block";
@@ -1422,7 +1467,12 @@ function refreshScheduledContentDropdowns() {
     }
     playlistAspectRatioIndicator.style.display = "none";
   } else if (contentType === "playlist") {
-    populateSlideshowPlaylistDropdown("scheduledPlaylistSelect", null, gettext("Select a slideshow playlist"), aspectRatio);
+    populateSlideshowPlaylistDropdown(
+      "scheduledPlaylistSelect",
+      null,
+      gettext("Select a slideshow playlist"),
+      aspectRatio,
+    );
     if (aspectRatio) {
       playlistAspectRatioValue.textContent = aspectRatio;
       playlistAspectRatioIndicator.style.display = "block";
@@ -1435,15 +1485,19 @@ function refreshScheduledContentDropdowns() {
 
 function refreshEditScheduledContentDropdowns() {
   const groupId = document.getElementById("editScheduledGroup")?.value;
-  const slideshowSelect = document.getElementById("editScheduledSlideshowSelect");
+  const slideshowSelect = document.getElementById(
+    "editScheduledSlideshowSelect",
+  );
   const playlistSelect = document.getElementById("editScheduledPlaylistSelect");
-  
+
   if (!groupId || groupId === "") {
     // Disable content dropdowns if no group selected
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
-    slideshowSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
-    playlistSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
+    slideshowSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
+    playlistSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
     return;
   }
 
@@ -1451,39 +1505,69 @@ function refreshEditScheduledContentDropdowns() {
   slideshowSelect.disabled = false;
   playlistSelect.disabled = false;
 
-  const group = groupsData.find(g => g.id == groupId);
+  const group = groupsData.find((g) => g.id == groupId);
   const aspectRatio = group ? group.aspect_ratio : null;
-  const contentType = document.querySelector('input[name="editScheduledContentType"]:checked')?.value;
-  
+  const contentType = document.querySelector(
+    'input[name="editScheduledContentType"]:checked',
+  )?.value;
+
   if (contentType === "slideshow") {
-    populateSlideshowsDropdown("editScheduledSlideshowSelect", null, gettext("Select a slideshow"), aspectRatio);
+    populateSlideshowsDropdown(
+      "editScheduledSlideshowSelect",
+      null,
+      gettext("Select a slideshow"),
+      aspectRatio,
+    );
   } else if (contentType === "playlist") {
-    populateSlideshowPlaylistDropdown("editScheduledPlaylistSelect", null, gettext("Select a slideshow playlist"), aspectRatio);
+    populateSlideshowPlaylistDropdown(
+      "editScheduledPlaylistSelect",
+      null,
+      gettext("Select a slideshow playlist"),
+      aspectRatio,
+    );
   }
 }
 
 function refreshRecurringScheduledContentDropdowns() {
   const groupId = document.getElementById("recurringScheduledGroup")?.value;
-  const slideshowSelect = document.getElementById("recurringScheduledSlideshowSelect");
-  const playlistSelect = document.getElementById("recurringScheduledPlaylistSelect");
-  
+  const slideshowSelect = document.getElementById(
+    "recurringScheduledSlideshowSelect",
+  );
+  const playlistSelect = document.getElementById(
+    "recurringScheduledPlaylistSelect",
+  );
+
   // Group aspect ratio indicator
-  const groupAspectRatioIndicator = document.getElementById("recurringScheduledGroupAspectRatio");
-  const groupAspectRatioValue = document.getElementById("recurringScheduledGroupAspectRatioValue");
-  
+  const groupAspectRatioIndicator = document.getElementById(
+    "recurringScheduledGroupAspectRatio",
+  );
+  const groupAspectRatioValue = document.getElementById(
+    "recurringScheduledGroupAspectRatioValue",
+  );
+
   // Content aspect ratio indicators
-  const slideshowAspectRatioIndicator = document.getElementById("recurringScheduledSlideshowAspectRatio");
-  const slideshowAspectRatioValue = document.getElementById("recurringScheduledSlideshowAspectRatioValue");
-  const playlistAspectRatioIndicator = document.getElementById("recurringScheduledPlaylistAspectRatio");
-  const playlistAspectRatioValue = document.getElementById("recurringScheduledPlaylistAspectRatioValue");
-  
+  const slideshowAspectRatioIndicator = document.getElementById(
+    "recurringScheduledSlideshowAspectRatio",
+  );
+  const slideshowAspectRatioValue = document.getElementById(
+    "recurringScheduledSlideshowAspectRatioValue",
+  );
+  const playlistAspectRatioIndicator = document.getElementById(
+    "recurringScheduledPlaylistAspectRatio",
+  );
+  const playlistAspectRatioValue = document.getElementById(
+    "recurringScheduledPlaylistAspectRatioValue",
+  );
+
   if (!groupId || groupId === "") {
     // Disable content dropdowns if no group selected
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
-    slideshowSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
-    playlistSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
-    
+    slideshowSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
+    playlistSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
+
     // Hide aspect ratio indicators
     groupAspectRatioIndicator.style.display = "none";
     slideshowAspectRatioIndicator.style.display = "none";
@@ -1495,9 +1579,9 @@ function refreshRecurringScheduledContentDropdowns() {
   slideshowSelect.disabled = false;
   playlistSelect.disabled = false;
 
-  const group = groupsData.find(g => g.id == groupId);
+  const group = groupsData.find((g) => g.id == groupId);
   const aspectRatio = group ? group.aspect_ratio : null;
-  
+
   // Show group aspect ratio
   if (aspectRatio) {
     groupAspectRatioValue.textContent = aspectRatio;
@@ -1505,11 +1589,18 @@ function refreshRecurringScheduledContentDropdowns() {
   } else {
     groupAspectRatioIndicator.style.display = "none";
   }
-  
-  const contentType = document.querySelector('input[name="recurringScheduledContentType"]:checked')?.value;
-  
+
+  const contentType = document.querySelector(
+    'input[name="recurringScheduledContentType"]:checked',
+  )?.value;
+
   if (contentType === "slideshow") {
-    populateSlideshowsDropdown("recurringScheduledSlideshowSelect", null, gettext("Select a slideshow"), aspectRatio);
+    populateSlideshowsDropdown(
+      "recurringScheduledSlideshowSelect",
+      null,
+      gettext("Select a slideshow"),
+      aspectRatio,
+    );
     if (aspectRatio) {
       slideshowAspectRatioValue.textContent = aspectRatio;
       slideshowAspectRatioIndicator.style.display = "block";
@@ -1518,7 +1609,12 @@ function refreshRecurringScheduledContentDropdowns() {
     }
     playlistAspectRatioIndicator.style.display = "none";
   } else if (contentType === "playlist") {
-    populateSlideshowPlaylistDropdown("recurringScheduledPlaylistSelect", null, gettext("Select a slideshow playlist"), aspectRatio);
+    populateSlideshowPlaylistDropdown(
+      "recurringScheduledPlaylistSelect",
+      null,
+      gettext("Select a slideshow playlist"),
+      aspectRatio,
+    );
     if (aspectRatio) {
       playlistAspectRatioValue.textContent = aspectRatio;
       playlistAspectRatioIndicator.style.display = "block";
@@ -1531,15 +1627,21 @@ function refreshRecurringScheduledContentDropdowns() {
 
 function refreshEditRecurringScheduledContentDropdowns() {
   const groupId = document.getElementById("editRecurringScheduledGroup")?.value;
-  const slideshowSelect = document.getElementById("editRecurringScheduledSlideshowSelect");
-  const playlistSelect = document.getElementById("editRecurringScheduledPlaylistSelect");
-  
+  const slideshowSelect = document.getElementById(
+    "editRecurringScheduledSlideshowSelect",
+  );
+  const playlistSelect = document.getElementById(
+    "editRecurringScheduledPlaylistSelect",
+  );
+
   if (!groupId || groupId === "") {
     // Disable content dropdowns if no group selected
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
-    slideshowSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
-    playlistSelect.innerHTML = '<option value="" disabled selected>Select Group First</option>';
+    slideshowSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
+    playlistSelect.innerHTML =
+      '<option value="" disabled selected>Select Group First</option>';
     return;
   }
 
@@ -1547,14 +1649,26 @@ function refreshEditRecurringScheduledContentDropdowns() {
   slideshowSelect.disabled = false;
   playlistSelect.disabled = false;
 
-  const group = groupsData.find(g => g.id == groupId);
+  const group = groupsData.find((g) => g.id == groupId);
   const aspectRatio = group ? group.aspect_ratio : null;
-  const contentType = document.querySelector('input[name="editRecurringScheduledContentType"]:checked')?.value;
-  
+  const contentType = document.querySelector(
+    'input[name="editRecurringScheduledContentType"]:checked',
+  )?.value;
+
   if (contentType === "slideshow") {
-    populateSlideshowsDropdown("editRecurringScheduledSlideshowSelect", null, gettext("Select a slideshow"), aspectRatio);
+    populateSlideshowsDropdown(
+      "editRecurringScheduledSlideshowSelect",
+      null,
+      gettext("Select a slideshow"),
+      aspectRatio,
+    );
   } else if (contentType === "playlist") {
-    populateSlideshowPlaylistDropdown("editRecurringScheduledPlaylistSelect", null, gettext("Select a slideshow playlist"), aspectRatio);
+    populateSlideshowPlaylistDropdown(
+      "editRecurringScheduledPlaylistSelect",
+      null,
+      gettext("Select a slideshow playlist"),
+      aspectRatio,
+    );
   }
 }
 
@@ -1685,7 +1799,9 @@ function populateSlideshowsDropdown(
 ) {
   let filteredSlideshows = slideshows;
   if (aspectRatioFilter) {
-    filteredSlideshows = slideshows.filter(slideshow => slideshow.aspect_ratio === aspectRatioFilter);
+    filteredSlideshows = slideshows.filter(
+      (slideshow) => slideshow.aspect_ratio === aspectRatioFilter,
+    );
   }
   populateDropdown(dropdownId, filteredSlideshows, placeholder, selectedValue);
 }
@@ -1897,23 +2013,29 @@ function renderGroups() {
         if (!evt.to || !evt.from) return;
         const movedEl = evt.item;
         const newGroupEl = evt.to.closest(".group");
-        const newGroupId = newGroupEl ? parseInt(newGroupEl.getAttribute("data-group-id")) : null;
+        const newGroupId = newGroupEl
+          ? parseInt(newGroupEl.getAttribute("data-group-id"))
+          : null;
         const movedDisplayId = parseInt(
           movedEl.getAttribute("data-display-id"),
         );
 
         // Validate aspect ratio compatibility before making API call
         if (!validateDisplayGroupAspectRatio(movedDisplayId, newGroupId)) {
-          const display = displaysData.find(d => d.id === movedDisplayId);
-          const targetGroup = newGroupId ? groupsData.find(g => g.id === newGroupId) : null;
-          
+          const display = displaysData.find((d) => d.id === movedDisplayId);
+          const targetGroup = newGroupId
+            ? groupsData.find((g) => g.id === newGroupId)
+            : null;
+
           if (targetGroup) {
             showToast(
-              gettext(`Cannot move display "${display.name}" (${display.aspect_ratio || "16:9"}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || "16:9"}). Aspect ratios must match.`),
-              "Error"
+              gettext(
+                `Cannot move display "${display.name}" (${display.aspect_ratio || "16:9"}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || "16:9"}). Aspect ratios must match.`,
+              ),
+              "Error",
             );
           }
-          
+
           // Revert the UI change by refreshing
           await refreshData();
           return;
@@ -2964,7 +3086,7 @@ function openAddScheduledModal(startStr = "", endStr = "") {
   // Populate the group dropdown with placeholder.
   const groupSelect = document.getElementById("scheduledGroup");
   groupSelect.innerHTML = "";
-  
+
   // Add placeholder option
   let placeholderOpt = document.createElement("option");
   placeholderOpt.value = "";
@@ -2972,7 +3094,7 @@ function openAddScheduledModal(startStr = "", endStr = "") {
   placeholderOpt.disabled = true;
   placeholderOpt.selected = true;
   groupSelect.appendChild(placeholderOpt);
-  
+
   groupsData.forEach((g) => {
     let opt = document.createElement("option");
     opt.value = g.id;
@@ -3233,7 +3355,7 @@ function openAddRecurringScheduledModal() {
   // Populate the group dropdown with placeholder.
   const groupSelect = document.getElementById("recurringScheduledGroup");
   groupSelect.innerHTML = "";
-  
+
   // Add placeholder option
   let placeholderOpt = document.createElement("option");
   placeholderOpt.value = "";
@@ -3241,7 +3363,7 @@ function openAddRecurringScheduledModal() {
   placeholderOpt.disabled = true;
   placeholderOpt.selected = true;
   groupSelect.appendChild(placeholderOpt);
-  
+
   groupsData.forEach((g) => {
     let opt = document.createElement("option");
     opt.value = g.id;

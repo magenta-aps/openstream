@@ -3,7 +3,7 @@
 import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
-import QRCode from 'qrcode'
+import QRCode from "qrcode";
 
 // Parse config from query parameters
 const config = {
@@ -175,22 +175,26 @@ function displayEventsInCarousel(events) {
         const qrContainer = document.getElementById(`qrcode-${index}`);
         if (qrContainer) {
           // Generate QR code with transparent background using npm qrcode package
-          QRCode.toCanvas(qrValue, {
-            width: 180,
-            margin: 1,
-            color: {
-              dark: "#000000",
-              light: "#00000000", // Transparent background (RGBA)
+          QRCode.toCanvas(
+            qrValue,
+            {
+              width: 180,
+              margin: 1,
+              color: {
+                dark: "#000000",
+                light: "#00000000", // Transparent background (RGBA)
+              },
             },
-          }, function (error, canvas) {
-            if (error) {
-              console.error('QR code generation error:', error);
-              return;
-            }
-            // Clear container and append the canvas
-            qrContainer.innerHTML = '';
-            qrContainer.appendChild(canvas);
-          });
+            function (error, canvas) {
+              if (error) {
+                console.error("QR code generation error:", error);
+                return;
+              }
+              // Clear container and append the canvas
+              qrContainer.innerHTML = "";
+              qrContainer.appendChild(canvas);
+            },
+          );
         }
       }, 0);
     }

@@ -2,142 +2,142 @@
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/containers/html-container title="DDB Events Configuration Form" }}
 
-                <div>
-                    <div class="card-body">
-                        <div class="row mb-4 align-items-center">
-                            <div class="col-md-2">
-                                <label for="kommuneSelect" class="form-label mb-0">Choose a municipality:</label>
-                            </div>
-                            <div class="col-md-10">
-                                <select required id="kommuneSelect" class="form-select border-gray">
-                                    <option required value="">Select municipality</option>
-                                    <!-- Options will be populated dynamically -->
-                                </select>
-                            </div>
-                        </div>
+    <div>
+        <div class="card-body">
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-2">
+                    <label for="kommuneSelect" class="form-label mb-0">Choose a municipality:</label>
+                </div>
+                <div class="col-md-10">
+                    <select required id="kommuneSelect" class="form-select border-gray">
+                        <option required value="">Select municipality</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
 
-                        <div class="row mb-4 align-items-center">
-                            <div class="col-md-2">
-                                <label for="librarySelect" class="form-label mb-0">Choose a library:</label>
-                            </div>
-                            <div class="col-md-10">
-                                <select required id="librarySelect" class="form-select border-gray">
-                                    <option value="">Select library</option>
-                                    <!-- Options will be populated dynamically -->
-                                </select>
-                            </div>
-                        </div>
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-2">
+                    <label for="librarySelect" class="form-label mb-0">Choose a library:</label>
+                </div>
+                <div class="col-md-10">
+                    <select required id="librarySelect" class="form-select border-gray">
+                        <option value="">Select library</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
 
-                        <div class="row mb-4 align-items-center">
-                            <div class="col-md-2">
-                                <label for="nrOfDaysInput" class="form-label mb-0">Number of days:</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input required type="number" id="nrOfDaysInput" class="form-control border-gray" min="0" placeholder="Enter number of days" />
-                            </div>
-                        </div>
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-2">
+                    <label for="nrOfDaysInput" class="form-label mb-0">Number of days:</label>
+                </div>
+                <div class="col-md-10">
+                    <input required type="number" id="nrOfDaysInput" class="form-control border-gray" min="0" placeholder="Enter number of days" />
+                </div>
+            </div>
 
-                        <div class="row mb-4 align-items-center">
-                            <div class="col-md-2">
-                                <label for="slideDurationInput" class="form-label mb-0">Slide Duration (in seconds):</label>
-                            </div>
-                            <div class="col-md-10">
-                                <input required type="number" id="slideDurationInput" class="form-control border-gray" min="0" value="10" />
-                            </div>
-                        </div>
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-2">
+                    <label for="slideDurationInput" class="form-label mb-0">Slide Duration (in seconds):</label>
+                </div>
+                <div class="col-md-10">
+                    <input required type="number" id="slideDurationInput" class="form-control border-gray" min="0" value="10" />
+                </div>
+            </div>
 
-                        <div class="row">
-                            <div class="col-6 border-top border-gray pt-2">
-                                <div>
-                                    <label for="layoutSelection" class="form-label ">Choose layout:</label>
-                                </div>
-                                <div class="row g-4">
-                                    <!-- Vertical Option -->
-                                    <div class="col-5">
-                                        <label class="d-block">
-                                            <input id="vertical-option" type="radio" name="layout" class="d-none" value="vertical" />
-                                            <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
-                                                <div class="card-body d-flex flex-column p-2">
-                                                    <div class="d-flex align-items-center">
-                                                        <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
-                                                        <p class="fw-bold m-0">Vertical:</p>
-                                                    </div>
-                                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                                        <img src="/Hojformat-ikon.png" alt="Vertical layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <!-- Horizontal Option -->
-                                    <div class="col-7 h-100">
-                                        <label class="d-block h-100">
-                                            <input id="horizontal-option" type="radio" name="layout" class="d-none" value="horizontal" />
-                                            <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
-                                                <div class="card-body d-flex flex-column p-2">
-                                                    <div class="d-flex align-items-center">
-                                                        <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
-                                                        <p class="fw-bold m-0">Horizontal:</p>
-                                                    </div>
-                                                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                                        <img src="/Bredformat-ikon.png" alt="Horizontal layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </label>
+            <div class="row">
+                <div class="col-6 border-top border-gray pt-2">
+                    <div>
+                        <label for="layoutSelection" class="form-label ">Choose layout:</label>
+                    </div>
+                    <div class="row g-4">
+                        <!-- Vertical Option -->
+                        <div class="col-5">
+                            <label class="d-block">
+                                <input id="vertical-option" type="radio" name="layout" class="d-none" value="vertical" />
+                                <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
+                                    <div class="card-body d-flex flex-column p-2">
+                                        <div class="d-flex align-items-center">
+                                            <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
+                                            <p class="fw-bold m-0">Vertical:</p>
+                                        </div>
+                                        <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                            <img src="/Hojformat-ikon.png" alt="Vertical layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </label>
+                        </div>
 
-                            <div class="col-6 ps-4 border-top border-gray pt-2">
-                                <label for="selectContent" class="form-label ">Choose content:</label>
-                                <div class="d-flex flex-column gap-2 mt-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input fs-5" type="checkbox" id="title" name="title" value="title" />
-                                        <label class="form-check-label " for="title">
-                                            Title
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input fs-5" type="checkbox" id="subtitle" name="subtitle" value="subtitle" />
-                                        <label class="form-check-label " for="subtitle">
-                                            Subtitle
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input fs-5" type="checkbox" id="dateTime" name="dateTime" value="dateTime" />
-                                        <label class="form-check-label " for="dateTime">
-                                            Date & Time
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input fs-5" type="checkbox" id="description" name="description" />
-                                        <label class="form-check-label " for="description">
-                                            Description
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input fs-5" type="checkbox" id="qrCode" name="qrCode" />
-                                        <label class="form-check-label " for="qrCode">
-                                            QR code
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input fs-5" type="checkbox" id="location" name="location" value="location" />
-                                        <label class="form-check-label " for="location">
-                                            Location
-                                        </label>
+                        <!-- Horizontal Option -->
+                        <div class="col-7 h-100">
+                            <label class="d-block h-100">
+                                <input id="horizontal-option" type="radio" name="layout" class="d-none" value="horizontal" />
+                                <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
+                                    <div class="card-body d-flex flex-column p-2">
+                                        <div class="d-flex align-items-center">
+                                            <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
+                                            <p class="fw-bold m-0">Horizontal:</p>
+                                        </div>
+                                        <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                            <img src="/Bredformat-ikon.png" alt="Horizontal layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </label>
                         </div>
                     </div>
                 </div>
+
+                <div class="col-6 ps-4 border-top border-gray pt-2">
+                    <label for="selectContent" class="form-label ">Choose content:</label>
+                    <div class="d-flex flex-column gap-2 mt-2">
+                        <div class="form-check">
+                            <input class="form-check-input fs-5" type="checkbox" id="title" name="title" value="title" />
+                            <label class="form-check-label " for="title">
+                                Title
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input fs-5" type="checkbox" id="subtitle" name="subtitle" value="subtitle" />
+                            <label class="form-check-label " for="subtitle">
+                                Subtitle
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input fs-5" type="checkbox" id="dateTime" name="dateTime" value="dateTime" />
+                            <label class="form-check-label " for="dateTime">
+                                Date & Time
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input fs-5" type="checkbox" id="description" name="description" />
+                            <label class="form-check-label " for="description">
+                                Description
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input fs-5" type="checkbox" id="qrCode" name="qrCode" />
+                            <label class="form-check-label " for="qrCode">
+                                QR code
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input fs-5" type="checkbox" id="location" name="location" value="location" />
+                            <label class="form-check-label " for="location">
+                                Location
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {{/ base/containers/html-container }}

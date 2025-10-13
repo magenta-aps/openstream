@@ -1,6 +1,6 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
-    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-    {{#> base/containers/html-container title="Clock Widget Configuration" }}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/containers/html-container title="Clock Widget Configuration" }}
 
     <div>
         <div class="card-body">
@@ -38,9 +38,7 @@
                         Custom Color
                     </label>
                     <div class="d-flex align-items-center gap-2">
-                        <input type="color" id="custom-color-picker"
-                            class="form-control form-control-color border-gray" value="#ffffff"
-                            title="Choose your custom color" />
+                        <input type="color" id="custom-color-picker" class="form-control form-control-color border-gray" value="#ffffff" title="Choose your custom color" />
                         <span class=" small">Click to choose a custom color</span>
                     </div>
                 </div>
@@ -53,8 +51,7 @@
                     <label for="clock-size-input" class="form-label ">
                         Clock size in pixels
                     </label>
-                    <input type="number" class="form-control border-gray" id="clock-size-input" value="100" min="50"
-                        max="500" />
+                    <input type="number" class="form-control border-gray" id="clock-size-input" value="100" min="50" max="500" />
                 </div>
             </div>
 
@@ -70,4 +67,4 @@
         </div>
     </div>
 
-    {{/ base/containers/html-container }}
+{{/ base/containers/html-container }}

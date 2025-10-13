@@ -25,11 +25,10 @@
   border: 1px solid $gray;
   box-shadow: 0 2px 4px rgba($black, 0.05);
   transition:
-  transform 0.2s,
-  box-shadow 0.2s;
+    transform 0.2s,
+    box-shadow 0.2s;
   background-color: $lighter-gray;
   margin-bottom: 0.5rem;
-
 }
 
 .media-box.pseudo-item {
@@ -102,7 +101,6 @@
 
   /* Dark background */
 }
-
 
 /* Filter section styles */
 .filter-controls {

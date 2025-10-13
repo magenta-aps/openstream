@@ -311,24 +311,26 @@ function renderCategories(categories) {
     // Create category name cell
     const nameCell = document.createElement("td");
     nameCell.textContent = category.name;
-    
+
     // Create actions cell
     const actionsCell = document.createElement("td");
     actionsCell.className = "action-cell-td";
 
     const editBtn = document.createElement("button");
-    editBtn.className = "btn btn-sm btn-outline-secondary-light me-2 text-secondary";
-    editBtn.innerHTML =
-      `<span class="material-symbols-outlined text-secondary-hover">edit</span> ${gettext("Edit")}`;
+    editBtn.className =
+      "btn btn-sm btn-outline-secondary-light me-2 text-secondary";
+    editBtn.innerHTML = `<span class="material-symbols-outlined text-secondary-hover">edit</span> ${gettext("Edit")}`;
     editBtn.title = gettext("Edit");
     editBtn.addEventListener("click", () => showEditCategoryModal(category));
 
     const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn btn-sm btn-outline-secondary-light text-secondary";
-    deleteBtn.innerHTML =
-      `<span class="material-symbols-outlined text-secondary-hover">delete_forever</span> ${gettext("Delete")}`;
+    deleteBtn.className =
+      "btn btn-sm btn-outline-secondary-light text-secondary";
+    deleteBtn.innerHTML = `<span class="material-symbols-outlined text-secondary-hover">delete_forever</span> ${gettext("Delete")}`;
     deleteBtn.title = gettext("Delete");
-    deleteBtn.addEventListener("click", () => showDeleteConfirmation(category, "category"));
+    deleteBtn.addEventListener("click", () =>
+      showDeleteConfirmation(category, "category"),
+    );
 
     actionsCell.appendChild(editBtn);
     actionsCell.appendChild(deleteBtn);
@@ -358,39 +360,41 @@ function renderTags(tags) {
   // Hide no tags message
   noTagsAlert.classList.add("d-none");
 
-   tags.forEach((tag) => {
-     const row = document.createElement("tr");
-     
-     // Create tags name cell
+  tags.forEach((tag) => {
+    const row = document.createElement("tr");
+
+    // Create tags name cell
     const nameCell = document.createElement("td");
     nameCell.textContent = tag.name;
-    
+
     // Create actions cell
     const actionsCell = document.createElement("td");
     actionsCell.className = "action-cell-td";
 
     const editBtn = document.createElement("button");
-    editBtn.className = "btn btn-sm btn-outline-secondary-light me-2 text-secondary";
-    editBtn.innerHTML =
-      `<span class="material-symbols-outlined text-secondary-hover">edit</span> ${gettext("Edit")}`;
+    editBtn.className =
+      "btn btn-sm btn-outline-secondary-light me-2 text-secondary";
+    editBtn.innerHTML = `<span class="material-symbols-outlined text-secondary-hover">edit</span> ${gettext("Edit")}`;
     editBtn.title = gettext("Edit");
     editBtn.addEventListener("click", () => showEditTagModal(tag));
 
     const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn btn-sm btn-outline-secondary-light text-secondary";
-    deleteBtn.innerHTML =
-      `<span class="material-symbols-outlined text-secondary-hover">delete_forever</span> ${gettext("Delete")}`;
+    deleteBtn.className =
+      "btn btn-sm btn-outline-secondary-light text-secondary";
+    deleteBtn.innerHTML = `<span class="material-symbols-outlined text-secondary-hover">delete_forever</span> ${gettext("Delete")}`;
     deleteBtn.title = gettext("Delete");
-    deleteBtn.addEventListener("click", () => showDeleteConfirmation(tag, "tag"));
+    deleteBtn.addEventListener("click", () =>
+      showDeleteConfirmation(tag, "tag"),
+    );
 
     actionsCell.appendChild(editBtn);
     actionsCell.appendChild(deleteBtn);
-    
+
     // Add cells to row
     row.appendChild(nameCell);
     row.appendChild(actionsCell);
-    
+
     // Add row to table
     tagsTableBody.appendChild(row);
-   });
+  });
 }

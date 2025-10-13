@@ -24,7 +24,7 @@ let isSuborgAdmin = false;
 
 // Helper function to filter out suborg_templates branches (magic branches used for template management)
 function filterVisibleBranches(branches) {
-  return branches.filter(branch => !branch.name.includes('suborg_templates'));
+  return branches.filter((branch) => !branch.name.includes("suborg_templates"));
 }
 
 function showAddSuborgModal() {

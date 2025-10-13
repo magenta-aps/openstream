@@ -26,26 +26,17 @@
                         {{> base/form/dropdown-option value="25" text="25" }}
                         {{> base/form/dropdown-option value="30" text="30" }}
                         {{> base/form/dropdown-option value="35" text="35" }}
-                    {{/base/form/dropdown}}
+                {{/base/form/dropdown}}
                 </div>
                 <!-- Background Pattern Toggle Group -->
                 <div class="control-group d-flex align-items-center justify-content-between mt-3">
                     <p class="control-label m-0">{% trans 'Background:' %}</p>
                     <div class="btn-group btn-group-sm d-flex gap-2" role="group" id="backgroundPatternToggle">
-                        <input type="radio"
-                            class="btn-check pattern-light-btn"
-                            name="backgroundPattern"
-                            id="lightPattern"
-                            autocomplete="off"
-                            checked>
+                        <input type="radio" class="btn-check pattern-light-btn" name="backgroundPattern" id="lightPattern" autocomplete="off" checked>
                         <label class="btn btn-outline-secondary" for="lightPattern">
                             <span class="material-symbols-outlined">light_mode</span>
                         </label>
-                        <input type="radio"
-                            class="btn-check pattern-dark-btn"
-                            name="backgroundPattern"
-                            id="darkPattern"
-                            autocomplete="off">
+                        <input type="radio" class="btn-check pattern-dark-btn" name="backgroundPattern" id="darkPattern" autocomplete="off">
                         <label class="btn btn-outline-secondary" for="darkPattern">
                             <span class="material-symbols-outlined">dark_mode</span>
                         </label>
@@ -73,8 +64,8 @@
                     <div id="mediaGrid" class="flex-grow-1 p-3 d-flex flex-wrap gap-2 justify-content-evenly align-content-start"></div>
                     <!-- Pagination -->
                     <div id="media-pagination-wrapper" class="px-2 py-2 bg-white position-sticky bottom-0"></div>
-                    </div>
-                    <!-- Include the existing modals -->
+                </div>
+                <!-- Include the existing modals -->
                 {{> base/content-engine/modals/media_submit_modal }}
                 {{> base/content-engine/modals/media_preview_modal }}
             {{/inline}}

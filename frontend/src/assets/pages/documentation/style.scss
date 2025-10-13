@@ -188,7 +188,7 @@ body {
   }
 
   &.hidden {
-    opacity: 0%;
+    opacity: 0;
     pointer-events: none;
   }
 }
@@ -208,7 +208,8 @@ body {
 
   /* GitHub Markdown Styles */
   color: $darkest-gray;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
 

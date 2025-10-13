@@ -160,33 +160,39 @@ function calculateAndSetPageSize() {
 
   // If mediaGrid has no height yet (not visible), fall back to viewport calculations
   if (!containerHeight) {
-
     const gridTop = mediaGrid.getBoundingClientRect().top;
-    const paginationEl = document.querySelector('#media-pagination-wrapper');
+    const paginationEl = document.querySelector("#media-pagination-wrapper");
     const paginationHeight = paginationEl ? paginationEl.offsetHeight : 0;
-    containerHeight = Math.max(window.innerHeight - gridTop - paginationHeight - 48); // small padding
+    containerHeight = Math.max(
+      window.innerHeight - gridTop - paginationHeight - 48,
+    ); // small padding
   }
 
   // Ensure at least 1 column/row
   const cols = Math.max(1, Math.floor(containerWidth / Math.max(1, itemWidth)));
-  const rows = Math.max(1, Math.floor(containerHeight / Math.max(1, itemHeight)));
+  const rows = Math.max(
+    1,
+    Math.floor(containerHeight / Math.max(1, itemHeight)),
+  );
   const computedPageSize = cols * rows;
 
   // Cap the page size to a reasonable number (prevents insane values)
   const pageSize = Math.min(Math.max(computedPageSize, 1), 200);
 
   // If the dropdown already has an option with this value, select it.
-  const existingOption = pageSizeEl.querySelector(`option[value="${pageSize}"]`);
+  const existingOption = pageSizeEl.querySelector(
+    `option[value="${pageSize}"]`,
+  );
   // Remove any previous auto option we created
-  const prevAuto = pageSizeEl.querySelector('#autoPageSizeOption');
+  const prevAuto = pageSizeEl.querySelector("#autoPageSizeOption");
   if (prevAuto) prevAuto.remove();
 
   if (existingOption) {
     pageSizeEl.value = pageSize;
   } else {
     // Add a temporary auto option and select it so the UI reflects the computed size
-    const opt = document.createElement('option');
-    opt.id = 'autoPageSizeOption';
+    const opt = document.createElement("option");
+    opt.id = "autoPageSizeOption";
     opt.value = String(pageSize);
     opt.text = `${pageSize} (fit)`;
     // Append and select
@@ -196,11 +202,14 @@ function calculateAndSetPageSize() {
 }
 
 // Recalculate page size on window resize with debounce
-window.addEventListener('resize', debounce(() => {
-  calculateAndSetPageSize();
-  // Reload first page so new page size takes effect
-  loadMediaFiles(1);
-}, 200));
+window.addEventListener(
+  "resize",
+  debounce(() => {
+    calculateAndSetPageSize();
+    // Reload first page so new page size takes effect
+    loadMediaFiles(1);
+  }, 200),
+);
 
 // ============ MEDIA LOADING ============
 
@@ -267,8 +276,7 @@ function renderMediaGrid(mediaFiles) {
         <div class="media-actions">
           ${
             file.is_owned_by_branch
-              ? 
-              `
+              ? `
               <div class="dropdown">
                 <button class="btn btn-secondary btn-sm py-0 px-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <span class="material-symbols-outlined">more_horiz</span>
@@ -441,16 +449,20 @@ function openEditMediaModal() {
   bsSubmitModal.show();
 }
 
-function openPreviewMediaModal(){
-  if (videoExtensionsList.includes(currentlyEditingMedia["file_type"]?.toLowerCase())) {
+function openPreviewMediaModal() {
+  if (
+    videoExtensionsList.includes(
+      currentlyEditingMedia["file_type"]?.toLowerCase(),
+    )
+  ) {
     previewContainer.innerHTML = `
       <video loop muted autoplay controls playsinline class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">
-        <source src="${currentlyEditingMedia['file_url']}" type="video/${currentlyEditingMedia['file_type']?.toLowerCase()}">
+        <source src="${currentlyEditingMedia["file_url"]}" type="video/${currentlyEditingMedia["file_type"]?.toLowerCase()}">
         ${gettext("Your browser does not support the video tag.")}
       </video>`;
   } else {
     previewContainer.innerHTML = `
-      <img src="${currentlyEditingMedia['file_url']}" alt="${currentlyEditingMedia['title']}" class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">`;
+      <img src="${currentlyEditingMedia["file_url"]}" alt="${currentlyEditingMedia["title"]}" class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">`;
   }
 
   bsPreviewModal.show();
@@ -508,15 +520,15 @@ function initEventListeners() {
       }
     });
   });
-  
-  darkPatternBtns?.forEach((btn)=>{
+
+  darkPatternBtns?.forEach((btn) => {
     btn.addEventListener("change", () => {
       if (btn.checked) {
         mediaGrid?.classList.remove("checkerboard-light");
         mediaGrid?.classList.add("checkerboard-dark");
         previewContainer?.classList.remove("checkerboard-light");
         previewContainer?.classList.add("checkerboard-dark");
-    
+
         // Make every darkPattern button be checked
         darkPatternBtns.forEach((b) => (b.checked = true));
       }
@@ -592,16 +604,16 @@ function getFilters() {
 }
 
 /** Render the chosen filter option(s) in HTML */
-function renderFilter(values, targetSelector, data=null) {
+function renderFilter(values, targetSelector, data = null) {
   const container = document.querySelector(targetSelector);
   const wrapper = document.createElement("div");
 
   container.innerHTML = "";
 
-  if(values){
-    values.forEach(val => {
+  if (values) {
+    values.forEach((val) => {
       // 'val' may only contain an id for the filter option - so find the name from data param
-      const match = data?.find(el => el.id === parseInt(val));
+      const match = data?.find((el) => el.id === parseInt(val));
       const name = match ? match.name : val;
 
       const el = document.createElement("p");

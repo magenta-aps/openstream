@@ -8,7 +8,7 @@ import { showToast } from "../../../../utils/utils.js";
 import { getNewZIndex } from "../utils/domUtils.js";
 import { GridUtils } from "../config/gridConfig.js";
 import { gettext } from "../../../../utils/locales.js";
-import QRCode from 'qrcode';
+import QRCode from "qrcode";
 import { showColorPalette } from "../utils/colorUtils.js";
 
 function addQRCodeElementToSlide(url = "") {
@@ -18,7 +18,7 @@ function addQRCodeElementToSlide(url = "") {
   }
 
   pushCurrentSlideState();
-  
+
   const newQRCode = {
     id: store.elementIdCounter++,
     type: "qrcode",
@@ -31,11 +31,11 @@ function addQRCodeElementToSlide(url = "") {
     zIndex: getNewZIndex(),
     qrOptions: {
       width: 300,
-  margin: 0,
+      margin: 0,
       color: {
         dark: "#000000",
-        light: "#FFFFFF"
-      }
+        light: "#FFFFFF",
+      },
     },
     originSlideIndex: store.currentSlideIndex,
     isLocked: false,
@@ -62,7 +62,7 @@ export function setupQRCodeToolbar(element) {
   if (urlInput) {
     urlInput.value = element.content || "https://example.com";
   }
-  
+
   // initialize organization color buttons with border displaying current color
   if (darkColorBtn) {
     const dark = element.qrOptions?.color?.dark || "#000000";
@@ -75,14 +75,14 @@ export function setupQRCodeToolbar(element) {
     lightColorBtn.style.border = `3px solid ${light}`;
     lightColorBtn.dataset.color = light;
   }
-  
+
   if (sizeSelect) {
     sizeSelect.value = element.qrOptions?.width || 300;
   }
-  
+
   if (marginSelect) {
-  // margin removed; always use 0
-  if (marginSelect) marginSelect.value = 0;
+    // margin removed; always use 0
+    if (marginSelect) marginSelect.value = 0;
   }
 }
 
@@ -104,8 +104,9 @@ function initQRCodeEventListeners() {
       ) {
         pushCurrentSlideState();
         const newUrl = e.target.value.trim();
-        window.selectedElementForUpdate.element.content = newUrl || "https://example.com";
-        
+        window.selectedElementForUpdate.element.content =
+          newUrl || "https://example.com";
+
         // Update the QR code
         const container = window.selectedElementForUpdate.container;
         _renderQRCode(window.selectedElementForUpdate.element, container);
@@ -116,7 +117,7 @@ function initQRCodeEventListeners() {
   // QR Code color options
   const darkColorInput = document.getElementById("qrcode-dark-color");
   const lightColorInput = document.getElementById("qrcode-light-color");
-  
+
   if (darkColorInput) {
     darkColorInput.addEventListener("change", (e) => {
       if (
@@ -124,13 +125,14 @@ function initQRCodeEventListeners() {
         window.selectedElementForUpdate.element.type === "qrcode"
       ) {
         pushCurrentSlideState();
-        window.selectedElementForUpdate.element.qrOptions.color.dark = e.target.value;
+        window.selectedElementForUpdate.element.qrOptions.color.dark =
+          e.target.value;
         const container = window.selectedElementForUpdate.container;
         _renderQRCode(window.selectedElementForUpdate.element, container);
       }
     });
   }
-  
+
   if (lightColorInput) {
     lightColorInput.addEventListener("change", (e) => {
       if (
@@ -138,7 +140,8 @@ function initQRCodeEventListeners() {
         window.selectedElementForUpdate.element.type === "qrcode"
       ) {
         pushCurrentSlideState();
-        window.selectedElementForUpdate.element.qrOptions.color.light = e.target.value;
+        window.selectedElementForUpdate.element.qrOptions.color.light =
+          e.target.value;
         const container = window.selectedElementForUpdate.container;
         _renderQRCode(window.selectedElementForUpdate.element, container);
       }
@@ -154,7 +157,9 @@ function initQRCodeEventListeners() {
         window.selectedElementForUpdate.element.type === "qrcode"
       ) {
         pushCurrentSlideState();
-        window.selectedElementForUpdate.element.qrOptions.width = parseInt(e.target.value);
+        window.selectedElementForUpdate.element.qrOptions.width = parseInt(
+          e.target.value,
+        );
         const container = window.selectedElementForUpdate.container;
         _renderQRCode(window.selectedElementForUpdate.element, container);
       }
@@ -170,7 +175,9 @@ function initQRCodeEventListeners() {
         window.selectedElementForUpdate.element.type === "qrcode"
       ) {
         pushCurrentSlideState();
-        window.selectedElementForUpdate.element.qrOptions.margin = parseInt(e.target.value);
+        window.selectedElementForUpdate.element.qrOptions.margin = parseInt(
+          e.target.value,
+        );
         const container = window.selectedElementForUpdate.container;
         _renderQRCode(window.selectedElementForUpdate.element, container);
       }
@@ -178,14 +185,14 @@ function initQRCodeEventListeners() {
   }
 
   // Wire up organization color buttons in the toolbar
-  const darkBtn = document.getElementById('qrcode-dark-btn');
-  const lightBtn = document.getElementById('qrcode-light-btn');
+  const darkBtn = document.getElementById("qrcode-dark-btn");
+  const lightBtn = document.getElementById("qrcode-light-btn");
 
   if (darkBtn) {
-    darkBtn.addEventListener('click', () => {
+    darkBtn.addEventListener("click", () => {
       if (
         window.selectedElementForUpdate &&
-        window.selectedElementForUpdate.element.type === 'qrcode'
+        window.selectedElementForUpdate.element.type === "qrcode"
       ) {
         showColorPalette(darkBtn, (chosenColor) => {
           if (chosenColor) {
@@ -202,10 +209,10 @@ function initQRCodeEventListeners() {
   }
 
   if (lightBtn) {
-    lightBtn.addEventListener('click', () => {
+    lightBtn.addEventListener("click", () => {
       if (
         window.selectedElementForUpdate &&
-        window.selectedElementForUpdate.element.type === 'qrcode'
+        window.selectedElementForUpdate.element.type === "qrcode"
       ) {
         showColorPalette(lightBtn, (chosenColor) => {
           if (chosenColor) {
@@ -225,7 +232,7 @@ function initQRCodeEventListeners() {
 // A simple debounce utility function
 function debounce(func, delay) {
   let timeout;
-  return function(...args) {
+  return function (...args) {
     const context = this;
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(context, args), delay);
@@ -251,24 +258,25 @@ export function _renderQRCode(el, container) {
   });
 
   // Create a canvas element
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   // Style the canvas to be responsive within its container
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
-  canvas.style.objectFit = 'contain';
-  canvas.style.display = 'block';
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+  canvas.style.objectFit = "contain";
+  canvas.style.display = "block";
 
   // Insert canvas before any resize handle element if present. Note that
   // the resize handle is moved to be a sibling by renderSlide.js, so we
   // still check for it inside the container for backward compatibility.
-  const firstResizer = container.querySelector('.resize-handle') ||
-    container.querySelector('.resizer');
+  const firstResizer =
+    container.querySelector(".resize-handle") ||
+    container.querySelector(".resizer");
   if (firstResizer) {
-      container.insertBefore(canvas, firstResizer);
+    container.insertBefore(canvas, firstResizer);
   } else {
-      container.appendChild(canvas);
+    container.appendChild(canvas);
   }
-  
+
   // --- Main rendering logic ---
   // Render using the smaller of container width/height so the QR always fits
   const render = (containerWidth, containerHeight) => {
@@ -278,8 +286,8 @@ export function _renderQRCode(el, container) {
     // Choose the limiting dimension so the QR fits inside the box
     const sizeCss = Math.min(containerWidth, containerHeight);
 
-  // Use the limiting container dimension so the QR always fills the box
-  const finalCssSize = sizeCss;
+    // Use the limiting container dimension so the QR always fills the box
+    const finalCssSize = sizeCss;
 
     // Handle high-DPI displays by sizing the canvas backing store
     const dpr = window.devicePixelRatio || 1;
@@ -287,31 +295,36 @@ export function _renderQRCode(el, container) {
     canvas.height = Math.round(finalCssSize * dpr);
 
     // Ensure CSS size matches container area
-    canvas.style.width = finalCssSize + 'px';
-    canvas.style.height = finalCssSize + 'px';
+    canvas.style.width = finalCssSize + "px";
+    canvas.style.height = finalCssSize + "px";
 
     const qrOptions = {
       width: Math.round(finalCssSize * dpr),
       margin: el.qrOptions?.margin ?? 2,
       color: {
-        dark: el.qrOptions?.color?.dark ?? '#000000',
-        light: el.qrOptions?.color?.light ?? '#FFFFFF'
-      }
+        dark: el.qrOptions?.color?.dark ?? "#000000",
+        light: el.qrOptions?.color?.light ?? "#FFFFFF",
+      },
     };
 
-    QRCode.toCanvas(canvas, el.content || "https://example.com", qrOptions, function (error) {
-      if (error) {
-        console.error('QR code generation error:', error);
-        canvas.style.display = 'none'; // Hide the broken canvas
-      } else {
-        // Reset transform so the canvas draws crisply on HiDPI
-        const ctx = canvas.getContext('2d');
-        if (ctx && dpr !== 1) {
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    QRCode.toCanvas(
+      canvas,
+      el.content || "https://example.com",
+      qrOptions,
+      function (error) {
+        if (error) {
+          console.error("QR code generation error:", error);
+          canvas.style.display = "none"; // Hide the broken canvas
+        } else {
+          // Reset transform so the canvas draws crisply on HiDPI
+          const ctx = canvas.getContext("2d");
+          if (ctx && dpr !== 1) {
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          }
+          canvas.style.display = "block";
         }
-        canvas.style.display = 'block';
-      }
-    });
+      },
+    );
   };
 
   // --- Initial Render ---
@@ -319,7 +332,7 @@ export function _renderQRCode(el, container) {
   const initialWidth = container.clientWidth;
   const initialHeight = container.clientHeight;
   render(initialWidth, initialHeight);
-  
+
   // --- Debounced Re-render function ---
   // We debounce this to avoid re-rendering on every single pixel change during resize
   const debouncedRender = debounce((newWidth, newHeight) => {
@@ -327,13 +340,15 @@ export function _renderQRCode(el, container) {
   }, 250); // 250ms is a good balance between responsiveness and performance
 
   // --- Setup ResizeObserver ---
-  const observer = new ResizeObserver(entries => {
+  const observer = new ResizeObserver((entries) => {
     for (let entry of entries) {
       // Prefer contentBoxSize when available (newer browsers)
       let newWidth, newHeight;
       if (entry.contentBoxSize) {
         // contentBoxSize can be an array or single object
-        const box = Array.isArray(entry.contentBoxSize) ? entry.contentBoxSize[0] : entry.contentBoxSize;
+        const box = Array.isArray(entry.contentBoxSize)
+          ? entry.contentBoxSize[0]
+          : entry.contentBoxSize;
         newWidth = box.inlineSize;
         newHeight = box.blockSize;
       } else if (entry.contentRect) {
@@ -350,7 +365,7 @@ export function _renderQRCode(el, container) {
     }
   });
 
-  observer.observe(container, { box: 'content-box' });
+  observer.observe(container, { box: "content-box" });
 
   // Store the observer on the element for future cleanup
   container._qrResizeObserver = observer;

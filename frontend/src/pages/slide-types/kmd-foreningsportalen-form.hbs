@@ -2,61 +2,61 @@
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/containers/html-container title="KMD Foreningsportalen Configuration Form" }}
 
-                <div>
-                    <div class="card-body">
-                        <!-- Location Selection -->
-                        <div class="mb-4">
-                            <label for="location-input" class="form-label ">Choose Main Location</label>
-                            <select name="location-input" id="location-input" class="form-select border-gray">
-                                <option value="">Select a location...</option>
-                            </select>
-                        </div>
+    <div>
+        <div class="card-body">
+            <!-- Location Selection -->
+            <div class="mb-4">
+                <label for="location-input" class="form-label ">Choose Main Location</label>
+                <select name="location-input" id="location-input" class="form-select border-gray">
+                    <option value="">Select a location...</option>
+                </select>
+            </div>
 
-                        <!-- Sub-locations Section -->
-                        <div id="sub-locations-section" class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <label class="form-label  mb-0">Select Sub-locations to Display</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="all-selector" />
-                                    <label class="form-check-label " for="all-selector">
-                                        Select All
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div id="sub-locations-container" class="border border-gray rounded p-3 bg-secondary">
-                                <div id="multiSelectContainer" class="row">
-                                    <!-- Sub-locations will be populated here -->
-                                </div>
-                                <div id="no-locations-message" class="text-muted text-center py-3">
-                                    Please select a main location first.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Warning Message -->
-                        <div id="warningMessage" class="alert alert-warning d-none" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Please select at least one sub-location to display bookings.
-                        </div>
-
-                        <!-- Continuous Scroll Option -->
-                        <div class="mb-4">
-                            <label class="form-label  d-flex justify-content-between align-items-center">
-                                <span>Continuous scrolling</span>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="continuous-scroll-toggle">
-                                </div>
-                            </label>
-
-                            <div id="continuous-scroll-settings" style="display: none;">
-                                <label for="scroll-speed" class="form-label ">Scroll speed (pixels/sec)</label>
-                                <input type="range" class="form-range" min="10" max="500" step="1" id="scroll-speed">
-                                <div class=" small mt-1">Current: <span id="scroll-speed-value">100</span> px/s</div>
-                            </div>
-                        </div>
+            <!-- Sub-locations Section -->
+            <div id="sub-locations-section" class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <label class="form-label  mb-0">Select Sub-locations to Display</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="all-selector" />
+                        <label class="form-check-label " for="all-selector">
+                            Select All
+                        </label>
                     </div>
                 </div>
+
+                <div id="sub-locations-container" class="border border-gray rounded p-3 bg-secondary">
+                    <div id="multiSelectContainer" class="row">
+                        <!-- Sub-locations will be populated here -->
+                    </div>
+                    <div id="no-locations-message" class="text-muted text-center py-3">
+                        Please select a main location first.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Message -->
+            <div id="warningMessage" class="alert alert-warning d-none" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Please select at least one sub-location to display bookings.
+            </div>
+
+            <!-- Continuous Scroll Option -->
+            <div class="mb-4">
+                <label class="form-label  d-flex justify-content-between align-items-center">
+                    <span>Continuous scrolling</span>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="continuous-scroll-toggle">
+                    </div>
+                </label>
+
+                <div id="continuous-scroll-settings" style="display: none;">
+                    <label for="scroll-speed" class="form-label ">Scroll speed (pixels/sec)</label>
+                    <input type="range" class="form-range" min="10" max="500" step="1" id="scroll-speed">
+                    <div class=" small mt-1">Current: <span id="scroll-speed-value">100</span> px/s</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 {{/ base/containers/html-container }}

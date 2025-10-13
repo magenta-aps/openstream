@@ -566,18 +566,20 @@ export function selectElement(el, dataObj) {
       .querySelector(".qrcode-toolbar")
       ?.classList.replace("d-none", "d-flex");
     setToolbarGeneralVisibility("visible");
-    
+
     // Update the toolbar inputs with current values
     const urlInput = document.getElementById("qrcode-url-input");
     const darkColorInput = document.getElementById("qrcode-dark-color");
     const lightColorInput = document.getElementById("qrcode-light-color");
     const sizeSelect = document.getElementById("qrcode-size-select");
     const marginSelect = document.getElementById("qrcode-margin-select");
-    
+
     if (urlInput) urlInput.value = dataObj.content || "";
-    if (darkColorInput) darkColorInput.value = dataObj.qrOptions?.color?.dark || "#000000";
-    if (lightColorInput) lightColorInput.value = dataObj.qrOptions?.color?.light || "#ffffff";
-    if (sizeSelect) sizeSelect.value = dataObj.qrOptions?.width || "300";  
+    if (darkColorInput)
+      darkColorInput.value = dataObj.qrOptions?.color?.dark || "#000000";
+    if (lightColorInput)
+      lightColorInput.value = dataObj.qrOptions?.color?.light || "#ffffff";
+    if (sizeSelect) sizeSelect.value = dataObj.qrOptions?.width || "300";
     if (marginSelect) marginSelect.value = dataObj.qrOptions?.margin || "2";
 
     // Also update the visible toolbar controls (button borders, dataset) via the element-specific setup
@@ -587,7 +589,7 @@ export function selectElement(el, dataObj) {
       // Non-fatal: if toolbar isn't present yet, ignore
       // console.debug('setupQRCodeToolbar not available or failed', err);
     }
-    
+
     el.style.outline = "3px dashed blue";
     createGradientWrapper(el);
   }

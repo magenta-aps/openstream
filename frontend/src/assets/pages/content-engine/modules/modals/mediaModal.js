@@ -216,10 +216,9 @@ export async function displayMediaModal(
 
         // Create and add edit button conditionally
         let actionButtonHTML = "";
-        if (file.is_owned_by_branch) {  
+        if (file.is_owned_by_branch) {
           // Show edit and preview actions btns
-          actionButtonHTML = 
-            `<div class="dropdown">
+          actionButtonHTML = `<div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <span class="material-symbols-outlined">more_horiz</span>
                 </button>
@@ -235,11 +234,10 @@ export async function displayMediaModal(
                     </button>
                   </li>
                 </ul>
-            </div>`
+            </div>`;
         } else {
           // Show preview action btn only
-          actionButtonHTML = 
-            `<div class="dropdown">
+          actionButtonHTML = `<div class="dropdown">
                 <button class="btn btn-secondary btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <span class="material-symbols-outlined">more_horiz</span>
                 </button>
@@ -250,9 +248,9 @@ export async function displayMediaModal(
                     </button>
                   </li>
                 </ul>
-            </div>`
+            </div>`;
         }
-        
+
         // Set innerHTML for the main mediaBox
         mediaBox.innerHTML = `
           <div class="checkerboard-bg">
@@ -281,13 +279,13 @@ export async function displayMediaModal(
           currentlyEditingMedia = file;
           createOrUpdateMediaClicked(currentInputType);
         });
-        
+
         const previewBtn = mediaBox.querySelector(".preview-media-btn");
         previewBtn?.addEventListener("click", (e) => {
           e.stopPropagation();
           currentlyEditingMedia = file;
           openPreviewMediaModal();
-        })
+        });
 
         mediaGrid.appendChild(mediaBox);
       });
@@ -668,16 +666,20 @@ async function deleteMediaClicked() {
   );
 }
 
-function openPreviewMediaModal(){
-  if (videoExtensionsList.includes(currentlyEditingMedia["file_type"]?.toLowerCase())) {
+function openPreviewMediaModal() {
+  if (
+    videoExtensionsList.includes(
+      currentlyEditingMedia["file_type"]?.toLowerCase(),
+    )
+  ) {
     previewContainer.innerHTML = `
       <video loop muted autoplay controls playsinline class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">
-        <source src="${currentlyEditingMedia['file_url']}" type="video/${currentlyEditingMedia['file_type']?.toLowerCase()}">
+        <source src="${currentlyEditingMedia["file_url"]}" type="video/${currentlyEditingMedia["file_type"]?.toLowerCase()}">
         ${gettext("Your browser does not support the video tag.")}
       </video>`;
   } else {
     previewContainer.innerHTML = `
-      <img src="${currentlyEditingMedia['file_url']}" alt="${currentlyEditingMedia['title']}" class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">`;
+      <img src="${currentlyEditingMedia["file_url"]}" alt="${currentlyEditingMedia["title"]}" class="object-fit-contain w-100 h-100 mh-100 mw-100 checkerboard-bg">`;
   }
 
   if (bsMediaListModal) {
@@ -1122,15 +1124,15 @@ function initEventListeners() {
         }
       });
     });
-    
-    darkPatternBtns?.forEach((btn)=>{
+
+    darkPatternBtns?.forEach((btn) => {
       btn.addEventListener("change", () => {
         if (btn.checked) {
           imageGrid?.classList.remove("checkerboard-light");
           imageGrid?.classList.add("checkerboard-dark");
           previewContainer?.classList.remove("checkerboard-light");
           previewContainer?.classList.add("checkerboard-dark");
-      
+
           // Make every darkPattern button be checked
           darkPatternBtns.forEach((b) => (b.checked = true));
         }

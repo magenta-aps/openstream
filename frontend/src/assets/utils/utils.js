@@ -536,7 +536,15 @@ export function addTagToDisplay(container, tag, callBack) {
   if (isStreamlined) {
     // Create new styled tag badge
     const tagBadge = document.createElement("div");
-    tagBadge.classList.add("border", "border-light-gray", "d-inline-flex", "gap-2", "align-items-center", "rounded", "p-1");
+    tagBadge.classList.add(
+      "border",
+      "border-light-gray",
+      "d-inline-flex",
+      "gap-2",
+      "align-items-center",
+      "rounded",
+      "p-1",
+    );
     tagBadge.innerHTML = `
       ${tag}
       <button type="button" class="btn p-0" data-id="${tag}">

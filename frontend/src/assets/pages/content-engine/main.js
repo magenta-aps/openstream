@@ -139,9 +139,10 @@ const initCommonEditorFeatures = () => {
 };
 
 if (queryParams.mode === "edit") {
-
   const button = document.querySelector("#aspect-ratio-container button");
-  const aspectRatioSeparator = document.getElementById("aspect-ratio-separator");
+  const aspectRatioSeparator = document.getElementById(
+    "aspect-ratio-separator",
+  );
 
   if (button) {
     button.remove();
