@@ -224,7 +224,6 @@ function buildActiveIconsHtml(elData) {
 }
 
 function getElementTypeIcon(type) {
-  console.log(type)
   const iconMap = {
     image: "image",
     textbox: "text_fields",
@@ -237,6 +236,7 @@ function getElementTypeIcon(type) {
     list: "format_list_bulleted",
     placeholder: "crop_free",
     qrcode: "qr_code",
+    box: "crop_din",
   };
   return iconMap[type] || "help";
 }
