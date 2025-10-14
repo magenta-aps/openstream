@@ -299,7 +299,7 @@ export function _renderQRCode(el, container) {
     canvas.style.height = finalCssSize + "px";
 
     const qrOptions = {
-      width: Math.round(finalCssSize * dpr),
+      width: Math.round(finalCssSize),
       margin: el.qrOptions?.margin ?? 2,
       color: {
         dark: el.qrOptions?.color?.dark ?? "#000000",
