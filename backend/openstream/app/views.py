@@ -347,7 +347,10 @@ class SubOrganisationListCreateAPIView(APIView):
         )
         if not is_authorized:
             return Response(
-                {"error": "You are not org_admin for this organisation."}, status=403
+                {
+                    "error": "You must be org_admin for this organisation or super_admin."
+                },
+                status=403,
             )
 
         new_suborg = serializer.save()
@@ -390,7 +393,10 @@ class SubOrganisationDetailAPIView(APIView):
         )
         if not is_authorized:
             return Response(
-                {"error": "You must be org_admin to delete this suborg."}, status=403
+                {
+                    "error": "You must be org_admin or super_admin to delete this suborg."
+                },
+                status=403,
             )
         suborg.delete()
         return Response(status=204)
@@ -2718,36 +2724,54 @@ class UserDetailAPIView(APIView):
                 {"error": "You cannot remove yourself from organizations."}, status=403
             )
 
-        # Get the orgs where the request.user is org_admin
-        admin_orgs = OrganisationMembership.objects.filter(
-            user=request.user, role="org_admin"
-        ).values_list("organisation_id", flat=True)
+        # Super admins can delete users from any organization
+        if user_is_super_admin(request.user):
+            # Get all organizations where the target user has memberships
+            admin_orgs = OrganisationMembership.objects.filter(
+                user=target_user
+            ).values_list("organisation_id", flat=True)
+        else:
+            # Get the orgs where the request.user is org_admin
+            admin_orgs = OrganisationMembership.objects.filter(
+                user=request.user, role="org_admin"
+            ).values_list("organisation_id", flat=True)
 
         if not admin_orgs:
+            if user_is_super_admin(request.user):
+                error_msg = "No organizations found for the target user."
+            else:
+                error_msg = "You must be org_admin in at least one organization to perform this action."
             return Response(
-                {
-                    "error": "You must be org_admin in at least one organization to perform this action."
-                },
+                {"error": error_msg},
                 status=403,
             )
 
-        # Remove memberships for target_user in the orgs where request.user is org_admin
+        # Remove memberships for target_user in the appropriate organizations
         memberships_to_remove = OrganisationMembership.objects.filter(
             user=target_user, organisation_id__in=admin_orgs
         )
 
         if not memberships_to_remove.exists():
+            if user_is_super_admin(request.user):
+                error_msg = (
+                    f"User {target_user.username} is not a member of any organizations."
+                )
+            else:
+                error_msg = f"User {target_user.username} is not a member of any organizations where you are admin."
             return Response(
-                {
-                    "error": f"User {target_user.username} is not a member of any organizations where you are admin."
-                },
+                {"error": error_msg},
                 status=403,
             )
 
         memberships_to_remove.delete()
 
+        if user_is_super_admin(request.user):
+            message = "User removed from all organizations."
+        else:
+            message = "User removed from organizations where you are admin."
+
         return Response(
-            {"message": "User removed from organizations where you are admin."},
+            {"message": message},
             status=200,
         )
 
@@ -2841,7 +2865,7 @@ class CategoryAPIView(APIView):
 
     Permissions:
     - GET: Any authenticated user who belongs to the organisation
-    - POST/PUT/PATCH/DELETE: Only org_admin users
+    - POST/PUT/PATCH/DELETE: Only org_admin or super_admin users
     """
 
     permission_classes = [IsAuthenticated]
@@ -2927,7 +2951,7 @@ class CategoryAPIView(APIView):
 
     def put(self, request, pk):
         """
-        Fully update a category. Only org_admin users can do this.
+        Fully update a category. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
         org_id = request.query_params.get("organisation_id")
@@ -2970,7 +2994,7 @@ class CategoryAPIView(APIView):
 
     def patch(self, request, pk):
         """
-        Partially update a category. Only org_admin users can do this.
+        Partially update a category. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
         org_id = request.query_params.get("organisation_id")
@@ -3013,7 +3037,7 @@ class CategoryAPIView(APIView):
 
     def delete(self, request, pk):
         """
-        Delete a category. Only org_admin users can do this.
+        Delete a category. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
         org_id = request.query_params.get("organisation_id")
@@ -3168,7 +3192,7 @@ class TagDetailAPIView(APIView):
 
     def patch(self, request, pk):
         """
-        Update a tag. Only org_admin users can do this.
+        Update a tag. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
         org_id = request.query_params.get("organisation_id")
@@ -3204,7 +3228,7 @@ class TagDetailAPIView(APIView):
 
     def delete(self, request, pk):
         """
-        Delete a tag. Only org_admin users can do this.
+        Delete a tag. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
         org_id = request.query_params.get("organisation_id")
@@ -3507,7 +3531,7 @@ class SuborgTemplateAPIView(APIView):
     def patch(self, request, pk):
         """
         Update a suborg template.
-        Only the suborg_admin or org_admin can update.
+        Only the suborg_admin, org_admin, or super_admin can update.
         """
         template = get_object_or_404(SlideTemplate, pk=pk)
 
@@ -3538,7 +3562,7 @@ class SuborgTemplateAPIView(APIView):
     def delete(self, request, pk):
         """
         Delete a suborg template.
-        Only suborg_admin or org_admin can delete.
+        Only suborg_admin, org_admin, or super_admin can delete.
         """
         template = get_object_or_404(SlideTemplate, pk=pk)
 
