@@ -340,6 +340,11 @@ async function initMediaModalInternal() {
       categories,
       false,
     );
+    // Ensure category checkbox changes trigger filtering (matches manage-media-files behaviour)
+    addDebounceEventListenerToElements(
+      mediaCategoryEl.querySelectorAll("input"),
+      updateFilteringDebounce,
+    );
   }
   // Create tag filter dropdown
   const filterTagWrapper = document.querySelector("#media-filter-tags-wrapper");
@@ -956,7 +961,25 @@ function refreshTagListDisplay() {
 
 function getFilters() {
   const branches = getSelectedExtensions(mediaOwnerEl);
-  const categories = getSelectedExtensions(mediaCategoryEl);
+  // Read selected categories but treat "select all" as no filtering
+  let categories = getSelectedExtensions(mediaCategoryEl);
+  try {
+    if (mediaCategoryEl) {
+      const nonToggleCheckboxes = mediaCategoryEl.querySelectorAll(
+        'input[type="checkbox"]:not(#toggleAll)'
+      );
+      const checkedNonToggle = mediaCategoryEl.querySelectorAll(
+        'input[type="checkbox"]:checked:not(#toggleAll)'
+      );
+      // If every non-toggle checkbox is checked, treat as "no category filter"
+      if (nonToggleCheckboxes.length > 0 && checkedNonToggle.length === nonToggleCheckboxes.length) {
+        categories = []; // omit categories from filters below
+      }
+    }
+  } catch (e) {
+    // Defensive: if querySelector fails for whatever reason, fall back to raw categories
+    console.warn("getFilters: error evaluating select-all for categories", e);
+  }
 
   // Get selected file extensions from the UI
   const selectedExtensions = getSelectedExtensions(extensionSelectEl).map(
