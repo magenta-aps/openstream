@@ -1321,6 +1321,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const subId = document.getElementById("suborgSelectManage").value;
       const role = document.getElementById("suborgRoleManage").value;
       let branchId = null;
+      // Require a selected suborganisation for suborg_admin and employee roles
+      if ((role === "suborg_admin" || role === "employee") && !subId) {
+        showToast(gettext("Please select a suborganisation for this role."), "Warning");
+        return;
+      }
       if (role === "employee") {
         branchId = document.getElementById("branchSelectManage").value;
         if (!branchId) {
