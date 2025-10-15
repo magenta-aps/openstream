@@ -3745,7 +3745,7 @@ class CustomColorAPIView(APIView):
 
         # Create a new color
         data = request.data.copy()
-        serializer = CustomColorSerializer(data=data)
+        serializer = CustomColorSerializer(data=data, context={"organisation": organisation})
 
         if serializer.is_valid():
             # Assign the color to the specified organization
@@ -3793,7 +3793,7 @@ class CustomColorAPIView(APIView):
 
         # Update the color
         data = request.data.copy()
-        serializer = CustomColorSerializer(custom_color, data=data, partial=True)
+        serializer = CustomColorSerializer(custom_color, data=data, context={"organisation": organisation}, partial=True)
 
         if serializer.is_valid():
             serializer.save()

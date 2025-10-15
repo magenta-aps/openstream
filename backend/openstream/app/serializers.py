@@ -1160,6 +1160,27 @@ class CustomColorSerializer(serializers.ModelSerializer):
             "id",
             "organisation",
         ]  # Organisation is set based on user context
+    
+    def validate(self, data):
+        """
+        Ensure the color name is unique within the same organisation.
+        """
+        # Get organisation via context
+        organisation = self.context.get("organisation")
+        name = data.get("name")
+        print("XXXXXXX name and organisation", name, organisation)
+
+        if organisation and name:
+            # If this serializer is updating an existing color, exclude it from the check
+            color_id = self.instance.id if self.instance else None
+            if CustomColor.objects.filter(
+                organisation=organisation, name=name
+            ).exclude(id=color_id).exists():
+                raise serializers.ValidationError({
+                    "message": "A color with this name already exists in this organisation."
+                })
+
+        return data
 
 
 ###############################################################################
