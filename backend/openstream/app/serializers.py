@@ -1160,7 +1160,7 @@ class CustomColorSerializer(serializers.ModelSerializer):
             "id",
             "organisation",
         ]  # Organisation is set based on user context
-    
+
     def validate(self, data):
         """
         Ensure the color name is unique within the same organisation.

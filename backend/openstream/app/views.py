@@ -3796,9 +3796,9 @@ class CustomColorAPIView(APIView):
         # Update the color
         data = request.data.copy()
         serializer = CustomColorSerializer(
-            custom_color, 
+            custom_color,
             data=data,
-            context={"organisation": organisation}, 
+            context={"organisation": organisation},
             partial=True
         )
 
