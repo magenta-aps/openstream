@@ -692,6 +692,9 @@
   "Delete branch": {
     "da": "Slet afdeling"
   },
+  "Are you sure you want to delete branch":{
+    "da":"Er du sikker på, du vil slette afdeling"
+  },
   "Failed to fetch org users:": {
     "da": "Kunne ikke hente organisationsbrugere:"
   },
