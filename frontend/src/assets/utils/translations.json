@@ -671,6 +671,9 @@
   "Suborganisation created successfully!": {
     "da": "Underorganisation oprettet succesfuldt!"
   },
+  "A suborganisation with this name already exists in this organisation.":{
+    "da":"Der eksisterer allerede en underorganisation med dette navn i denne organisation."
+  },
   "Error creating branch: ": {
     "da": "Fejl ved oprettelse af afdeling: "
   },
@@ -682,6 +685,9 @@
   },
   "Branch created successfully!": {
     "da": "Afdeling oprettet succesfuldt!"
+  },
+  "A branch with this name already exists in this suborganisation.":{
+    "da":"Der eksisterer allerede en afdeling med dette navn i denne underorganisation."
   },
   "Delete branch": {
     "da": "Slet afdeling"
