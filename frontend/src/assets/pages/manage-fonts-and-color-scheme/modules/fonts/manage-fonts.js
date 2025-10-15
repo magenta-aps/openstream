@@ -351,7 +351,8 @@ async function addFont() {
     addFontModal.hide();
   } catch (error) {
     console.error("Error adding font:", error);
-    showToast(gettext("Failed to add font: ") + error.message, "Error");
+    const errorMessage = error.message;
+    showToast(gettext("Failed to add font: ") + gettext(errorMessage), "Error");
   }
 }
 
@@ -417,7 +418,8 @@ async function updateFont() {
     editFontModal.hide();
   } catch (error) {
     console.error("Error updating font:", error);
-    showToast(gettext("Failed to update font: ") + error.message, "Error");
+    const errorMessage = error.message;
+    showToast(gettext("Failed to update font: ") + gettext(errorMessage), "Error");
   }
 }
 

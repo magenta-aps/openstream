@@ -2873,6 +2873,9 @@
   "Upload a font file supported by browsers (WOFF2, WOFF, TTF, OTF).": {
     "da": "Upload en skrifttypefil, som understøttes af browsere (WOFF2, WOFF, TTF, OTF)."
   },
+  "A font with this name already exists in this organisation.": {
+    "da":"En font med dette navn findes allerede i denne organisation."
+  },
   "Font File (optional)": {
     "da": "Skrifttype Fil (valgfri)"
   },
