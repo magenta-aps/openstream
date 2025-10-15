@@ -248,6 +248,9 @@
   "You must be an organization admin to view or modify colors.": {
     "da": "Du skal være organisationsadministrator for at se eller ændre farver."
   },
+  "A color with this name already exists in this organisation.": {
+    "da": "En farve med dette navn findes allerede i denne organisation."
+  },
   "Preview": {
     "da": "Forhåndsvisning"
   },

@@ -185,8 +185,9 @@ async function handleModalSave() {
     renderColors();
     colorModal.hide();
   } catch (err) {
+    const errorMessage = err.message;
     showToast(
-      gettext("Failed to save color: ") + (err.detail || err.message),
+      gettext("Failed to save color: ") + gettext(errorMessage),
       "Error",
     );
   }
