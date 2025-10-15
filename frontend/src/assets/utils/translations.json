@@ -716,6 +716,12 @@
   "Failed to remove membership, status:": {
     "da": "Kunne ikke fjerne medlemskab, status:"
   },
+  "Are you sure you want to remove user":{
+    "da":"Er du sikker på, du vil fjerne brugeren"
+  },
+  "from the organization":{
+    "da":"fra organisationen"
+  },
   "Error removing membership:": {
     "da": "Fejl ved fjernelse af medlemskab:"
   },
