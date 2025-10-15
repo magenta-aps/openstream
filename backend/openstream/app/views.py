@@ -3799,7 +3799,7 @@ class CustomColorAPIView(APIView):
             custom_color,
             data=data,
             context={"organisation": organisation},
-            partial=True
+            partial=True,
         )
 
         if serializer.is_valid():
