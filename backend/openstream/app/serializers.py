@@ -1194,6 +1194,26 @@ class CustomFontSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "font_url", "organisation"]
         read_only_fields = ["id", "organisation"]
 
+    def validate(self, data):
+        """
+        Ensure the font name is unique within the same organisation.
+        """
+        # Get organisation via context
+        organisation = self.context.get("organisation")
+        name = data.get("name")
+
+        if organisation and name:
+            # If this serializer is updating an existing font, exclude it from the check
+            font_id = self.instance.id if self.instance else None
+            if CustomFont.objects.filter(
+                organisation=organisation, name=name
+            ).exclude(id=font_id).exists():
+                raise serializers.ValidationError({
+                    "message": "A font with this name already exists in this organisation."
+                })
+
+        return data
+
 
 ###############################################################################
 # Registered Slide Types Serializer

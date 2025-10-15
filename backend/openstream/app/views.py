@@ -4056,7 +4056,7 @@ class CustomFontAPIView(APIView):
                 )
 
         # If uploaded_file not provided, expect client to send font_url in body
-        serializer = CustomFontSerializer(data=data)
+        serializer = CustomFontSerializer(data=data, context={"organisation": organisation})
         if serializer.is_valid():
             # Assign the font to the specified organization
             serializer.save(organisation=organisation)
@@ -4158,7 +4158,7 @@ class CustomFontAPIView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        serializer = CustomFontSerializer(custom_font, data=data, partial=True)
+        serializer = CustomFontSerializer(custom_font, data=data, context={"organisation": organisation}, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
