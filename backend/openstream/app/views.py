@@ -3745,7 +3745,9 @@ class CustomColorAPIView(APIView):
 
         # Create a new color
         data = request.data.copy()
-        serializer = CustomColorSerializer(data=data, context={"organisation": organisation})
+        serializer = CustomColorSerializer(
+            data=data, context={"organisation": organisation}
+        )
 
         if serializer.is_valid():
             # Assign the color to the specified organization
@@ -3793,7 +3795,12 @@ class CustomColorAPIView(APIView):
 
         # Update the color
         data = request.data.copy()
-        serializer = CustomColorSerializer(custom_color, data=data, context={"organisation": organisation}, partial=True)
+        serializer = CustomColorSerializer(
+            custom_color, 
+            data=data,
+            context={"organisation": organisation}, 
+            partial=True
+        )
 
         if serializer.is_valid():
             serializer.save()
@@ -4056,7 +4063,9 @@ class CustomFontAPIView(APIView):
                 )
 
         # If uploaded_file not provided, expect client to send font_url in body
-        serializer = CustomFontSerializer(data=data, context={"organisation": organisation})
+        serializer = CustomFontSerializer(
+            data=data, context={"organisation": organisation}
+        )
         if serializer.is_valid():
             # Assign the font to the specified organization
             serializer.save(organisation=organisation)
@@ -4158,7 +4167,9 @@ class CustomFontAPIView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        serializer = CustomFontSerializer(custom_font, data=data, context={"organisation": organisation}, partial=True)
+        serializer = CustomFontSerializer(
+            custom_font, data=data, context={"organisation": organisation}, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

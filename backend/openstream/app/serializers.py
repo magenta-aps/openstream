@@ -1168,17 +1168,20 @@ class CustomColorSerializer(serializers.ModelSerializer):
         # Get organisation via context
         organisation = self.context.get("organisation")
         name = data.get("name")
-        print("XXXXXXX name and organisation", name, organisation)
 
         if organisation and name:
             # If this serializer is updating an existing color, exclude it from the check
             color_id = self.instance.id if self.instance else None
-            if CustomColor.objects.filter(
-                organisation=organisation, name=name
-            ).exclude(id=color_id).exists():
-                raise serializers.ValidationError({
-                    "message": "A color with this name already exists in this organisation."
-                })
+            if (
+                CustomColor.objects.filter(organisation=organisation, name=name)
+                .exclude(id=color_id)
+                .exists()
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "message": "A color with this name already exists in this organisation."
+                    }
+                )
 
         return data
 
@@ -1205,12 +1208,16 @@ class CustomFontSerializer(serializers.ModelSerializer):
         if organisation and name:
             # If this serializer is updating an existing font, exclude it from the check
             font_id = self.instance.id if self.instance else None
-            if CustomFont.objects.filter(
-                organisation=organisation, name=name
-            ).exclude(id=font_id).exists():
-                raise serializers.ValidationError({
-                    "message": "A font with this name already exists in this organisation."
-                })
+            if (
+                CustomFont.objects.filter(organisation=organisation, name=name)
+                .exclude(id=font_id)
+                .exists()
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "message": "A font with this name already exists in this organisation."
+                    }
+                )
 
         return data
 
