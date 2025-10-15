@@ -29,6 +29,11 @@ function filterVisibleBranches(branches) {
 
 function showAddSuborgModal() {
   document.getElementById("suborgNameInput").value = "";
+  // Clear previous validation state
+  const input = document.getElementById("suborgNameInput");
+  input.classList.remove("is-invalid");
+  const err = document.getElementById("suborgNameError");
+  if (err) err.textContent = "";
   const modal = new bootstrap.Modal(document.getElementById("addSuborgModal"));
   modal.show();
 }
@@ -72,6 +77,20 @@ async function onSubmitAddSuborg() {
     showToast(gettext("Please enter a suborg name."), "Warning");
     return;
   }
+  // Client-side duplicate-name validation within the same organisation
+  if (isDuplicateSuborgName(orgId, suborgName)) {
+    const input = document.getElementById("suborgNameInput");
+    input.classList.add("is-invalid");
+    let err = document.getElementById("suborgNameError");
+    if (!err) {
+      err = document.createElement("div");
+      err.id = "suborgNameError";
+      err.className = "invalid-feedback d-block";
+      input.parentElement.appendChild(err);
+    }
+    err.textContent = gettext("A suborganisation with this name already exists in this organisation.");
+    return;
+  }
   const createdSuborg = await createSuborg(orgId, suborgName);
   if (createdSuborg) {
     showToast(gettext("Suborganisation created successfully!"), "Success");
@@ -89,6 +108,11 @@ async function onSubmitAddSuborg() {
 function showAddBranchModalFor(suborgId) {
   document.getElementById("branchNameInput").value = "";
   document.getElementById("selectedSuborgIdForBranch").value = suborgId;
+  // Clear previous validation state for branch input
+  const input = document.getElementById("branchNameInput");
+  input.classList.remove("is-invalid");
+  const err = document.getElementById("branchNameError");
+  if (err) err.textContent = "";
   const modal = new bootstrap.Modal(document.getElementById("addBranchModal"));
   modal.show();
 }
@@ -132,6 +156,20 @@ async function onSubmitAddBranch() {
   const branchName = document.getElementById("branchNameInput").value.trim();
   if (!branchName) {
     showToast(gettext("Please enter a branch name."), "Warning");
+    return;
+  }
+  // Client-side duplicate branch validation within the same suborganisation
+  if (isDuplicateBranchName(suborgId, branchName)) {
+    const input = document.getElementById("branchNameInput");
+    input.classList.add("is-invalid");
+    let err = document.getElementById("branchNameError");
+    if (!err) {
+      err = document.createElement("div");
+      err.id = "branchNameError";
+      err.className = "invalid-feedback d-block";
+      input.parentElement.appendChild(err);
+    }
+    err.textContent = gettext("A branch with this name already exists in this suborganisation.");
     return;
   }
   const createdBranch = await createBranch(suborgId, branchName);
@@ -1022,6 +1060,11 @@ async function addMembership(membershipData) {
 function showEditSuborgModal(suborgId, suborgName) {
   document.getElementById("editSuborgNameInput").value = suborgName;
   document.getElementById("editSuborgId").value = suborgId;
+  // Clear previous validation state
+  const input = document.getElementById("editSuborgNameInput");
+  input.classList.remove("is-invalid");
+  const err = document.getElementById("editSuborgNameError");
+  if (err) err.textContent = "";
   const modal = new bootstrap.Modal(document.getElementById("editSuborgModal"));
   modal.show();
 }
@@ -1066,6 +1109,21 @@ async function onSubmitEditSuborg() {
     showToast(gettext("Please enter a suborg name."), "Warning");
     return;
   }
+  // Client-side duplicate-name validation (allow same name if it's the suborg being edited)
+  const orgId = localStorage.getItem("parentOrgID");
+  if (isDuplicateSuborgName(orgId, suborgName, suborgId)) {
+    const input = document.getElementById("editSuborgNameInput");
+    input.classList.add("is-invalid");
+    let err = document.getElementById("editSuborgNameError");
+    if (!err) {
+      err = document.createElement("div");
+      err.id = "editSuborgNameError";
+      err.className = "invalid-feedback d-block";
+      input.parentElement.appendChild(err);
+    }
+    err.textContent = gettext("A suborganisation with this name already exists in this organisation.");
+    return;
+  }
   const updatedSuborg = await updateSuborg(suborgId, suborgName);
   if (updatedSuborg) {
     showToast(gettext("Suborganisation updated successfully!"), "Success");
@@ -1079,6 +1137,34 @@ async function onSubmitEditSuborg() {
     fetchSubOrgs();
   }
 }
+
+// Helper: check for duplicate suborg name within an organisation
+// If excludeId is provided, ignore that suborg (used for edit flow)
+function isDuplicateSuborgName(orgId, name, excludeId = null) {
+  if (!orgId || !name || !subOrgsData) return false;
+  const lower = name.toLowerCase();
+  return subOrgsData.some((s) => {
+    if (excludeId && String(s.id) === String(excludeId)) return false;
+    return (
+      String(s.organisation) === String(orgId) &&
+      String(s.name).toLowerCase() === lower
+    );
+  });
+}
+
+// Clear validation when user edits the inputs
+document.addEventListener("input", (e) => {
+  if (e.target && e.target.id === "suborgNameInput") {
+    e.target.classList.remove("is-invalid");
+    const err = document.getElementById("suborgNameError");
+    if (err) err.textContent = "";
+  }
+  if (e.target && e.target.id === "editSuborgNameInput") {
+    e.target.classList.remove("is-invalid");
+    const err = document.getElementById("editSuborgNameError");
+    if (err) err.textContent = "";
+  }
+});
 
 async function deleteSuborg(suborgObj) {
   // Set up the delete suborg modal
@@ -1118,6 +1204,11 @@ async function deleteSuborg(suborgObj) {
 function showEditBranchModal(branchId, branchName) {
   document.getElementById("editBranchNameInput").value = branchName;
   document.getElementById("editBranchId").value = branchId;
+  // Clear previous validation state
+  const input = document.getElementById("editBranchNameInput");
+  input.classList.remove("is-invalid");
+  const err = document.getElementById("editBranchNameError");
+  if (err) err.textContent = "";
   const modal = new bootstrap.Modal(document.getElementById("editBranchModal"));
   modal.show();
 }
@@ -1162,6 +1253,28 @@ async function onSubmitEditBranch() {
     showToast(gettext("Please enter a branch name."), "Warning");
     return;
   }
+  // Client-side duplicate branch validation (allow same name if editing that branch)
+  // Need to find the suborg id for this branch from subOrgsData
+  let parentSuborgId = null;
+  for (const s of subOrgsData) {
+    if (s.branches && s.branches.some((b) => String(b.id) === String(branchId))) {
+      parentSuborgId = s.id;
+      break;
+    }
+  }
+  if (parentSuborgId && isDuplicateBranchName(parentSuborgId, branchName, branchId)) {
+    const input = document.getElementById("editBranchNameInput");
+    input.classList.add("is-invalid");
+    let err = document.getElementById("editBranchNameError");
+    if (!err) {
+      err = document.createElement("div");
+      err.id = "editBranchNameError";
+      err.className = "invalid-feedback d-block";
+      input.parentElement.appendChild(err);
+    }
+    err.textContent = gettext("A branch with this name already exists in this suborganisation.");
+    return;
+  }
   const updatedBranch = await updateBranch(branchId, branchName);
   if (updatedBranch) {
     showToast(gettext("Branch updated successfully!"), "Success");
@@ -1175,6 +1288,33 @@ async function onSubmitEditBranch() {
     fetchSubOrgs();
   }
 }
+
+// Helper: check for duplicate branch name within a suborganisation
+// If excludeId is provided, ignore that branch (used for edit flow)
+function isDuplicateBranchName(suborgId, name, excludeId = null) {
+  if (!suborgId || !name || !subOrgsData) return false;
+  const lower = name.toLowerCase();
+  const sub = subOrgsData.find((s) => String(s.id) === String(suborgId));
+  if (!sub || !sub.branches) return false;
+  return sub.branches.some((b) => {
+    if (excludeId && String(b.id) === String(excludeId)) return false;
+    return String(b.name).toLowerCase() === lower;
+  });
+}
+
+// Clear branch validation when user edits the inputs
+document.addEventListener("input", (e) => {
+  if (e.target && e.target.id === "branchNameInput") {
+    e.target.classList.remove("is-invalid");
+    const err = document.getElementById("branchNameError");
+    if (err) err.textContent = "";
+  }
+  if (e.target && e.target.id === "editBranchNameInput") {
+    e.target.classList.remove("is-invalid");
+    const err = document.getElementById("editBranchNameError");
+    if (err) err.textContent = "";
+  }
+});
 
 function populateBranchSelect(suborgId) {
   const branchSelect = document.getElementById("branchSelect");
