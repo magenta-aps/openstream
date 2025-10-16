@@ -163,6 +163,12 @@ async function handleModalSave() {
     hexValue: hexValue,
     type: modalTypeSelect.value,
   };
+
+  if (!payload.name || !payload.hexValue || !payload.type) {
+    showToast(gettext("Please fill in all required fields"), "Error");
+    return;
+  }
+
   try {
     let res;
     if (colorBeingEdited) {
