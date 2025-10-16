@@ -989,8 +989,8 @@
   "Font updated successfully": {
     "da": "Skrifttype opdateret succesfuldt"
   },
-  "Failed to update font: ": {
-    "da": "Kunne ikke opdatere skrifttype: "
+  "Failed to update font": {
+    "da": "Kunne ikke opdatere skrifttype"
   },
   "Font deleted successfully": {
     "da": "Skrifttype slettet succesfuldt"

@@ -419,9 +419,9 @@ async function updateFont() {
     console.error("Error updating font:", error);
     const errorMessage = error.message;
     if (errorMessage) {
-      showToast(gettext("Failed to update font") + gettext(errorMessage), "Error");
+      showToast(gettext("Failed to update font") + ": " + gettext(errorMessage), "Error");
     } else {
-      showToast(error.detail || gettext("Failed to add font"), "Error");
+      showToast(error.detail || gettext("Failed to update font"), "Error");
     }
   }
 }
