@@ -154,7 +154,7 @@ class CategorySerializer(serializers.ModelSerializer):
             serializers.UniqueTogetherValidator(
                 queryset=Category.objects.all(),
                 fields=["name", "organisation"],
-                message="A category with this name already exists in your organisation."
+                message="A category with this name already exists in your organisation.",
             )
         ]
 
@@ -183,7 +183,7 @@ class TagSerializer(serializers.ModelSerializer):
             serializers.UniqueTogetherValidator(
                 queryset=Tag.objects.all(),
                 fields=["name", "organisation"],
-                message="A tag with this name already exists in your organisation."
+                message="A tag with this name already exists in your organisation.",
             )
         ]
 
