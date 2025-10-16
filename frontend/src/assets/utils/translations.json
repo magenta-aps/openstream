@@ -983,8 +983,8 @@
   "Font added successfully": {
     "da": "Skrifttype tilføjet succesfuldt"
   },
-  "Failed to add font: ": {
-    "da": "Kunne ikke tilføje skrifttype: "
+  "Failed to add font": {
+    "da": "Kunne ikke tilføje skrifttype"
   },
   "Font updated successfully": {
     "da": "Skrifttype opdateret succesfuldt"
@@ -1217,8 +1217,8 @@
   "Color added successfully": {
     "da": "Farve tilføjet succesfuldt"
   },
-  "Failed to save color: ": {
-    "da": "Kunne ikke gemme farve: "
+  "Failed to save color": {
+    "da": "Kunne ikke gemme farve"
   },
   "Color deleted successfully": {
     "da": "Farve slettet succesfuldt"

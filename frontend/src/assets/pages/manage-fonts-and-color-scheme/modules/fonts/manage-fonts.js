@@ -352,7 +352,11 @@ async function addFont() {
   } catch (error) {
     console.error("Error adding font:", error);
     const errorMessage = error.message;
-    showToast(gettext("Failed to add font: ") + gettext(errorMessage), "Error");
+    if (errorMessage) {
+      showToast(gettext("Failed to add font") + ": " + gettext(errorMessage), "Error");
+    } else {
+      showToast(error.detail || gettext("Failed to add font"), "Error");
+    }
   }
 }
 
@@ -419,7 +423,11 @@ async function updateFont() {
   } catch (error) {
     console.error("Error updating font:", error);
     const errorMessage = error.message;
-    showToast(gettext("Failed to update font: ") + gettext(errorMessage), "Error");
+    if (errorMessage) {
+      showToast(gettext("Failed to update font") + gettext(errorMessage), "Error");
+    } else {
+      showToast(error.detail || gettext("Failed to add font"), "Error");
+    }
   }
 }
 
