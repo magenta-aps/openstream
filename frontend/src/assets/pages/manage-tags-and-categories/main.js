@@ -210,9 +210,9 @@ async function saveCategory() {
     if (error.non_field_errors) {
       showToast(gettext(error.non_field_errors), "Error");
     } else {
-    showToast(error.detail || gettext("Failed to save category"), "Error");
+      showToast(error.detail || gettext("Failed to save category"), "Error");
+    }
   }
-}
 }
 
 // Save a tag (create or update)
@@ -245,7 +245,11 @@ async function saveTag() {
     tagModal.hide();
   } catch (error) {
     console.error("Error saving tag:", error);
-    showToast(error.detail || gettext("Failed to save tag"), "Error");
+    if (error.non_field_errors) {
+      showToast(gettext(error.non_field_errors), "Error");
+    } else {
+      showToast(error.detail || gettext("Failed to save tag"), "Error");
+    }
   }
 }
 

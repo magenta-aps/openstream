@@ -887,6 +887,9 @@
   "Failed to save tag": {
     "da": "Kunne ikke gemme tag"
   },
+  "A tag with this name already exists in your organisation.": {
+    "da": "Der eksisterer allerede et tag med dette navn i din organisation."
+  },
   "Category deleted successfully": {
     "da": "Kategori slettet succesfuldt"
   },
