@@ -207,8 +207,12 @@ async function saveCategory() {
     categoryModal.hide();
   } catch (error) {
     console.error("Error saving category:", error);
+    if (error.non_field_errors) {
+      showToast(gettext(error.non_field_errors), "Error");
+    } else {
     showToast(error.detail || gettext("Failed to save category"), "Error");
   }
+}
 }
 
 // Save a tag (create or update)

@@ -863,6 +863,9 @@
   "Category name is required": {
     "da": "Kategori navn er påkrævet"
   },
+  "A category with this name already exists in your organisation.": {
+    "da": "Der eksisterer allerede en kategori med dette navn i din organisation."
+  },
   "Category updated successfully": {
     "da": "Kategori opdateret succesfuldt"
   },

@@ -150,6 +150,13 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "organisation", "organisation_id"]
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Category.objects.all(),
+                fields=["name", "organisation"],
+                message="A category with this name already exists in your organisation."
+            )
+        ]
 
     def to_representation(self, instance):
         """Customize the output representation"""
