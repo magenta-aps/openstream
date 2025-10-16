@@ -25,7 +25,6 @@ const addFontModal = new bootstrap.Modal(
 );
 const addFontForm = document.getElementById("add-font-form");
 const addFontNameInput = document.getElementById("add-font-name");
-const addFontUrlInput = document.getElementById("add-font-url");
 const confirmAddFontBtn = document.getElementById("confirm-add-font-btn");
 const addFontFileInput = document.getElementById("add-font-file");
 
@@ -314,7 +313,7 @@ async function addFont() {
   const name = addFontNameInput.value.trim();
   const file = addFontFileInput ? addFontFileInput.files[0] : null;
 
-  if (!name || (!file && !addFontUrlInput.value.trim())) {
+  if (!name || !file) {
     showToast(gettext("Please fill in all required fields"), "Error");
     return;
   }
@@ -323,13 +322,9 @@ async function addFont() {
     // Prepare body: use FormData if file present
     let body;
     let headers = undefined; // let genericFetch set Content-Type unless FormData
-    if (file) {
-      body = new FormData();
-      body.append("name", name);
-      body.append("file", file);
-    } else {
-      body = { name, font_url: addFontUrlInput.value.trim() };
-    }
+    body = new FormData();
+    body.append("name", name);
+    body.append("file", file);
 
     const response = await genericFetch(
       `${BASE_URL}/api/fonts/?organisation_id=${parentOrgID}`,
