@@ -615,6 +615,9 @@ class DisplayWebsiteGroup(models.Model):
 
 class DisplayWebsite(models.Model):
     name = models.CharField(max_length=255)
+    # Optional UID provided by external management systems to uniquely
+    # identify a screen across hostname changes. Not required.
+    uid = models.CharField(max_length=64, null=True, blank=True, db_index=True)
     display_website_group = models.ForeignKey(
         DisplayWebsiteGroup,
         on_delete=models.CASCADE,
@@ -653,8 +656,10 @@ class DisplayWebsite(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        # If you want the name unique within the Branch:
-        unique_together = ("name", "branch")
+        # Preserve name uniqueness within a branch. Additionally allow
+        # lookups by uid within a branch. uid itself is optional so we do
+        # not enforce uniqueness across null uids at the DB level here.
+        unique_together = (("name", "branch"),)
 
     def __str__(self):
         return self.name

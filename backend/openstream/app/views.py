@@ -4635,14 +4635,14 @@ class CreateScreenAPIView(APIView):
                 {"error": "API key does not map to a valid branch."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # Create a new DisplayWebsite record. The model validates that
-        # `name` is non-blank on save, so provide a temporary unique
-        # name when creating, then update it to the desired `SCR{ id }`
-        # format after the object has an id.
         import uuid
 
-        temp_name = f"SCR-temp-{uuid.uuid4().hex[:8]}"
+        # Read optional parameters: uid and hostname. uid is an optional
+        # external identifier that should be unique per branch.
+        uid = request.data.get("uid") or request.query_params.get("uid")
+        hostname = (
+            request.data.get("hostname") or request.query_params.get("hostname")
+        )
 
         # Accept optional aspect_ratio from request body or query params
         aspect_ratio = (
@@ -4651,15 +4651,43 @@ class CreateScreenAPIView(APIView):
             or DisplayWebsite._meta.get_field("aspect_ratio").get_default()
         )
 
+        # If a uid is provided, try to find an existing screen in this branch
+        # matching the uid. If found, update the hostname if provided and
+        # different, then return the existing screen. If not found, create
+        # a new DisplayWebsite with the provided uid and hostname.
+        if uid:
+            try:
+                screen = DisplayWebsite.objects.get(uid=uid, branch=branch)
+                # Update name if hostname provided and different
+                if hostname and screen.name != hostname:
+                    screen.name = hostname
+                    screen.save()
+                return Response(
+                    {"screenId": screen.id, "name": screen.name, "branch_id": branch.id}
+                )
+            except DisplayWebsite.DoesNotExist:
+                # Create new with uid and hostname (or temporary name)
+                name = hostname or f"SCR-temp-{uuid.uuid4().hex[:8]}"
+                screen = DisplayWebsite.objects.create(
+                    branch=branch, name=name, uid=uid, aspect_ratio=aspect_ratio
+                )
+                # If we used a temp name and no hostname was provided, set SCR{id}
+                if not hostname:
+                    screen.name = f"SCR{screen.id}"
+                    screen.save()
+                return Response(
+                    {"screenId": screen.id, "name": screen.name, "branch_id": branch.id}
+                )
+
+        # No uid provided: fall back to original behavior creating a screen
+        # with a temporary name and returning SCR{id}.
+        temp_name = f"SCR-temp-{uuid.uuid4().hex[:8]}"
         screen = DisplayWebsite.objects.create(
             branch=branch, name=temp_name, aspect_ratio=aspect_ratio
         )
-
-        # Now set the desired name using the assigned id and save again.
         screen.name = f"SCR{screen.id}"
         screen.save()
 
-        # Return the new screen details as JSON.
         return Response(
             {"screenId": screen.id, "name": screen.name, "branch_id": branch.id}
         )
@@ -4677,44 +4705,47 @@ class CheckScreenGroupAPIView(APIView):
         # Get the parameters from the query string.
         screen_id = request.query_params.get("screenId")
         api_key_value = request.query_params.get("apiKey")
+        # Optional uid and hostname for lookup
+        uid = request.query_params.get("uid")
+        hostname = request.query_params.get("hostname")
 
         if not screen_id or not api_key_value:
-            return Response(
-                {"error": "Missing required parameters"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate API key using the SlideshowPlayerAPIKey model.
         try:
-            key_obj = SlideshowPlayerAPIKey.objects.get(
-                key=api_key_value, is_active=True
-            )
+            key_obj = SlideshowPlayerAPIKey.objects.get(key=api_key_value, is_active=True)
         except SlideshowPlayerAPIKey.DoesNotExist:
-            return Response(
-                {"error": "Invalid API key."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Invalid API key."}, status=status.HTTP_400_BAD_REQUEST)
 
         branch = key_obj.branch
         if branch is None:
-            return Response(
-                {"error": "API key does not map to a valid branch."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "API key does not map to a valid branch."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Lookup the screen for this branch.
-        try:
-            screen = DisplayWebsite.objects.get(id=screen_id, branch=branch)
-        except DisplayWebsite.DoesNotExist:
-            return Response(
-                {"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+        # If uid is provided, prefer lookup by uid within this branch. If found,
+        # ensure hostname updates if provided. Otherwise, fall back to id lookup.
+        screen = None
+        if uid:
+            try:
+                screen = DisplayWebsite.objects.get(uid=uid, branch=branch)
+                # If hostname provided and differs, update name
+                if hostname and screen.name != hostname:
+                    screen.name = hostname
+                    screen.save()
+            except DisplayWebsite.DoesNotExist:
+                # No screen with this uid found: return 404 so client can create one
+                return Response({"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if screen is None:
+            # Lookup by provided screen id
+            try:
+                screen = DisplayWebsite.objects.get(id=screen_id, branch=branch)
+            except DisplayWebsite.DoesNotExist:
+                return Response({"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Return group information if available.
         if screen.display_website_group:
-            data = {
-                "groupId": screen.display_website_group.id,
-                "groupName": screen.display_website_group.name,
-            }
+            data = {"groupId": screen.display_website_group.id, "groupName": screen.display_website_group.name}
         else:
             data = {"groupId": None}
 

@@ -18,6 +18,8 @@ import {
 const urlParams = new URLSearchParams(window.location.search);
 const apiKey = urlParams.get("apiKey");
 const aspectRatio = urlParams.get("aspect_ratio");
+const uid = urlParams.get("uid");
+const hostname = urlParams.get("hostname");
 
 // DOM elements
 const loadingState = document.getElementById("loading-state");
@@ -58,6 +60,9 @@ function showRegistration(screenId) {
   errorState.style.display = "none";
   registrationState.style.display = "block";
   screenIdElement.textContent = screenId;
+  if (hostname) {
+    screenIdElement.textContent = hostname;
+  }
 }
 
 /**
@@ -67,6 +72,8 @@ async function createScreen() {
   try {
     const body = { apiKey: apiKey };
     if (aspectRatio) body.aspect_ratio = aspectRatio;
+    if (uid) body.uid = uid;
+    if (hostname) body.hostname = hostname;
 
     const response = await fetch(`${BASE_URL}/api/create-screen/`, {
       method: "POST",
@@ -93,10 +100,10 @@ async function createScreen() {
       // Server returned non-JSON body even though request succeeded.
       console.warn(
         "createScreen: server returned non-JSON response:",
-        parsed.__rawText,
+        parsed.__rawText
       );
       throw new Error(
-        gettext("Unexpected server response when creating screen."),
+        gettext("Unexpected server response when creating screen.")
       );
     }
 
@@ -112,19 +119,20 @@ async function createScreen() {
  */
 async function checkForGroupAssignment(screenId) {
   try {
-    const response = await fetch(
-      `${BASE_URL}/api/check-screen-group/?screenId=${screenId}&apiKey=${apiKey}`,
-      {
-        method: "GET",
-      },
-    );
+    // If uid or hostname provided, include them in the check querystring
+    const checkUrl = new URL(`${BASE_URL}/api/check-screen-group/`);
+    checkUrl.searchParams.set("screenId", screenId);
+    checkUrl.searchParams.set("apiKey", apiKey);
+    if (uid) checkUrl.searchParams.set("uid", uid);
+    if (hostname) checkUrl.searchParams.set("hostname", hostname);
+    const response = await fetch(checkUrl.toString(), { method: "GET" });
 
     if (response.ok) {
       const data = await parseJsonSafe(response);
       if (data && data.__rawText) {
         console.warn(
           "checkForGroupAssignment: server returned non-JSON response:",
-          data.__rawText,
+          data.__rawText
         );
         // Treat as not assigned so we show registration and continue polling
         return false;
@@ -204,8 +212,8 @@ async function initializeScreen() {
     console.error("Error initializing screen:", error);
     showError(
       gettext(
-        "Failed to initialize screen registration. Please check your API key and try again.",
-      ),
+        "Failed to initialize screen registration. Please check your API key and try again."
+      )
     );
   }
 }
