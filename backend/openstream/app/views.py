@@ -4640,9 +4640,7 @@ class CreateScreenAPIView(APIView):
         # Read optional parameters: uid and hostname. uid is an optional
         # external identifier that should be unique per branch.
         uid = request.data.get("uid") or request.query_params.get("uid")
-        hostname = (
-            request.data.get("hostname") or request.query_params.get("hostname")
-        )
+        hostname = request.data.get("hostname") or request.query_params.get("hostname")
 
         # Accept optional aspect_ratio from request body or query params
         aspect_ratio = (
@@ -4710,17 +4708,27 @@ class CheckScreenGroupAPIView(APIView):
         hostname = request.query_params.get("hostname")
 
         if not screen_id or not api_key_value:
-            return Response({"error": "Missing required parameters"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Missing required parameters"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Validate API key using the SlideshowPlayerAPIKey model.
         try:
-            key_obj = SlideshowPlayerAPIKey.objects.get(key=api_key_value, is_active=True)
+            key_obj = SlideshowPlayerAPIKey.objects.get(
+                key=api_key_value, is_active=True
+            )
         except SlideshowPlayerAPIKey.DoesNotExist:
-            return Response({"error": "Invalid API key."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid API key."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         branch = key_obj.branch
         if branch is None:
-            return Response({"error": "API key does not map to a valid branch."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "API key does not map to a valid branch."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # If uid is provided, prefer lookup by uid within this branch. If found,
         # ensure hostname updates if provided. Otherwise, fall back to id lookup.
@@ -4734,18 +4742,25 @@ class CheckScreenGroupAPIView(APIView):
                     screen.save()
             except DisplayWebsite.DoesNotExist:
                 # No screen with this uid found: return 404 so client can create one
-                return Response({"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         if screen is None:
             # Lookup by provided screen id
             try:
                 screen = DisplayWebsite.objects.get(id=screen_id, branch=branch)
             except DisplayWebsite.DoesNotExist:
-                return Response({"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         # Return group information if available.
         if screen.display_website_group:
-            data = {"groupId": screen.display_website_group.id, "groupName": screen.display_website_group.name}
+            data = {
+                "groupId": screen.display_website_group.id,
+                "groupName": screen.display_website_group.name,
+            }
         else:
             data = {"groupId": None}
 
