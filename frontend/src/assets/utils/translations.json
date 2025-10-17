@@ -218,6 +218,9 @@
   "Expand All": {
     "da": "Udvid Alle"
   },
+  "Collapse All": {
+    "da":"Sammentræk Alle"
+  },
   "Select All": {
     "da": "Vælg Alle"
   },
@@ -2093,6 +2096,9 @@
   "Create New Blank Template": {
     "da": "Opret Ny Tom Skabelon"
   },
+  "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio.":{
+    "da":"Vælg en aspect ratio denne skabelon er designet til. Forhåndsvisningen vil automatisk justere til denne aspect ratio."
+  },
   "Save Template": {
     "da": "Gem Skabelon"
   },
@@ -2668,6 +2674,36 @@
   },
   "Suborganisation Templates": {
     "da":"Underorganisations Skabeloner"
+  },
+  "Global Template":{
+    "da":"Global Skabelon"
+  },
+  "Create Template from Global Template":{
+    "da":"Opret skabelon fra Globale Skabeloner"
+  },
+  "Create Template":{
+    "da":"Opret Skabelon"
+  },
+  "Select a global template to create a copy for this suborganisation:":{
+    "da":"Vælg en global skabelon for at oprette en kopi til denne underorganisation:"
+  },
+  "New Template Name":{
+    "da":"Ny Skabelon Navn"
+  },
+  "Leave empty to use original name with '(Copy)' suffix":{
+    "da":"Lad den være tom for at bruge originalt navn med '(Copy)' suffix"
+  },
+  "Select a template":{
+    "da":"Vælg en skabelon"
+  },
+  "Enter template name":{
+    "da":"Skriv skabelon navn"
+  },
+  "Template Preview":{
+    "da":"Skabelon Preview"
+  },
+  "Select a template to see preview":{
+    "da":"Vælg en skabelon for at se preview"
   },
   "Manage Content": {
     "da": "Administrer Indhold"

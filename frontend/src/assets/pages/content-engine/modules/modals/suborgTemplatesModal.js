@@ -163,7 +163,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
               <div class="form-group mb-3">
                 <label for="globalTemplateSelect">${gettext("Global Template")}</label>
                 <select class="form-select" id="globalTemplateSelect">
-                  <option value="">${gettext("-- Select a template --")}</option>
+                  <option value="">--${gettext("Select a template")}--</option>
                   ${globalTemplates.map((t) => `<option value="${t.id}">${t.name}</option>`).join("")}
                 </select>
               </div>

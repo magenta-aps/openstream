@@ -329,8 +329,8 @@ if (queryParams.mode === "suborg_templates") {
 
     // Add "Create Template from Global" button
     const addTemplateBtn = document.createElement("div");
-    addTemplateBtn.innerHTML = `<button class="btn btn-primary" id="addSuborgTemplateBtn">${gettext(
-      "+ Create Template",
+    addTemplateBtn.innerHTML = `<button class="btn btn-primary" id="addSuborgTemplateBtn">+ ${gettext(
+      "Create Template",
     )}</button>`;
 
     addTemplateBtn.addEventListener("click", () => {
