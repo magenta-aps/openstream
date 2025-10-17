@@ -944,6 +944,9 @@ async function submitMultipleMediaUpload(formFile, body) {
 
     // Refresh the grid
     await loadMediaFiles(1);
+
+    // Re-enable the title input (It has been disabled when multiple files are selected and need to be re-enabled)
+    submitMediaForm.title.disabled = false;
   } catch (error) {
     showToast(error.message || gettext("Failed to upload files"), "Error");
   } finally {
