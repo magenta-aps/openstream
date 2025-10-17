@@ -804,12 +804,11 @@ async function fetchMedia(page, filters, page_size) {
 
 async function confirmDeleteMedia() {
   if (!currentlyEditingMedia) return;
+  const title = currentlyEditingMedia.title;
 
   if (
     confirm(
-      gettext(
-        'Are you sure you want to delete "{title}"? This action cannot be undone.',
-      ).replace("{title}", currentlyEditingMedia.title),
+      `${gettext('Are you sure you want to delete')} "${title}"? ${gettext('This action cannot be undone.')}`
     )
   ) {
     try {
