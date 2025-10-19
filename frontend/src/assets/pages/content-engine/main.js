@@ -70,6 +70,8 @@ import {
   initMuteButtons,
 } from "./modules/utils/mediaElementUtils.js";
 import { initSlideshowPlayer } from "./modules/core/slideshowPlayer.js";
+import { exitPlayerMode } from "./modules/core/playerMode.js";
+import { store } from "./modules/core/slideStore.js";
 import {
   fetchAndInitializeFonts,
   waitForFontsReady,
@@ -159,10 +161,11 @@ if (queryParams.mode === "edit") {
   if (navbar) {
     navbar.style.display = "block";
   }
-  //document.querySelector(".sidebar").classList.remove("d-none");
-  const topPanel = document.querySelector(".top-panel");
-  if (topPanel) {
-    topPanel.classList.remove("d-none");
+  // Ensure any player-mode is exited and editor chrome restored
+  try {
+    exitPlayerMode();
+  } catch (e) {
+    console.warn("exitPlayerMode failed or no player state:", e);
   }
   await fetchSlideshow(queryParams.id)
     .then(() => {
@@ -181,10 +184,10 @@ if (queryParams.mode === "template_editor") {
   if (navbar) {
     navbar.style.display = "block";
   }
-  //document.querySelector(".sidebar").classList.remove("d-none");
-  const topPanel = document.querySelector(".top-panel");
-  if (topPanel) {
-    topPanel.classList.remove("d-none");
+  try {
+    exitPlayerMode();
+  } catch (e) {
+    console.warn("exitPlayerMode failed or no player state:", e);
   }
   //document.getElementById("change-slideshow-btn").classList.add("d-none");
   const orgId = selectedSubOrgID || parentOrgID;
@@ -254,9 +257,10 @@ if (queryParams.mode === "suborg_templates") {
   if (navbar) {
     navbar.style.display = "block";
   }
-  const topPanel = document.querySelector(".top-panel");
-  if (topPanel) {
-    topPanel.classList.remove("d-none");
+  try {
+    exitPlayerMode();
+  } catch (e) {
+    console.warn("exitPlayerMode failed or no player state:", e);
   }
 
   // Customize navbar for suborg templates - hide most nav links
@@ -362,12 +366,6 @@ if (queryParams.mode === "suborg_templates") {
 }
 
 if (queryParams.mode === "slideshow-player") {
-  const previewContainer =
-    document.querySelector(".preview-column .preview-container") ||
-    document.querySelector(".preview-container");
-  if (previewContainer) {
-    previewContainer.classList.add("player-mode");
-  }
   initSlideshowPlayerMode();
   // Font loading is now handled inside _startSlideshowPlayer to ensure better timing
 }

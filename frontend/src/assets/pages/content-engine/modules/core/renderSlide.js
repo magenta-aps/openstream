@@ -39,6 +39,7 @@ import {
 import { makeDraggable, makeResizable } from "./gridResizer.js";
 import { updateSlideSelector } from "./slideSelector.js";
 import { playSlideshow } from "./slideshowPlayer.js";
+import { enterPlayerMode, exitPlayerMode } from "./playerMode.js";
 import { store } from "./slideStore.js";
 import { addLockIndicatorsToElements } from "../element_formatting/lockElement.js";
 import {
@@ -447,12 +448,6 @@ export function initSlideshowPlayerMode() {
   // Emulated size becomes full window
   store.emulatedWidth = window.innerWidth;
   store.emulatedHeight = window.innerHeight;
-  // Add body class to hide editor UI when in player mode
-  try {
-    document.body.classList.add("player-mode");
-  } catch (e) {
-    // document may not be available in some test environments
-  }
   _startSlideshowPlayer();
 }
 
@@ -595,19 +590,24 @@ async function _startSlideshowPlayer() {
   })();
 
   if (store.slideshowMode === "interactive") {
-    // Ensure body has player-mode class
-    try {
-      document.body.classList.add("player-mode");
-    } catch (e) {}
-
     if (store.slides.length > 0) {
       store.currentSlideIndex = 0;
       loadSlide(store.slides[0], undefined, undefined, true);
+      // Centralized player-mode entry so interactive and slideshow
+      // playback share the same behavior.
+      try {
+  const previewContainer = document.querySelector(".preview-container");
+  // store state centrally on slide store
+  const _playerMode = enterPlayerMode(previewContainer);
+  if (previewContainer) scaleSlide(previewContainer);
+      } catch (e) {
+        console.warn("Failed to enter player mode:", e);
+      }
     }
   } else {
     // Not interactive mode: ensure any player-mode class is removed
     try {
-      document.body.classList.remove("player-mode");
+   
     } catch (e) {}
 
     if (store.slides.length > 0) {

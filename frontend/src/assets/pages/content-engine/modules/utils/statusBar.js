@@ -575,9 +575,11 @@ export function setZoom(mode, level = 100) {
  * Initialize the status bar (call this when the content engine loads)
  */
 export function initStatusBar() {
-  createStatusBar();
+  if (queryParams.mode !== "slideshow-player") {
+    createStatusBar();
   // Auto-show the status bar when initialized
   setTimeout(() => showStatusBar(), 100);
+  }
 }
 
 /**

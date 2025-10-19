@@ -28,4 +28,8 @@ export const store = {
   currentTemplateSlideIndex: null,
   // UI flags
   showElementIndicators: true,
+  // Player-mode runtime state (set when entering fullscreen/player mode)
+  playerModeState: null,
+  // Resolver for slideshow exit when info box is not used
+  resolveSlideshowExit: null,
 };

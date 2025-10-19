@@ -8,6 +8,7 @@ import { hideElementToolbars, hideResizeHandles } from "./elementSelector.js";
 import { gettext } from "../../../../utils/locales.js";
 import { videoCacheManager } from "./videoCacheManager.js";
 import * as bootstrap from "bootstrap";
+import { enterPlayerMode, exitPlayerMode } from "./playerMode.js";
 export async function playSlideshow(showInfoBox = true) {
   // Pre-cache videos for offline support
   console.log("Pre-caching videos for slideshow...");
@@ -35,83 +36,68 @@ export async function playSlideshow(showInfoBox = true) {
 
   let slideshowRunning = true;
   const previewContainer = document.querySelector(".preview-container");
-  const navbar = document.querySelector("#navigation");
 
-  // Only hide navbar if it exists (it won't exist in slideshow-player mode)
-  if (navbar) {
-    navbar.classList.add("d-none");
-  }
-
-  // Save the current slide index to restore it later
+  // Enter player-mode (this hides editor chrome and makes preview fullscreen)
+  enterPlayerMode(previewContainer);
+  // Save originalSlideIndex so we can restore later
   const originalSlideIndex = store.currentSlideIndex;
+  // Ensure proper scaling after entering player mode
+  if (previewContainer) scaleSlide(previewContainer);
 
-  // Preserve original styles
-  const originalStyles = {
-    position: previewContainer.style.position,
-    width: previewContainer.style.width,
-    height: previewContainer.style.height,
-    top: previewContainer.style.top,
-    left: previewContainer.style.left,
-  };
-
-  // Fullscreen mode
-  Object.assign(previewContainer.style, {
-    position: "fixed",
-    width: "100vw",
-    height: "100vh",
-    top: "0",
-    left: "0",
-    zIndex: "100",
-  });
-  scaleSlide(previewContainer);
-
-  // Info box + exit promise
+  // Info box + exit promise (only append if showInfoBox)
   let infoBox = null;
   let exitPromise;
-
-  infoBox = document.createElement("div");
-  if (!showInfoBox) infoBox.style.visibility = "hidden";
-  Object.assign(infoBox.style, {
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    padding: "15px",
-    background: "rgba(0,0,0,0.7)",
-    color: "white",
-    borderRadius: "8px",
-    zIndex: "1001",
-  });
-  infoBox.innerHTML = `
+  if (showInfoBox) {
+    infoBox = document.createElement("div");
+    Object.assign(infoBox.style, {
+      position: "absolute",
+      top: "10px",
+      right: "10px",
+      padding: "15px",
+      background: "rgba(0,0,0,0.7)",
+      color: "white",
+      borderRadius: "8px",
+      zIndex: "1001",
+    });
+    infoBox.innerHTML = `
       <button id="exitSlideshow" class="btn btn-danger">${gettext("Exit")}</button>
       <p id="slideCounter"></p>
       <p id="countdown"></p>
       <p>${gettext("Size")}: ${store.emulatedWidth}x${store.emulatedHeight}</p>
     `;
-  document.body.appendChild(infoBox);
+    document.body.appendChild(infoBox);
 
-  // Create exitPromise that resolves on first click
-  exitPromise = new Promise((res) => {
-    const btn = document.getElementById("exitSlideshow");
-    btn.addEventListener(
-      "click",
-      () => {
-        queryParams.mode = "edit";
+    // Create exitPromise that resolves on first click
+    exitPromise = new Promise((res) => {
+      const btn = document.getElementById("exitSlideshow");
+      btn.addEventListener(
+        "click",
+        () => {
+          queryParams.mode = "edit";
 
-        loadSlide(
-          store.slides[store.currentSlideIndex],
-          undefined,
-          undefined,
-          true,
-        );
-        slideshowRunning = false;
-        document.querySelectorAll(".persistent-indicator").forEach((el) => {
-          el.style.visibility = "visible";
-        });
-        res();
-      },
-      { once: true },
-    );
-  });
+          loadSlide(
+            store.slides[store.currentSlideIndex],
+            undefined,
+            undefined,
+            true,
+          );
+          slideshowRunning = false;
+          document.querySelectorAll(".persistent-indicator").forEach((el) => {
+            el.style.visibility = "visible";
+          });
+          res();
+        },
+        { once: true },
+      );
+    });
+  } else {
+    // If not showing info box, create a promise that never resolves until
+    // exit; we still need an exitPromise to race against slide duration.
+    exitPromise = new Promise((res) => {
+      // store resolver on central slide store so exit can be triggered
+      store.resolveSlideshowExit = res;
+    });
+  }
 
   // Activation helper
   function isSlideActive(slide) {
@@ -168,8 +154,10 @@ export async function playSlideshow(showInfoBox = true) {
     const count = activeSlides.length;
 
     if (count === 0) {
-      document.getElementById("slideCounter").innerText =
-        gettext("No active slides");
+      const slideCounterEl = document.getElementById("slideCounter");
+      if (slideCounterEl) {
+        slideCounterEl.innerText = gettext("No active slides");
+      }
       await exitPromise;
       return;
     }
@@ -178,9 +166,10 @@ export async function playSlideshow(showInfoBox = true) {
       // Single-slide: show and wait for exit
       const { slide, index } = activeSlides[0];
 
-      document.getElementById("slideCounter").innerText =
-        gettext("Slide") + ": 1/1";
-      document.getElementById("countdown").innerText = "";
+  const slideCounterEl = document.getElementById("slideCounter");
+  const countdownEl = document.getElementById("countdown");
+  if (slideCounterEl) slideCounterEl.innerText = gettext("Slide") + ": 1/1";
+  if (countdownEl) countdownEl.innerText = "";
       store.currentSlideIndex = index;
       loadSlide(slide, undefined, true, true);
       // Ensure slide is properly scaled after loading
@@ -197,11 +186,11 @@ export async function playSlideshow(showInfoBox = true) {
       for (let i = 0; i < count && slideshowRunning; i++) {
         const { slide, index } = activeSlides[i];
         // Update info
-        document.getElementById("slideCounter").innerText =
-          gettext("Slide") + `: ${i + 1}/${count}`;
-        let remaining = slide.duration;
-        const countdownEl = document.getElementById("countdown");
-        countdownEl.innerText = gettext("Next in") + `: ${remaining}s`;
+  const slideCounterEl = document.getElementById("slideCounter");
+  let remaining = slide.duration;
+  const countdownEl = document.getElementById("countdown");
+  if (slideCounterEl) slideCounterEl.innerText = gettext("Slide") + `: ${i + 1}/${count}`;
+  if (countdownEl) countdownEl.innerText = gettext("Next in") + `: ${remaining}s`;
 
         // Load slide first, then set up countdown
         store.currentSlideIndex = index;
@@ -222,7 +211,7 @@ export async function playSlideshow(showInfoBox = true) {
         // Start countdown after slide is loaded and scaled
         const interval = setInterval(() => {
           remaining--;
-          if (remaining >= 0)
+          if (remaining >= 0 && countdownEl)
             countdownEl.innerText = gettext("Next in") + `: ${remaining}s`;
           if (remaining <= 0) clearInterval(interval);
         }, 1000);
@@ -241,11 +230,8 @@ export async function playSlideshow(showInfoBox = true) {
 
   // Restore edit mode properly
   queryParams.mode = "edit";
-  Object.assign(previewContainer.style, originalStyles);
-  if (navbar) {
-    navbar.classList.remove("d-none");
-  }
-
+  // Exit player mode and restore DOM state
+  exitPlayerMode();
   // Remove info box
   if (infoBox && document.body.contains(infoBox)) {
     document.body.removeChild(infoBox);
@@ -264,39 +250,12 @@ export async function playSlideshow(showInfoBox = true) {
 
 function showInteractivePreviewFromEditor() {
   const previewContainer = document.querySelector(".preview-container");
-  const navbar = document.querySelector("#navigation");
+  // Use centralized player-mode helper to enter fullscreen editor-less view
+  const state = enterPlayerMode(previewContainer);
+  if (previewContainer) scaleSlide(previewContainer);
 
-  if (navbar) {
-    navbar.classList.add("d-none");
-  }
-  const leftSidebar = document.querySelector(".sidebar");
-  if (leftSidebar) {
-    leftSidebar.classList.add("d-none");
-  }
-  const topPanel = document.querySelector(".top-panel");
-  if (topPanel) {
-    topPanel.classList.add("d-none");
-  }
-
-  const originalStyles = {
-    position: previewContainer.style.position,
-    width: previewContainer.style.width,
-    height: previewContainer.style.height,
-    top: previewContainer.style.top,
-    left: previewContainer.style.left,
-    zIndex: previewContainer.style.zIndex,
-  };
-
-  previewContainer.style.position = "fixed";
-  previewContainer.style.width = "100vw";
-  previewContainer.style.height = "100vh";
-  previewContainer.style.top = "0";
-  previewContainer.style.left = "0";
-  previewContainer.style.zIndex = "9999";
-
-  scaleSlide(previewContainer);
-
-  let infoBox = document.createElement("div");
+  // Provide a small exit control for the interactive preview
+  const infoBox = document.createElement("div");
   infoBox.style.position = "absolute";
   infoBox.style.top = "10px";
   infoBox.style.right = "10px";
@@ -316,28 +275,10 @@ function showInteractivePreviewFromEditor() {
   document
     .getElementById("exitInteractiveBtn")
     .addEventListener("click", () => {
-      queryParams.mode = "edit";
-      document.body.removeChild(infoBox);
-
-      previewContainer.style.position = originalStyles.position;
-      previewContainer.style.width = originalStyles.width;
-      previewContainer.style.height = originalStyles.height;
-      previewContainer.style.top = originalStyles.top;
-      previewContainer.style.left = originalStyles.left;
-      previewContainer.style.zIndex = originalStyles.zIndex;
-
-      if (navbar) {
-        navbar.classList.remove("d-none");
-      }
-      if (leftSidebar) {
-        leftSidebar.classList.remove("d-none");
-      }
-      if (topPanel) {
-        topPanel.classList.remove("d-none");
-      }
-
+  queryParams.mode = "edit";
+  if (infoBox && document.body.contains(infoBox)) document.body.removeChild(infoBox);
+  exitPlayerMode();
       scaleSlide(previewContainer);
-
       loadSlide(
         store.slides[store.currentSlideIndex],
         undefined,
