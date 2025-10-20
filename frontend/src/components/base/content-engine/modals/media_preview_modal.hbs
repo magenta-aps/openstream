@@ -45,7 +45,14 @@
                     <span class="material-symbols-outlined me-1">delete</span>
                     {% trans "Delete" %}
                 </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <button 
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal" 
+                    {{#if returnModal}}
+                        data-bs-target="#{{returnModal}}"
+                        data-bs-toggle="modal"
+                    {{/if}}>
                     <span class="material-symbols-outlined me-1">cancel</span>
                     {% trans "Cancel" %}
                 </button>
