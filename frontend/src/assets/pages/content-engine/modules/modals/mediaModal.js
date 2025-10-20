@@ -50,6 +50,7 @@ const tagsContainer = document.querySelector("#mediaEditTagsContainer");
 const submitMediaForm = document.querySelector("#submitMediaForm");
 const previewContainer = document.querySelector("#preview-media-container");
 const deleteMediaBtn = document.querySelector("#btnDeleteMedia");
+const deleteMediaPreviewBtn = document.querySelector("#btnDeleteMediaPreview");
 const fileInput = document.querySelector("#mediaFileInput");
 const titleInput = document.querySelector("#titleSearchInput");
 const mediaOwnerEl = document.querySelector("#media-owner-wrapper");
@@ -662,13 +663,23 @@ export function createOrUpdateMediaClicked() {
   }
 }
 
-async function deleteMediaClicked() {
-  await promptDelete(
-    currentlyEditingMedia.title,
-    confirmDeleteMedia,
-    bsSubmitModal,
-    bsMediaListModal, // Return to list modal after delete prompt
-  );
+async function deleteMediaClicked(e) {
+  // Check if clicked from preview modal or submit modal
+  if (e.target.id === "btnDeleteMediaPreview" && bsPreviewModal) {
+    await promptDelete(
+      currentlyEditingMedia.title,
+      confirmDeleteMedia,
+      bsPreviewModal,
+      bsMediaListModal, // Return to list modal after delete prompt
+    );
+  } else {
+    await promptDelete(
+      currentlyEditingMedia.title,
+      confirmDeleteMedia,
+      bsSubmitModal,
+      bsMediaListModal, // Return to list modal after delete prompt
+    );
+  }
 }
 
 function openPreviewMediaModal() {
@@ -1123,6 +1134,9 @@ function initEventListeners() {
 
     if (deleteMediaBtn) {
       deleteMediaBtn.addEventListener("click", deleteMediaClicked);
+    }
+    if (deleteMediaPreviewBtn) {
+      deleteMediaPreviewBtn.addEventListener("click", deleteMediaClicked);
     }
 
     fileInput?.addEventListener("change", (_e) => {
