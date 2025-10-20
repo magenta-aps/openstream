@@ -4672,7 +4672,9 @@ class CreateScreenAPIView(APIView):
                     if getattr(branch, "suborganisation", None):
                         org = getattr(branch.suborganisation, "organisation", None)
                     if org:
-                        existing = DisplayWebsite.objects.get(uid=uid, branch__suborganisation__organisation=org)
+                        existing = DisplayWebsite.objects.get(
+                            uid=uid, branch__suborganisation__organisation=org
+                        )
                     else:
                         # Fallback: try a global uid lookup
                         existing = DisplayWebsite.objects.get(uid=uid)
@@ -4684,7 +4686,13 @@ class CreateScreenAPIView(APIView):
                         if hostname:
                             existing.name = hostname
                         existing.save()
-                    return Response({"screenId": existing.id, "name": existing.name, "branch_id": branch.id})
+                    return Response(
+                        {
+                            "screenId": existing.id,
+                            "name": existing.name,
+                            "branch_id": branch.id,
+                        }
+                    )
                 except DisplayWebsite.DoesNotExist:
                     # Create new with uid and hostname (or temporary name)
                     name = hostname or f"SCR-temp-{uuid.uuid4().hex[:8]}"
@@ -4772,7 +4780,9 @@ class CheckScreenGroupAPIView(APIView):
                     if getattr(branch, "suborganisation", None):
                         org = getattr(branch.suborganisation, "organisation", None)
                     if org:
-                        existing = DisplayWebsite.objects.get(uid=uid, branch__suborganisation__organisation=org)
+                        existing = DisplayWebsite.objects.get(
+                            uid=uid, branch__suborganisation__organisation=org
+                        )
                     else:
                         # Fallback: try a global uid lookup
                         existing = DisplayWebsite.objects.get(uid=uid)

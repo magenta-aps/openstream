@@ -656,8 +656,16 @@ class DisplayWebsite(models.Model):
                     org = getattr(self.branch.suborganisation, "organisation", None)
                 # If we have an organisation, search for same uid within that organisation
                 if org:
-                    if DisplayWebsite.objects.filter(uid=self.uid, branch__suborganisation__organisation=org).exclude(pk=self.pk).exists():
-                        raise ValidationError(f"UID '{self.uid}' must be unique within the same organisation.")
+                    if (
+                        DisplayWebsite.objects.filter(
+                            uid=self.uid, branch__suborganisation__organisation=org
+                        )
+                        .exclude(pk=self.pk)
+                        .exists()
+                    ):
+                        raise ValidationError(
+                            f"UID '{self.uid}' must be unique within the same organisation."
+                        )
             super().clean()
 
     def save(self, *args, **kwargs):
