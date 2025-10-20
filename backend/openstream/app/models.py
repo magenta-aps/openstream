@@ -649,7 +649,16 @@ class DisplayWebsite(models.Model):
             raise ValidationError(
                 f"Display aspect ratio ({self.aspect_ratio}) does not match group aspect ratio ({self.display_website_group.aspect_ratio}). Only displays with matching aspect ratios can be added to this group."
             )
-        super().clean()
+            # Ensure uid is globally unique within the same organisation
+            if self.uid:
+                org = None
+                if getattr(self.branch, "suborganisation", None):
+                    org = getattr(self.branch.suborganisation, "organisation", None)
+                # If we have an organisation, search for same uid within that organisation
+                if org:
+                    if DisplayWebsite.objects.filter(uid=self.uid, branch__suborganisation__organisation=org).exclude(pk=self.pk).exists():
+                        raise ValidationError(f"UID '{self.uid}' must be unique within the same organisation.")
+            super().clean()
 
     def save(self, *args, **kwargs):
         self.full_clean()

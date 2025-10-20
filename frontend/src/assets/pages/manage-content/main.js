@@ -89,11 +89,13 @@ const thName = document.getElementById("th-name");
 const thMode = document.getElementById("th-mode");
 const thCategory = document.getElementById("th-category");
 const thTags = document.getElementById("th-tags");
+const thAspect = document.getElementById("th-aspect");
 
 const sortIndicatorName = document.getElementById("sortIndicatorName");
 const sortIndicatorMode = document.getElementById("sortIndicatorMode");
 const sortIndicatorCategory = document.getElementById("sortIndicatorCategory");
 const sortIndicatorTags = document.getElementById("sortIndicatorTags");
+const sortIndicatorAspect = document.getElementById("sortIndicatorAspect");
 
 const categoryModalEl = document.getElementById("categoryModal");
 const categoryModal = new bootstrap.Modal(categoryModalEl);
@@ -132,6 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   thMode.addEventListener("click", () => handleSortClick("mode"));
   thCategory.addEventListener("click", () => handleSortClick("category"));
   thTags.addEventListener("click", () => handleSortClick("tags"));
+  thAspect?.addEventListener("click", () => handleSortClick("aspect_ratio"));
 
   const createSlideshowModalEl = document.getElementById(
     "createSlideshowModal",
@@ -474,6 +477,16 @@ function applySearchFilterSort() {
       } else if (sortBy === "category") {
         valA = a.category?.name?.toLowerCase() || "";
         valB = b.category?.name?.toLowerCase() || "";
+      } else if (sortBy === "aspect_ratio") {
+        // We want a stable sort by numeric ratio (width/height) if available, otherwise fallback to string
+        const aW = a.previewWidth || a.preview_width || 0;
+        const aH = a.previewHeight || a.preview_height || 0;
+        const bW = b.previewWidth || b.preview_width || 0;
+        const bH = b.previewHeight || b.preview_height || 0;
+        const aRatio = aW && aH ? aW / aH : 0;
+        const bRatio = bW && bH ? bW / bH : 0;
+        valA = String(aRatio).toLowerCase();
+        valB = String(bRatio).toLowerCase();
       } else {
         valA = a[sortBy]?.toLowerCase() || "";
         valB = b[sortBy]?.toLowerCase() || "";
@@ -495,6 +508,7 @@ function updateSortIndicators(onlyReset) {
     sortIndicatorMode,
     sortIndicatorCategory,
     sortIndicatorTags,
+    sortIndicatorAspect,
   ];
   indicators.forEach((entry) => (entry.textContent = ""));
 
@@ -591,6 +605,25 @@ function renderSlideshowsTable(slideshows) {
     tagsCell
       .querySelector("i")
       .addEventListener("click", () => showTagsModal(ss.id, ss.tags));
+
+    const aspectCell = row.insertCell();
+    // Compute aspect ratio display: prefer previewWidth/previewHeight, fall back to isCustomDimensions or server-provided aspect_ratio
+    const w = ss.previewWidth || ss.preview_width || 0;
+    const h = ss.previewHeight || ss.preview_height || 0;
+    let aspectDisplay = "-";
+    if (w && h) {
+      // Simplify ratio to nearest integer ratio like 16:9
+      const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+      const wi = parseInt(w, 10);
+      const hi = parseInt(h, 10);
+      if (wi > 0 && hi > 0) {
+        const g = gcd(wi, hi);
+        aspectDisplay = `${wi / g}:${hi / g}`;
+      }
+    } else if (ss.aspect_ratio) {
+      aspectDisplay = ss.aspect_ratio;
+    }
+    aspectCell.innerHTML = `<div>${aspectDisplay}</div>`;
 
     const actionsCell = row.insertCell();
     const openBtn = document.createElement("a");

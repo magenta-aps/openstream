@@ -4664,11 +4664,33 @@ class CreateScreenAPIView(APIView):
                     {"screenId": screen.id, "name": screen.name, "branch_id": branch.id}
                 )
             except DisplayWebsite.DoesNotExist:
-                # Create new with uid and hostname (or temporary name)
-                name = hostname or f"SCR-temp-{uuid.uuid4().hex[:8]}"
-                screen = DisplayWebsite.objects.create(
-                    branch=branch, name=name, uid=uid, aspect_ratio=aspect_ratio
-                )
+                # If a screen with this uid exists elsewhere in the SAME organisation,
+                # reassign it to this branch and clear its group (mark as not-activated).
+                try:
+                    # Resolve organisation from branch -> suborganisation -> organisation
+                    org = None
+                    if getattr(branch, "suborganisation", None):
+                        org = getattr(branch.suborganisation, "organisation", None)
+                    if org:
+                        existing = DisplayWebsite.objects.get(uid=uid, branch__suborganisation__organisation=org)
+                    else:
+                        # Fallback: try a global uid lookup
+                        existing = DisplayWebsite.objects.get(uid=uid)
+                    # Reassign only if it's on a different branch
+                    if existing.branch_id != branch.id:
+                        existing.branch = branch
+                        existing.display_website_group = None
+                        # Keep name, but update if hostname provided
+                        if hostname:
+                            existing.name = hostname
+                        existing.save()
+                    return Response({"screenId": existing.id, "name": existing.name, "branch_id": branch.id})
+                except DisplayWebsite.DoesNotExist:
+                    # Create new with uid and hostname (or temporary name)
+                    name = hostname or f"SCR-temp-{uuid.uuid4().hex[:8]}"
+                    screen = DisplayWebsite.objects.create(
+                        branch=branch, name=name, uid=uid, aspect_ratio=aspect_ratio
+                    )
                 # If we used a temp name and no hostname was provided, set SCR{id}
                 if not hostname:
                     screen.name = f"SCR{screen.id}"
@@ -4741,10 +4763,32 @@ class CheckScreenGroupAPIView(APIView):
                     screen.name = hostname
                     screen.save()
             except DisplayWebsite.DoesNotExist:
-                # No screen with this uid found: return 404 so client can create one
-                return Response(
-                    {"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND
-                )
+                # No screen with this uid found in this branch. Check if a screen
+                # with this uid exists elsewhere in the SAME organisation. If so,
+                # reassign it to this branch and clear its group (mark not-activated).
+                try:
+                    # Resolve organisation from branch -> suborganisation -> organisation
+                    org = None
+                    if getattr(branch, "suborganisation", None):
+                        org = getattr(branch.suborganisation, "organisation", None)
+                    if org:
+                        existing = DisplayWebsite.objects.get(uid=uid, branch__suborganisation__organisation=org)
+                    else:
+                        # Fallback: try a global uid lookup
+                        existing = DisplayWebsite.objects.get(uid=uid)
+                    # Reassign if it's on a different branch
+                    if existing.branch_id != branch.id:
+                        existing.branch = branch
+                        existing.display_website_group = None
+                        if hostname:
+                            existing.name = hostname
+                        existing.save()
+                    screen = existing
+                except DisplayWebsite.DoesNotExist:
+                    # No screen with this uid found anywhere in the organisation
+                    return Response(
+                        {"error": "Screen not found"}, status=status.HTTP_404_NOT_FOUND
+                    )
 
         if screen is None:
             # Lookup by provided screen id
