@@ -14,6 +14,7 @@ import {
   updateNavbarUsername,
   makeActiveInNav,
   initSignOutButton,
+  initOrgQueryParams,
 } from "../../utils/utils.js";
 
 // Fetch branch-level active content and render into the "Afspilles nu" column
@@ -563,4 +564,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateNavbarBranchName();
   makeActiveInNav("/dashboard");
   initSignOutButton();
+  initOrgQueryParams();
 });

@@ -147,7 +147,7 @@ function selectOrganisation(org) {
   localStorage.setItem("parentOrgName", org.name);
 
   // Redirect to sub-organization selection
-  window.location.href = "/select-sub-org";
+  window.location.href = "/select-sub-org?orgId=" + org.id;
 }
 
 function showError(message) {

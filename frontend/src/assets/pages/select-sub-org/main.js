@@ -7,7 +7,7 @@ import {
   gettext,
   fetchUserLangugage,
 } from "../../utils/locales";
-import { showToast } from "../../utils/utils";
+import { getOrgId, getSuborgId, initOrgQueryParams, showToast } from "../../utils/utils";
 import { token } from "../../utils/utils";
 import { myUserId } from "../../utils/utils";
 import { signOut } from "../../utils/utils";
@@ -990,7 +990,7 @@ function selectBranch(
   localStorage.setItem("selectedSubOrgID", suborgId);
   localStorage.setItem("parentOrgID", orgId);
   localStorage.setItem("parentOrgName", orgName);
-  window.location.href = "/dashboard";
+  window.location.href = "/dashboard?orgId=" + orgId + "&suborgId=" + suborgId;
 }
 
 async function createUser(
@@ -1690,4 +1690,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await showToast(gettext("Error deleting suborg: ") + err);
       }
     });
+
+initOrgQueryParams();
+
 });
