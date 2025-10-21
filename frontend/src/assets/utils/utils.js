@@ -762,71 +762,60 @@ export function getOrgId(){
   return parentOrgID;
 }
 
+export function getBranchId(){
+  return selectedBranchID;
+}
+
 export function getSuborgId(){
   return selectedSubOrgID;
 }
-
 export function initOrgQueryParams() {
+  window.addEventListener(
+    "click",
+    function (event) {
+      const anchor = event.target.closest("a");
+      if (!anchor) return;
 
-  console.log("test")
-
-  window.addEventListener('click', function (event) {
-    // 1. Find the nearest <a> tag ancestor of the clicked element
-    const anchor = event.target.closest('a');
-
-    // 2. If the click wasn't on a link, do nothing
-    if (!anchor) {
-      return;
-    }
-
-    // 3. Get the URL object from the link's href
-    // The .href property gives the full, absolute URL (e.g., https://app.com/page)
-    const linkUrl = new URL(anchor.href);
-
-    // 4. --- Validation Checks ---
-
-    // a. Check if it's an internal link (same domain)
-    if (linkUrl.origin !== window.location.origin) {
-      return; // It's an external link, don't touch it
-    }
-
-    // b. Check if it's a special protocol (like mailto: or tel:)
-    if (!['http:', 'https:'].includes(linkUrl.protocol)) {
-      return; // It's mailto:, tel:, etc.
-    }
-
-    // c. Optional: Check if it's just an on-page hash link
-    if (linkUrl.pathname === window.location.pathname && linkUrl.search === window.location.search) {
-      if (linkUrl.hash) {
-        return; // It's just an anchor link on the *current* page, do nothing
+      let linkHref;
+      try {
+        linkHref = new URL(anchor.href);
+      } catch (e) {
+        return;
       }
-    }
 
-    // 5. --- Append Query Parameters ---
+      if (linkHref.origin !== window.location.origin) return;
+      if (!["http:", "https:"].includes(linkHref.protocol)) return;
 
-    // Get the IDs from your functions
-    const orgId = getOrgId();
-    const suborgId = getSuborgId();
+      if (
+        linkHref.pathname === window.location.pathname &&
+        linkHref.search === window.location.search
+      ) {
+        if (linkHref.hash) return;
+      }
 
-    // Use URLSearchParams to safely add/update parameters
-    // .set() will add the param if it's missing or update it if it already exists.
-    if (orgId) {
-      linkUrl.searchParams.set('orgId', orgId);
-    }
+      const orgId = getOrgId();
+      const suborgId = getSuborgId();
+      const branchId = getBranchId();
 
-    if (suborgId) {
-      linkUrl.searchParams.set('suborgId', suborgId);
-    }
+      // Normalize pathname (remove trailing slashes) to compare reliably
+      const normalizedPath = linkHref.pathname.replace(/\/+$/, "");
 
-    // 6. --- Apply the New URL ---
+      if (normalizedPath === "/select-sub-org") {
+        // For /select-sub-org only ensure orgId is present; remove others
+        if (orgId) {
+          linkHref.searchParams.set("orgId", orgId);
+        }
+        linkHref.searchParams.delete("suborgId");
+        linkHref.searchParams.delete("branchId");
+      } else {
+        // Default behavior: add/update all available ids
+        if (orgId) linkHref.searchParams.set("orgId", orgId);
+        if (suborgId) linkHref.searchParams.set("suborgId", suborgId);
+        if (branchId) linkHref.searchParams.set("branchId", branchId);
+      }
 
-    // Update the link's href attribute *in place*.
-    // The browser (or SPA router) will now use this *new* URL
-    // for navigation, which happens immediately after this listener finishes.
-    anchor.href = linkUrl.href;
-
-    // We do NOT call event.preventDefault(). We want the click
-    // to proceed as normal, but with the modified href.
-
-  }, true); // Using 'true' for the capture phase is more robust
+      anchor.href = linkHref.href;
+    },
+    true,
+  );
 }

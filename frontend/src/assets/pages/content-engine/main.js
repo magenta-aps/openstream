@@ -14,6 +14,7 @@ import {
   updateNavbarUsername,
   makeActiveInNav,
   initSignOutButton,
+  initOrgQueryParams,
 } from "../../utils/utils.js";
 import { getCurrentAspectRatio } from "./modules/core/addSlide.js";
 import { initAddSlide } from "./modules/core/addSlide.js";
@@ -414,6 +415,7 @@ function generalInit() {
       (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
     );
   }, 2000);
+  initOrgQueryParams();
 }
 
 const signOutBtn = document.getElementById("signOutBtn");

@@ -990,7 +990,7 @@ function selectBranch(
   localStorage.setItem("selectedSubOrgID", suborgId);
   localStorage.setItem("parentOrgID", orgId);
   localStorage.setItem("parentOrgName", orgName);
-  window.location.href = "/dashboard?orgId=" + orgId + "&suborgId=" + suborgId;
+  window.location.href = "/dashboard?orgId=" + orgId + "&suborgId=" + suborgId + "&branchId=" + branchId;
 }
 
 async function createUser(

@@ -339,13 +339,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       slideshowCreatedModal.show();
 
       openSlideshowBtn.onclick = () => {
-        window.location.href = `/edit-content?id=${data.id}&mode=edit`;
+        window.location.href = `/edit-content?id=${data.id}&mode=edit&orgId=${parentOrgID}&suborgId=${selectedSubOrgID}&branchId=${selectedBranchID}`;
       };
     } catch (err) {
       console.error(err);
       showToast(gettext(err.message), "Error");
     }
   });
+  initOrgQueryParams();
 });
 
 async function fetchCategories() {
