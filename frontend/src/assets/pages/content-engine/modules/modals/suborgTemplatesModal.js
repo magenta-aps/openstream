@@ -137,6 +137,8 @@ export async function openCreateSuborgTemplateModal(suborgId) {
 
   // Fetch global templates
   const globalTemplates = await fetchGlobalTemplates();
+  // Variable to store chosen global template
+  let chosenTemplate = null;
 
   if (globalTemplates.length === 0) {
     showToast(
@@ -196,17 +198,17 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     const infoDiv = modal.querySelector("#templateInfo");
 
     if (templateId) {
-      const template = globalTemplates.find((t) => t.id == templateId);
-      if (template && template.slideData) {
+      chosenTemplate = globalTemplates.find((t) => t.id == templateId);
+      if (chosenTemplate && chosenTemplate.slideData) {
         // Show template info
         infoDiv.innerHTML = `
           <div class="card">
             <div class="card-body">
               <h6>${gettext("Template Details")}</h6>
-              <p class="mb-1"><strong>${gettext("Name")}:</strong> ${template.name}</p>
-              ${template.category ? `<p class="mb-1"><strong>${gettext("Category")}:</strong> ${template.category.name}</p>` : ""}
-              ${template.tags && template.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${template.tags.map((t) => t.name).join(", ")}</p>` : ""}
-              ${template.aspect_ratio ? `<p class="mb-1"><strong>${gettext("Aspect Ratio")}:</strong> ${template.aspect_ratio}</p>` : ""}
+              <p class="mb-1"><strong>${gettext("Name")}:</strong> ${chosenTemplate.name}</p>
+              ${chosenTemplate.category ? `<p class="mb-1"><strong>${gettext("Category")}:</strong> ${chosenTemplate.category.name}</p>` : ""}
+              ${chosenTemplate.tags && chosenTemplate.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${chosenTemplate.tags.map((t) => t.name).join(", ")}</p>` : ""}
+              ${chosenTemplate.aspect_ratio ? `<p class="mb-1"><strong>${gettext("Aspect Ratio")}:</strong> ${chosenTemplate.aspect_ratio}</p>` : ""}
             </div>
           </div>
         `;
@@ -233,15 +235,15 @@ export async function openCreateSuborgTemplateModal(suborgId) {
         wrapper.appendChild(previewSlide);
 
         // Set the resolution based on the template's aspect ratio
-        if (template.aspect_ratio) {
-          setResolutionFromAspectRatio(template.aspect_ratio);
+        if (chosenTemplate.aspect_ratio) {
+          setResolutionFromAspectRatio(chosenTemplate.aspect_ratio);
         }
 
         // Create a proper slide object with the template data
         const slideObject = {
-          ...template.slideData,
-          previewWidth: template.previewWidth || 1920,
-          previewHeight: template.previewHeight || 1080,
+          ...chosenTemplate.slideData,
+          previewWidth: chosenTemplate.previewWidth || 1920,
+          previewHeight: chosenTemplate.previewHeight || 1080,
         };
 
         // Load the slide content
@@ -262,7 +264,10 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   const createBtn = modal.querySelector("#createSuborgTemplateBtn");
   createBtn.addEventListener("click", async () => {
     const selectedTemplateId = selectElement.value;
-    const newName = modal.querySelector("#newTemplateName").value.trim();
+    const manualName = modal.querySelector("#newTemplateName").value.trim();
+    const slideName = manualName
+            ? manualName
+            : chosenTemplate.name + gettext(" (Copy)");
 
     if (!selectedTemplateId) {
       showToast(gettext("Please select a template."), "Warning");
@@ -276,7 +281,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       const newTemplate = await createSuborgTemplate(
         currentSuborgId,
         selectedTemplateId,
-        newName || null,
+        slideName,
       );
 
       showToast(gettext("Template created successfully!"), "Success");
