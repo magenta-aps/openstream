@@ -7,7 +7,7 @@ import {
   gettext,
   fetchUserLangugage,
 } from "../../utils/locales";
-import { getOrgId, getSuborgId, initOrgQueryParams, showToast } from "../../utils/utils";
+import { getOrgId, getSuborgId, initOrgQueryParams, parentOrgID, showToast, getOrgName } from "../../utils/utils";
 import { token } from "../../utils/utils";
 import { myUserId } from "../../utils/utils";
 import { signOut } from "../../utils/utils";
@@ -67,9 +67,9 @@ async function createSuborg(orgId, suborgName) {
 }
 
 async function onSubmitAddSuborg() {
-  const orgId = localStorage.getItem("parentOrgID");
+  const orgId = parentOrgID
   if (!orgId) {
-    showToast(gettext("No organisation ID in localStorage!", "Error"));
+    showToast(gettext("Organisation id missing"), "Error");
     return;
   }
   const suborgName = document.getElementById("suborgNameInput").value.trim();
@@ -261,7 +261,7 @@ function showAddUserModal() {
   )} --</option>`;
 
   // Filter subOrgsData to only show suborgs from the current organization
-  const currentOrgId = localStorage.getItem("parentOrgID");
+  const currentOrgId = parentOrgID;
   const filteredSubOrgs = currentOrgId
     ? subOrgsData.filter((s) => String(s.organisation) === String(currentOrgId))
     : subOrgsData;
@@ -324,9 +324,9 @@ function showManageUsersModal() {
     document.getElementById("manageUsersModal"),
   );
   modal.show();
-  const orgId = localStorage.getItem("parentOrgID");
+  const orgId = parentOrgID;
   if (!orgId) {
-    showToast(gettext("No org ID in localStorage!", "Warning"));
+    showToast(gettext("Organisation id missing"), "Warning");
     return;
   }
   fetchOrgUsers(orgId);
@@ -549,7 +549,7 @@ cancel
     )} --</option>`;
 
     // Filter subOrgsData to only show suborgs from the current organization
-    const currentOrgId = localStorage.getItem("parentOrgID");
+    const currentOrgId = parentOrgID;
     const filteredSubOrgs = currentOrgId
       ? subOrgsData.filter(
           (s) => String(s.organisation) === String(currentOrgId),
@@ -648,8 +648,6 @@ async function fetchSubOrgs() {
     });
 
     if (data.length === 1) {
-      localStorage.setItem("parentOrgID", data[0].organisation);
-      localStorage.setItem("parentOrgName", data[0].organisation_name);
     }
 
     isActingUserOrgAdmin = data.some((d) => d.user_role === "org_admin");
@@ -715,7 +713,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
   suborgList.forEach((suborg) => {
     if (
       parseInt(suborg.organisation) ===
-      parseInt(localStorage.getItem("parentOrgID"))
+      parseInt(parentOrgID)
     ) {
       if (suborg.name === "Global") {
         const selectBtn = document.createElement("button");
@@ -762,7 +760,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
           manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext("Manage Templates")}`;
           manageTemplatesBtn.onclick = function (e) {
             e.stopPropagation();
-            window.location.href = `/manage-templates?mode=suborg_templates&suborg_id=${suborg.id}`;
+            window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborg_id=${suborg.id}`;
           };
           suborgButtonsContainer.appendChild(manageTemplatesBtn);
         }
@@ -984,12 +982,6 @@ function selectBranch(
   orgId,
   orgName,
 ) {
-  localStorage.setItem("selectedBranchName", branchName);
-  localStorage.setItem("selectedBranchID", branchId);
-  localStorage.setItem("selectedSubOrgName", suborgName);
-  localStorage.setItem("selectedSubOrgID", suborgId);
-  localStorage.setItem("parentOrgID", orgId);
-  localStorage.setItem("parentOrgName", orgName);
   window.location.href = "/dashboard?orgId=" + orgId + "&suborgId=" + suborgId + "&branchId=" + branchId;
 }
 
@@ -1110,7 +1102,7 @@ async function onSubmitEditSuborg() {
     return;
   }
   // Client-side duplicate-name validation (allow same name if it's the suborg being edited)
-  const orgId = localStorage.getItem("parentOrgID");
+  const orgId = parentOrgID;
   if (isDuplicateSuborgName(orgId, suborgName, suborgId)) {
     const input = document.getElementById("editSuborgNameInput");
     input.classList.add("is-invalid");
@@ -1394,10 +1386,10 @@ async function onSubmitAddNewUser() {
   const firstName = document.getElementById("userFirstNameInput").value.trim();
   const lastName = document.getElementById("userLastNameInput").value.trim();
   const language = document.getElementById("userLanguageSelect").value;
-  const orgId = localStorage.getItem("parentOrgID");
+  const orgId = parentOrgID;
 
   if (!orgId) {
-    showToast(gettext("No organisation ID in localStorage!"), "Error");
+    showToast(gettext("Organisation id missing"), "Error");
     return;
   }
 
@@ -1473,9 +1465,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
       }
-      const orgId = localStorage.getItem("parentOrgID");
+      const orgId = parentOrgID;
       if (!orgId) {
-        showToast(gettext("No org ID in localStorage!"));
+        showToast(gettext("Organisation id missing"), "Error");
         return;
       }
       const payload = {
@@ -1561,7 +1553,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.getItem("username");
 
   document.getElementById("org-name").innerText =
-    localStorage.getItem("parentOrgName");
+    (await getOrgName(parentOrgID)) || "";
 
   if (isActingUserOrgAdmin === false) {
     document.getElementById("add-user-btn").className = "d-none";
@@ -1640,7 +1632,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           await showToast(
             gettext("User removed from organization successfully!"),
           );
-          const orgId = localStorage.getItem("parentOrgID");
+          const orgId = parentOrgID;
           if (orgId) {
             fetchOrgUsers(orgId);
           }

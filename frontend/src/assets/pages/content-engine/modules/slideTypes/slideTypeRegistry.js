@@ -10,6 +10,7 @@ import {
   token,
   queryParams,
   selectedBranchID,
+  parentOrgID,
 } from "../../../../utils/utils.js";
 
 const allowedSlideTypes = [];
@@ -40,7 +41,7 @@ try {
     }
   } else {
     // For user authentication, org_id is required
-    url = `${BASE_URL}/api/organisations/slide-types/?org_id=${localStorage.getItem("parentOrgID")}`;
+    url = `${BASE_URL}/api/organisations/slide-types/?org_id=${parentOrgID}`;
   }
 
   const res = await fetch(url, {

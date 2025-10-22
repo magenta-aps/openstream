@@ -5,30 +5,22 @@ import * as bootstrap from "bootstrap";
 import { BASE_URL } from "./constants";
 import { gettext } from "./locales";
 
-export const token = localStorage.getItem("accessToken");
-
-export const parentOrgID = localStorage.getItem("parentOrgID") || "";
-
-export const parentOrgName = localStorage.getItem("parentOrgName") || "";
-
-export const selectedSubOrgID = localStorage.getItem("selectedSubOrgID") || "";
-
-export const selectedSubOrgName =
-  localStorage.getItem("selectedSubOrgName") || "";
-
-export const selectedBranchID = localStorage.getItem("selectedBranchID") || "";
-
-export const selectedBranchName =
-  localStorage.getItem("selectedBranchName") || "";
-
-export const myUserId = localStorage.getItem("myUserId") || "";
-
 const urlSearchParams = new URLSearchParams(window.location.search);
 
 export const queryParams = {};
 for (const [key, value] of urlSearchParams.entries()) {
   queryParams[key] = value;
 }
+
+export const token = localStorage.getItem("accessToken");
+
+export const parentOrgID = queryParams.orgId || "";
+
+export const selectedSubOrgID = queryParams.suborgId || "";
+
+export const selectedBranchID = queryParams.branchId || "";
+
+export const myUserId = localStorage.getItem("myUserId") || "";
 
 export async function validateToken() {
   if (queryParams.mode !== "slideshow-player") {
@@ -358,10 +350,11 @@ export function updateNavbarUsername() {
   }
 }
 
-export function updateNavbarBranchName() {
+export async function updateNavbarBranchName() {
   const branchNameEl = document.getElementById("branch-name");
   if (branchNameEl) {
-    let branchName = localStorage.getItem("selectedBranchName");
+    let branchName = await getBranchName(selectedBranchID);
+    if (!branchName) branchName = "";
     if (branchName === "Global") {
       branchName = "Global Settings";
     }
@@ -768,6 +761,42 @@ export function getBranchId(){
 
 export function getSuborgId(){
   return selectedSubOrgID;
+}
+
+/**
+ * Fetches organisation/suborg/branch name by id and returns the name string or null
+ */
+export async function getOrgName(id) {
+  if (!id) return null;
+  try {
+    const res = await genericFetch(`${BASE_URL}/api/organisations/${id}/name/`, "GET");
+    return res?.name ?? null;
+  } catch (err) {
+    console.error("getOrgName error:", err);
+    return null;
+  }
+}
+
+export async function getSubOrgName(id) {
+  if (!id) return null;
+  try {
+    const res = await genericFetch(`${BASE_URL}/api/suborganisations/${id}/name/`, "GET");
+    return res?.name ?? null;
+  } catch (err) {
+    console.error("getSuborgName error:", err);
+    return null;
+  }
+}
+
+export async function getBranchName(id) {
+  if (!id) return null;
+  try {
+    const res = await genericFetch(`${BASE_URL}/api/branches/${id}/name/`, "GET");
+    return res?.name ?? null;
+  } catch (err) {
+    console.error("getBranchName error:", err);
+    return null;
+  }
 }
 export function initOrgQueryParams() {
   window.addEventListener(

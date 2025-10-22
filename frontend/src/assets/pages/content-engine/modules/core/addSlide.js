@@ -8,6 +8,8 @@ import {
   searchItems,
   token,
   showToast,
+  parentOrgID,
+  selectedSubOrgID,
 } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
@@ -202,8 +204,8 @@ function updateCategorySidebar(templates) {
 }
 
 async function fetchUnifiedTemplates() {
-  const orgId = localStorage.getItem("parentOrgID");
-  const suborgId = localStorage.getItem("selectedSubOrgID");
+  const orgId = parentOrgID;
+  const suborgId = selectedSubOrgID;
 
   try {
     let url;

@@ -12,6 +12,7 @@ import {
   autoHyphenate,
   initSignOutButton,
   initOrgQueryParams,
+  selectedBranchName,
 } from "../../utils/utils";
 import {
   translateHTML,
@@ -981,7 +982,7 @@ async function copyAPIKey() {
     // Show which branch this registration applies to (if available in localStorage)
     const branchNameEl = document.getElementById("registrationBranchName");
     try {
-      const branchName = localStorage.getItem("selectedBranchName") || "";
+      const branchName = selectedBranchName;
       if (branchNameEl) branchNameEl.innerText = branchName || "(unknown)";
     } catch (e) {
       // ignore localStorage access errors

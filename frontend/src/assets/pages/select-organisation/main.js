@@ -142,10 +142,6 @@ function createOrganisationCard(org) {
 
 // Select organization
 function selectOrganisation(org) {
-  // Store selected organization½
-  localStorage.setItem("parentOrgID", org.id);
-  localStorage.setItem("parentOrgName", org.name);
-
   // Redirect to sub-organization selection
   window.location.href = "/select-sub-org?orgId=" + org.id;
 }

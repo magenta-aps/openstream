@@ -403,6 +403,56 @@ class SubOrganisationDetailAPIView(APIView):
 
 
 ###############################################################################
+# Simple name lookup endpoints
+###############################################################################
+
+
+class OrganisationNameAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        org = get_object_or_404(Organisation, pk=pk)
+
+        # Allow if user is super_admin or member of the organisation
+        if not (user_is_super_admin(request.user) or OrganisationMembership.objects.filter(user=request.user, organisation=org).exists()):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        return Response({"name": org.name}, status=200)
+
+
+class SubOrganisationNameAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        suborg = get_object_or_404(SubOrganisation, pk=pk)
+
+        # Allow super_admin, org_admin for parent org, or any membership tied to the suborganisation
+        if user_is_super_admin(request.user):
+            return Response({"name": suborg.name}, status=200)
+
+        if OrganisationMembership.objects.filter(user=request.user, organisation=suborg.organisation, role="org_admin").exists():
+            return Response({"name": suborg.name}, status=200)
+
+        if OrganisationMembership.objects.filter(user=request.user, suborganisation=suborg).exists():
+            return Response({"name": suborg.name}, status=200)
+
+        return Response({"detail": "Not allowed."}, status=403)
+
+
+class BranchNameAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        branch = get_object_or_404(Branch, pk=pk)
+
+        # Use existing helper to determine access
+        if not user_can_access_branch(request.user, branch):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        return Response({"name": branch.name}, status=200)
+
+
+###############################################################################
 # Branch CRUD
 ###############################################################################
 

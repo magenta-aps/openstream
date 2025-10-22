@@ -15,6 +15,10 @@ import {
   makeActiveInNav,
   initSignOutButton,
   initOrgQueryParams,
+  selectedBranchID,
+  selectedSubOrgID,
+  getSubOrgName,
+  parentOrgID,
 } from "../../utils/utils.js";
 
 // Fetch branch-level active content and render into the "Afspilles nu" column
@@ -29,7 +33,7 @@ async function fetchNowPlaying(
   page = nowPlayingState.page,
   pageSize = nowPlayingState.pageSize,
 ) {
-  const branchId = localStorage.getItem("selectedBranchID");
+  const branchId = selectedBranchID;
   if (!branchId) return;
   const headers = {};
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -314,7 +318,7 @@ let latestSlideshowsState = { page: 1, pageSize: 20 };
 let latestPlaylistsState = { page: 1, pageSize: 20 };
 
 async function fetchLatestSlideshows() {
-  const branchId = localStorage.getItem("selectedBranchID");
+  const branchId = selectedBranchID;
   if (!branchId) return;
   const headers = {};
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -337,7 +341,7 @@ async function fetchLatestSlideshows() {
 }
 
 async function fetchLatestPlaylists() {
-  const branchId = localStorage.getItem("selectedBranchID");
+  const branchId = selectedBranchID;
   if (!branchId) return;
   const headers = {};
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -463,7 +467,7 @@ fetchLatestPlaylists();
 
 // Upcoming (Planlagt) - show next 10 results for the branch
 async function fetchUpcoming() {
-  const branchId = localStorage.getItem("selectedBranchID");
+  const branchId = selectedBranchID;
   if (!branchId) return;
   const headers = {};
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -550,9 +554,11 @@ function renderUpcoming(items) {
   });
 }
 
-if (localStorage.getItem("selectedSubOrgName") === "Global") {
-  window.location.href = "/manage-fonts-and-color-scheme";
-}
+(async () => {
+  if ((await getSubOrgName(selectedSubOrgID)) === "Global") {
+    window.location.href = "/manage-fonts-and-color-scheme?branchId=" + selectedBranchID + "&subOrgId=" + selectedSubOrgID + "&orgId=" + parentOrgID;
+  }
+})();
 
 // Initial upcoming load
 fetchUpcoming();
