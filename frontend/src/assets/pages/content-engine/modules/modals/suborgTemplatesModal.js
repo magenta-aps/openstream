@@ -270,7 +270,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
             : chosenTemplate.name + gettext(" (Copy)");
 
     if (!selectedTemplateId) {
-      showToast(gettext("Please select a template."), "Warning");
+      showToast(gettext("Please select a global template."), "Warning");
       return;
     }
 

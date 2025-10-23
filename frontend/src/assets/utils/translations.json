@@ -1025,6 +1025,9 @@
   "Error fetching registration URL.": {
     "da": "Fejl ved hentning af registrerings URL."
   },
+  "Error: SubOrganisation ID is missing. Cannot load template editor.":{
+    "da":"Fejl: Underorganisations ID mangler. Kan ikke indlæse skabelon editor."
+  },
   "Are you sure you want to delete this display?": {
     "da": "Er du sikker på at du vil slette denne skærm?"
   },
@@ -2686,6 +2689,9 @@
   },
   "Create Template":{
     "da":"Opret Skabelon"
+  },
+  "Please select a global template.":{
+    "da":"Vælg venligst en global skabelon."
   },
   "Select a global template to create a copy for this suborganisation:":{
     "da":"Vælg en global skabelon for at oprette en kopi til denne underorganisation:"
