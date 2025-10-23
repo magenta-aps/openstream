@@ -732,7 +732,7 @@ function renderUngroupedDisplays() {
   // Create a "group"-styled container for ungrouped displays
   const groupDiv = document.createElement("div");
   groupDiv.classList.add("group", "group-ungrouped");
-  groupDiv.setAttribute("data-group-id", "null"); // so we know it's ungrouped
+  groupDiv.setAttribute("data-group-id", "inactive"); // so we know it's the ungrouped ones / inactive displays
 
   // Create the group header
   const headerDiv = document.createElement("div");
@@ -3781,7 +3781,7 @@ function toggleCheckAll() {
   const allGroupIds = [];
   groups.forEach((group) => {
     const groupIdAttr = group.getAttribute("data-group-id");
-    if (groupIdAttr && groupIdAttr !== "null") {
+    if (groupIdAttr && groupIdAttr !== "inactive") {
       const groupId = parseInt(groupIdAttr);
       if (!isNaN(groupId)) {
         allGroupIds.push(groupId);
