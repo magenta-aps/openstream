@@ -2864,8 +2864,8 @@
   "It's possible to upload multiple files at once": {
     "da": "Det er muligt at uploade flere filer på én gang"
   },
-  "+ Add Template": {
-    "da": "+ Tilføj Skabelon"
+  "Add Template": {
+    "da": "Tilføj Skabelon"
   },
   "Name of the font (e.g., 'Open Sans')": {
     "da": "Navn på skrifttypen (f.eks., 'Open Sans')"
