@@ -447,11 +447,21 @@ function openEditDisplayModal(groupId, displayId) {
   const copyNotification = document.getElementById("copyNotification");
   if (copyNotification) copyNotification.style.display = "none";
 
-  const group = groupsData.find((g) => g.id === groupId);
-  if (!group) {
-    console.warn("openEditDisplayModal: group not found", groupId);
-    return;
+  let group = null;
+  
+  // Handle ungrouped displays (inactive screens)
+  if (groupId === "inactive") {
+    group = { displays: ungroupedDisplays };
+  } else {
+    // Check if group exist
+    group = groupsData.find((g) => g.id === groupId);
+    if (!group) {
+      console.warn("openEditDisplayModal: group not found", groupId);
+      return;
+    }
   }
+
+  // Check if display exist in the group
   const display =
     group.displays && group.displays.find((d) => d.id === displayId);
   if (!display) {
@@ -798,6 +808,19 @@ function renderUngroupedDisplays() {
     displayAspectRatioBadge.style.fontSize = "0.6rem";
     displayAspectRatioBadge.textContent = display.aspect_ratio || "16:9";
     displayDiv.appendChild(displayAspectRatioBadge);
+
+    const displayEditIcon = document.createElement("span");
+    displayEditIcon.classList.add(
+      "material-symbols-outlined",
+      "edit-icon-btn",
+    );
+    displayEditIcon.textContent = "edit";
+    displayEditIcon.onclick = (e) => {
+      e.stopPropagation();
+      openEditDisplayModal("inactive", display.id);
+    };
+    displayDiv.appendChild(displayEditIcon);
+
 
     ungroupedDisplaysDiv.appendChild(displayDiv);
   });
