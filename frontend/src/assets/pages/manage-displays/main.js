@@ -824,7 +824,6 @@ function renderUngroupedDisplays() {
     };
     displayDiv.appendChild(displayEditIcon);
 
-
     ungroupedDisplaysDiv.appendChild(displayDiv);
   });
 
