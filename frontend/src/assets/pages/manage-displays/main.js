@@ -759,8 +759,9 @@ function renderUngroupedDisplays() {
   leftDiv.appendChild(warningEmoji);
 
   const titleSpan = document.createElement("span");
-  titleSpan.classList.add("group-title");
+  titleSpan.classList.add("text-truncate", "fw-bolder");
   titleSpan.textContent = gettext("Inactive Displays");
+  titleSpan.title = gettext("Inactive Displays");
   leftDiv.appendChild(titleSpan);
 
   headerDiv.appendChild(leftDiv);
@@ -799,7 +800,9 @@ function renderUngroupedDisplays() {
     displayDiv.appendChild(tvIcon);
 
     const displayTitle = document.createElement("span");
+    displayTitle.classList.add("text-truncate");
     displayTitle.textContent = display.name;
+    displayTitle.title = display.name;
     displayDiv.appendChild(displayTitle);
 
     // Add aspect ratio badge for ungrouped display
@@ -1904,7 +1907,9 @@ function renderGroups() {
 
     const titleSpan = document.createElement("span");
     titleSpan.classList.add("group-title");
+    titleSpan.classList.add("text-truncate");
     titleSpan.innerHTML = autoHyphenate(group.name);
+    titleSpan.title = group.name;
     leftDiv.appendChild(titleSpan);
 
     // Add aspect ratio badge
@@ -1990,7 +1995,9 @@ function renderGroups() {
       displayDiv.appendChild(tvIcon);
 
       const displayTitle = document.createElement("span");
+      displayTitle.classList.add("text-truncate");
       displayTitle.textContent = display.name;
+      displayTitle.title = display.name;
       displayDiv.appendChild(displayTitle);
 
       // Add aspect ratio badge for display
