@@ -556,7 +556,7 @@ function renderUpcoming(items) {
 
 (async () => {
   if ((await getSubOrgName(selectedSubOrgID)) === "Global") {
-    window.location.href = "/manage-fonts-and-color-scheme?branchId=" + selectedBranchID + "&subOrgId=" + selectedSubOrgID + "&orgId=" + parentOrgID;
+    window.location.href = "/manage-fonts-and-color-scheme?branchId=" + selectedBranchID + "&suborgId=" + selectedSubOrgID + "&orgId=" + parentOrgID;
   }
 })();
 
