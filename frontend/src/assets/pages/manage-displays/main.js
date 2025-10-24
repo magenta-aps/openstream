@@ -1905,8 +1905,7 @@ function renderGroups() {
     leftDiv.appendChild(checkboxDiv);
 
     const titleSpan = document.createElement("span");
-    titleSpan.classList.add("group-title");
-    titleSpan.classList.add("text-truncate");
+    titleSpan.classList.add("group-title", "text-truncate");
     titleSpan.innerHTML = autoHyphenate(group.name);
     titleSpan.title = group.name;
     leftDiv.appendChild(titleSpan);
