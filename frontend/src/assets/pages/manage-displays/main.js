@@ -12,7 +12,6 @@ import {
   autoHyphenate,
   initSignOutButton,
   initOrgQueryParams,
-  selectedBranchName,
 } from "../../utils/utils";
 import {
   translateHTML,
@@ -977,15 +976,6 @@ async function copyAPIKey() {
     const regApiKeyInputEl = document.getElementById("registrationApiKeyInput");
     if (regApiKeyInputEl) {
       regApiKeyInputEl.value = apiKey || "";
-    }
-
-    // Show which branch this registration applies to (if available in localStorage)
-    const branchNameEl = document.getElementById("registrationBranchName");
-    try {
-      const branchName = selectedBranchName;
-      if (branchNameEl) branchNameEl.innerText = branchName || "(unknown)";
-    } catch (e) {
-      // ignore localStorage access errors
     }
 
     // If the user changes the aspect ratio in the modal, update the input live.
