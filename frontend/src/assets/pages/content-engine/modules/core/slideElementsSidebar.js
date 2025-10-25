@@ -355,15 +355,15 @@ function createElementRow(elData, state) {
           <strong>${gettext("Position")}:</strong>
           <span data-role="summary-position"></span>
         </div>
-        ${
-          state.showLinkSelect
-            ? `<div class="text-muted small mb-1" data-role="link-row">
+      </div>
+      ${
+        state.showLinkSelect
+          ? `<div class="text-muted small mb-1 link-row-inline" data-role="link-row">
             <strong>${gettext("Link")}:</strong>
             <select class="form-select form-select-sm" data-role="link-select"></select>
           </div>`
-            : ""
-        }
-      </div>
+          : ""
+      }
     </div>
   `;
 

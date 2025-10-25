@@ -630,7 +630,36 @@ export function updateSlideSelector() {
     slideItem.appendChild(slideNumber);
     slideItem.appendChild(slidePreview);
 
+    // Debounce timestamp to prevent rapid page changes in interactive preview
+    // (module-level so multiple handlers in this file share the same timer)
+    if (typeof window.__os_lastInteractivePageChangeAt === "undefined") {
+      window.__os_lastInteractivePageChangeAt = 0;
+    }
+
     slideItem.addEventListener("click", () => {
+      // If we're in interactive slideshow preview, prevent changing pages
+      // more often than once every 2 seconds to avoid rendering bugs.
+      if (
+        store.slideshowMode === "interactive" &&
+        queryParams.mode === "slideshowPlayer"
+      ) {
+        try {
+          const now = Date.now();
+          if (
+            window.__os_lastInteractivePageChangeAt &&
+            now - window.__os_lastInteractivePageChangeAt < 1000
+          ) {
+            // Gentle feedback to the user
+            try {
+              showToast(gettext("Please wait before changing page."), "Info");
+            } catch (e) {}
+            return;
+          }
+          window.__os_lastInteractivePageChangeAt = now;
+        } catch (e) {
+          // ignore debounce errors and allow navigation
+        }
+      }
       // Only deselect elements if we're changing to a different slide
       if (store.currentSlideIndex !== index) {
         // Deselect any currently selected elements
@@ -642,7 +671,7 @@ export function updateSlideSelector() {
         window.selectedElementForUpdate = null;
       }
 
-      store.currentSlideIndex = index;
+  store.currentSlideIndex = index;
 
       // For template mode, set resolution based on template's aspect ratio
       if (

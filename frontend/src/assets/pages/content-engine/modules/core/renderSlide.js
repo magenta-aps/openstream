@@ -813,11 +813,38 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       container.style.cursor = "pointer";
       container.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        if (store.slides[el.goToSlideIndex]) {
-          store.currentSlideIndex = el.goToSlideIndex;
-          loadSlide(store.slides[el.goToSlideIndex]);
+        try {
+          if (typeof window.__os_lastInteractivePageChangeAt === "undefined") {
+            window.__os_lastInteractivePageChangeAt = 0;
+          }
 
-          updateSlideSelector();
+          // Only debounce when we're actively in the slideshow player preview
+          if (queryParams.mode === "slideshowPlayer") {
+            const now = Date.now();
+            if (
+              window.__os_lastInteractivePageChangeAt &&
+              now - window.__os_lastInteractivePageChangeAt < 1000
+            ) {
+              try {
+                console.log("click blocked by debounce");
+              } catch (e) {}
+              return;
+            }
+            window.__os_lastInteractivePageChangeAt = now;
+          }
+
+          if (store.slides[el.goToSlideIndex]) {
+            store.currentSlideIndex = el.goToSlideIndex;
+            loadSlide(store.slides[el.goToSlideIndex]);
+            updateSlideSelector();
+          }
+        } catch (err) {
+          // If anything goes wrong with debounce logic, fall back to navigation
+          if (store.slides[el.goToSlideIndex]) {
+            store.currentSlideIndex = el.goToSlideIndex;
+            loadSlide(store.slides[el.goToSlideIndex]);
+            updateSlideSelector();
+          }
         }
       });
     }
