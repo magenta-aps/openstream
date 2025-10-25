@@ -57,7 +57,7 @@ export async function playSlideshow(showInfoBox = true) {
       background: "rgba(0,0,0,0.7)",
       color: "white",
       borderRadius: "8px",
-      zIndex: "1001",
+      zIndex: "10000",
     });
     infoBox.innerHTML = `
       <button id="exitSlideshow" class="btn btn-danger">${gettext("Exit")}</button>
