@@ -1,5 +1,6 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-<a id="{{id}}" href="{{href}}" class="btn btn-sm w-100 d-flex mb-2 align-items-center px-0 fw-bold go-back-btn mb-3">
-<i class="material-symbols-outlined">chevron_left</i>{% trans "{{title}}" %} 
+<a id="{{id}}" href="{{href}}" class="btn btn-sm w-100 d-flex mb-2 align-items-center px-0 fw-bold go-back-btn mb-3"
+	 onclick="if (history.length > 1) { history.back(); return false; }">
+	<i class="material-symbols-outlined">chevron_left</i>{% trans "{{title}}" %}
 </a>
