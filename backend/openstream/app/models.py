@@ -161,6 +161,10 @@ class Branch(models.Model):
 
     def __str__(self):
         return f"{self.suborganisation.organisation.name} / {self.suborganisation.name} / {self.name}"
+    
+    class Meta:
+        # Ensure branch names are unique within the same suborganisation
+        unique_together = (("suborganisation", "name"),)
 
 
 class BranchURLCollectionItem(models.Model):
