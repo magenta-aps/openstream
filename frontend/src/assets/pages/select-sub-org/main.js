@@ -552,8 +552,8 @@ cancel
     const currentOrgId = parentOrgID;
     const filteredSubOrgs = currentOrgId
       ? subOrgsData.filter(
-          (s) => String(s.organisation) === String(currentOrgId),
-        )
+        (s) => String(s.organisation) === String(currentOrgId),
+      )
       : subOrgsData;
 
     filteredSubOrgs.forEach((s) => {
@@ -710,7 +710,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
     );
   }
 
-  suborgList.forEach((suborg) => {
+  suborgList.forEach(async (suborg) => {
     if (
       parseInt(suborg.organisation) ===
       parseInt(parentOrgID)
@@ -736,6 +736,19 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         });
         document.getElementById("admin-buttons").appendChild(selectBtn);
       } else {
+        let templateBranchId = null;
+
+        for (const branch of suborg.branches) {
+          if (branch.name === "suborg_templates") {
+            templateBranchId = branch.id;
+          }
+        }
+
+        if (!templateBranchId) {
+          const suborgBranch = await createBranch(suborg.id, "suborg_templates");
+          templateBranchId = suborgBranch.id;
+        }
+
         // Create card container for each suborganisation
         const card = document.createElement("div");
         card.className = "mb-4";
@@ -760,7 +773,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
           manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext("Manage Templates")}`;
           manageTemplatesBtn.onclick = function (e) {
             e.stopPropagation();
-            window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborg_id=${suborg.id}`;
+            window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborg_id=${suborg.id}&branchId=${templateBranchId}`;
           };
           suborgButtonsContainer.appendChild(manageTemplatesBtn);
         }
@@ -1626,7 +1639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const err = await resp.json();
           await showToast(
             gettext("Error removing user from organization: ") +
-              JSON.stringify(err),
+            JSON.stringify(err),
           );
         } else {
           await showToast(
@@ -1683,6 +1696,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-initOrgQueryParams();
+  initOrgQueryParams();
 
 });
