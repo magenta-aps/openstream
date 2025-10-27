@@ -744,7 +744,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
           }
         }
 
-        if (!templateBranchId) {
+        if (!templateBranchId && (isActingUserOrgAdmin || suborg.user_role === "suborg_admin")) {
           const suborgBranch = await createBranch(suborg.id, "suborg_templates");
           templateBranchId = suborgBranch.id;
         }
