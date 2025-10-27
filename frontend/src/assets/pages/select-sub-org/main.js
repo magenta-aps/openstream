@@ -773,7 +773,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
           manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext("Manage Templates")}`;
           manageTemplatesBtn.onclick = function (e) {
             e.stopPropagation();
-            window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborg_id=${suborg.id}&branchId=${templateBranchId}`;
+            window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborgId=${suborg.id}&branchId=${templateBranchId}`;
           };
           suborgButtonsContainer.appendChild(manageTemplatesBtn);
         }
