@@ -552,7 +552,7 @@ function renderSlideshowsTable(slideshows) {
       allSlideshows.length > 0
         ? gettext("No matching content found")
         : gettext(
-            "No content found. Use the 'Add Slideshow' button to the left",
+            "No content found. Use the 'Add Content' button to the left",
           );
     return;
   }
