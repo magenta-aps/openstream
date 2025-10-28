@@ -9,6 +9,7 @@ import { slideTypeRegistry } from "./slideTypeRegistry.js";
 import MiniSearch from "minisearch";
 import { addIframe } from "../elements/iframeElement.js";
 import * as bootstrap from "bootstrap";
+import { gettext } from "../../../../utils/locales.js";
 
 class FrontendSlideTypeModal {
   constructor() {
@@ -54,7 +55,7 @@ class FrontendSlideTypeModal {
         <div class="modal-dialog modal-xl">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="frontendSlideTypeModalLabel">Add Dynamic Content</h5>
+              <h5 class="modal-title" id="frontendSlideTypeModalLabel">${gettext("Add Dynamic Content")}</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -63,7 +64,7 @@ class FrontendSlideTypeModal {
                 <div class="row">
                   <!-- Categories Column -->
                   <div class="col-md-3">
-                    <h6>Categories</h6>
+                    <h6>${gettext("Categories")}</h6>
                     <div id="categoryCheckboxes">
                       <!-- Category checkboxes will be populated here -->
                     </div>
@@ -72,7 +73,7 @@ class FrontendSlideTypeModal {
                   <!-- Search and Table Column -->
                   <div class="col-md-9">
                     <div class="mb-3">
-                      <input type="text" class="form-control" id="slideTypeSearchInput" placeholder="Search slide types...">
+                      <input type="text" class="form-control" id="slideTypeSearchInput" placeholder="${gettext('Search slide types...')}">
                     </div>
                     
                     <div class="table-responsive">
@@ -80,12 +81,12 @@ class FrontendSlideTypeModal {
                         <thead>
                           <tr>
                             <th class="sortable-col" data-sort-key="name" style="cursor: pointer;">
-                              Name ↕
+                              ${gettext("Name")} ↕
                             </th>
                             <th class="sortable-col" data-sort-key="categoryName" style="cursor: pointer;">
-                              Category ↕
+                              ${gettext("Category")} ↕
                             </th>
-                            <th>Action</th>
+                            <th>${gettext("Action")}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -109,8 +110,8 @@ class FrontendSlideTypeModal {
               </div>
             </div>
             <div class="modal-footer" id="slideTypeModalFooter">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary" id="generateSlideBtn" style="display: none;">Generate Slide</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${gettext("Cancel")}</button>
+              <button type="button" class="btn btn-primary" id="generateSlideBtn" style="display: none;">${gettext("Generate Slide")}</button>
             </div>
           </div>
         </div>
@@ -479,7 +480,7 @@ class FrontendSlideTypeModal {
       "#frontendSlideTypeModalLabel",
     );
     if (titleElement) {
-      titleElement.textContent = "Add Dynamic Content";
+      titleElement.textContent = gettext("Add Dynamic Content");
     }
     // If a slide type was previously active, ensure it cleans up its event listeners
     // so handlers (like the Frontdesk click handler) don't persist and hijack
@@ -584,7 +585,8 @@ class FrontendSlideTypeModal {
         const backButtonHTML = `
           <div class="mb-3">
             <button type="button" class="btn btn-outline-secondary btn-sm" id="backToOverviewBtn">
-              ← Back to Overview
+            <span class="material-symbols-outlined">arrow_back</span>
+              ${gettext("Back to Overview")}
             </button>
           </div>
         `;

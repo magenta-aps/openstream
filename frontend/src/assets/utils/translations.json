@@ -1709,6 +1709,15 @@
   "Search": {
     "da": "Søg"
   },
+  "Search slide types...":{
+    "da":"Søg efter dynamisk indhold..."
+  },
+  "Generate Slide":{
+    "da":"Generer slide"
+  },
+  "Back to Overview":{
+    "da":"Tilbage til overblik"
+  },
   "Action": {
     "da": "Handling"
   },
