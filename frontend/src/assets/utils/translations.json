@@ -1796,6 +1796,18 @@
   "Teacher Information":{
     "da": "Læreroplysninger"
   },
+  "This element displays the live frontdesk queue for LTK Borgerservice, helping customers see current wait times and queue status.":{
+    "da":"Dette element viser live frontdesk-køen for LTK Borgerservice, og hjælper kunder med at se aktuelle ventetider og køstatus."
+  },
+  "Features:":{
+    "da":"Funktioner:"
+  },
+  "Live Queue Status":{
+    "da":"Live kø status"
+  },
+  "Real-time Updates":{
+    "da":"Realtid updateringer"
+  },
   "Action": {
     "da": "Handling"
   },

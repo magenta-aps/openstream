@@ -6,6 +6,7 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../../utils/constants.js";
+import { translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 import * as bootstrap from "bootstrap";
 
@@ -68,6 +69,7 @@ export const FrontdeskLtkBorgerserviceSlideType = {
         "/slide-types/frontdesk-ltk-borgerservice-form",
         "Frontdesk LTK Borgerservice Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.setupFormEventListeners();
         },
       );
