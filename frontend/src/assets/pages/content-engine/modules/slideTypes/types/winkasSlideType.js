@@ -7,6 +7,7 @@
 
 import { BASE_URL } from "../../../../../utils/constants.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
+import { gettext, translateHTML } from "../../../../../utils/locales.js";
 
 export const WinkasSlideType = {
   name: "WinKAS - Bookingoversigt",
@@ -64,6 +65,7 @@ export const WinkasSlideType = {
         "/slide-types/winkas-form",
         "WinKAS Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
@@ -98,7 +100,7 @@ export const WinkasSlideType = {
     const locationSelect = document.getElementById("location-input");
     if (!locationSelect || !this.currentLocationsData) return;
 
-    locationSelect.innerHTML = '<option value="">Select a location...</option>';
+    locationSelect.innerHTML = `<option value="">${gettext("Select a location...")}</option>`;
 
     Object.entries(this.currentLocationsData).forEach(([key, value]) => {
       const option = document.createElement("option");

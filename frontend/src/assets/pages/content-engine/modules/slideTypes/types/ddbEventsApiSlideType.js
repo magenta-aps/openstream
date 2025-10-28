@@ -16,6 +16,7 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../../utils/constants.js";
+import { gettext, translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const DdbEventsApiSlideType = {
@@ -79,6 +80,7 @@ export const DdbEventsApiSlideType = {
         "/slide-types/ddb-events-form",
         "DDB Events Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
@@ -123,7 +125,7 @@ export const DdbEventsApiSlideType = {
     const kommuneSelect = document.getElementById("kommuneSelect");
     if (!kommuneSelect || !this.currentLibrariesData) return;
 
-    kommuneSelect.innerHTML = '<option value="">Select municipality</option>';
+    kommuneSelect.innerHTML = `<option value="">${gettext("Select municipality")}</option>`;
 
     Object.keys(this.currentLibrariesData).forEach((municipalityName) => {
       const option = document.createElement("option");
@@ -150,7 +152,7 @@ export const DdbEventsApiSlideType = {
     const librarySelect = document.getElementById("librarySelect");
     if (!librarySelect) return;
 
-    librarySelect.innerHTML = '<option value="">Select library</option>';
+    librarySelect.innerHTML = `<option value="">${gettext("Select library")}</option>`;
 
     if (
       selectedMunicipality &&

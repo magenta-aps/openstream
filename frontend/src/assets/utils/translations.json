@@ -176,6 +176,9 @@
   "Title": {
     "da": "Titel"
   },
+  "Subtitle":{
+    "da":"Undertitel"
+  },
   "Search by Title": {
     "da": "Søg efter Titel"
   },
@@ -1700,6 +1703,57 @@
   "Add Dynamic Content": {
     "da": "Tilføj Dynamisk Indhold"
   },
+  "Choose a municipality:":{
+    "da":"Vælg en kommune:"
+  },
+  "Choose a library:":{
+    "da":"Vælg et bibliotek:"
+  },
+  "Select library":{
+    "da":"Vælg et bibliotek"
+  },
+  "Number of days:":{
+    "da":"Antal dage:"
+  },
+  "Enter number of days":{
+    "da":"Indtast antal dage"
+  },
+  "Slide Duration (in seconds):":{
+    "da":"Slide varighed (i sekunder):"
+  },
+  "Select municipality":{
+    "da":"Vælg en kommune"
+  },
+  "Choose layout:":{
+    "da":"Vælg et layout:"
+  },
+  "Choose content:":{
+    "da":"Vælg indhold:"
+  },
+  "Choose Main Location":{
+    "da": "Vælg hovedlokation"
+  },
+  "Select a location...":{
+    "da": "Vælg en lokation..."
+  },
+  "Select Sub-locations to Display":{
+    "da": "Vælg underlokation, der skal vises"
+  },
+  "Please select a main location first.":{
+    "da": "Vælg venligst en hovedlokation først."
+  },
+  "Please select at least one sub-location to display bookings.":{
+    "da": "Vælg venligst mindst én underlokation for at vise bookinger."
+  },
+  "Continuous scrolling":{
+    "da": "Kontinuerlig scolling"
+  },
+  "Scroll speed (pixels/sec)":{
+    "da": "Scroll hastighed (pixels/sek)"
+  },
+  "Current:":{
+    "da": "Nuværende:"
+  },
   "Filter by Category": {
     "da": "Filtrér efter Kategori"
   },
@@ -2864,6 +2918,9 @@
   "Please enter a valid display name": {
     "da": "Indtast et gyldigt skærmnavn"
   },
+  "Date & Time":{
+    "da":"Dato & Tid"
+  },
   "Start Date & Time": {
     "da": "Start Dato & Tid"
   },
@@ -3115,5 +3172,11 @@
   },
   "Show details": {
     "da": "Vis detaljer"
+  },
+  "Location":{
+    "da":"Lokation"
+  },
+  "QR code":{
+    "da":"QR kode"
   }
 }
