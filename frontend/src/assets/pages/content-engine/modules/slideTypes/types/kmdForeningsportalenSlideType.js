@@ -6,6 +6,7 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../../utils/constants.js";
+import { gettext, translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const KmdForeningsportalenSlideType = {
@@ -64,6 +65,7 @@ export const KmdForeningsportalenSlideType = {
         "/slide-types/kmd-foreningsportalen-form",
         "KMD Foreningsportalen Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
@@ -98,7 +100,7 @@ export const KmdForeningsportalenSlideType = {
     const locationSelect = document.getElementById("location-input");
     if (!locationSelect || !this.currentLocationsData) return;
 
-    locationSelect.innerHTML = '<option value="">Select a location...</option>';
+    locationSelect.innerHTML = `<option value="">${gettext("Select a location...")}</option>`;
 
     Object.entries(this.currentLocationsData).forEach(([key, value]) => {
       const option = document.createElement("option");
