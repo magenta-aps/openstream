@@ -603,24 +603,44 @@ function flattenNodeForSize(node) {
     if (allowedTags.includes(node.tagName)) {
       const clone = document.createElement(node.tagName);
       if (align) clone.setAttribute("align", align);
+      // *** ADDED: Preserve fontWeight/fontVariationSettings on these tags if they exist ***
+      if (node.style.fontWeight) clone.style.fontWeight = node.style.fontWeight;
+      if (node.style.fontVariationSettings) clone.style.fontVariationSettings = node.style.fontVariationSettings;
       node.childNodes.forEach((c) => clone.appendChild(flattenNodeForSize(c)));
       return clone;
     }
 
-    /* <span> – keep colour / family / align (drop size) -------- */
+    /* <span> – keep colour / family / weight / align (drop size) */
     if (node.tagName === "SPAN") {
       const span = document.createElement("span");
       if (node.style.color) span.style.color = node.style.color;
       if (node.style.fontFamily) {
         span.style.fontFamily = node.style.fontFamily;
-        span.style.lineHeight = "1.2"; // Ensure consistent line height when preserving font family
+        span.style.lineHeight = "1.2"; 
       }
+      if (node.dataset.fontFamily) span.dataset.fontFamily = node.dataset.fontFamily; // Preserve data attribute
+
+      // *** ADDED: Preserve fontWeight/fontVariationSettings ***
+      if (node.style.fontWeight) span.style.fontWeight = node.style.fontWeight;
+      if (node.dataset.fontWeight) span.dataset.fontWeight = node.dataset.fontWeight; // Preserve data attribute
+      if (node.style.fontVariationSettings) span.style.fontVariationSettings = node.style.fontVariationSettings;
+      // *** END ADDITION ***
+
       if (align) span.setAttribute("align", align);
 
+      // Intentionally drop fontSize and data-font-size-key
       span.removeAttribute("data-font-size-key");
 
       node.childNodes.forEach((c) => span.appendChild(flattenNodeForSize(c)));
-      return span;
+      // Only return the span if it actually carries styles or has content
+      if (span.attributes.length > 0 || span.style.length > 0 || span.childNodes.length > 0) {
+           return span;
+      } else {
+           // If the span becomes empty/styleless, just return its children
+           const frag = document.createDocumentFragment();
+           Array.from(span.childNodes).forEach(c => frag.appendChild(c));
+           return frag;
+      }
     }
 
     /* any other element with align – wrap children ------------- */
@@ -661,6 +681,9 @@ function flattenNodeForFamily(node) {
     if (allowedTags.includes(node.tagName)) {
       const el = document.createElement(node.tagName);
       if (align) el.setAttribute("align", align);
+       // *** ADDED: Preserve fontWeight/fontVariationSettings on these tags if they exist ***
+      if (node.style.fontWeight) el.style.fontWeight = node.style.fontWeight;
+      if (node.style.fontVariationSettings) el.style.fontVariationSettings = node.style.fontVariationSettings;
       Array.from(node.childNodes).forEach((child) =>
         el.appendChild(flattenNodeForFamily(child)),
       );
@@ -668,22 +691,42 @@ function flattenNodeForFamily(node) {
     }
 
     /* <span> carrying styles we care about --------------------- */
+    // Keep spans that have fontSize, fontWeight, color, align, or data attributes
     if (
       node.tagName === "SPAN" &&
-      (node.style.fontSize || node.style.color || align)
+      (node.style.fontSize || node.style.fontWeight || node.style.fontVariationSettings || node.style.color || align || node.dataset.fontSizeKey || node.dataset.fontWeight)
     ) {
       const span = document.createElement("span");
       if (node.style.fontSize) {
         span.style.fontSize = node.style.fontSize;
-        span.style.lineHeight = "1.2"; // Set consistent line height with font size
+        span.style.lineHeight = "1.2"; 
       }
+      if (node.dataset.fontSizeKey) span.dataset.fontSizeKey = node.dataset.fontSizeKey; // Preserve data attribute
+      
       if (node.style.color) span.style.color = node.style.color;
       if (align) span.setAttribute("align", align);
+
+      // *** ADDED: Preserve fontWeight/fontVariationSettings ***
+      if (node.style.fontWeight) span.style.fontWeight = node.style.fontWeight;
+       if (node.dataset.fontWeight) span.dataset.fontWeight = node.dataset.fontWeight; // Preserve data attribute
+      if (node.style.fontVariationSettings) span.style.fontVariationSettings = node.style.fontVariationSettings;
+      // *** END ADDITION ***
+
+      // Intentionally drop fontFamily and data-font-family
+      span.removeAttribute("data-font-family");
 
       Array.from(node.childNodes).forEach((child) =>
         span.appendChild(flattenNodeForFamily(child)),
       );
-      return span;
+       // Only return the span if it actually carries styles or has content
+      if (span.attributes.length > 0 || span.style.length > 0 || span.childNodes.length > 0) {
+           return span;
+      } else {
+           // If the span becomes empty/styleless, just return its children
+           const frag = document.createDocumentFragment();
+           Array.from(span.childNodes).forEach(c => frag.appendChild(c));
+           return frag;
+      }
     }
 
     /* any other element with align – wrap children ------------- */
@@ -1203,18 +1246,29 @@ function handleFontWeightChange(e) {
     const hadSelection = sel && sel.rangeCount && content.contains(sel.anchorNode);
 
     // Helper to apply weight to current selection
+    // Helper to apply weight to current selection
     function applyWeightToSelection(weight) {
       const selection = window.getSelection();
       if (!selection || !selection.rangeCount) return;
       const range = selection.getRangeAt(0);
       const extracted = range.extractContents();
-      const clean = flattenFragmentForFamily(extracted);
+      // Use flattenFragmentForWeight to preserve font-family/size/color etc.
+      const clean = flattenFragmentForWeight(extracted); // *** Use a new flatten function (see below) ***
       const wrapper = document.createElement('span');
+
+      // *** ADD THIS: Get current font-family and apply it directly ***
+      const currentFontFamily = fontFamilySelect.value || getDefaultFont(); 
+      wrapper.style.fontFamily = `"${currentFontFamily}"`; 
+      // *** END ADDITION ***
+
       wrapper.style.fontWeight = weight;
       wrapper.setAttribute('data-font-weight', weight);
-      // ensure consistent line-height
+      wrapper.setAttribute('data-font-family', currentFontFamily); // Also add data-attribute if needed for indicators
       wrapper.style.lineHeight = '1.2';
-      // Convert any data-font-size-key inside clean content to px relative to the container
+
+      // ... (rest of the function for font size conversion, appending, reselecting) ...
+      
+      // Convert font sizes
       const referenceEl = range.startContainer?.parentElement || content;
       const spans = Array.from(
         clean.querySelectorAll ? clean.querySelectorAll('span[data-font-size-key]') : []
@@ -1223,8 +1277,10 @@ function handleFontWeightChange(e) {
         const key = s.getAttribute('data-font-size-key');
         if (key) s.style.fontSize = fontSizeKeyToPx(key, referenceEl);
       });
+      
       wrapper.appendChild(clean);
       range.insertNode(wrapper);
+      
       // Reselect inserted node
       selection.removeAllRanges();
       const newRange = document.createRange();
@@ -1237,6 +1293,86 @@ function handleFontWeightChange(e) {
       applyWeightToSelection(newFontWeight);
     }, { useTemporaryEditable: true });
   });
+}
+
+/* Helper function similar to flattenNodeForFamily, but drops font-weight */
+function flattenNodeForWeight(node) {
+  const allowedTags = ["B", "I", "U", "STRONG"]; // Keep basic formatting
+
+  /* TEXT NODE */
+  if (node.nodeType === Node.TEXT_NODE) {
+    return document.createTextNode(node.textContent);
+  }
+
+  /* ELEMENT NODE */
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const align = getAlignAttr(node); // Reuse your existing helper
+
+    /* Allowed inline tags */
+    if (allowedTags.includes(node.tagName)) {
+      const el = document.createElement(node.tagName);
+      if (align) el.setAttribute("align", align);
+      Array.from(node.childNodes).forEach((child) =>
+        el.appendChild(flattenNodeForWeight(child)),
+      );
+      return el;
+    }
+
+    /* SPAN carrying styles we want to keep (font-family, font-size, color, align) */
+    if (
+      node.tagName === "SPAN" &&
+      (node.style.fontFamily || node.style.fontSize || node.style.color || align || node.dataset.fontSizeKey || node.dataset.fontFamily)
+    ) {
+      const span = document.createElement("span");
+      if (node.style.fontFamily) span.style.fontFamily = node.style.fontFamily;
+      if (node.dataset.fontFamily) span.dataset.fontFamily = node.dataset.fontFamily;
+      
+      if (node.style.fontSize) span.style.fontSize = node.style.fontSize;
+      if (node.dataset.fontSizeKey) span.dataset.fontSizeKey = node.dataset.fontSizeKey;
+      
+      if (node.style.color) span.style.color = node.style.color;
+      if (align) span.setAttribute("align", align);
+      
+      // Ensure consistent line height
+      if (node.style.fontSize || node.style.fontFamily) {
+         span.style.lineHeight = "1.2";
+      }
+
+      // Explicitly DO NOT copy fontWeight or fontVariationSettings
+
+      Array.from(node.childNodes).forEach((child) =>
+        span.appendChild(flattenNodeForWeight(child)),
+      );
+      return span;
+    }
+    
+    /* Alignment wrapper */
+     if (align) {
+       const wrapper = makeAlignedWrapper(align); // Reuse your helper
+       Array.from(node.childNodes).forEach((child) =>
+         wrapper.appendChild(flattenNodeForWeight(child)),
+       );
+       return wrapper;
+     }
+
+    /* Plain lift (for other tags like DIV, BR etc.) */
+    const frag = document.createDocumentFragment();
+    Array.from(node.childNodes).forEach((child) =>
+      frag.appendChild(flattenNodeForWeight(child)),
+    );
+    return frag;
+  }
+
+  /* Fallback */
+  return document.createDocumentFragment();
+}
+
+function flattenFragmentForWeight(fragment) {
+ const newFragment = document.createDocumentFragment();
+ Array.from(fragment.childNodes).forEach((child) => {
+   newFragment.appendChild(flattenNodeForWeight(child));
+ });
+ return newFragment;
 }
 
 function handleTextDirectionChange(e) {
