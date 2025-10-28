@@ -7,46 +7,45 @@
             <!-- Description Section -->
             <div class="alert alert-info mb-4 bg-secondary-accent-lighter border-gray" role="alert">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>About this widget:</strong> Displays the daily schedule for a selected school from Speed Admin,
-                showing courses, rooms, times, and teachers.
+                <strong>{% trans "About this widget:" %}</strong> {% trans "Displays the daily schedule for a selected school from Speed Admin, showing courses, rooms, times, and teachers." %}
             </div>
 
             <!-- School Selection -->
             <div class="mb-4">
                 <label for="location_name-input" class="form-label ">
-                    Select School
+                    {% trans "Select School" %}
                 </label>
                 <select name="location_name-input" id="location_name-input" class="form-select border-gray">
-                    <option disabled selected>Select location</option>
+                    <!-- Options will be populated dynamically -->
                 </select>
             </div>
 
             <!-- Features List -->
             <div class="mb-4">
-                <h6 class=" mb-3">Displayed Information</h6>
+                <h6 class=" mb-3">{% trans "Displayed Information" %}</h6>
                 <div class="row">
                     <div class="col-md-6 mb-2">
                         <div class="d-flex align-items-center ">
                             <i class="fas fa-book me-2 text-primary"></i>
-                            <span>Course Titles</span>
+                            <span>{% trans "Course Titles" %}</span>
                         </div>
                     </div>
                     <div class="col-md-6 mb-2">
                         <div class="d-flex align-items-center ">
                             <i class="fas fa-door-open me-2 text-primary"></i>
-                            <span>Room Assignments</span>
+                            <span>{% trans "Room Assignments" %}</span>
                         </div>
                     </div>
                     <div class="col-md-6 mb-2">
                         <div class="d-flex align-items-center ">
                             <i class="fas fa-clock me-2 text-primary"></i>
-                            <span>Start & End Times</span>
+                            <span>{% trans "Start & End Times" %}</span>
                         </div>
                     </div>
                     <div class="col-md-6 mb-2">
                         <div class="d-flex align-items-center ">
                             <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
-                            <span>Teacher Information</span>
+                            <span>{% trans "Teacher Information" %}</span>
                         </div>
                     </div>
                 </div>

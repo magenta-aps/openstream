@@ -1772,6 +1772,30 @@
   "Back to Overview":{
     "da":"Tilbage til overblik"
   },
+  "About this widget:":{
+    "da": "Om denne widget:"
+  },
+  "Displays the daily schedule for a selected school from Speed Admin, showing courses, rooms, times, and teachers.":{
+    "da": "Viser den daglige plan for en valgt skole fra Speed Admin og viser fag, lokaler, tidspunkter og lærere."
+  },
+  "Select School":{
+    "da": "Vælg skole"
+  },
+  "Displayed Information":{
+    "da": "Viste oplysninger"
+  },
+  "Course Titles":{
+    "da": "Fagtitler"
+  },
+  "Room Assignments":{
+    "da": "Lokaletildelinger"
+  },
+  "Start & End Times":{
+    "da": "Start- og sluttider"
+  },
+  "Teacher Information":{
+    "da": "Læreroplysninger"
+  },
   "Action": {
     "da": "Handling"
   },

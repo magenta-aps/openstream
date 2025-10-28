@@ -6,6 +6,7 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../../utils/constants.js";
+import { gettext, translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const SpeedAdminSlideType = {
@@ -59,6 +60,7 @@ export const SpeedAdminSlideType = {
         "/slide-types/speed-admin-form",
         "Speed Admin Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
@@ -81,7 +83,7 @@ export const SpeedAdminSlideType = {
     if (!schoolSelect || !this.currentSchoolsData) return;
 
     schoolSelect.innerHTML =
-      "<option disabled selected>Select location</option>";
+      `<option disabled selected>${gettext("Select a location...")}</option>`;
 
     this.currentSchoolsData.forEach((school) => {
       const option = document.createElement("option");
