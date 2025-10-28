@@ -335,9 +335,19 @@ urlpatterns = [
     ),
     path("api/branches/<int:pk>/", BranchDetailAPIView.as_view(), name="branch_detail"),
     # Name lookup endpoints
-    path("api/organisations/<int:pk>/name/", OrganisationNameAPIView.as_view(), name="organisation_name"),
-    path("api/suborganisations/<int:pk>/name/", SubOrganisationNameAPIView.as_view(), name="suborganisation_name"),
-    path("api/branches/<int:pk>/name/", BranchNameAPIView.as_view(), name="branch_name"),
+    path(
+        "api/organisations/<int:pk>/name/",
+        OrganisationNameAPIView.as_view(),
+        name="organisation_name",
+    ),
+    path(
+        "api/suborganisations/<int:pk>/name/",
+        SubOrganisationNameAPIView.as_view(),
+        name="suborganisation_name",
+    ),
+    path(
+        "api/branches/<int:pk>/name/", BranchNameAPIView.as_view(), name="branch_name"
+    ),
     path(
         "api/slide-templates/",
         SlideTemplateAPIView.as_view(),

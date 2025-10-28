@@ -414,7 +414,12 @@ class OrganisationNameAPIView(APIView):
         org = get_object_or_404(Organisation, pk=pk)
 
         # Allow if user is super_admin or member of the organisation
-        if not (user_is_super_admin(request.user) or OrganisationMembership.objects.filter(user=request.user, organisation=org).exists()):
+        if not (
+            user_is_super_admin(request.user)
+            or OrganisationMembership.objects.filter(
+                user=request.user, organisation=org
+            ).exists()
+        ):
             return Response({"detail": "Not allowed."}, status=403)
 
         return Response({"name": org.name}, status=200)
@@ -430,10 +435,14 @@ class SubOrganisationNameAPIView(APIView):
         if user_is_super_admin(request.user):
             return Response({"name": suborg.name}, status=200)
 
-        if OrganisationMembership.objects.filter(user=request.user, organisation=suborg.organisation, role="org_admin").exists():
+        if OrganisationMembership.objects.filter(
+            user=request.user, organisation=suborg.organisation, role="org_admin"
+        ).exists():
             return Response({"name": suborg.name}, status=200)
 
-        if OrganisationMembership.objects.filter(user=request.user, suborganisation=suborg).exists():
+        if OrganisationMembership.objects.filter(
+            user=request.user, suborganisation=suborg
+        ).exists():
             return Response({"name": suborg.name}, status=200)
 
         return Response({"detail": "Not allowed."}, status=403)
