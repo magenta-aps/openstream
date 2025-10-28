@@ -1808,6 +1808,18 @@
   "Real-time Updates":{
     "da":"Realtid updateringer"
   },
+  "Enter the full Dreambroker channel URL (e.g.,":{
+    "da":"Indsæt den fulde Dreambroker kanal URL (f.eks.,"
+  },
+  "Audio Settings":{
+    "da":"Lyd indstillinger"
+  },
+  "Mute Video (Recommended for displays)":{
+    "da":"Slå lyden fra video (Anbefalet for skærme)"
+  },
+  "Videos are muted by default in edit mode. Audio settings only apply when the display is live.":{
+    "da":"Videoer er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
+  },
   "Action": {
     "da": "Handling"
   },

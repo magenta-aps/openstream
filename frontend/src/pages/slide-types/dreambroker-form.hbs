@@ -11,17 +11,17 @@
                 </label>
                 <input id="dreambroker-video-url" type="url" class="form-control  border-gray" placeholder="https://dreambroker.com/channel/your-channel/your-video" />
                 <div class="form-text text-muted">
-                    Enter the full Dreambroker channel URL (e.g., https://dreambroker.com/channel/v0fmvsex/3hhn4c7v)
+                    {% trans "Enter the full Dreambroker channel URL (e.g.," %} https://dreambroker.com/channel/v0fmvsex/3hhn4c7v)
                 </div>
             </div>
 
             <!-- Audio Settings -->
             <div class="mb-4">
-                <label class="form-label ">Audio Settings</label>
+                <label class="form-label ">{% trans "Audio Settings" %}</label>
                 <div class="form-check">
                     <input id="mute-checkbox" type="checkbox" class="form-check-input" checked />
                     <label for="mute-checkbox" class="form-check-label ">
-                        <i class="fas fa-volume-mute"></i>Mute Video (Recommended for displays)
+                        <i class="fas fa-volume-mute"></i>{% trans "Mute Video (Recommended for displays)" %}
                     </label>
                 </div>
             </div>
@@ -29,8 +29,7 @@
             <!-- Info Section -->
             <div class="alert alert-info mb-4 bg-secondary-accent-lighter border-gray" role="alert">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>Note:</strong> Videos are muted by default in edit mode. Audio settings only apply when the
-                display is live.
+                <strong>{% trans "Note:" %}</strong> {% trans "Videos are muted by default in edit mode. Audio settings only apply when the display is live." %}
             </div>
         </div>
     </div>

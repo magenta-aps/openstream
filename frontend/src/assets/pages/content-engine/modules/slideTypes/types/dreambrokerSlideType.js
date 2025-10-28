@@ -5,6 +5,7 @@
  * Dreambroker Video slide type definition
  ************************************************************/
 
+import { translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const DreambrokerSlideType = {
@@ -30,6 +31,7 @@ export const DreambrokerSlideType = {
         "/slide-types/dreambroker-form",
         "Dreambroker Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
