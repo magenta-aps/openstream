@@ -38,8 +38,7 @@ const alignTopBtn = document.querySelector("#alignTextTopBtn");
 const alignMiddleBtn = document.querySelector("#alignTextMiddleBtn");
 const alignBottomBtn = document.querySelector("#alignTextBottomBtn");
 
-const richTextModeRadio = document.querySelector("#richTextMode");
-const simpleTextModeRadio = document.querySelector("#simpleTextMode");
+// Mode toggle removed: always use rich text mode.
 
 const horizontalTextModeRadio = document.querySelector("#horizontalTextMode");
 const verticalTextModeRadio = document.querySelector("#verticalTextMode");
@@ -372,18 +371,10 @@ function mapTextAlignForDirection(textAlign, direction) {
  */
 export function updateModeRadioButtons() {
   if (!store.selectedElementData) return;
+  // Ensure selected element is treated as rich-text (simple mode removed)
+  store.selectedElementData.isSimpleTextMode = false;
 
-  const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
   const textDirection = store.selectedElementData.textDirection || "horizontal";
-
-  if (isSimpleMode) {
-    simpleTextModeRadio.checked = true;
-    richTextModeRadio.checked = false;
-  } else {
-    richTextModeRadio.checked = true;
-    simpleTextModeRadio.checked = false;
-  }
-
   if (textDirection === "vertical") {
     verticalTextModeRadio.checked = true;
     horizontalTextModeRadio.checked = false;
@@ -392,7 +383,7 @@ export function updateModeRadioButtons() {
     verticalTextModeRadio.checked = false;
   }
 
-  // Update font weight dropdown state based on mode
+  // Font-weight control is disabled in rich-only mode
   updateFontWeightDropdownState();
 }
 
@@ -788,14 +779,99 @@ function applyCustomFontFamily(family) {
 /**
  * Generic helper to apply text formatting commands (bold, italic, underline)
  */
+// Helper: run callback while ensuring element is editable. If it wasn't
+// editable before, we temporarily enable editing, focus, run the callback
+// and then restore the previous state. This prevents toolbar actions from
+// leaving the textbox permanently in edit mode.
+function runWithTemporaryEditable(el, callback) {
+  if (!el) return;
+  const wasEditable = el.isContentEditable;
+  try {
+    if (!wasEditable) {
+      el.contentEditable = "true";
+    }
+    // Focus to ensure execCommand and selection-based APIs work.
+    el.focus();
+    callback();
+  } finally {
+    if (!wasEditable) {
+      // Use setTimeout to allow browser to complete execCommand effects
+      // before blurring / reverting editability.
+      setTimeout(() => {
+        try {
+          el.contentEditable = "false";
+          el.blur();
+          const s = window.getSelection();
+          s && s.removeAllRanges();
+        } catch (e) {
+          // ignore
+        }
+      }, 0);
+    }
+  }
+}
+
 function applyTextCommand(command) {
   withSelectedTextbox(() => {
     const textContentElement =
       store.selectedElement.querySelector(".text-content");
     if (textContentElement) {
-      textContentElement.contentEditable = "true";
-      textContentElement.focus();
-      document.execCommand(command, false, null);
+      runWithTemporaryEditable(textContentElement, () => {
+        document.execCommand(command, false, null);
+      });
+    }
+  });
+}
+
+/**
+ * Central helper: ensure the correct selection state when applying a toolbar
+ * action that should affect the entire textbox when the element is selected
+ * (single-click) but not being edited. It implements the common pattern used
+ * across multiple handlers:
+ * - If the element isn't contentEditable and there's no existing selection
+ *   inside it, select the whole content, run the applyFn, then clear selection.
+ * - If it's already being edited or there's a selection, either run applyFn
+ *   directly (or inside runWithTemporaryEditable if needed).
+ *
+ * applyFn may assume a selection is present (for execCommand-based flows) or
+ * can perform direct DOM updates. The function returns whatever applyFn
+ * returns.
+ */
+function applyToWholeTextbox(applyFn, {useTemporaryEditable = false} = {}) {
+  return withSelectedTextbox(() => {
+    const target = store.selectedElement.querySelector(".text-content");
+    if (!target) return;
+
+    const sel = window.getSelection();
+
+    // If the textbox isn't being edited the action applies to the whole content.
+    if (!target.isContentEditable) {
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      try {
+        if (useTemporaryEditable) {
+          // Some actions rely on execCommand which requires the element to be editable
+          runWithTemporaryEditable(target, () => applyFn(target));
+        } else {
+          // applyFn may itself enable editing or rely on selection
+          applyFn(target);
+        }
+      } finally {
+        // Normalize/cleanup is the caller's responsibility if needed
+        sel.removeAllRanges();
+      }
+    } else {
+      // If already editing or there's a selection, apply directly. If the
+      // action needs an editable element but the element isn't editable, run
+      // with temporary editable state.
+      if (target.isContentEditable || !useTemporaryEditable) {
+        applyFn(target);
+      } else {
+        runWithTemporaryEditable(target, () => applyFn(target));
+      }
     }
   });
 }
@@ -1007,12 +1083,15 @@ function handleFontSizeChange(e) {
         store.selectedElementData.fontSize = fontSizeSelect.value;
         applySimpleModeStyles(target, store.selectedElementData);
       } else {
-        // In rich text mode, apply to selection
-        target.contentEditable = "true";
-        target.focus();
-        applyCustomFontSize(fontSizeSelect.value);
-        store.selectedElementData.fontSize = fontSizeSelect.value;
-        normalizeNestedSpans(target);
+        // In rich text mode, use the centralized helper to apply the
+        // font-size to the entire textbox when appropriate.
+        pushCurrentSlideState();
+        applyToWholeTextbox((t) => {
+          applyCustomFontSize(fontSizeSelect.value);
+          store.selectedElementData.fontSize = fontSizeSelect.value;
+          normalizeNestedSpans(t);
+          try { t.focus(); } catch (e) {}
+        }, { useTemporaryEditable: false });
       }
     }
   });
@@ -1030,12 +1109,13 @@ function handleFontFamilyChange(e) {
         store.selectedElementData.fontFamily = fontFamilySelect.value;
         applySimpleModeStyles(target, store.selectedElementData);
       } else {
-        // In rich text mode, apply to selection
-        target.contentEditable = "true";
-        target.focus();
-        applyCustomFontFamily(fontFamilySelect.value);
-        store.selectedElementData.fontFamily = fontFamilySelect.value;
-        normalizeNestedSpans(target);
+        pushCurrentSlideState();
+        applyToWholeTextbox((t) => {
+          applyCustomFontFamily(fontFamilySelect.value);
+          store.selectedElementData.fontFamily = fontFamilySelect.value;
+          normalizeNestedSpans(t);
+          try { t.focus(); } catch (e) {}
+        }, { useTemporaryEditable: false });
       }
     }
   });
@@ -1107,19 +1187,55 @@ function handleFontWeightChange(e) {
       (el) => el.id === id,
     );
 
-    // Only apply font weight changes in Simple Text mode
+    if (elData) elData.fontWeight = newFontWeight;
+    const content = store.selectedElement.querySelector(".text-content");
+    if (!content) return;
+
     const isSimpleMode = elData?.isSimpleTextMode || false;
-    if (!isSimpleMode) {
-      console.warn("Font weight can only be changed in Simple Text mode.");
+    if (isSimpleMode) {
+      // In simple mode, apply font weight to the container
+      applySimpleModeStyles(content, elData);
       return;
     }
 
-    if (elData) elData.fontWeight = newFontWeight;
-    const content = store.selectedElement.querySelector(".text-content");
-    if (content) {
-      // In simple mode, apply font weight to the container
-      applySimpleModeStyles(content, elData);
+    // Rich mode: apply to selection or to entire textbox when selected but not editing
+    const sel = window.getSelection();
+    const hadSelection = sel && sel.rangeCount && content.contains(sel.anchorNode);
+
+    // Helper to apply weight to current selection
+    function applyWeightToSelection(weight) {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const extracted = range.extractContents();
+      const clean = flattenFragmentForFamily(extracted);
+      const wrapper = document.createElement('span');
+      wrapper.style.fontWeight = weight;
+      wrapper.setAttribute('data-font-weight', weight);
+      // ensure consistent line-height
+      wrapper.style.lineHeight = '1.2';
+      // Convert any data-font-size-key inside clean content to px relative to the container
+      const referenceEl = range.startContainer?.parentElement || content;
+      const spans = Array.from(
+        clean.querySelectorAll ? clean.querySelectorAll('span[data-font-size-key]') : []
+      );
+      spans.forEach((s) => {
+        const key = s.getAttribute('data-font-size-key');
+        if (key) s.style.fontSize = fontSizeKeyToPx(key, referenceEl);
+      });
+      wrapper.appendChild(clean);
+      range.insertNode(wrapper);
+      // Reselect inserted node
+      selection.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(wrapper);
+      selection.addRange(newRange);
     }
+
+    // Use centralized helper to apply weight to whole textbox when appropriate
+    applyToWholeTextbox(() => {
+      applyWeightToSelection(newFontWeight);
+    }, { useTemporaryEditable: true });
   });
 }
 
@@ -1179,21 +1295,38 @@ function handleTextColorPickerClick() {
         { allowRemove: false },
       );
     } else {
-      // In rich text mode, apply to selection
-      savedRange = saveSelection();
+      // In rich text mode, if we are not editing and there's no selection,
+      // select the whole content so the chosen color applies to everything.
+      // Use centralized helper to ensure selection is present when needed,
+      // and capture the range for the color palette's callback.
+      applyToWholeTextbox((t) => {
+        savedRange = saveSelection();
+      }, { useTemporaryEditable: false });
+
       showColorPalette(
         textColorPicker,
         (chosenColor) => {
           restoreSelection(savedRange);
-          const target = store.selectedElement.querySelector(".text-content");
-          if (target) {
-            target.contentEditable = "true";
-            target.focus();
+          const tgt = store.selectedElement.querySelector(".text-content");
+          if (tgt) {
+            // Ensure contentEditable while using execCommand
+            const wasEditable = tgt.isContentEditable;
+            tgt.contentEditable = "true";
+            tgt.focus();
             document.execCommand("styleWithCSS", false, true);
             if (chosenColor) {
               document.execCommand("foreColor", false, chosenColor);
+              // Persist overall color if entire content was selected
+              store.selectedElementData.textColor = chosenColor;
+            }
+            // Restore editable state
+            if (!wasEditable) {
+              tgt.contentEditable = false;
             }
           }
+          // Clear selection
+          const s = window.getSelection();
+          s && s.removeAllRanges();
         },
         { allowRemove: false },
       );
@@ -1214,8 +1347,12 @@ function handleBoldClick() {
         store.selectedElementData.fontWeight = target.style.fontWeight;
       }
     } else {
-      // In rich text mode, apply to selection
-      applyTextCommand("bold");
+      // In rich text mode, apply bold to the whole textbox when appropriate.
+      applyToWholeTextbox(() => {
+        // Use execCommand for bold; runWithTemporaryEditable will be used
+        // by applyToWholeTextbox so execCommand runs in editable context.
+        document.execCommand("bold", false, null);
+      }, { useTemporaryEditable: true });
     }
   });
 }
@@ -1234,8 +1371,9 @@ function handleItalicClick() {
         store.selectedElementData.fontStyle = target.style.fontStyle;
       }
     } else {
-      // In rich text mode, apply to selection
-      applyTextCommand("italic");
+      applyToWholeTextbox(() => {
+        document.execCommand("italic", false, null);
+      }, { useTemporaryEditable: true });
     }
   });
 }
@@ -1254,8 +1392,9 @@ function handleUnderlineClick() {
         store.selectedElementData.textDecoration = target.style.textDecoration;
       }
     } else {
-      // In rich text mode, apply to selection
-      applyTextCommand("underline");
+      applyToWholeTextbox(() => {
+        document.execCommand("underline", false, null);
+      }, { useTemporaryEditable: true });
     }
   });
 }
@@ -1272,10 +1411,11 @@ function handleAlignLeft() {
         store.selectedElementData.textAlign = "left";
         textEl.style.textAlign = "left";
       } else {
-        // In rich mode, use execCommand
-        textEl.contentEditable = "true";
-        textEl.focus();
-        document.execCommand("justifyLeft", false, null);
+        // In rich mode, use execCommand. Use temporary edit wrapper so we
+        // don't leave the element editable after applying the command.
+        runWithTemporaryEditable(textEl, () => {
+          document.execCommand("justifyLeft", false, null);
+        });
         // Persist the logical text alignment so it survives reloads
         if (store && store.selectedElementData) {
           store.selectedElementData.textAlign = "left";
@@ -1297,10 +1437,10 @@ function handleAlignCenter() {
         store.selectedElementData.textAlign = "center";
         textEl.style.textAlign = "center";
       } else {
-        // In rich mode, use execCommand
-        textEl.contentEditable = "true";
-        textEl.focus();
-        document.execCommand("justifyCenter", false, null);
+        // In rich mode, use execCommand via temporary editable wrapper
+        runWithTemporaryEditable(textEl, () => {
+          document.execCommand("justifyCenter", false, null);
+        });
         if (store && store.selectedElementData) {
           store.selectedElementData.textAlign = "center";
         }
@@ -1321,10 +1461,10 @@ function handleAlignRight() {
         store.selectedElementData.textAlign = "right";
         textEl.style.textAlign = "right";
       } else {
-        // In rich mode, use execCommand
-        textEl.contentEditable = "true";
-        textEl.focus();
-        document.execCommand("justifyRight", false, null);
+        // In rich mode, use execCommand via temporary editable wrapper
+        runWithTemporaryEditable(textEl, () => {
+          document.execCommand("justifyRight", false, null);
+        });
         if (store && store.selectedElementData) {
           store.selectedElementData.textAlign = "right";
         }
@@ -1427,7 +1567,7 @@ function addTextboxToSlide() {
     originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
     isLocked: false, // Initialize lock state
     isHidden: false, // Initialize visibility state
-    isSimpleTextMode: true, // Initialize as simple text mode by default
+    isSimpleTextMode: false, // Simple text mode removed; default to rich text
   };
 
   store.slides[store.currentSlideIndex].elements.push(newTextbox);
@@ -1440,82 +1580,7 @@ function addTextboxToSlide() {
 /**
  * Handle mode toggle between rich text and simple text modes.
  */
-function handleModeToggle(e) {
-  const newMode = e.target.value;
-  const isSimpleMode = newMode === "simple";
-
-  withSelectedTextbox(() => {
-    const currentIsSimple = store.selectedElementData.isSimpleTextMode || false;
-
-    // If switching to simple mode from rich mode, warn about formatting loss
-    if (isSimpleMode && !currentIsSimple) {
-      const confirmed = confirm(
-        gettext(
-          "Switching to simple text mode will remove all formatting (bold, italic, colors, etc.). Do you want to continue?",
-        ),
-      );
-
-      if (!confirmed) {
-        // Revert radio button selection
-        richTextModeRadio.checked = true;
-        simpleTextModeRadio.checked = false;
-        return;
-      }
-
-      pushCurrentSlideState();
-
-      // Strip all formatting except <br> tags to preserve line breaks
-      const target = store.selectedElement.querySelector(".text-content");
-      if (target) {
-        const plainTextWithBreaks = stripFormattingToPlainText(
-          target.innerHTML,
-        );
-        target.innerHTML = plainTextWithBreaks;
-
-        // Update data model
-        store.selectedElementData.isSimpleTextMode = true;
-        store.selectedElementData.text = plainTextWithBreaks;
-
-        // Apply simple mode styles
-        applySimpleModeStyles(target, store.selectedElementData);
-      }
-    } else if (!isSimpleMode && currentIsSimple) {
-      // Switching from simple to rich mode
-      pushCurrentSlideState();
-
-      const target = store.selectedElement.querySelector(".text-content");
-      if (target) {
-        // Get current content (preserve line breaks as <br> tags)
-        const currentContent = target.innerHTML;
-
-        // Wrap in span with current settings
-        const fontSize = store.selectedElementData.fontSize || "12";
-        const fontFamily =
-          store.selectedElementData.fontFamily || getDefaultFont();
-
-        // Compute px based on the actual target container
-        const computedFontSize = fontSizeKeyToPx(fontSize, target);
-
-        target.innerHTML = `<span data-font-size-key="${fontSize}" data-font-family="${fontFamily}" style="font-size: ${computedFontSize}; font-family: '${fontFamily}'; line-height: 1.2;">${currentContent}</span>`;
-
-        // Update data model
-        store.selectedElementData.isSimpleTextMode = false;
-        store.selectedElementData.text = target.innerHTML;
-
-        // Clear simple mode styles from container
-        target.style.fontSize = "";
-        target.style.fontFamily = "";
-        target.style.color = "";
-        target.style.fontWeight = "";
-        target.style.fontStyle = "";
-        target.style.textDecoration = "";
-      }
-    }
-
-    // Update font weight dropdown state based on mode
-    updateFontWeightDropdownState();
-  });
-}
+// Mode toggle removed: rich-text only. The previous toggle handler was removed.
 
 /**
  * Enable/disable font weight dropdown based on text mode.
@@ -1524,20 +1589,17 @@ function handleModeToggle(e) {
 function updateFontWeightDropdownState() {
   if (!store.selectedElementData) {
     fontWeightSelect.disabled = true;
+    fontWeightSelect.style.opacity = "0.5";
+    fontWeightSelect.style.cursor = "not-allowed";
     return;
   }
 
-  const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
-  fontWeightSelect.disabled = !isSimpleMode;
-
-  // Add visual styling for disabled state
-  if (!isSimpleMode) {
-    fontWeightSelect.style.opacity = "0.5";
-    fontWeightSelect.style.cursor = "not-allowed";
-  } else {
-    fontWeightSelect.style.opacity = "1";
-    fontWeightSelect.style.cursor = "pointer";
-  }
+  // Enable font-weight control for both simple and rich modes. In simple mode
+  // it applies to the whole container; in rich mode it applies to selection
+  // or the whole textbox when selected but not editing.
+  fontWeightSelect.disabled = false;
+  fontWeightSelect.style.opacity = "1";
+  fontWeightSelect.style.cursor = "pointer";
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1582,9 +1644,7 @@ export function initTextbox() {
     .querySelector('[data-type="textbox"]')
     .addEventListener("click", addTextboxToSlide);
 
-  // Mode toggle
-  richTextModeRadio.addEventListener("change", handleModeToggle);
-  simpleTextModeRadio.addEventListener("change", handleModeToggle);
+  // Mode toggle removed: rich text is the only mode.
 
   // Text direction toggle
   horizontalTextModeRadio.addEventListener("change", handleTextDirectionChange);
@@ -1730,6 +1790,8 @@ function handleInputOnEmpty(e) {
 //     (Used by renderSlide.js, e.g. to display the textbox element)
 // ─────────────────────────────────────────────────────────────
 export function _renderTextbox(el, container, isInteractivePlayback) {
+  // Force element into rich-text mode (simple mode removed)
+  el.isSimpleTextMode = false;
   const textWrapper = document.createElement("div");
   textWrapper.classList.add("text-content");
   textWrapper.innerHTML = el.text || gettext("Double click to edit text");
@@ -1813,6 +1875,7 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
   ) {
     textWrapper.addEventListener("dblclick", (e) => {
       e.stopPropagation();
+      
       pushCurrentSlideState();
       textWrapper.contentEditable = true;
       textWrapper.focus();
@@ -1824,19 +1887,28 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
 
     textWrapper.addEventListener("blur", () => {
       setTimeout(() => {
-        // If no other text-content is active, finalize
-        if (!document.activeElement?.closest(".text-content")) {
-          textWrapper.contentEditable = false;
+        // If focus moved into another .text-content we should keep editing.
+        const active = document.activeElement;
+        if (active?.closest?.(".text-content")) return;
 
-          if (isSimpleMode) {
-            // In simple mode, preserve line breaks as <br> tags
-            el.text = textWrapper.innerHTML;
-          } else {
-            // In rich mode, normalize and fix formatting
-            normalizeNestedSpans(textWrapper);
-            el.text = textWrapper.innerHTML;
-            fixLineHeightInTextbox(textWrapper);
-          }
+        // If the focus moved into the toolbar (e.g. a select/button),
+        // don't finalize edit mode right away — allow toolbar handlers
+        // to perform their work and responsibility for restoring focus.
+        if (active?.closest?.(".wysiwyg-toolbar")) {
+          return;
+        }
+
+        // Otherwise finalize editing and persist content
+        textWrapper.contentEditable = false;
+
+        if (isSimpleMode) {
+          // In simple mode, preserve line breaks as <br> tags
+          el.text = textWrapper.innerHTML;
+        } else {
+          // In rich mode, normalize and fix formatting
+          normalizeNestedSpans(textWrapper);
+          el.text = textWrapper.innerHTML;
+          fixLineHeightInTextbox(textWrapper);
         }
       }, 0);
     });

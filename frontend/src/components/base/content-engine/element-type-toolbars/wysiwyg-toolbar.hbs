@@ -1,18 +1,8 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="wysiwyg-toolbar" title="Textbox" }}
-      <div class="mx-3 d-flex align-items-center">
-        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text mode">
-            <input type="radio" class="btn-check" name="textModeToggle" id="simpleTextMode" value="simple" checked>
-            <label class="btn btn-outline-secondary btn-sm" style="min-width: 5rem;" for="simpleTextMode" title="{% trans 'Simple Text Mode' %}">
-                Simple
-            </label>
-            <input type="radio" class="btn-check" name="textModeToggle"  id="richTextMode" value="rich">
-            <label class="btn btn-outline-secondary btn-sm" style="min-width: 5rem;" for="richTextMode" title="{% trans 'Rich Text Mode' %}">
-                Rich Text
-            </label>
-        </div>
-        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text direction">
+            <div class="mx-3 d-flex align-items-center">
+                <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text direction">
             <input type="radio" class="btn-check" name="textDirectionToggle" id="horizontalTextMode" value="horizontal" checked>
             <label class="btn btn-outline-secondary btn-sm" for="horizontalTextMode" title="{% trans 'Horizontal Text' %}">
                 <span class="material-symbols-outlined">text_rotation_none</span>

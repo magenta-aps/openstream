@@ -798,6 +798,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
         }
 
         ev.stopPropagation();
+        
         selectElement(container, el);
       });
       makeDraggable(container, el);
