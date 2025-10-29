@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import "./style.scss";
+import VanillaMarquee from 'vanilla-marquee'; // Import vanilla-marquee
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 
@@ -10,7 +11,7 @@ const config = {
   showClock: queryParams.showClock === "true",
   showWeather: queryParams.showWeather === "true",
   selectedLocation: queryParams.selectedLocation || "",
-  tickerSpeed: parseInt(queryParams.tickerSpeed) || 80,
+  tickerSpeed: parseInt(queryParams.tickerSpeed) || 80, // Used by vanilla-marquee as px/sec
   fontSize: parseFloat(queryParams.fontSize) || 2,
 };
 
@@ -30,9 +31,7 @@ if (apiKey) {
 document.addEventListener("DOMContentLoaded", () => {
   const clock = document.getElementById("clock");
   const newsBox = document.getElementById("news");
-  const wrapper = document.getElementById("news-wrapper");
   const items1 = document.getElementById("news-items-1");
-  const items2 = document.getElementById("news-items-2");
   const weatherEl = document.getElementById("weather");
 
   const rssUrl = `${baseUrl}/api/rss/rss-to-json/`;
@@ -86,7 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((r) => r.json())
       .then((d) => {
         const frag1 = document.createDocumentFragment();
-        const frag2 = document.createDocumentFragment();
         let lastCat = "";
 
         d.news.forEach((feed) => {
@@ -101,50 +99,29 @@ document.addEventListener("DOMContentLoaded", () => {
             } <span class="item_title">${item.title}</span> ${item.summary ? " - " + item.summary : ""}`;
             lastCat = feed.name;
             frag1.appendChild(a);
-            frag2.appendChild(a.cloneNode(true));
           });
         });
 
-        items1.innerHTML = items2.innerHTML = "";
+        items1.innerHTML = ""; // Clear "Loading news..."
         items1.appendChild(frag1);
-        items2.appendChild(frag2);
 
-        /* Wait one frame so #news is no longer display:none */
-        requestAnimationFrame(setTickerSpeed);
+        // Initialize vanilla-marquee
+        // Use requestAnimationFrame to ensure styles are applied and widths are calculated
+        requestAnimationFrame(() => {
+          new VanillaMarquee(newsBox, {
+            speed: config.tickerSpeed,
+            recalcResize: true, // Automatically recalculate on resize
+            duplicated: true, // duplicate content for continuous, non-jumpy scroll
+            gap: 30, // px gap between duplicated tickers
+          });
+        });
+        
       })
       .catch((e) => {
         console.error("RSS error:", e);
-        items1.textContent = items2.textContent = "Error loading news.";
+        items1.textContent = "Error loading news.";
       });
   }
 
-  /* ---------- SPEED & ANIMATION HANDLING ---------- */
-  function setTickerSpeed() {
-    const distance = items1.scrollWidth; // px the first copy is wide
-    if (!distance) {
-      // still zero? try again next frame
-      requestAnimationFrame(setTickerSpeed);
-      return;
-    }
-    const duration = distance / config.tickerSpeed;
-
-    wrapper.style.setProperty("--ticker-distance", distance + "px");
-    wrapper.style.setProperty("--ticker-duration", duration + "s");
-
-    /* Restart the animation so it uses new duration */
-    wrapper.style.animation = "none";
-    void wrapper.offsetWidth; // reflow → flush style
-    wrapper.style.animation = `scroll ${duration}s linear infinite`;
-  }
-
-  // Only set up animation if news is enabled
-  if (config.showNews) {
-    const ro = new ResizeObserver(setTickerSpeed);
-    ro.observe(items1);
-    ro.observe(items2);
-    window.addEventListener("resize", setTickerSpeed);
-    document.fonts?.ready.then(
-      setTickerSpeed,
-    ); /* handles late-loading webfonts */
-  }
+  // All custom animation, setTickerSpeed, and ResizeObserver logic has been removed.
 });

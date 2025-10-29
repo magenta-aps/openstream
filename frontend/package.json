@@ -48,6 +48,7 @@
     "qrcodejs": "^1.0.0",
     "requirejs": "^2.3.7",
     "sass": "~1.77.6",
-    "sortablejs": "^1.14.0"
+    "sortablejs": "^1.14.0",
+    "vanilla-marquee": "^1.1.2"
   }
 }

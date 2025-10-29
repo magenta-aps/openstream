@@ -6,10 +6,7 @@
 
 @import "../../scss/main";
 
-:root {
-  --ticker-distance: 100%;
-  --ticker-duration: 60s;
-}
+/* Removed :root CSS variables for --ticker-distance and --ticker-duration */
 
 body {
   margin: 0;
@@ -60,14 +57,10 @@ body {
   flex: 1;
   overflow: hidden;
   position: relative;
+  /* vanilla-marquee adds its own inner styles for animation */
 }
 
-.news-wrapper {
-  display: flex;
-  width: max-content;
-  will-change: transform;
-  animation: scroll var(--ticker-duration) linear infinite;
-}
+/* Removed .news-wrapper styles */
 
 .news-items {
   display: flex;
@@ -88,18 +81,4 @@ body {
   font-weight: $font-weight-bold;
 }
 
-@keyframes scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(calc(-1 * var(--ticker-distance)));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .news-wrapper {
-    animation: none;
-  }
-}
+/* Removed @keyframes scroll and @media (prefers-reduced-motion) */
