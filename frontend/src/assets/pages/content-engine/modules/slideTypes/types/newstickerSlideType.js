@@ -54,6 +54,7 @@ export const NewstickerSlideType = {
       selectedLocation: config.selectedLocation || "",
       tickerSpeed: config.tickerSpeed || 80,
       fontSize: config.fontSize || 2,
+      lightMode: config.lightMode || false,
     };
   },
 
@@ -87,6 +88,7 @@ export const NewstickerSlideType = {
     this.setElementChecked("showNews-input", config.showNews);
     this.setElementChecked("showClock-input", config.showClock);
     this.setElementChecked("showWeather-input", config.showWeather);
+    this.setElementChecked("lightMode-input", config.lightMode);
     this.setElementValue("ticker-speed-input", config.tickerSpeed);
     this.setElementValue("font-size-input", config.fontSize);
     this.setElementValue("weather-location-input", config.selectedLocation);
@@ -136,6 +138,7 @@ export const NewstickerSlideType = {
       selectedLocation: config.selectedLocation || "",
       tickerSpeed: config.tickerSpeed || "80",
       fontSize: config.fontSize || "2",
+      lightMode: config.lightMode || "false",
     };
 
     return SlideTypeUtils.generateSlideUrl(
@@ -157,6 +160,7 @@ export const NewstickerSlideType = {
       selectedLocation: getElementValue("weather-location-input"),
       tickerSpeed: Number(getElementValue("ticker-speed-input")) || 80,
       fontSize: Number(getElementValue("font-size-input")) || 2,
+      lightMode: getElementChecked("lightMode-input"),
     };
   },
 

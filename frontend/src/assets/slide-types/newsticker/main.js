@@ -13,6 +13,7 @@ const config = {
   selectedLocation: queryParams.selectedLocation || "",
   tickerSpeed: parseInt(queryParams.tickerSpeed) || 80, // Used by vanilla-marquee as px/sec
   fontSize: parseFloat(queryParams.fontSize) || 2,
+  lightMode: queryParams.lightMode === "true",
 };
 
 const baseUrl = queryParams.baseUrl || BASE_URL;
@@ -29,6 +30,11 @@ if (apiKey) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Apply light mode class if enabled
+  if (config.lightMode) {
+    document.body.classList.add("light-mode");
+  }
+
   const clock = document.getElementById("clock");
   const newsBox = document.getElementById("news");
   const items1 = document.getElementById("news-items-1");
@@ -86,11 +92,17 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((d) => {
         const frag1 = document.createDocumentFragment();
         let lastCat = "";
+        let isFirst = true;
 
         d.news.forEach((feed) => {
           feed.items.forEach((item) => {
+            if (!isFirst) {
+              const sep = document.createElement("span");
+              sep.textContent = "|";
+              sep.className = "separator";
+              frag1.appendChild(sep);
+            }
             const a = document.createElement("a");
-            a.href = item.link;
             a.target = "_blank";
             a.innerHTML = `${
               lastCat !== feed.name
@@ -99,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } <span class="item_title">${item.title}</span> ${item.summary ? " - " + item.summary : ""}`;
             lastCat = feed.name;
             frag1.appendChild(a);
+            isFirst = false;
           });
         });
 
@@ -110,9 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(() => {
           new VanillaMarquee(newsBox, {
             speed: config.tickerSpeed,
-            recalcResize: true, // Automatically recalculate on resize
-            duplicated: true, // duplicate content for continuous, non-jumpy scroll
-            gap: 30, // px gap between duplicated tickers
+            recalcResize: true, 
           });
         });
         

@@ -16,6 +16,11 @@ body {
   background: $black;
 }
 
+body.light-mode {
+  background: $white;
+  color: $black;
+}
+
 #newsTickerBox {
   position: absolute;
   inset: 0;
@@ -27,6 +32,11 @@ body {
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
+}
+
+body.light-mode #newsTickerBox {
+  background: $lighter-gray;
+  color: $black;
 }
 
 #clock,
@@ -70,11 +80,28 @@ body {
 .news-items a {
   color: $white;
   text-decoration: none;
-  margin-right: 80px;
+}
+
+body.light-mode .news-items a {
+  color: $black;
+}
+
+.news-items .separator {
+  color: $white;
+  margin: 0 70px;
+  font-weight: 200;
+}
+
+body.light-mode .news-items .separator {
+  color: $black;
 }
 
 .news-items .feed_name {
   color: $neutral-blue-light;
+}
+
+body.light-mode .news-items .feed_name {
+  color: $neutral-blue;
 }
 
 .news-items .item_title {
