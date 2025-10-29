@@ -7,34 +7,33 @@
             <!-- Description Section -->
             <div class="alert alert-info mb-4 bg-secondary-accent-lighter border-gray" role="alert">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>DR-Style News Display:</strong> Creates a news carousel with optional weather and clock, based
-                on DR RSS Feed and DMI Weather API.
+                <strong>{% trans "DR-Style News Display:" %}</strong> {% trans "Creates a news carousel with optional weather and clock, based on DR RSS Feed and DMI Weather API." %}
             </div>
 
-            <h4 class=" mb-3">Settings</h4>
+            <h4 class=" mb-3">{% trans "Settings" %}</h4>
             <!-- Settings -->
             <div class="row">
                 <!-- Column 1: Colors & Toggles -->
                 <div class="col-12">
                     <!-- Text Color -->
                     <div class="mb-3 d-none">
-                        <label for="text-color" class="form-label">Text Color</label>
+                        <label for="text-color" class="form-label">{% trans "Text Color" %}</label>
                         <input type="color" id="text-color" class="form-control form-control-color" value="#ffffff" />
                     </div>
                     <!-- Background Color -->
                     <div class="mb-3 d-none">
-                        <label for="background-color" class="form-label ">Background Color</label>
+                        <label for="background-color" class="form-label ">{% trans "Background Color" %}</label>
                         <input type="color" id="background-color" class="form-control form-control-color" value="#000000" />
                     </div>
                     <!-- Include Clock -->
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="include-clock" checked />
-                        <label class="form-check-label" for="include-clock">Include Clock</label>
+                        <label class="form-check-label" for="include-clock">{% trans "Include Clock" %}</label>
                     </div>
                     <!-- Include Weather -->
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="include-weather" checked />
-                        <label class="form-check-label " for="include-weather">Include Weather</label>
+                        <label class="form-check-label " for="include-weather">{% trans "Include Weather" %}</label>
                     </div>
                 </div>
 
@@ -42,48 +41,42 @@
                 <div class="col-12">
                     <!-- Title Font Size -->
                     <div class="mb-3 row">
-                        <label for="title-font-size" class="col-sm-4 col-form-label ">Title Font Size
-                            (rem)</label>
+                        <label for="title-font-size" class="col-sm-4 col-form-label ">{% trans "Title Font Size (rem)" %}</label>
                         <div class="col-sm-8">
                             <input type="number" id="title-font-size" class="form-control  " value="2.5" step="0.125" min="1" max="4" />
                         </div>
                     </div>
                     <!-- Description Font Size -->
                     <div class="mb-3 row">
-                        <label for="description-font-size" class="col-sm-4 col-form-label ">Description Font
-                            Size (rem)</label>
+                        <label for="description-font-size" class="col-sm-4 col-form-label ">{% trans "Description Font Size (rem)" %}</label>
                         <div class="col-sm-8">
                             <input type="number" id="description-font-size" class="form-control  " value="1.25" step="0.125" min="0.75" max="2" />
                         </div>
                     </div>
                     <!-- Category Font Size -->
                     <div class="mb-3 row">
-                        <label for="category-font-size" class="col-sm-4 col-form-label ">Category Badge Font
-                            Size (rem)</label>
+                        <label for="category-font-size" class="col-sm-4 col-form-label ">{% trans "Category Badge Font Size (rem)" %}</label>
                         <div class="col-sm-8">
                             <input type="number" id="category-font-size" class="form-control  " value="0.875" step="0.125" min="0.5" max="1.5" />
                         </div>
                     </div>
                     <!-- Clock Font Size -->
                     <div class="mb-3 row">
-                        <label for="clock-font-size" class="col-sm-4 col-form-label ">Clock Font Size
-                            (rem)</label>
+                        <label for="clock-font-size" class="col-sm-4 col-form-label ">{% trans "Clock Font Size (rem)" %}</label>
                         <div class="col-sm-8">
                             <input type="number" id="clock-font-size" class="form-control  " value="1.75" step="0.125" min="0.75" max="3" />
                         </div>
                     </div>
                     <!-- Weather Font Size -->
                     <div class="mb-3 row">
-                        <label for="weather-font-size" class="col-sm-4 col-form-label ">Weather Font Size
-                            (rem)</label>
+                        <label for="weather-font-size" class="col-sm-4 col-form-label ">{% trans "Weather Font Size (rem)" %}</label>
                         <div class="col-sm-8">
                             <input type="number" id="weather-font-size" class="form-control  " value="1.25" step="0.125" min="0.75" max="2" />
                         </div>
                     </div>
                     <!-- Story Duration -->
                     <div class="mb-3 row">
-                        <label for="story-duration" class="col-sm-4 col-form-label ">Story Duration
-                            (seconds)</label>
+                        <label for="story-duration" class="col-sm-4 col-form-label ">{% trans "Story Duration (seconds)" %}</label>
                         <div class="col-sm-8">
                             <input type="number" id="story-duration" class="form-control  " value="10" min="3" max="30" />
                         </div>

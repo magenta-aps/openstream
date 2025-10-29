@@ -5,6 +5,7 @@
  * Newsfeed with Image slide type definition
  ************************************************************/
 
+import { translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const NewsfeedWithImageSlideType = {
@@ -38,6 +39,7 @@ export const NewsfeedWithImageSlideType = {
         "/slide-types/newsfeed-with-image-form",
         "Newsfeed with Image Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },

@@ -1823,6 +1823,39 @@
   "Videos are muted by default in edit mode. Audio settings only apply when the display is live.":{
     "da":"Videoer er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
   },
+  "DR-Style News Display:": {
+  "da": "DR-stil nyhedsvisning:"
+  },
+  "Creates a news carousel with optional weather and clock, based on DR RSS Feed and DMI Weather API.": {
+    "da": "Opretter et nyhedskarousel med valgfri vejr- og klokkevisning, baseret på DR RSS-feed og DMI's vejr-API."
+  },
+  "Settings": {
+    "da": "Indstillinger"
+  },
+  "Include Clock": {
+    "da": "Inkluder ur"
+  },
+  "Include Weather": {
+    "da": "Inkluder vejr"
+  },
+  "Title Font Size (rem)": {
+    "da": "Titel skrift størrelse (rem)"
+  },
+  "Description Font Size (rem)": {
+    "da": "Beskrivelse skrift størrelse (rem)"
+  },
+  "Category Badge Font Size (rem)": {
+    "da": "Kategori-badge skrift størrelse (rem)"
+  },
+  "Clock Font Size (rem)": {
+    "da": "Ur skrift størrelse (rem)"
+  },
+  "Weather Font Size (rem)": {
+    "da": "Vejr skrift størrelse (rem)"
+  },
+  "Story Duration (seconds)": {
+    "da": "Historievarighed (sekunder)"
+  },
   "Action": {
     "da": "Handling"
   },
