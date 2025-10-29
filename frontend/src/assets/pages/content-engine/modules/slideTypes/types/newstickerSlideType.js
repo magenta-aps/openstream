@@ -6,6 +6,7 @@
  ************************************************************/
 
 import { BASE_URL } from "../../../../../utils/constants.js";
+import { gettext, translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const NewstickerSlideType = {
@@ -68,6 +69,7 @@ export const NewstickerSlideType = {
         "/slide-types/newsticker-form",
         "Newsticker Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
@@ -98,7 +100,7 @@ export const NewstickerSlideType = {
     const locationSelect = document.getElementById("weather-location-input");
     if (!locationSelect || !this.currentWeatherLocations) return;
 
-    locationSelect.innerHTML = '<option value="">Select location...</option>';
+    locationSelect.innerHTML = `<option value="">${gettext("Select location...")}</option>`;
 
     this.currentWeatherLocations.forEach((location) => {
       const option = document.createElement("option");

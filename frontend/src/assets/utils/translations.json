@@ -1856,6 +1856,30 @@
   "Story Duration (seconds)": {
     "da": "Historievarighed (sekunder)"
   },
+  "Display Components": {
+    "da": "Visningskomponenter"
+  },
+  "Include News": {
+    "da": "Inkluder nyheder"
+  },
+  "Weather Location": {
+    "da": "Vejr lokation"
+  },
+  "Select location...": {
+    "da": "Vælg lokation..."
+  },
+  "Ticker Settings": {
+    "da": "Ticker-indstillinger"
+  },
+  "Speed (px/sec):": {
+    "da": "Hastighed (px/sek):"
+  },
+  "Font Size (rem):": {
+    "da": "Skrift størrelse (rem):"
+  },
+  "The ticker will appear at the bottom of your display and scroll continuously. You can move it by dragging it to your desired position.": {
+    "da": "Tickeren vises nederst på din skærm og ruller kontinuerligt. Du kan flytte den ved at trække den til den ønskede position."
+  },
   "Action": {
     "da": "Handling"
   },
