@@ -1205,6 +1205,9 @@
   "No matching content found": {
     "da": "Intet matchende indhold fundet"
   },
+  "No content found. Use the 'Add Content' button to the left":{
+    "da":"Intet indhold fundet. Brug 'Tilføj Indhold' knappen til venstre"
+  },
   "Edit Name": {
     "da": "Rediger Navn"
   },
