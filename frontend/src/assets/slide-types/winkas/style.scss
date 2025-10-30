@@ -1,52 +1,39 @@
 /* SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> */
 
 /* SPDX-License-Identifier: AGPL-3.0-only */
-// WinKAS Booking Display Styles (ported from KMD Foreningsportalen)
+// WinKAS Booking Display Styles
 @import "../../scss/main";
 
 html,
 body {
   height: 100%;
   margin: 0;
-  background-color: transparent;
-  font-size: 1.25rem;
+  background-color: black;
 }
 
 * {
   font-family: Figtree, sans-serif;
 }
 
-#wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-
+/* === 2. The Fixed-Size Header === */
 #header {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: $white;
-  background-color: $secondary;
-  padding: 1.5rem 2.6rem;
-  border-radius: 0.4rem;
+  background-color: rgb(4, 4, 47);
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 0; /* This tells the header NOT to shrink */
+  z-index: 2;
+  position: relative;
 }
 
 .location-name-container {
   display: flex;
   align-items: flex-end;
   gap: 0.5em;
-
-  .material-symbols-outlined {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    margin-right: 2rem;
-  }
 }
 
 .location-name {
@@ -56,47 +43,16 @@ body {
 
 .date-display {
   text-align: right;
-  font-size: 2rem;
   font-weight: bold;
-}
-
-#booking-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  width: 100%;
-  margin-top: 1rem;
-  position: relative;
-}
-
-.booking-carousel {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  transition: transform 0.8s ease-in-out;
-  width: 100%;
-  height: 100%;
-}
-
-.booking-page {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  height: 100%;
-  width: 100%;
-  justify-content: flex-start;
-  box-sizing: border-box;
-  flex-shrink: 0;
 }
 
 .booking-entry {
   color: $white;
   background: $darkest-gray;
   padding: 1.5rem;
-  border-radius: 0.4rem;
   box-shadow: 0 0 10px rgba($black, 0.05);
-  transition: all 0.3s ease;
+  flex-shrink: 0; 
+  border-bottom: 1px solid $lightest-gray;
 }
 
 .booking-details {
@@ -159,155 +115,7 @@ body {
   }
 }
 
-// No bookings message
-.no-bookings-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-  color: $white;
-
-  .material-symbols-outlined {
-    font-size: 4rem;
-    opacity: 0.5;
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    opacity: 0.8;
-  }
-
-  p {
-    font-size: 1.2rem;
-    opacity: 0.6;
-    max-width: 400px;
-  }
-}
-
-// Error message
-.error-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-  color: $error-red;
-
-  .material-symbols-outlined {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    font-size: 1.2rem;
-    opacity: 0.8;
-    max-width: 400px;
-  }
-}
-
-// Responsive adjustments
-@media (width <= 1200px) {
-  #header {
-    font-size: 1.8rem;
-    padding: 1.2rem 2rem;
-
-    .date-display {
-      font-size: 1.8rem;
-    }
-  }
-
-  .booking-entry {
-    padding: 1.2rem;
-  }
-
-  .booking-details {
-    gap: 1.5rem;
-  }
-
-  .time-column {
-    min-width: 80px;
-
-    .start-time,
-    .end-time {
-      font-size: 1.2rem;
-    }
-  }
-
-  .booking-info {
-    .booking-title {
-      font-size: 1.4rem;
-    }
-
-    .booking-location,
-    .booking-organizer {
-      font-size: 1.1rem;
-    }
-  }
-}
-
-@media (width <= 768px) {
-  #wrapper {
-    padding: 0.5rem;
-  }
-
-  #header {
-    font-size: 1.5rem;
-    padding: 1rem;
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-
-    .date-display {
-      font-size: 1.5rem;
-    }
-  }
-
-  .location-name-container {
-    .material-symbols-outlined {
-      font-size: 2rem;
-      margin-right: 1rem;
-    }
-  }
-
-  .booking-details {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  .time-column {
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-    min-width: auto;
-
-    .time-divider {
-      width: 20px;
-      height: 3px;
-      margin: 0;
-    }
-  }
-
-  .booking-info {
-    text-align: left;
-
-    .booking-title {
-      font-size: 1.3rem;
-    }
-
-    .booking-location,
-    .booking-organizer {
-      font-size: 1rem;
-    }
-  }
+#booking-body {
+  height: 100px;
+  z-index: 1;
 }

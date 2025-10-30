@@ -49,9 +49,8 @@ export const WinkasSlideType = {
     return {
       location: config.location || "",
       sub_locations: config.sub_locations || [],
-      // New continuous scrolling options
-      continuous_scroll: config.continuous_scroll || false,
-      scroll_speed: config.scroll_speed || 100,
+  // Marquee-only: we no longer offer a paginated mode, only scroll speed (1-10)
+  scroll_speed: config.scroll_speed || 5,
     };
   },
 
@@ -81,31 +80,17 @@ export const WinkasSlideType = {
   populateFormData(config) {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
-    // Populate continuous scroll settings
-    const continuousToggle = document.getElementById(
-      "continuous-scroll-toggle",
-    );
-    const scrollSettings = document.getElementById(
-      "continuous-scroll-settings",
-    );
+    // Populate marquee (scroll speed) control
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
-    if (continuousToggle) {
-      continuousToggle.checked = !!config.continuous_scroll;
-    }
-    if (scrollSettings) {
-      scrollSettings.style.display = config.continuous_scroll
-        ? "block"
-        : "none";
-    }
     if (scrollSpeedInput) {
-      scrollSpeedInput.value = config.scroll_speed || 100;
+      scrollSpeedInput.value = config.scroll_speed || 5;
     }
     if (scrollSpeedValue) {
       scrollSpeedValue.textContent = scrollSpeedInput
         ? scrollSpeedInput.value
-        : config.scroll_speed || 100;
+        : config.scroll_speed || 5;
     }
   },
 
@@ -182,13 +167,6 @@ export const WinkasSlideType = {
   setupFormEventListeners() {
     const locationSelect = document.getElementById("location-input");
     const allSelector = document.getElementById("all-selector");
-
-    const continuousToggle = document.getElementById(
-      "continuous-scroll-toggle",
-    );
-    const scrollSettings = document.getElementById(
-      "continuous-scroll-settings",
-    );
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
@@ -223,19 +201,6 @@ export const WinkasSlideType = {
       );
     }
 
-    // Continuous scroll toggle listener
-    if (continuousToggle) {
-      const toggleHandler = (e) => {
-        const enabled = e.target.checked;
-        if (scrollSettings)
-          scrollSettings.style.display = enabled ? "block" : "none";
-      };
-      continuousToggle.addEventListener("change", toggleHandler);
-      this.eventListenerCleanup.push(() =>
-        continuousToggle.removeEventListener("change", toggleHandler),
-      );
-    }
-
     // Scroll speed listener
     if (scrollSpeedInput && scrollSpeedValue) {
       const speedHandler = (e) => {
@@ -260,8 +225,9 @@ export const WinkasSlideType = {
     const params = {
       location: config.location || "",
       sub_locations: (config.sub_locations || []).join(","),
-      continuous_scroll: config.continuous_scroll ? "1" : "0",
-      scroll_speed: config.scroll_speed || 100,
+      // Always use marquee (continuous scrolling)
+      continuous_scroll: "1",
+  scroll_speed: config.scroll_speed || 5,
     };
 
     return SlideTypeUtils.generateSlideUrl(
@@ -276,10 +242,6 @@ export const WinkasSlideType = {
     const subLocationCheckboxes = document.querySelectorAll(
       ".sub_loc_box:checked",
     );
-
-    const continuousToggle = document.getElementById(
-      "continuous-scroll-toggle",
-    );
     const scrollSpeedInput = document.getElementById("scroll-speed");
 
     const subLocations = Array.from(subLocationCheckboxes).map(
@@ -289,8 +251,9 @@ export const WinkasSlideType = {
     return {
       location: locationSelect?.value || "",
       sub_locations: subLocations,
-      continuous_scroll: continuousToggle ? !!continuousToggle.checked : false,
-      scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 100,
+      // Marquee-only: always enabled
+      continuous_scroll: true,
+      scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 5,
     };
   },
 
@@ -309,12 +272,14 @@ export const WinkasSlideType = {
       return false;
     }
 
-    // If continuous scrolling is enabled, ensure scroll speed is within bounds
-    if (data.continuous_scroll) {
-      if (isNaN(data.scroll_speed) || data.scroll_speed <= 0) {
-        alert("Please set a valid scroll speed for continuous scrolling.");
-        return false;
-      }
+    // Ensure scroll speed is within the allowed 1..10 range
+    if (
+      isNaN(data.scroll_speed) ||
+      data.scroll_speed < 1 ||
+      data.scroll_speed > 10
+    ) {
+      alert("Please set a valid scroll speed between 1 and 10.");
+      return false;
     }
 
     return true;
