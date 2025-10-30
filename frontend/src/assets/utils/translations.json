@@ -3278,7 +3278,7 @@
   " Add Box": {
     "da": " Tilføj Boks"
   },
-  " Border Radius": {
+  "Border Radius": {
     "da": " Kant Radius"
   },
   " Add Border Radius To Selected Element": {
@@ -3331,5 +3331,41 @@
   },
   "QR code":{
     "da":"QR kode"
+  },
+  "Pinned":{
+    "da":"Fastgjort"
+  },
+  "Locked":{
+    "da":"Låst"
+  },
+  "Selection blocked":{
+    "da":"Elementet er blockeret"
+  },
+  "URL":{
+    "da":"URL"
+  },
+  "Foreground":{
+    "da":"Forgrund"
+  },
+  "Quality":{
+    "da":"Kvalitet"
+  },
+  "Low":{
+    "da":"Lav"
+  },
+  "Medium":{
+    "da":"Medium"
+  },
+  "High":{
+    "da":"Høj"
+  },
+  "Ultra":{
+    "da":"Ultra"
+  },
+  "Add QR Code":{
+    "da":"Tilføj QR kode"
+  },
+  "Normal":{
+    "da":"Normal"
   }
 }
