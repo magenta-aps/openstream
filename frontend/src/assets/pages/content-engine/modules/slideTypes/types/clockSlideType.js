@@ -5,6 +5,7 @@
  * Clock Widget slide type definition
  ************************************************************/
 
+import { translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const ClockSlideType = {
@@ -30,6 +31,7 @@ export const ClockSlideType = {
         "/slide-types/clock-form",
         "Clock Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },

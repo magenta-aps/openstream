@@ -1880,6 +1880,54 @@
   "The ticker will appear at the bottom of your display and scroll continuously. You can move it by dragging it to your desired position.": {
     "da": "Tickeren vises nederst på din skærm og ruller kontinuerligt. Du kan flytte den ved at trække den til den ønskede position."
   },
+  "Displays a live digital clock that updates every second.": {
+    "da": "Viser et live digitalt ur, der opdateres hvert sekund."
+  },
+  "Clock Appearance": {
+    "da": "Ur design"
+  },
+  "Preset Colors": {
+    "da": "Forudindstillede farver"
+  },
+  "White": {
+    "da": "Hvid"
+  },
+  "Black": {
+    "da": "Sort"
+  },
+  "Red": {
+    "da": "Rød"
+  },
+  "Blue": {
+    "da": "Blå"
+  },
+  "Green": {
+    "da": "Grøn"
+  },
+  "Yellow": {
+    "da": "Gul"
+  },
+  "Orange": {
+    "da": "Orange"
+  },
+  "Purple": {
+    "da": "Lilla"
+  },
+  "Custom Color": {
+    "da": "Brugerdefineret farve"
+  },
+  "Choose your custom color": {
+    "da": "Vælg din brugerdefinerede farve"
+  },
+  "Click to choose a custom color": {
+    "da": "Klik for at vælge en brugerdefineret farve"
+  },
+  "Clock Size": {
+    "da": "Urstørrelse"
+  },
+  "Clock size in pixels": {
+    "da": "Urstørrelse i pixels"
+  },
   "Action": {
     "da": "Handling"
   },

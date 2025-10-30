@@ -7,49 +7,49 @@
             <!-- Description Section -->
             <div class="alert alert-info mb-4 bg-secondary-accent border-gray" role="alert">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>About this widget:</strong> Displays a live digital clock that updates every second.
+                <strong>{% trans "About this widget:" %}</strong> {% trans "Displays a live digital clock that updates every second." %}
             </div>
 
             <!-- Color Selection -->
             <div class="mb-4">
-                <h6 class=" mb-3">Clock Appearance</h6>
+                <h6 class=" mb-3">{% trans "Clock Appearance" %}</h6>
 
                 <!-- Preset Colors -->
                 <div class="mb-3">
                     <label for="choose-color" class="form-label ">
-                        Preset Colors
+                        {% trans "Preset Colors" %}
                     </label>
                     <select id="choose-color" class="form-select  border-gray">
-                        <option selected value="white">White</option>
-                        <option value="black">Black</option>
-                        <option value="red">Red</option>
-                        <option value="blue">Blue</option>
-                        <option value="green">Green</option>
-                        <option value="yellow">Yellow</option>
-                        <option value="orange">Orange</option>
-                        <option value="purple">Purple</option>
-                        <option value="custom">Custom Color</option>
+                        <option selected value="white">{% trans "White" %}</option>
+                        <option value="black">{% trans "Black" %}</option>
+                        <option value="red">{% trans "Red" %}</option>
+                        <option value="blue">{% trans "Blue" %}</option>
+                        <option value="green">{% trans "Green" %}</option>
+                        <option value="yellow">{% trans "Yellow" %}</option>
+                        <option value="orange">{% trans "Orange" %}</option>
+                        <option value="purple">{% trans "Purple" %}</option>
+                        <option value="custom">{% trans "Custom Color" %}</option>
                     </select>
                 </div>
 
                 <!-- Custom Color Picker -->
                 <div class="mb-3" id="custom-color-section" style="display: none">
                     <label for="custom-color-picker" class="form-label ">
-                        Custom Color
+                        {% trans "Custom Color" %}
                     </label>
                     <div class="d-flex align-items-center gap-2">
                         <input type="color" id="custom-color-picker" class="form-control form-control-color border-gray" value="#ffffff" title="Choose your custom color" />
-                        <span class=" small">Click to choose a custom color</span>
+                        <span class=" small">{% trans "Click to choose a custom color" %}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Size Selection -->
             <div class="mb-4">
-                <h6 class=" mb-3">Clock Size</h6>
+                <h6 class=" mb-3">{% trans "Clock Size" %}</h6>
                 <div class="mb-3">
                     <label for="clock-size-input" class="form-label ">
-                        Clock size in pixels
+                        {% trans "Clock size in pixels" %}
                     </label>
                     <input type="number" class="form-control border-gray" id="clock-size-input" value="100" min="50" max="500" />
                 </div>
@@ -57,7 +57,7 @@
 
             <!-- Preview Section -->
             <div class="mb-4">
-                <h6 class=" mb-3">Preview</h6>
+                <h6 class=" mb-3">{% trans "Preview" %}</h6>
                 <div class="border border-dark-gray rounded p-3 bg-gray text-center">
                     <div id="clock-preview" class="display-4 fw-bold" style="color: white">
                         12:34:56
