@@ -30,7 +30,6 @@ body.light-mode {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
   box-sizing: border-box;
 }
 
@@ -108,4 +107,6 @@ body.light-mode .news-items .feed_name {
   font-weight: $font-weight-bold;
 }
 
-/* Removed @keyframes scroll and @media (prefers-reduced-motion) */
+#clock {
+width: 7rem;
+}
