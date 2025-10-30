@@ -5,6 +5,7 @@
  * DR Video Streams slide type definition
  ************************************************************/
 
+import { translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
 
 export const DrStreamsSlideType = {
@@ -32,6 +33,7 @@ export const DrStreamsSlideType = {
         "/slide-types/dr-streams-form",
         "DR Streams Form",
         () => {
+          translateHTML(); // Translate after loading template
           this.populateFormData(config);
           this.setupFormEventListeners();
         },

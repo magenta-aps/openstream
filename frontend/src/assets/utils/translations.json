@@ -1928,6 +1928,15 @@
   "Clock size in pixels": {
     "da": "Urstørrelse i pixels"
   },
+  "Mute audio (Recommended for displays)":{
+    "da":"Slå lyden fra (Anbefalet for skærme)"
+  },
+  "Streams are muted by default in edit mode. Audio settings only apply when the display is live.":{
+    "da":"Streams er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
+  },
+  "Select Channel":{
+    "da":"Vælg kanal"
+  },
   "Action": {
     "da": "Handling"
   },
