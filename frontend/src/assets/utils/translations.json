@@ -3376,5 +3376,8 @@
   },
   "Normal":{
     "da":"Normal"
+  },
+  "You cannot combine with default content when the group has interactive slideshow as default":{
+    "da":"Du kan ikke kombinere med standardindhold, når gruppen har interaktivt slideshow som standard"
   }
 }
