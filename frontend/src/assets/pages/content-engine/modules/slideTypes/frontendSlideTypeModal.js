@@ -361,7 +361,7 @@ class FrontendSlideTypeModal {
           <td>${slideType.categoryName}</td>
           <td>
             <button type="button" class="btn btn-primary btn-sm open-slide-type-btn" data-slide-type-id="${slideType.id}">
-              Open
+              ${gettext("Open")}
             </button>
           </td>
         </tr>
