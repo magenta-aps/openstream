@@ -20,16 +20,16 @@ const config = {
 const scrollSpeed = Number(queryParams.scroll_speed)
 
 const speeds = {
-  1: 25000,
-  2: 22500,
-  3: 20000,
-  4: 17500,
-  5: 15000,
-  6: 12500,
-  7: 10000,
-  8: 7500,
-  9: 5000,
-  10: 2500,
+  1: 20,
+  2: 40,
+  3: 60,
+  4: 80,
+  5: 100,
+  6: 120,
+  7: 140,
+  8: 160,
+  9: 180,
+  10: 200,
 }
 
 
@@ -194,9 +194,15 @@ function displayBookingsInCarousel(locationBookings) {
   // 3. Add the single list to the body container
   bookingBody.appendChild(list);
 
+  const pxPrSec = (bookingBody.scrollHeight / speeds[scrollSpeed]) * 1000;
+
+  console.log(bookingBody.scrollHeight)
+
+  bookingBody.style.height = '100%';
+
   new InfiniteMarquee({
     element: '#booking-body',
-    speed: speeds[scrollSpeed],
+    speed: pxPrSec,
     direction: 'top',
     duplicateCount: 10,
     on: {
