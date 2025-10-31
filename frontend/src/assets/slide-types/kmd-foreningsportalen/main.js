@@ -4,6 +4,8 @@ import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 
+import InfiniteMarquee from 'vanilla-infinite-marquee';
+
 // Parse config from query parameters
 const config = {
   location: queryParams.location || "",
@@ -12,11 +14,21 @@ const config = {
     : [],
 };
 
-// Continuous scroll options from query params
-const continuousScroll =
-  queryParams.continuous_scroll === "1" ||
-  String(queryParams.continuous_scroll).toLowerCase() === "true";
-const scrollSpeed = Number(queryParams.scroll_speed) || 100; // pixels per second
+// Marquee options from query params
+const scrollSpeed = Number(queryParams.scroll_speed) || 5;
+
+const speeds = {
+  1: 20,
+  2: 40,
+  3: 60,
+  4: 80,
+  5: 100,
+  6: 120,
+  7: 140,
+  8: 160,
+  9: 180,
+  10: 200,
+};
 
 const baseUrl = queryParams.baseUrl || BASE_URL;
 
@@ -31,18 +43,13 @@ if (apiKey) {
   headers["Authorization"] = `Bearer ${token}`;
 }
 
-let carouselInterval = null;
-let currentCarouselIndex = 0;
-let bookingsPerPage = 6;
-let bookingEntryHeight = 120;
+let locationData = {};
 
-// Initialize the slide
+// Fetch location data and bookings
 async function initializeSlide() {
   try {
-    // Set up date header
     updateDateHeader();
-
-    // Fetch and display bookings
+    await fetchLocationData();
     await fetchAndDisplayBookings();
   } catch (error) {
     console.error("Error initializing slide:", error);
@@ -73,290 +80,255 @@ function updateDateHeader() {
   header.textContent = formattedDate;
 }
 
-async function fetchAndDisplayBookings() {
+async function fetchLocationData() {
   try {
-    const response = await fetch(`${baseUrl}/api/kmd/`, {
-      method: "POST",
+    const response = await fetch(`${baseUrl}/api/kmd/locations`, {
+      method: "GET",
       headers,
-      body: JSON.stringify({
-        location: config.location,
-        sub_locations: config.sub_locations,
-      }),
     });
 
     if (!response.ok) {
-      console.error(
-        "Failed to fetch bookings:",
-        response.status,
-        response.statusText,
-      );
+      throw new Error(`Failed to fetch location data: ${response.statusText}`);
+    }
+
+    locationData = await response.json();
+
+    const locationTitle = document.getElementById("location-title");
+    if (locationTitle && locationData[config.location]) {
+      locationTitle.textContent = locationData[config.location].location_name;
+    }
+  } catch (error) {
+    console.error("Error fetching location data:", error);
+    throw error;
+  }
+}
+
+async function fetchAndDisplayBookings() {
+  try {
+    const subLocationsParam = config.sub_locations.join(",");
+    // KMD backend expects a POST to /api/kmd/ with JSON body { location, sub_locations }
+    const response = await fetch(`${baseUrl}/api/kmd/`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ location: config.location, sub_locations: config.sub_locations }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch bookings:", response.status, response.statusText);
       displayError("Failed to fetch booking data");
       return;
     }
 
     const data = await response.json();
+    // KMD returns shape like { loc_name: "Facility X", data: [...], is_sub_loc: bool }
     displayBookingsInCarousel(data);
   } catch (error) {
     console.error("Error fetching bookings:", error);
     displayError("Error loading bookings");
   }
 }
-
 function displayBookingsInCarousel(locationBookings) {
   const locationTitle = document.getElementById("location-title");
-  const bookingCarousel = document.getElementById("booking-carousel");
+  const bookingBody = document.getElementById("booking-body");
 
-  if (!bookingCarousel) return;
+  if (!bookingBody) return;
 
-  // Update location title
-  if (locationTitle && locationBookings.loc_name) {
-    locationTitle.textContent = locationBookings.loc_name;
+  // KMD returns loc_name and data
+  const locName = locationBookings && (locationBookings.loc_name || locationBookings.location_name);
+  const bookings = locationBookings && locationBookings.data ? locationBookings.data : [];
+
+  if (locationTitle && locName) {
+    locationTitle.textContent = locName;
   }
 
-  // Clear existing content and intervals
-  if (carouselInterval) {
-    clearInterval(carouselInterval);
-    carouselInterval = null;
-  }
-  bookingCarousel.innerHTML = "";
+  bookingBody.innerHTML = "";
 
-  if (
-    !locationBookings ||
-    !locationBookings.data ||
-    locationBookings.data.length === 0
-  ) {
-    bookingCarousel.innerHTML = `
-      <div class="booking-page">
+  if (!bookings || bookings.length === 0) {
+    bookingBody.innerHTML = `
+      <div class="booking-list">
         <div class="no-bookings-message">
           <span class="material-symbols-outlined">event_busy</span>
-          <h3>Ingen aktiviteter i dag</h3>
-          <p>Der er ingen bookede aktiviteter for de valgte lokaler i dag.</p>
+          <h3>No bookings scheduled</h3>
+          <p>There are currently no bookings for the selected locations.</p>
         </div>
       </div>
     `;
     return;
   }
 
-  const bookings = locationBookings.data;
-
-  // Calculate bookings per page based on available space
-  calculateBookingsPerPage(bookings);
-
-  const totalPages = Math.ceil(bookings.length / bookingsPerPage);
-
-  // Create carousel pages
-  for (let page = 0; page < totalPages; page++) {
-    const pageDiv = document.createElement("div");
-    pageDiv.className = "booking-page";
-
-    const startIndex = page * bookingsPerPage;
-    const endIndex = Math.min(startIndex + bookingsPerPage, bookings.length);
-
-    for (let i = startIndex; i < endIndex; i++) {
-      const booking = bookings[i];
-      const bookingDiv = createBookingElement(booking);
-      pageDiv.appendChild(bookingDiv);
-    }
-
-    bookingCarousel.appendChild(pageDiv);
-  }
-
-  // Start carousel rotation if multiple pages
-  if (continuousScroll) {
-    startContinuousScroll();
-  } else if (totalPages > 1) {
-    startCarousel(bookings.length);
-  }
-}
-
-function clearExistingAnimations() {
-  if (carouselInterval) {
-    clearInterval(carouselInterval);
-    carouselInterval = null;
-  }
-  if (window.kmdContinuousRAF) {
-    cancelAnimationFrame(window.kmdContinuousRAF);
-    window.kmdContinuousRAF = null;
-  }
-}
-
-function startContinuousScroll() {
-  // Ensure previous animations cleared
-  clearExistingAnimations();
-
-  const carousel = document.querySelector("#booking-carousel");
-  const bookingBody = document.getElementById("booking-body");
-  if (!carousel || !bookingBody) return;
-
-  // Build a single column list of booking entries (flatten pages)
-  const entries = Array.from(carousel.querySelectorAll(".booking-entry"));
-  if (entries.length === 0) return;
-
-  // Create wrapper and content containers
-  carousel.innerHTML = "";
-  const wrapper = document.createElement("div");
-  wrapper.className = "booking-list-wrapper";
-  wrapper.style.willChange = "transform";
-  wrapper.style.position = "relative";
-  wrapper.style.display = "block";
-
   const list = document.createElement("div");
   list.className = "booking-list";
-  list.style.display = "flex";
-  list.style.flexDirection = "column";
-  list.style.rowGap = "8px";
 
-  // Move existing entries into the list
-  entries.forEach((entry) => {
-    entry.style.display = "block";
-    entry.style.width = "100%";
-    list.appendChild(entry);
+  bookings.forEach((booking) => {
+    const bookingDiv = createKmdBookingElement(booking, locName);
+    list.appendChild(bookingDiv);
   });
 
-  // Append two copies for seamless looping
-  wrapper.appendChild(list);
-  const clone = list.cloneNode(true);
-  wrapper.appendChild(clone);
+  bookingBody.appendChild(list);
 
-  // Ensure carousel has overflow hidden and fixed height
-  carousel.style.overflow = "hidden";
-  carousel.appendChild(wrapper);
+  // calculate pxPrSec before style.height is set to 100%, so scrollHeight is based on the number of bookings so we can set a proper speed. If we set the style.height first, 
+  // scrollHeight will be equal to the container height and speed will be way off.
 
-  // Measure the height of one list
-  const originalHeight = list.offsetHeight;
-  if (originalHeight === 0) return; // nothing to scroll
+  const pxPrSec = (bookingBody.scrollHeight / speeds[scrollSpeed]) * 1000;
 
-  let translateY = 0;
-  let lastTs = null;
+  bookingBody.style.height = '100%';
 
-  function step(ts) {
-    if (!lastTs) lastTs = ts;
-    const dt = (ts - lastTs) / 1000; // seconds
-    lastTs = ts;
-
-    // Move up at scrollSpeed pixels per second
-    translateY -= scrollSpeed * dt;
-
-    // When we've scrolled past the first list, wrap back
-    if (Math.abs(translateY) >= originalHeight) {
-      translateY += originalHeight;
-    }
-
-    wrapper.style.transform = `translateY(${translateY}px)`;
-
-    window.kmdContinuousRAF = requestAnimationFrame(step);
-  }
-
-  window.kmdContinuousRAF = requestAnimationFrame(step);
+  new InfiniteMarquee({
+    element: '#booking-body',
+    speed: pxPrSec,
+    direction: 'top',
+    duplicateCount: 10,
+  });
 }
 
-function createBookingElement(booking) {
-  const bookingDiv = document.createElement("div");
-  bookingDiv.className = "booking-entry";
+// KMD time strings are like "HH:MM" (FomKlo/TomKlo). Parse them as today with given time.
+function parseKmdTime(timeStr) {
+  if (!timeStr) return null;
+  const m = String(timeStr).trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const [, hh, mm] = m;
+  const d = new Date();
+  d.setHours(parseInt(hh, 10), parseInt(mm, 10), 0, 0);
+  return isFinite(d.getTime()) ? d : null;
+}
 
-  bookingDiv.innerHTML = `
+function createKmdBookingElement(booking, fallbackLocationName = "") {
+  // booking shape: { ObjectName, PartOfObjectName, Activity, CustomerName, FomKlo, TomKlo }
+  const locationName = booking.ObjectName || booking.PartOfObjectName || fallbackLocationName || "";
+
+  const startTime = parseKmdTime(booking.FomKlo || booking.Fom || booking.FomKlo);
+  const endTime = parseKmdTime(booking.TomKlo || booking.Tom || booking.TomKlo);
+
+  const timeFormatter = new Intl.DateTimeFormat("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+  const safeFormatTime = (d) => {
+    if (!d || !isFinite(d.getTime())) return "--:--";
+    return timeFormatter.format(d);
+  };
+
+  const startTimeStr = safeFormatTime(startTime);
+  const endTimeStr = safeFormatTime(endTime);
+
+  const now = new Date();
+  let statusClass = "upcoming";
+  if (startTime && endTime) {
+    if (now >= startTime && now <= endTime) statusClass = "ongoing";
+    else if (now > endTime) statusClass = "completed";
+  }
+
+  const bookingElement = document.createElement("div");
+  bookingElement.className = `booking-entry ${statusClass}`;
+
+  bookingElement.innerHTML = `
     <div class="booking-details">
       <div class="time-column">
-        <div class="start-time">${booking.FomKlo || ""}</div>
+        <div class="start-time">${startTimeStr}</div>
         <div class="time-divider"></div>
-        <div class="end-time">${booking.TomKlo || ""}</div>
+        <div class="end-time">${endTimeStr}</div>
       </div>
       <div class="booking-info">
-        <div class="booking-title">${booking.Activity || "Unavngivet aktivitet"}</div>
-        <div class="booking-location">
-          <strong>Lokale:</strong> ${booking.PartOfObjectName || booking.ObjectName || "Ikke angivet"}
-        </div>
-        <div class="booking-organizer">
-          <strong>Arrangør:</strong> ${booking.CustomerName || "Ikke angivet"}
-        </div>
+        <div class="booking-title">${booking.Activity || booking.ActivityType || "Aktivitet"}</div>
+        <div class="booking-location"><strong>Lokale:</strong> ${locationName || "Ikke angivet"}</div>
+        ${booking.CustomerName ? `<div class="booking-organizer"><strong>Arrangør:</strong> ${booking.CustomerName}</div>` : ""}
       </div>
     </div>
   `;
 
-  return bookingDiv;
+  return bookingElement;
 }
 
-function calculateBookingsPerPage(bookings) {
-  if (bookings.length === 0) {
-    bookingsPerPage = 6;
-    return;
+function parseWinKASDate(input) {
+  if (!input && input !== 0) return null;
+  if (input instanceof Date) return input;
+
+  if (typeof input === "number" && isFinite(input)) {
+    const ms = input > 1e12 ? input : input * 1000;
+    const d = new Date(ms);
+    return isFinite(d.getTime()) ? d : null;
   }
 
-  const bookingBody = document.getElementById("booking-body");
-  if (!bookingBody) return;
+  if (typeof input === "string") {
+    const isoTry = new Date(input);
+    if (isFinite(isoTry.getTime())) return isoTry;
 
-  const availableHeight = bookingBody.clientHeight - 32; // Account for padding
+    const m = input.trim().match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (m) {
+      const [, dd, mm, yyyy, hh, min, sec] = m;
+      const d = new Date(
+        parseInt(yyyy, 10),
+        parseInt(mm, 10) - 1,
+        parseInt(dd, 10),
+        parseInt(hh, 10),
+        parseInt(min, 10),
+        parseInt(sec || "0", 10),
+      );
+      return isFinite(d.getTime()) ? d : null;
+    }
+  }
 
-  // Create a temporary container to measure booking height
-  const tempContainer = document.createElement("div");
-  tempContainer.style.cssText = `
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-    width: ${bookingBody.clientWidth}px;
-    visibility: hidden;
+  return null;
+}
+
+function createBookingElement(booking, fallbackLocationName = "") {
+  const bookingData = booking.booking_data || booking;
+  const locationName = booking.sub_location || booking.location_name || fallbackLocationName || "";
+
+  const startTime = parseWinKASDate(bookingData.start);
+  const endTime = parseWinKASDate(bookingData.stop);
+
+  const timeFormatter = new Intl.DateTimeFormat("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+  const safeFormatTime = (d) => {
+    if (!d || !isFinite(d.getTime())) return "--:--";
+    return timeFormatter.format(d);
+  };
+
+  const startTimeStr = safeFormatTime(startTime);
+  const endTimeStr = safeFormatTime(endTime);
+
+  const now = new Date();
+  let statusClass = "upcoming";
+  if (startTime && endTime) {
+    if (now >= startTime && now <= endTime) statusClass = "ongoing";
+    else if (now > endTime) statusClass = "completed";
+  }
+
+  const bookingElement = document.createElement("div");
+  bookingElement.className = `booking-entry ${statusClass}`;
+
+  bookingElement.innerHTML = `
+    <div class="booking-details">
+      <div class="time-column">
+        <div class="start-time">${startTimeStr}</div>
+        <div class="time-divider"></div>
+        <div class="end-time">${endTimeStr}</div>
+      </div>
+      <div class="booking-info">
+        <div class="booking-title">${bookingData.subject || "Untitled Booking"}</div>
+        <div class="booking-location"><strong>Lokale:</strong> ${locationName || "Ikke angivet"}</div>
+        ${bookingData.booked_by ? `<div class="booking-organizer"><strong>Arrangør:</strong> ${bookingData.booked_by}</div>` : ""}
+      </div>
+    </div>
   `;
-  document.body.appendChild(tempContainer);
 
-  let maxHeight = 0;
-
-  // Measure a few sample bookings to get average height
-  const samplesToMeasure = Math.min(3, bookings.length);
-  for (let i = 0; i < samplesToMeasure; i++) {
-    const tempBooking = createBookingElement(bookings[i]);
-    tempContainer.appendChild(tempBooking);
-
-    const height = tempBooking.offsetHeight + 8; // Add gap
-    maxHeight = Math.max(maxHeight, height);
-
-    tempContainer.removeChild(tempBooking);
-  }
-
-  document.body.removeChild(tempContainer);
-
-  if (maxHeight > 0) {
-    bookingEntryHeight = maxHeight;
-    bookingsPerPage = Math.floor(availableHeight / bookingEntryHeight);
-    bookingsPerPage = Math.max(1, bookingsPerPage);
-  }
-}
-
-function startCarousel(totalBookings) {
-  if (carouselInterval) {
-    clearInterval(carouselInterval);
-  }
-
-  if (totalBookings <= bookingsPerPage) {
-    return;
-  }
-
-  const totalPages = Math.ceil(totalBookings / bookingsPerPage);
-  currentCarouselIndex = 0;
-
-  carouselInterval = setInterval(() => {
-    currentCarouselIndex = (currentCarouselIndex + 1) % totalPages;
-    const carousel = document.querySelector("#booking-carousel");
-    const translateY = -currentCarouselIndex * 100;
-    carousel.style.transform = `translateY(${translateY}%)`;
-  }, 6000);
+  return bookingElement;
 }
 
 function displayError(message) {
-  const carousel = document.getElementById("booking-carousel");
-  if (!carousel) return;
+  const bookingBody = document.getElementById("booking-body");
+  if (!bookingBody) return;
 
-  carousel.innerHTML = `
-    <div class="booking-page">
+  bookingBody.innerHTML = `
+    <div class="booking-list">
       <div class="error-message">
         <span class="material-symbols-outlined">error</span>
-        <h3>Fejl</h3>
+        <h3>Error</h3>
         <p>${message}</p>
       </div>
     </div>
   `;
 }
 
-// Initialize the slide when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   initializeSlide();
 });

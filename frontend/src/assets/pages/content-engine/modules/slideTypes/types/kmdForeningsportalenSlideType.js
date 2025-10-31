@@ -49,9 +49,8 @@ export const KmdForeningsportalenSlideType = {
     return {
       location: config.location || "",
       sub_locations: config.sub_locations || [],
-      // Continuous scrolling options (mirrors Winkas slide type)
-      continuous_scroll: config.continuous_scroll || false,
-      scroll_speed: config.scroll_speed || 100,
+      // Marquee-only: use infinite-marquee like WinKAS (scroll 1..10)
+      scroll_speed: config.scroll_speed || 5,
     };
   },
 
@@ -81,31 +80,17 @@ export const KmdForeningsportalenSlideType = {
   populateFormData(config) {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
-    // Populate continuous scroll settings if present in the form
-    const continuousToggle = document.getElementById(
-      "continuous-scroll-toggle",
-    );
-    const scrollSettings = document.getElementById(
-      "continuous-scroll-settings",
-    );
+    // Populate marquee (scroll speed) control
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
-    if (continuousToggle) {
-      continuousToggle.checked = !!config.continuous_scroll;
-    }
-    if (scrollSettings) {
-      scrollSettings.style.display = config.continuous_scroll
-        ? "block"
-        : "none";
-    }
     if (scrollSpeedInput) {
-      scrollSpeedInput.value = config.scroll_speed || 100;
+      scrollSpeedInput.value = config.scroll_speed || 5;
     }
     if (scrollSpeedValue) {
       scrollSpeedValue.textContent = scrollSpeedInput
         ? scrollSpeedInput.value
-        : config.scroll_speed || 100;
+        : config.scroll_speed || 5;
     }
   },
 
@@ -115,11 +100,12 @@ export const KmdForeningsportalenSlideType = {
 
     locationSelect.innerHTML = '<option value="">Select a location...</option>';
 
-    Object.keys(this.currentLocationsData).forEach((location) => {
+    Object.entries(this.currentLocationsData).forEach(([key, value]) => {
       const option = document.createElement("option");
-      option.value = location;
-      option.textContent = location;
-      option.selected = location === selectedLocation;
+      option.value = key;
+      // try to match common shape: prefer location_name, fallback to name
+      option.textContent = value.location_name || value.name || key;
+      option.selected = key === selectedLocation;
       locationSelect.appendChild(option);
     });
   },
@@ -147,32 +133,49 @@ export const KmdForeningsportalenSlideType = {
 
     const subLocations = this.currentLocationsData[selectedLocation];
 
-    if (!subLocations || subLocations.length === 0) {
+    if (!subLocations || (Array.isArray(subLocations) && subLocations.length === 0) || (typeof subLocations === 'object' && Object.keys(subLocations).length === 0)) {
       if (noLocationsMessage) {
-        noLocationsMessage.textContent =
-          "No sub-locations available for this location.";
+        noLocationsMessage.textContent = "No sub-locations available for this location.";
         noLocationsMessage.style.display = "block";
       }
       return;
     }
 
     // Create checkboxes in a grid layout
-    subLocations.forEach((subLocation) => {
-      const isChecked = selectedSubLocations.includes(subLocation);
-      const checkboxHtml = `
-        <div class="col-md-6 col-lg-4 mb-2">
-          <div class="form-check">
-            <input class="form-check-input sub_loc_box" type="checkbox" value="${subLocation}" id="sub-loc-${subLocation}" ${isChecked ? "checked" : ""}>
-            <label class="form-check-label text-white" for="sub-loc-${subLocation}">
-              ${subLocation}
-            </label>
+    // Support both array-of-values and object map shapes
+    if (Array.isArray(subLocations)) {
+      subLocations.forEach((subLocation) => {
+        const valueStr = String(subLocation);
+        const isChecked = selectedSubLocations.includes(valueStr);
+        const checkboxHtml = `
+          <div class="col-md-6 col-lg-4 mb-2">
+            <div class="form-check">
+              <input class="form-check-input sub_loc_box" type="checkbox" value="${valueStr}" id="sub-loc-${valueStr}" ${isChecked ? "checked" : ""}>
+              <label class="form-check-label text-white" for="sub-loc-${valueStr}">
+                ${valueStr}
+              </label>
+            </div>
           </div>
-        </div>
-      `;
-      if (multiSelectContainer) {
-        multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
-      }
-    });
+        `;
+        if (multiSelectContainer) multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
+      });
+    } else {
+      Object.entries(subLocations).forEach(([key, value]) => {
+        const isChecked = selectedSubLocations.includes(key);
+        const label = value && value.name ? value.name : key;
+        const checkboxHtml = `
+          <div class="col-md-6 col-lg-4 mb-2">
+            <div class="form-check">
+              <input class="form-check-input sub_loc_box" type="checkbox" value="${key}" id="sub-loc-${key}" ${isChecked ? "checked" : ""}>
+              <label class="form-check-label text-white" for="sub-loc-${key}">
+                ${label}
+              </label>
+            </div>
+          </div>
+        `;
+        if (multiSelectContainer) multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
+      });
+    }
 
     // Reset "Select All" checkbox
     const allSelector = document.querySelector("#all-selector");
@@ -182,13 +185,6 @@ export const KmdForeningsportalenSlideType = {
   setupFormEventListeners() {
     const locationSelect = document.getElementById("location-input");
     const allSelector = document.getElementById("all-selector");
-
-    const continuousToggle = document.getElementById(
-      "continuous-scroll-toggle",
-    );
-    const scrollSettings = document.getElementById(
-      "continuous-scroll-settings",
-    );
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
@@ -211,28 +207,15 @@ export const KmdForeningsportalenSlideType = {
 
     // Select all toggle listener
     if (allSelector) {
-      const toggleAllHandler = () => {
-        const allStatus = allSelector.checked;
-        document.querySelectorAll("input.sub_loc_box").forEach((ele) => {
-          ele.checked = allStatus;
+      const allSelectorHandler = (ev) => {
+        const checkboxes = document.querySelectorAll(".sub_loc_box");
+        checkboxes.forEach((cb) => {
+          cb.checked = ev.target.checked;
         });
       };
-      allSelector.addEventListener("click", toggleAllHandler);
+      allSelector.addEventListener("change", allSelectorHandler);
       this.eventListenerCleanup.push(() =>
-        allSelector.removeEventListener("click", toggleAllHandler),
-      );
-    }
-
-    // Continuous scroll toggle listener
-    if (continuousToggle) {
-      const toggleHandler = (e) => {
-        const enabled = e.target.checked;
-        if (scrollSettings)
-          scrollSettings.style.display = enabled ? "block" : "none";
-      };
-      continuousToggle.addEventListener("change", toggleHandler);
-      this.eventListenerCleanup.push(() =>
-        continuousToggle.removeEventListener("change", toggleHandler),
+        allSelector.removeEventListener("change", allSelectorHandler),
       );
     }
 
@@ -260,8 +243,9 @@ export const KmdForeningsportalenSlideType = {
     const params = {
       location: config.location || "",
       sub_locations: (config.sub_locations || []).join(","),
-      continuous_scroll: config.continuous_scroll ? "1" : "0",
-      scroll_speed: config.scroll_speed || 100,
+      // marquee mode
+      continuous_scroll: "1",
+      scroll_speed: config.scroll_speed || 5,
     };
 
     return SlideTypeUtils.generateSlideUrl(
@@ -277,9 +261,6 @@ export const KmdForeningsportalenSlideType = {
       ".sub_loc_box:checked",
     );
 
-    const continuousToggle = document.getElementById(
-      "continuous-scroll-toggle",
-    );
     const scrollSpeedInput = document.getElementById("scroll-speed");
 
     const subLocations = Array.from(subLocationCheckboxes).map(
@@ -289,8 +270,9 @@ export const KmdForeningsportalenSlideType = {
     return {
       location: locationSelect?.value || "",
       sub_locations: subLocations,
-      continuous_scroll: continuousToggle ? !!continuousToggle.checked : false,
-      scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 100,
+      // marquee-only mode
+      continuous_scroll: true,
+      scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 5,
     };
   },
 
@@ -309,12 +291,14 @@ export const KmdForeningsportalenSlideType = {
       return false;
     }
 
-    // If continuous scrolling is enabled, ensure scroll speed is within bounds
-    if (data.continuous_scroll) {
-      if (isNaN(data.scroll_speed) || data.scroll_speed <= 0) {
-        alert("Please set a valid scroll speed for continuous scrolling.");
-        return false;
-      }
+    // ensure scroll speed is within the allowed 1..10 range (marquee)
+    if (
+      isNaN(data.scroll_speed) ||
+      data.scroll_speed < 1 ||
+      data.scroll_speed > 10
+    ) {
+      alert("Scroll speed must be a number between 1 (fast) and 10 (slow).");
+      return false;
     }
 
     return true;

@@ -194,9 +194,12 @@ function displayBookingsInCarousel(locationBookings) {
   // 3. Add the single list to the body container
   bookingBody.appendChild(list);
 
+  // calculate pxPrSec before style.height is set to 100%, so scrollHeight is based on the number of bookings so we can set a proper speed. If we set the style.height first, 
+  // scrollHeight will be equal to the container height and speed will be way off.
+
   const pxPrSec = (bookingBody.scrollHeight / speeds[scrollSpeed]) * 1000;
 
-  console.log(bookingBody.scrollHeight)
+  // Set booking body height to 100% to enable proper scrolling so Infinite-marquee can be initialized correctly.
 
   bookingBody.style.height = '100%';
 
