@@ -153,7 +153,7 @@ export const KmdForeningsportalenSlideType = {
           <div class="col-md-6 col-lg-4 mb-2">
             <div class="form-check">
               <input class="form-check-input sub_loc_box" type="checkbox" value="${valueStr}" id="sub-loc-${valueStr}" ${isChecked ? "checked" : ""}>
-              <label class="form-check-label text-white" for="sub-loc-${valueStr}">
+              <label class="form-check-label" for="sub-loc-${valueStr}">
                 ${valueStr}
               </label>
             </div>
@@ -169,7 +169,7 @@ export const KmdForeningsportalenSlideType = {
           <div class="col-md-6 col-lg-4 mb-2">
             <div class="form-check">
               <input class="form-check-input sub_loc_box" type="checkbox" value="${key}" id="sub-loc-${key}" ${isChecked ? "checked" : ""}>
-              <label class="form-check-label text-white" for="sub-loc-${key}">
+              <label class="form-check-label" for="sub-loc-${key}">
                 ${label}
               </label>
             </div>
