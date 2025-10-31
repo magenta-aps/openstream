@@ -3382,5 +3382,11 @@
   },
   "Aspect ratio":{
     "da":"Aspect ratio"
+  },
+  "Confirm Delete Slideshow":{
+    "da":"Bekræft sletning af slideshow"
+  },
+  "Are you sure you want to delete the slideshow":{
+    "da":"Er du sikker på, at du vil slette slideshowet"
   }
 }

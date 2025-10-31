@@ -3,14 +3,14 @@
 {{#> base/modal/modal id="deleteConfirmModal" }}
     {{#*inline "header"}}
         <div class="bg-warning d-flex justify-content-between align-items-center w-100 p-3">
-            {{> base/modal/modal-title class="mb-0" content="<span class=\"material-symbols-outlined me-2\">warning</span>Confirm Delete Slideshow"}}
+            {{> base/modal/modal-title class="mb-0" content='<span class="material-symbols-outlined me-2">warning</span> {% trans "Confirm Delete Slideshow" %}'}}
             {{> base/modal/modal-header-close}}
         </div>
     {{/inline}}
 
     {{#*inline "body"}}
         <div id="deleteConfirmMessage" class="mb-3">
-            <p>Are you sure you want to delete the slideshow <strong id="slideshowToDeleteName"></strong>?</p>
+            <p>{% trans "Are you sure you want to delete the slideshow" %} <strong id="slideshowToDeleteName"></strong>?</p>
         </div>
         {{> base/modal/confirmation-prompt textBoxId="deleteSlideshowTextToType"}}
         <form id="delete-slideshow-form">
