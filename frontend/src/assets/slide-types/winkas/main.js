@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import "./style.scss";
-import VanillaMarquee from 'vanilla-marquee';
+//import VanillaMarquee from 'vanilla-marquee';
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
+
+
+import InfiniteMarquee from 'vanilla-infinite-marquee';
 
 // Parse config from query parameters
 const config = {
@@ -14,7 +17,21 @@ const config = {
 };
 
 // Marquee options from query params
-const scrollSpeed = Number(queryParams.scroll_speed) || 100; // pixels per second
+const scrollSpeed = Number(queryParams.scroll_speed)
+
+const speeds = {
+  1: 25000,
+  2: 22500,
+  3: 20000,
+  4: 17500,
+  5: 15000,
+  6: 12500,
+  7: 10000,
+  8: 7500,
+  9: 5000,
+  10: 2500,
+}
+
 
 const baseUrl = queryParams.baseUrl || BASE_URL;
 
@@ -42,8 +59,7 @@ async function initializeSlide() {
 
     // Fetch and display bookings
     await fetchAndDisplayBookings();
-  } catch (error)
- {
+  } catch (error) {
     console.error("Error initializing slide:", error);
     displayError("Failed to load booking data");
   }
@@ -178,33 +194,23 @@ function displayBookingsInCarousel(locationBookings) {
   // 3. Add the single list to the body container
   bookingBody.appendChild(list);
 
-  // 4. Initialize vanilla-marquee (robustly)
-  // We must wait until the browser has calculated the list's height.
-  function initializeMarqueeWhenReady() {
-    // Check the height of the list *inside* the container
-    const listElement = bookingBody.querySelector('.booking-list');
-    
-    console.log(scrollSpeed)
+  new InfiniteMarquee({
+    element: '#booking-body',
+    speed: speeds[scrollSpeed],
+    direction: 'top',
+    duplicateCount: 10,
+    on: {
+      beforeInit: () => {
+        console.log('Not Yet Initialized');
+      },
 
-    if (listElement && listElement.offsetHeight > 0) {
-      // It has a height! Now we can initialize.
-      console.log(`Marquee ready, height: ${listElement.offsetHeight}px`);
-      new VanillaMarquee(bookingBody, {
-        direction: 'up',
-        speed: scrollSpeed,
-        recalcResize: true,
-        duplicated: true,
-        gap: 0
-      });
-    } else {
-      // No height yet (or element not found). Try again on the next frame.
-      requestAnimationFrame(initializeMarqueeWhenReady);
+      afterInit: () => {
+        console.log('Initialized');
+      }
     }
-  }
-  
-  // Start the check
-  requestAnimationFrame(initializeMarqueeWhenReady);
+  });
 }
+
 
 // Parse WinKAS timestamp formats into JS Date objects.
 function parseWinKASDate(input) {
