@@ -148,7 +148,7 @@ export const WinkasSlideType = {
         <div class="col-md-6 col-lg-4 mb-2">
           <div class="form-check">
             <input class="form-check-input sub_loc_box" type="checkbox" value="${key}" id="sub-loc-${key}" ${isChecked ? "checked" : ""}>
-            <label class="form-check-label text-white" for="sub-loc-${key}">
+            <label class="form-check-label" for="sub-loc-${key}">
               ${value.name}
             </label>
           </div>
