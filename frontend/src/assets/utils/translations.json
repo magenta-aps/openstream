@@ -1733,26 +1733,20 @@
   "Choose content:":{
     "da":"Vælg indhold:"
   },
-  "Choose Main Location":{
-    "da": "Vælg hovedlokation"
-  },
   "Select a location...":{
     "da": "Vælg en lokation..."
   },
-  "Select Sub-locations to Display":{
-    "da": "Vælg underlokation, der skal vises"
-  },
-  "Please select a main location first.":{
-    "da": "Vælg venligst en hovedlokation først."
+  "Select all sub-locations":{
+    "da": "Vælg alle under-lokationer"
   },
   "Please select at least one sub-location to display bookings.":{
     "da": "Vælg venligst mindst én underlokation for at vise bookinger."
   },
-  "Continuous scrolling":{
-    "da": "Kontinuerlig scolling"
+  "Scroll speed":{
+    "da":"Scroll hastighed"
   },
-  "Scroll speed (pixels/sec)":{
-    "da": "Scroll hastighed (pixels/sek)"
+  "Lower values = faster scrolling. Adjust to taste.":{
+    "da":"Lave værdier = hurtigere scrolling. Juster efter smag."
   },
   "Current:":{
     "da": "Nuværende:"
