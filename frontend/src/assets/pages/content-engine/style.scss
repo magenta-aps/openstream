@@ -403,7 +403,8 @@ body {
   transform: translate(-50%, -50%);
 }
 
-.wysiwyg-toolbar.disabled {
+.wysiwyg-toolbar.disabled,
+.tiptap-toolbar.disabled {
   pointer-events: none;
 
   /* disable clicking */
@@ -700,14 +701,16 @@ span {
   align-items: center;
 }
 
-.wysiwyg-toolbar button {
+.wysiwyg-toolbar button,
+.tiptap-toolbar button {
   background: none;
   border: none;
   cursor: pointer;
   margin-right: 5px;
 }
 
-.wysiwyg-toolbar .text-color-picker {
+.wysiwyg-toolbar .text-color-picker,
+.tiptap-toolbar .tiptap-text-color-picker {
   border: none;
   width: 32px;
   height: 32px;
@@ -720,7 +723,8 @@ span {
   /* Needed for absolutely positioned pseudo-element */
 }
 
-.wysiwyg-toolbar i {
+.wysiwyg-toolbar i,
+.tiptap-toolbar i {
   display: block;
   font-size: 24px;
   line-height: 32px;

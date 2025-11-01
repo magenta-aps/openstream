@@ -14,6 +14,10 @@ import {
   updateModeRadioButtons,
   updateToolbarDropdowns,
 } from "../elements/textbox.js";
+import {
+  updateTiptapToolbarState,
+  finalizeAllTiptapEditors,
+} from "../elements/tiptapTextbox.js";
 import { setupQRCodeToolbar } from "../elements/qrcodeElement.js";
 
 // Helper function to safely access toolbar-general
@@ -208,6 +212,8 @@ export function selectElement(el, dataObj) {
     }
   });
 
+  finalizeAllTiptapEditors();
+
   hideResizeHandles();
   // Make these globally accessible
   window.selectedElementForUpdate = { element: dataObj, container: el };
@@ -356,6 +362,15 @@ export function selectElement(el, dataObj) {
     updateModeRadioButtons();
     // Update toolbar dropdowns (font size, family, line height) based on element's properties
     updateToolbarDropdowns();
+  } else if (dataObj.type === "tiptap-textbox") {
+    hideElementToolbars();
+    const tiptapToolbar = document.querySelector(".tiptap-toolbar");
+    tiptapToolbar?.classList.replace("d-none", "d-flex");
+    tiptapToolbar?.classList.remove("disabled");
+    setToolbarGeneralVisibility("visible");
+    el.style.outline = "3px dashed blue";
+    createGradientWrapper(el);
+    updateTiptapToolbarState();
   } else if (dataObj.type === "video") {
     setupMuteButtons();
     setupMediaAlignmentRadioButtons();

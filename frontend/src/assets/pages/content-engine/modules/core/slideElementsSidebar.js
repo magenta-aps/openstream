@@ -227,6 +227,7 @@ function getElementTypeIcon(type) {
   const iconMap = {
     image: "image",
     textbox: "text_fields",
+    "tiptap-textbox": "draw",
     video: "videocam",
     "dynamic-element": "dynamic_feed",
     "embed-website": "language",

@@ -29,6 +29,7 @@ import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
 import { _renderList } from "../elements/listElement.js";
 import { _renderTextbox } from "../elements/textbox.js";
+import { _renderTiptapTextbox } from "../elements/tiptapTextbox.js";
 import { _renderVideo } from "../elements/videoElement.js";
 import { _renderPlaceholder } from "../elements/placeholderElement.js";
 import {
@@ -853,6 +854,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
   if (el.type === "textbox") {
     _renderTextbox(el, container, isInteractivePlayback);
+  } else if (el.type === "tiptap-textbox") {
+    _renderTiptapTextbox(el, container, isInteractivePlayback);
   } else if (el.type === "embed-website") {
     _renderEmbedWebsite(el, container);
   } else if (el.type === "image") {

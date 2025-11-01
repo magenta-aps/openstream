@@ -366,6 +366,74 @@ function mapTextAlignForDirection(textAlign, direction) {
   return textAlign;
 }
 
+function applyStoredAlignmentToTextContent(textElement, elData) {
+  if (!textElement || !elData) return;
+  const rawAlign = elData.textAlign || "left";
+  const direction = elData.textDirection || "horizontal";
+  const resolvedAlign =
+    direction === "vertical"
+      ? mapTextAlignForDirection(rawAlign, "vertical")
+      : rawAlign;
+
+  // Reset existing alignment markers so we can apply a consistent value.
+  textElement.removeAttribute("align");
+  textElement.style.removeProperty("text-align");
+
+  if (direction === "vertical") {
+    textElement.style.textAlign = resolvedAlign;
+  } else {
+    applyAlignAttributes(textElement, resolvedAlign);
+  }
+}
+
+/**
+ * Remove per-node alignment markers (legacy align attributes and inline text-align styles)
+ * so we can reapply a unified alignment on the textbox container.
+ */
+function clearInnerAlignmentAttributes(root) {
+  if (!root) return;
+
+  root.removeAttribute("align");
+  root.style?.removeProperty?.("text-align");
+
+  root.querySelectorAll("[align]").forEach((node) => {
+    node.removeAttribute("align");
+  });
+
+  root.querySelectorAll("*").forEach((node) => {
+    if (node.style && node.style.textAlign) {
+      node.style.removeProperty("text-align");
+    }
+  });
+}
+
+/**
+ * Apply a single horizontal alignment (`left`, `center`, `right`) across the whole textbox by
+ * clearing per-line alignment artefacts and updating the stored element data.
+ */
+function applyAlignmentAcrossTextbox(root, desiredAlign, elData = store?.selectedElementData) {
+  if (!root || !desiredAlign || !ALIGN_WHITELIST.includes(desiredAlign)) return;
+
+  clearInnerAlignmentAttributes(root);
+
+  const data = elData || store?.selectedElementData;
+  const resolvedData =
+    data || {
+      textAlign: desiredAlign,
+      textDirection: "horizontal",
+    };
+
+  if (data) {
+    data.textAlign = desiredAlign;
+  }
+
+  applyStoredAlignmentToTextContent(root, resolvedData);
+
+  if (data) {
+    data.text = root.innerHTML;
+  }
+}
+
 /**
  * Update the mode radio buttons based on the selected element's state.
  */
@@ -567,20 +635,105 @@ function applyCustomFontSize(sizeKey) {
 /* --------------------------------- */
 /* shared helpers --------------------------------------------- */
 const ALIGN_WHITELIST = ["left", "center", "right"];
+const BLOCK_LEVEL_TAGS = new Set([
+  "DIV",
+  "P",
+  "LI",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+]);
 
 /** Return valid align attr ("" if none/invalid). */
 function getAlignAttr(node) {
   const raw = node?.getAttribute?.("align") || "";
   const val = raw.toLowerCase();
-  return ALIGN_WHITELIST.includes(val) ? val : "";
+  if (ALIGN_WHITELIST.includes(val)) {
+    return val;
+  }
+
+  const styleAlign = (node?.style?.textAlign || "").toLowerCase();
+  return ALIGN_WHITELIST.includes(styleAlign) ? styleAlign : "";
+}
+
+/** Apply both align attribute and inline style consistently. */
+function applyAlignAttributes(el, align) {
+  if (!align) return;
+  el.setAttribute("align", align);
+  el.style.textAlign = align;
 }
 
 /** Create a block-span wrapper that *keeps* the align attribute. */
 function makeAlignedWrapper(align) {
   const span = document.createElement("span");
   span.style.display = "block"; // behaves like the div we flattened
-  span.setAttribute("align", align);
+  applyAlignAttributes(span, align);
   return span;
+}
+
+function normalizeAlignValue(raw) {
+  const val = (raw || "").toLowerCase();
+  if (ALIGN_WHITELIST.includes(val)) return val;
+  if (val === "start") return "left";
+  if (val === "end") return "right";
+  return "";
+}
+
+function getInlineAlignment(el) {
+  if (!el) return "";
+  const attr = normalizeAlignValue(el.getAttribute?.("align"));
+  if (attr) return attr;
+  const styleAlign = normalizeAlignValue(el.style?.textAlign);
+  if (styleAlign) return styleAlign;
+  return "";
+}
+
+function findBlockAncestor(node, root) {
+  if (!node) return null;
+  let current = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+  while (current && current !== root) {
+    if (BLOCK_LEVEL_TAGS.has(current.tagName)) return current;
+    current = current.parentElement;
+  }
+  return current === root ? root : null;
+}
+
+function findPreviousBlockElement(block, root) {
+  if (!block || block === root) return null;
+  let prev = block.previousElementSibling;
+  while (prev && prev !== root) {
+    if (BLOCK_LEVEL_TAGS.has(prev.tagName)) return prev;
+    prev = prev.previousElementSibling;
+  }
+  return null;
+}
+
+function inheritAlignmentForCaret(root, elData) {
+  if (!root?.isContentEditable) return;
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+
+  const range = sel.getRangeAt(0);
+  const block = findBlockAncestor(range.startContainer, root);
+  if (!block || block === root) return;
+
+  const hasInlineAlign = !!getInlineAlignment(block);
+  if (hasInlineAlign) return; // Already has explicit alignment
+
+  const prevBlock = findPreviousBlockElement(block, root);
+  let targetAlign = getInlineAlignment(prevBlock);
+
+  if (!targetAlign) {
+    const dataAlign = normalizeAlignValue(elData?.textAlign);
+    if (dataAlign) targetAlign = dataAlign;
+  }
+
+  if (!targetAlign) return;
+
+  applyAlignAttributes(block, targetAlign);
 }
 
 /* ------------------------------------------------------------- */
@@ -602,7 +755,7 @@ function flattenNodeForSize(node) {
     /* allowed inline formatting tags -------------------------- */
     if (allowedTags.includes(node.tagName)) {
       const clone = document.createElement(node.tagName);
-      if (align) clone.setAttribute("align", align);
+      if (align) applyAlignAttributes(clone, align);
       // *** ADDED: Preserve fontWeight/fontVariationSettings on these tags if they exist ***
       if (node.style.fontWeight) clone.style.fontWeight = node.style.fontWeight;
       if (node.style.fontVariationSettings) clone.style.fontVariationSettings = node.style.fontVariationSettings;
@@ -625,8 +778,7 @@ function flattenNodeForSize(node) {
       if (node.dataset.fontWeight) span.dataset.fontWeight = node.dataset.fontWeight; // Preserve data attribute
       if (node.style.fontVariationSettings) span.style.fontVariationSettings = node.style.fontVariationSettings;
       // *** END ADDITION ***
-
-      if (align) span.setAttribute("align", align);
+      if (align) applyAlignAttributes(span, align);
 
       // Intentionally drop fontSize and data-font-size-key
       span.removeAttribute("data-font-size-key");
@@ -634,12 +786,12 @@ function flattenNodeForSize(node) {
       node.childNodes.forEach((c) => span.appendChild(flattenNodeForSize(c)));
       // Only return the span if it actually carries styles or has content
       if (span.attributes.length > 0 || span.style.length > 0 || span.childNodes.length > 0) {
-           return span;
+        return span;
       } else {
-           // If the span becomes empty/styleless, just return its children
-           const frag = document.createDocumentFragment();
-           Array.from(span.childNodes).forEach(c => frag.appendChild(c));
-           return frag;
+        // If the span becomes empty/styleless, just return its children
+        const frag = document.createDocumentFragment();
+        Array.from(span.childNodes).forEach((c) => frag.appendChild(c));
+        return frag;
       }
     }
 
@@ -680,7 +832,7 @@ function flattenNodeForFamily(node) {
     /* allowed inline formatting tags -------------------------- */
     if (allowedTags.includes(node.tagName)) {
       const el = document.createElement(node.tagName);
-      if (align) el.setAttribute("align", align);
+      if (align) applyAlignAttributes(el, align);
        // *** ADDED: Preserve fontWeight/fontVariationSettings on these tags if they exist ***
       if (node.style.fontWeight) el.style.fontWeight = node.style.fontWeight;
       if (node.style.fontVariationSettings) el.style.fontVariationSettings = node.style.fontVariationSettings;
@@ -704,11 +856,11 @@ function flattenNodeForFamily(node) {
       if (node.dataset.fontSizeKey) span.dataset.fontSizeKey = node.dataset.fontSizeKey; // Preserve data attribute
       
       if (node.style.color) span.style.color = node.style.color;
-      if (align) span.setAttribute("align", align);
+      if (align) applyAlignAttributes(span, align);
 
       // *** ADDED: Preserve fontWeight/fontVariationSettings ***
       if (node.style.fontWeight) span.style.fontWeight = node.style.fontWeight;
-       if (node.dataset.fontWeight) span.dataset.fontWeight = node.dataset.fontWeight; // Preserve data attribute
+      if (node.dataset.fontWeight) span.dataset.fontWeight = node.dataset.fontWeight; // Preserve data attribute
       if (node.style.fontVariationSettings) span.style.fontVariationSettings = node.style.fontVariationSettings;
       // *** END ADDITION ***
 
@@ -718,14 +870,14 @@ function flattenNodeForFamily(node) {
       Array.from(node.childNodes).forEach((child) =>
         span.appendChild(flattenNodeForFamily(child)),
       );
-       // Only return the span if it actually carries styles or has content
+      // Only return the span if it actually carries styles or has content
       if (span.attributes.length > 0 || span.style.length > 0 || span.childNodes.length > 0) {
-           return span;
+        return span;
       } else {
-           // If the span becomes empty/styleless, just return its children
-           const frag = document.createDocumentFragment();
-           Array.from(span.childNodes).forEach(c => frag.appendChild(c));
-           return frag;
+        // If the span becomes empty/styleless, just return its children
+        const frag = document.createDocumentFragment();
+        Array.from(span.childNodes).forEach((c) => frag.appendChild(c));
+        return frag;
       }
     }
 
@@ -1135,6 +1287,8 @@ function handleFontSizeChange(e) {
           normalizeNestedSpans(t);
           try { t.focus(); } catch (e) {}
         }, { useTemporaryEditable: false });
+        const textEl = store.selectedElement.querySelector(".text-content");
+        applyStoredAlignmentToTextContent(textEl, store.selectedElementData);
       }
     }
   });
@@ -1292,6 +1446,8 @@ function handleFontWeightChange(e) {
     applyToWholeTextbox(() => {
       applyWeightToSelection(newFontWeight);
     }, { useTemporaryEditable: true });
+    const textEl = store.selectedElement.querySelector(".text-content");
+    applyStoredAlignmentToTextContent(textEl, store.selectedElementData);
   });
 }
 
@@ -1311,7 +1467,7 @@ function flattenNodeForWeight(node) {
     /* Allowed inline tags */
     if (allowedTags.includes(node.tagName)) {
       const el = document.createElement(node.tagName);
-      if (align) el.setAttribute("align", align);
+      if (align) applyAlignAttributes(el, align);
       Array.from(node.childNodes).forEach((child) =>
         el.appendChild(flattenNodeForWeight(child)),
       );
@@ -1331,7 +1487,7 @@ function flattenNodeForWeight(node) {
       if (node.dataset.fontSizeKey) span.dataset.fontSizeKey = node.dataset.fontSizeKey;
       
       if (node.style.color) span.style.color = node.style.color;
-      if (align) span.setAttribute("align", align);
+      if (align) applyAlignAttributes(span, align);
       
       // Ensure consistent line height
       if (node.style.fontSize || node.style.fontFamily) {
@@ -1347,13 +1503,13 @@ function flattenNodeForWeight(node) {
     }
     
     /* Alignment wrapper */
-     if (align) {
-       const wrapper = makeAlignedWrapper(align); // Reuse your helper
-       Array.from(node.childNodes).forEach((child) =>
-         wrapper.appendChild(flattenNodeForWeight(child)),
-       );
-       return wrapper;
-     }
+    if (align) {
+      const wrapper = makeAlignedWrapper(align); // Reuse your helper
+      Array.from(node.childNodes).forEach((child) =>
+        wrapper.appendChild(flattenNodeForWeight(child)),
+      );
+      return wrapper;
+    }
 
     /* Plain lift (for other tags like DIV, BR etc.) */
     const frag = document.createDocumentFragment();
@@ -1539,25 +1695,32 @@ function handleAlignLeft() {
   pushCurrentSlideState();
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
-    if (textEl) {
-      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    if (!textEl) return;
 
-      if (isSimpleMode) {
-        // In simple mode, update data model and apply style directly
-        store.selectedElementData.textAlign = "left";
-        textEl.style.textAlign = "left";
-      } else {
-        // In rich mode, use execCommand. Use temporary edit wrapper so we
-        // don't leave the element editable after applying the command.
-        runWithTemporaryEditable(textEl, () => {
-          document.execCommand("justifyLeft", false, null);
-        });
-        // Persist the logical text alignment so it survives reloads
-        if (store && store.selectedElementData) {
-          store.selectedElementData.textAlign = "left";
-        }
+    const elData = store.selectedElementData;
+    const isSimpleMode = elData?.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      if (elData) {
+        elData.textAlign = "left";
+        elData.text = textEl.innerHTML;
       }
+      applySimpleModeStyles(textEl, elData || {});
+      applyStoredAlignmentToTextContent(textEl, elData || {
+        textAlign: "left",
+        textDirection: "horizontal",
+      });
+      return;
     }
+
+    if (textEl.isContentEditable) {
+      runWithTemporaryEditable(textEl, () => {
+        document.execCommand("justifyLeft", false, null);
+      });
+      return;
+    }
+
+    applyAlignmentAcrossTextbox(textEl, "left", elData);
   });
 }
 
@@ -1565,23 +1728,32 @@ function handleAlignCenter() {
   pushCurrentSlideState();
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
-    if (textEl) {
-      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    if (!textEl) return;
 
-      if (isSimpleMode) {
-        // In simple mode, update data model and apply style directly
-        store.selectedElementData.textAlign = "center";
-        textEl.style.textAlign = "center";
-      } else {
-        // In rich mode, use execCommand via temporary editable wrapper
-        runWithTemporaryEditable(textEl, () => {
-          document.execCommand("justifyCenter", false, null);
-        });
-        if (store && store.selectedElementData) {
-          store.selectedElementData.textAlign = "center";
-        }
+    const elData = store.selectedElementData;
+    const isSimpleMode = elData?.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      if (elData) {
+        elData.textAlign = "center";
+        elData.text = textEl.innerHTML;
       }
+      applySimpleModeStyles(textEl, elData || {});
+      applyStoredAlignmentToTextContent(textEl, elData || {
+        textAlign: "center",
+        textDirection: "horizontal",
+      });
+      return;
     }
+
+    if (textEl.isContentEditable) {
+      runWithTemporaryEditable(textEl, () => {
+        document.execCommand("justifyCenter", false, null);
+      });
+      return;
+    }
+
+    applyAlignmentAcrossTextbox(textEl, "center", elData);
   });
 }
 
@@ -1589,23 +1761,32 @@ function handleAlignRight() {
   pushCurrentSlideState();
   withSelectedTextbox(() => {
     const textEl = store.selectedElement.querySelector(".text-content");
-    if (textEl) {
-      const isSimpleMode = store.selectedElementData.isSimpleTextMode || false;
+    if (!textEl) return;
 
-      if (isSimpleMode) {
-        // In simple mode, update data model and apply style directly
-        store.selectedElementData.textAlign = "right";
-        textEl.style.textAlign = "right";
-      } else {
-        // In rich mode, use execCommand via temporary editable wrapper
-        runWithTemporaryEditable(textEl, () => {
-          document.execCommand("justifyRight", false, null);
-        });
-        if (store && store.selectedElementData) {
-          store.selectedElementData.textAlign = "right";
-        }
+    const elData = store.selectedElementData;
+    const isSimpleMode = elData?.isSimpleTextMode || false;
+
+    if (isSimpleMode) {
+      if (elData) {
+        elData.textAlign = "right";
+        elData.text = textEl.innerHTML;
       }
+      applySimpleModeStyles(textEl, elData || {});
+      applyStoredAlignmentToTextContent(textEl, elData || {
+        textAlign: "right",
+        textDirection: "horizontal",
+      });
+      return;
     }
+
+    if (textEl.isContentEditable) {
+      runWithTemporaryEditable(textEl, () => {
+        document.execCommand("justifyRight", false, null);
+      });
+      return;
+    }
+
+    applyAlignmentAcrossTextbox(textEl, "right", elData);
   });
 }
 
@@ -2015,6 +2196,7 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
       pushCurrentSlideState();
       textWrapper.contentEditable = true;
       textWrapper.focus();
+      applyStoredAlignmentToTextContent(textWrapper, el);
     });
 
     textWrapper.addEventListener("mousedown", (e) => {
@@ -2056,6 +2238,8 @@ export function _renderTextbox(el, container, isInteractivePlayback) {
         // Only fix line heights and handle empty spans in rich mode
         fixLineHeightInTextbox(textWrapper);
         handleInputOnEmpty({ target: textWrapper });
+        applyStoredAlignmentToTextContent(textWrapper, el);
+        inheritAlignmentForCaret(textWrapper, el);
       }
     });
 

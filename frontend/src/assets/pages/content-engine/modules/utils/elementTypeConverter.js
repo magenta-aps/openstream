@@ -44,6 +44,23 @@ function getElementDefaults() {
       textAlign: "left",
     },
 
+    "tiptap-textbox": {
+      type: "tiptap-textbox",
+      tiptapContent: `<p>${gettext("Double click to edit text")}</p>`,
+      text: `<p>${gettext("Double click to edit text")}</p>`,
+      border: false,
+      backgroundColor: "transparent",
+      fontFamily: defaultFont,
+      fontSize: "12",
+      lineHeight: "1.2",
+      letterSpacing: "normal",
+      textColor: "#000000",
+      fontWeight: "normal",
+      textAlign: "left",
+      textDirection: "horizontal",
+      verticalAlign: "flex-start",
+    },
+
     image: {
       type: "image",
       content: null, // Will need to be set by user after conversion
@@ -322,6 +339,7 @@ export function replaceElementWithType(sourceElement, targetType) {
 export function getAvailableElementTypes() {
   return [
     { type: "textbox", name: "Textbox", icon: "text_fields" },
+    { type: "tiptap-textbox", name: "Tiptap Textbox", icon: "draw" },
     { type: "image", name: "Image", icon: "image" },
     { type: "video", name: "Video", icon: "videocam" },
     { type: "table", name: "Table", icon: "table" },
@@ -341,6 +359,7 @@ export function getAvailableElementTypes() {
 export function getAllElementTypes() {
   return [
     { type: "textbox", name: "Textbox", icon: "text_fields" },
+    { type: "tiptap-textbox", name: "Tiptap Textbox", icon: "draw" },
     { type: "image", name: "Image", icon: "image" },
     { type: "video", name: "Video", icon: "videocam" },
     { type: "table", name: "Table", icon: "table" },
