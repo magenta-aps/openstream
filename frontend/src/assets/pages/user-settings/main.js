@@ -10,6 +10,7 @@ import {
   showToast,
   genericFetch,
   initSignOutButton,
+  initOrgQueryParams,
 } from "../../utils/utils";
 import * as bootstrap from "bootstrap";
 import { BASE_URL } from "../../utils/constants";
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateNavbarUsername();
   fetchUserLangugage();
   translateHTML();
+  initOrgQueryParams();
 
   const userForm = document.getElementById("user-form");
   const passwordForm = document.getElementById("password-form");
