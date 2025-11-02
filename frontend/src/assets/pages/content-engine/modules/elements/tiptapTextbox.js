@@ -86,6 +86,8 @@ export const fontSizeMapping = {
   51: "27.17vw",
 };
 
+const fontSizeKeys = Object.keys(fontSizeMapping).sort((a, b) => Number(a) - Number(b));
+
 export const lineHeightMapping = {
   0.5: "0.5",
   0.6: "0.6",
@@ -160,6 +162,8 @@ const fontFamilySelect = document.querySelector(
   ".tiptap-font-family-select",
 );
 const fontSizeSelect = document.querySelector(".tiptap-font-size-select");
+const fontSizeDecreaseBtn = document.getElementById("tiptapFontSizeDecreaseBtn");
+const fontSizeIncreaseBtn = document.getElementById("tiptapFontSizeIncreaseBtn");
 const lineHeightSelect = document.querySelector(
   ".tiptap-line-height-select",
 );
@@ -477,11 +481,31 @@ function applyElementStyles(elementData, wrapper, container) {
 
 function updateColorButton(color) {
   if (!textColorBtn) return;
+  const icon = textColorBtn.querySelector(".material-symbols-outlined");
+  textColorBtn.style.removeProperty("border-bottom");
+  if (!icon) return;
   if (color) {
-    textColorBtn.style.borderBottom = `4px solid ${color}`;
+    icon.style.color = color;
   } else {
-    textColorBtn.style.removeProperty("border-bottom");
+    icon.style.removeProperty("color");
   }
+}
+
+function updateFontSizeStepperState(activeKey) {
+  if (!fontSizeDecreaseBtn || !fontSizeIncreaseBtn) return;
+  if (!fontSizeKeys.length) {
+    fontSizeDecreaseBtn.disabled = false;
+    fontSizeIncreaseBtn.disabled = false;
+    return;
+  }
+  const index = fontSizeKeys.indexOf(String(activeKey));
+  if (index === -1) {
+    fontSizeDecreaseBtn.disabled = false;
+    fontSizeIncreaseBtn.disabled = false;
+    return;
+  }
+  fontSizeDecreaseBtn.disabled = index <= 0;
+  fontSizeIncreaseBtn.disabled = index >= fontSizeKeys.length - 1;
 }
 
 function updateAlignmentButtons(targetAlign) {
@@ -506,6 +530,7 @@ function syncToolbarFromData() {
   }
   if (fontSizeSelect) {
     fontSizeSelect.value = data.fontSize || "12";
+    updateFontSizeStepperState(fontSizeSelect.value);
   }
   if (lineHeightSelect) {
     lineHeightSelect.value = data.lineHeight || "1.2";
@@ -553,6 +578,7 @@ function updateToolbarFromEditor(editor) {
     } else if (store.selectedElementData) {
       fontSizeSelect.value = store.selectedElementData.fontSize || "12";
     }
+    updateFontSizeStepperState(fontSizeSelect.value);
   }
 
   if (lineHeightSelect) {
@@ -637,6 +663,42 @@ function handleFontFamilyChange(e) {
   }
 }
 
+function getCurrentFontSizeKey() {
+  if (!fontSizeSelect) return null;
+  const current = fontSizeSelect.value;
+  if (fontSizeKeys.includes(current)) {
+    return current;
+  }
+  return fontSizeKeys.length ? fontSizeKeys[0] : null;
+}
+
+function stepFontSize(step) {
+  if (!fontSizeSelect) return;
+  const currentKey = getCurrentFontSizeKey();
+  if (!currentKey) return;
+  const currentIndex = fontSizeKeys.indexOf(currentKey);
+  const targetIndex = currentIndex + step;
+  if (targetIndex < 0 || targetIndex >= fontSizeKeys.length) {
+    return;
+  }
+  const targetKey = fontSizeKeys[targetIndex];
+  if (targetKey === fontSizeSelect.value) {
+    return;
+  }
+  fontSizeSelect.value = targetKey;
+  fontSizeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function handleFontSizeDecreaseClick(e) {
+  e.preventDefault();
+  stepFontSize(-1);
+}
+
+function handleFontSizeIncreaseClick(e) {
+  e.preventDefault();
+  stepFontSize(1);
+}
+
 function handleFontSizeChange(e) {
   const key = e.target.value;
   const editor = getActiveEditor();
@@ -669,6 +731,8 @@ function handleFontSizeChange(e) {
       }
     }
   }
+
+  updateFontSizeStepperState(key);
 }
 
 function handleLineHeightChange(e) {
@@ -1151,6 +1215,8 @@ export function initTiptapTextbox() {
   addBtn?.addEventListener("click", addTiptapTextboxToSlide);
 
   fontFamilySelect?.addEventListener("change", handleFontFamilyChange);
+  fontSizeDecreaseBtn?.addEventListener("click", handleFontSizeDecreaseClick);
+  fontSizeIncreaseBtn?.addEventListener("click", handleFontSizeIncreaseClick);
   fontSizeSelect?.addEventListener("change", handleFontSizeChange);
   lineHeightSelect?.addEventListener("change", handleLineHeightChange);
   letterSpacingSelect?.addEventListener("change", handleLetterSpacingChange);
@@ -1177,6 +1243,10 @@ export function initTiptapTextbox() {
   textColorBtn?.addEventListener("click", handleTextColorPickerClick);
 
   tiptapToolbar?.addEventListener("mousedown", handleToolbarMousedown);
+
+  if (fontSizeSelect) {
+    updateFontSizeStepperState(fontSizeSelect.value);
+  }
 }
 
 export function _renderTiptapTextbox(el, container, isInteractivePlayback) {
