@@ -48,20 +48,146 @@ let tagsList = [];
 let sortBy = "name";
 let sortDir = "asc";
 
-function customTagsExtractField(document, fieldName) {
-  if (fieldName === "tags") {
-    return document.tags.map((tag) => tag.name);
-  }
-  return document[fieldName];
+function gcd(a, b) {
+  return b === 0 ? a : gcd(b, a % b);
 }
 
-const miniSearchSlideshows = createMiniSearchInstance(["name", "tags"], {
-  extractField: customTagsExtractField,
-});
+function getAspectRatioInfo(slideshow) {
+  const width = slideshow.previewWidth || slideshow.preview_width || 0;
+  const height = slideshow.previewHeight || slideshow.preview_height || 0;
+  const widthInt = parseInt(width, 10);
+  const heightInt = parseInt(height, 10);
+  if (widthInt > 0 && heightInt > 0) {
+    const divisor = gcd(widthInt, heightInt);
+    return {
+      ratioText: `${widthInt / divisor}:${heightInt / divisor}`,
+      pixelText: `${widthInt}x${heightInt}`,
+    };
+  }
+  if (slideshow.aspect_ratio) {
+    return {
+      ratioText: slideshow.aspect_ratio,
+      pixelText: slideshow.aspect_ratio,
+    };
+  }
+  return null;
+}
 
+function normalizeSearchTerm(rawValue) {
+  if (!rawValue) {
+    return "";
+  }
+  return rawValue.toString().trim();
+}
+
+function reorderSlideshowsByQuery(slideshows, query) {
+  if (!query) {
+    return slideshows;
+  }
+
+  const reorderedByAspect = reorderSlideshowsByAspectRatio(slideshows, query);
+  return reorderedByAspect ?? slideshows;
+}
+
+function reorderSlideshowsByAspectRatio(slideshows, query) {
+  const ratioMatch = query.match(/^(\d+)\s*:\s*(\d+)$/);
+  if (!ratioMatch) {
+    return null;
+  }
+
+  const queryWidth = parseInt(ratioMatch[1], 10);
+  const queryHeight = parseInt(ratioMatch[2], 10);
+  if (!queryWidth || !queryHeight) {
+    return null;
+  }
+
+  const exactMatches = [];
+  const flippedMatches = [];
+  const remainder = [];
+
+  slideshows.forEach((slideshow) => {
+    const aspectInfo = getAspectRatioInfo(slideshow);
+    if (!aspectInfo?.ratioText) {
+      remainder.push(slideshow);
+      return;
+    }
+
+    const ratioParts = aspectInfo.ratioText
+      .split(":")
+      .map((part) => parseInt(part, 10));
+    if (ratioParts.length !== 2 || ratioParts.some((part) => Number.isNaN(part))) {
+      remainder.push(slideshow);
+      return;
+    }
+
+    const [ratioWidth, ratioHeight] = ratioParts;
+    if (ratioWidth === queryWidth && ratioHeight === queryHeight) {
+      exactMatches.push(slideshow);
+    } else if (ratioWidth === queryHeight && ratioHeight === queryWidth) {
+      flippedMatches.push(slideshow);
+    } else {
+      remainder.push(slideshow);
+    }
+  });
+
+  if (exactMatches.length === 0 && flippedMatches.length === 0) {
+    return null;
+  }
+
+  return [...exactMatches, ...flippedMatches, ...remainder];
+}
+
+function customSlideshowExtractField(document, fieldName) {
+  switch (fieldName) {
+    case "tags": {
+      const tags = Array.isArray(document.tags) ? document.tags : [];
+      return tags.map((tag) => tag.name);
+    }
+    case "category": {
+      if (document.category?.name) {
+        return document.category.name;
+      }
+      return [gettext("(None)"), "(None)"];
+    }
+    case "mode": {
+      if (!document.mode) {
+        return "";
+      }
+      const translatedMode =
+        document.mode === "interactive"
+          ? gettext("Interactive")
+          : gettext("Slideshow");
+      return [document.mode, translatedMode];
+    }
+    case "aspect_ratio": {
+      const aspectInfo = getAspectRatioInfo(document);
+      if (!aspectInfo) {
+        return "";
+      }
+      const tokens = [aspectInfo.ratioText];
+      if (
+        aspectInfo.pixelText &&
+        aspectInfo.pixelText !== aspectInfo.ratioText
+      ) {
+        tokens.push(aspectInfo.pixelText);
+      }
+      return tokens;
+    }
+    default:
+      return document[fieldName];
+  }
+}
+
+const miniSearchSlideshows = createMiniSearchInstance(
+  ["name", "mode", "category", "tags", "aspect_ratio"],
+  {
+    extractField: customSlideshowExtractField,
+  },
+);
 const miniSearchTags = createMiniSearchInstance(["name"]);
 
 let searchQuery = "";
+let rawSearchQuery = "";
 let selectedCategoryIds = new Set();
 let selectedModes = new Set(["slideshow", "interactive"]);
 
@@ -125,7 +251,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   applySearchFilterSort();
 
   searchInput.addEventListener("input", (e) => {
-    searchQuery = e.target.value.toLowerCase();
+    rawSearchQuery = normalizeSearchTerm(e.target.value);
+    searchQuery = rawSearchQuery.toLowerCase();
     applySearchFilterSort();
   });
 
@@ -460,8 +587,10 @@ function applySearchFilterSort() {
     return selectedModes.has(ss.mode);
   });
 
-  const skipSorting = relevantResultsFirst.checked && searchQuery;
-  if (!skipSorting) {
+  const skipSorting = Boolean(relevantResultsFirst.checked && rawSearchQuery);
+  if (skipSorting) {
+    filtered = reorderSlideshowsByQuery(filtered, rawSearchQuery);
+  } else {
     filtered.sort((a, b) => {
       let valA;
       let valB;
@@ -608,22 +737,8 @@ function renderSlideshowsTable(slideshows) {
       .addEventListener("click", () => showTagsModal(ss.id, ss.tags));
 
     const aspectCell = row.insertCell();
-    // Compute aspect ratio display: prefer previewWidth/previewHeight, fall back to isCustomDimensions or server-provided aspect_ratio
-    const w = ss.previewWidth || ss.preview_width || 0;
-    const h = ss.previewHeight || ss.preview_height || 0;
-    let aspectDisplay = "-";
-    if (w && h) {
-      // Simplify ratio to nearest integer ratio like 16:9
-      const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-      const wi = parseInt(w, 10);
-      const hi = parseInt(h, 10);
-      if (wi > 0 && hi > 0) {
-        const g = gcd(wi, hi);
-        aspectDisplay = `${wi / g}:${hi / g}`;
-      }
-    } else if (ss.aspect_ratio) {
-      aspectDisplay = ss.aspect_ratio;
-    }
+    const aspectInfo = getAspectRatioInfo(ss);
+    const aspectDisplay = aspectInfo?.ratioText || "-";
     aspectCell.innerHTML = `<div>${aspectDisplay}</div>`;
 
     const actionsCell = row.insertCell();
