@@ -22,7 +22,8 @@
   font-size: $h6-font-size;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   background-color: $secondary-tab !important;
 }
 
@@ -31,13 +32,14 @@
 }
 
 /* Shows close burger-menu icon when menu is open */
-.navbar-toggler[aria-expanded=true] {
+.navbar-toggler[aria-expanded="true"] {
   #close-menu-icon {
     display: inline !important;
-  };
+  }
+
   #open-menu-icon {
     display: none !important;
-  };
+  }
 }
 
 /* User dropdown styling to match base template buttons */

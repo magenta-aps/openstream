@@ -37,7 +37,10 @@ function getAspectRatioForIndex(index = null) {
   }
 
   if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
-    return store.slides[store.currentSlideIndex].aspect_ratio || ASPECT_RATIO_FALLBACK;
+    return (
+      store.slides[store.currentSlideIndex].aspect_ratio ||
+      ASPECT_RATIO_FALLBACK
+    );
   }
 
   if (store.slides.length > 0) {
@@ -51,7 +54,8 @@ function applyAspectRatioSelectState(preferredValue, lockSelection) {
   const aspectRatioSelect = document.getElementById("templateAspectRatio");
   if (!aspectRatioSelect) return;
 
-  const resolvedValue = preferredValue || aspectRatioSelect.value || ASPECT_RATIO_FALLBACK;
+  const resolvedValue =
+    preferredValue || aspectRatioSelect.value || ASPECT_RATIO_FALLBACK;
   aspectRatioSelect.value = resolvedValue;
 
   const aspectRatioGroup = aspectRatioSelect.closest(".mb-3");
@@ -551,9 +555,10 @@ if (confirmBtn) {
         tag_ids: tagValues.map((t) => parseInt(t)),
         aspect_ratio: aspectRatio,
         slideData: slideData,
-    // Prefer the resolution derived from the selected aspect ratio.
-    previewWidth: selectedResolution.width || store.emulatedWidth || 1920,
-    previewHeight: selectedResolution.height || store.emulatedHeight || 1080,
+        // Prefer the resolution derived from the selected aspect ratio.
+        previewWidth: selectedResolution.width || store.emulatedWidth || 1920,
+        previewHeight:
+          selectedResolution.height || store.emulatedHeight || 1080,
         // organisation_id is part of the URL for POST
       };
 

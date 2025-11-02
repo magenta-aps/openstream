@@ -3,8 +3,7 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
 // WinKAS Booking Display Styles
 @import "../../scss/main";
-@import '../../../../node_modules/vanilla-infinite-marquee/infinite-marquee.scss';
-
+@import "../../../../node_modules/vanilla-infinite-marquee/infinite-marquee";
 
 html,
 body {
@@ -22,7 +21,7 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   color: $white;
-  background-color: rgb(4, 4, 47);
+  background-color: rgb(4 4 47);
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -53,7 +52,7 @@ body {
   background: $darkest-gray;
   padding: 1.5rem;
   box-shadow: 0 0 10px rgba($black, 0.05);
-  flex-shrink: 0; 
+  flex-shrink: 0;
   border-bottom: 2px solid $lightest-gray;
   width: 100vw;
 }
@@ -122,4 +121,3 @@ body {
   width: 100%;
   z-index: 1;
 }
-

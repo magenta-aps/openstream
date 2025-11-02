@@ -751,15 +751,15 @@ export async function updateTagSearchSuggestions(
 // function getOrgId() { return 'org_123'; }
 // function getSuborgId() { return 'sub_789'; }
 
-export function getOrgId(){
+export function getOrgId() {
   return parentOrgID;
 }
 
-export function getBranchId(){
+export function getBranchId() {
   return selectedBranchID;
 }
 
-export function getSuborgId(){
+export function getSuborgId() {
   return selectedSubOrgID;
 }
 
@@ -769,7 +769,10 @@ export function getSuborgId(){
 export async function getOrgName(id) {
   if (!id) return null;
   try {
-    const res = await genericFetch(`${BASE_URL}/api/organisations/${id}/name/`, "GET");
+    const res = await genericFetch(
+      `${BASE_URL}/api/organisations/${id}/name/`,
+      "GET",
+    );
     return res?.name ?? null;
   } catch (err) {
     console.error("getOrgName error:", err);
@@ -780,7 +783,10 @@ export async function getOrgName(id) {
 export async function getSubOrgName(id) {
   if (!id) return null;
   try {
-    const res = await genericFetch(`${BASE_URL}/api/suborganisations/${id}/name/`, "GET");
+    const res = await genericFetch(
+      `${BASE_URL}/api/suborganisations/${id}/name/`,
+      "GET",
+    );
     return res?.name ?? null;
   } catch (err) {
     console.error("getSuborgName error:", err);
@@ -791,7 +797,10 @@ export async function getSubOrgName(id) {
 export async function getBranchName(id) {
   if (!id) return null;
   try {
-    const res = await genericFetch(`${BASE_URL}/api/branches/${id}/name/`, "GET");
+    const res = await genericFetch(
+      `${BASE_URL}/api/branches/${id}/name/`,
+      "GET",
+    );
     return res?.name ?? null;
   } catch (err) {
     console.error("getBranchName error:", err);

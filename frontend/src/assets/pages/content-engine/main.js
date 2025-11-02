@@ -83,10 +83,7 @@ import initSlideElementsSidebar from "./modules/core/slideElementsSidebar.js";
 import { initZoomController } from "./modules/utils/zoomController.js";
 import * as bootstrap from "bootstrap";
 
-await Promise.all([
-  fetchAndInitializeFonts(),
-  fetchTextFormattingSettings(),
-]);
+await Promise.all([fetchAndInitializeFonts(), fetchTextFormattingSettings()]);
 (async () => {
   await fetchUserLangugage();
   translateHTML();

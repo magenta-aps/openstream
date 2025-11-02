@@ -628,5 +628,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   initOrgQueryParams();
   // Then initialize the app
   new DocumentationApp();
-  
 });

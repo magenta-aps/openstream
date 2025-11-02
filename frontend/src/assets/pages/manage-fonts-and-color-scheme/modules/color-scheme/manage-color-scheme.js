@@ -194,7 +194,7 @@ async function handleModalSave() {
     const errorMessage = err.message;
     if (errorMessage) {
       showToast(
-        gettext("Failed to save color") +  ": " + gettext(errorMessage),
+        gettext("Failed to save color") + ": " + gettext(errorMessage),
         "Error",
       );
     } else {

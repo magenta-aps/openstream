@@ -4,7 +4,7 @@ import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 
-import InfiniteMarquee from 'vanilla-infinite-marquee';
+import InfiniteMarquee from "vanilla-infinite-marquee";
 
 // Parse config from query parameters
 const config = {
@@ -110,11 +110,18 @@ async function fetchAndDisplayBookings() {
     const response = await fetch(`${baseUrl}/api/kmd/`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ location: config.location, sub_locations: config.sub_locations }),
+      body: JSON.stringify({
+        location: config.location,
+        sub_locations: config.sub_locations,
+      }),
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch bookings:", response.status, response.statusText);
+      console.error(
+        "Failed to fetch bookings:",
+        response.status,
+        response.statusText,
+      );
       displayError("Failed to fetch booking data");
       return;
     }
@@ -134,8 +141,11 @@ function displayBookingsInCarousel(locationBookings) {
   if (!bookingBody) return;
 
   // KMD returns loc_name and data
-  const locName = locationBookings && (locationBookings.loc_name || locationBookings.location_name);
-  const bookings = locationBookings && locationBookings.data ? locationBookings.data : [];
+  const locName =
+    locationBookings &&
+    (locationBookings.loc_name || locationBookings.location_name);
+  const bookings =
+    locationBookings && locationBookings.data ? locationBookings.data : [];
 
   if (locationTitle && locName) {
     locationTitle.textContent = locName;
@@ -166,17 +176,17 @@ function displayBookingsInCarousel(locationBookings) {
 
   bookingBody.appendChild(list);
 
-  // calculate pxPrSec before style.height is set to 100%, so scrollHeight is based on the number of bookings so we can set a proper speed. If we set the style.height first, 
+  // calculate pxPrSec before style.height is set to 100%, so scrollHeight is based on the number of bookings so we can set a proper speed. If we set the style.height first,
   // scrollHeight will be equal to the container height and speed will be way off.
 
   const pxPrSec = (bookingBody.scrollHeight / speeds[scrollSpeed]) * 1000;
 
-  bookingBody.style.height = '100%';
+  bookingBody.style.height = "100%";
 
   new InfiniteMarquee({
-    element: '#booking-body',
+    element: "#booking-body",
     speed: pxPrSec,
-    direction: 'top',
+    direction: "top",
     duplicateCount: 10,
   });
 }
@@ -184,7 +194,9 @@ function displayBookingsInCarousel(locationBookings) {
 // KMD time strings are like "HH:MM" (FomKlo/TomKlo). Parse them as today with given time.
 function parseKmdTime(timeStr) {
   if (!timeStr) return null;
-  const m = String(timeStr).trim().match(/^(\d{1,2}):(\d{2})$/);
+  const m = String(timeStr)
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})$/);
   if (!m) return null;
   const [, hh, mm] = m;
   const d = new Date();
@@ -194,12 +206,21 @@ function parseKmdTime(timeStr) {
 
 function createKmdBookingElement(booking, fallbackLocationName = "") {
   // booking shape: { ObjectName, PartOfObjectName, Activity, CustomerName, FomKlo, TomKlo }
-  const locationName = booking.ObjectName || booking.PartOfObjectName || fallbackLocationName || "";
+  const locationName =
+    booking.ObjectName ||
+    booking.PartOfObjectName ||
+    fallbackLocationName ||
+    "";
 
-  const startTime = parseKmdTime(booking.FomKlo || booking.Fom || booking.FomKlo);
+  const startTime = parseKmdTime(
+    booking.FomKlo || booking.Fom || booking.FomKlo,
+  );
   const endTime = parseKmdTime(booking.TomKlo || booking.Tom || booking.TomKlo);
 
-  const timeFormatter = new Intl.DateTimeFormat("da-DK", { hour: "2-digit", minute: "2-digit" });
+  const timeFormatter = new Intl.DateTimeFormat("da-DK", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const safeFormatTime = (d) => {
     if (!d || !isFinite(d.getTime())) return "--:--";
@@ -251,7 +272,9 @@ function parseWinKASDate(input) {
     const isoTry = new Date(input);
     if (isFinite(isoTry.getTime())) return isoTry;
 
-    const m = input.trim().match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    const m = input
+      .trim()
+      .match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
     if (m) {
       const [, dd, mm, yyyy, hh, min, sec] = m;
       const d = new Date(
@@ -271,12 +294,16 @@ function parseWinKASDate(input) {
 
 function createBookingElement(booking, fallbackLocationName = "") {
   const bookingData = booking.booking_data || booking;
-  const locationName = booking.sub_location || booking.location_name || fallbackLocationName || "";
+  const locationName =
+    booking.sub_location || booking.location_name || fallbackLocationName || "";
 
   const startTime = parseWinKASDate(bookingData.start);
   const endTime = parseWinKASDate(bookingData.stop);
 
-  const timeFormatter = new Intl.DateTimeFormat("da-DK", { hour: "2-digit", minute: "2-digit" });
+  const timeFormatter = new Intl.DateTimeFormat("da-DK", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const safeFormatTime = (d) => {
     if (!d || !isFinite(d.getTime())) return "--:--";

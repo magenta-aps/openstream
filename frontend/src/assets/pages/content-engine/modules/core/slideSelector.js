@@ -671,7 +671,7 @@ export function updateSlideSelector() {
         window.selectedElementForUpdate = null;
       }
 
-  store.currentSlideIndex = index;
+      store.currentSlideIndex = index;
 
       // For template mode, set resolution based on template's aspect ratio
       if (

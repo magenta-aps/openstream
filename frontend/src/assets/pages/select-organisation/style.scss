@@ -17,7 +17,7 @@ body {
   margin-bottom: 0;
 }
 
-@media (max-width: 576px) {
+@media (width <= 576px) {
   #organisations-list {
     max-height: 50vh;
   }

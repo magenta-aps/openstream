@@ -61,9 +61,8 @@ const textOptionsAdminMessage = document.getElementById(
   "admin-required-message-text-options",
 );
 const textOptionInputs = {
-  [TEXT_FORMATTING_FEATURES.BOLD]: document.getElementById(
-    "tiptap-option-bold",
-  ),
+  [TEXT_FORMATTING_FEATURES.BOLD]:
+    document.getElementById("tiptap-option-bold"),
   [TEXT_FORMATTING_FEATURES.ITALIC]: document.getElementById(
     "tiptap-option-italic",
   ),
@@ -296,7 +295,9 @@ async function loadTextFormattingOptions() {
   renderTextFormattingOptions();
 
   try {
-    textFormattingSettings = await fetchTextFormattingSettings({ silent: false });
+    textFormattingSettings = await fetchTextFormattingSettings({
+      silent: false,
+    });
   } catch (error) {
     console.error("Error loading text formatting options:", error);
     const detail = error?.detail || error?.message || "";
@@ -484,7 +485,10 @@ async function addFont() {
     console.error("Error adding font:", error);
     const errorMessage = error.message;
     if (errorMessage) {
-      showToast(gettext("Failed to add font") + ": " + gettext(errorMessage), "Error");
+      showToast(
+        gettext("Failed to add font") + ": " + gettext(errorMessage),
+        "Error",
+      );
     } else {
       showToast(error.detail || gettext("Failed to add font"), "Error");
     }
@@ -555,7 +559,10 @@ async function updateFont() {
     console.error("Error updating font:", error);
     const errorMessage = error.message;
     if (errorMessage) {
-      showToast(gettext("Failed to update font") + ": " + gettext(errorMessage), "Error");
+      showToast(
+        gettext("Failed to update font") + ": " + gettext(errorMessage),
+        "Error",
+      );
     } else {
       showToast(error.detail || gettext("Failed to update font"), "Error");
     }

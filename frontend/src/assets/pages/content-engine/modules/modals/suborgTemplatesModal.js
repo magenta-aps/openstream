@@ -266,8 +266,8 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     const selectedTemplateId = selectElement.value;
     const manualName = modal.querySelector("#newTemplateName").value.trim();
     const slideName = manualName
-            ? manualName
-            : chosenTemplate.name + gettext(" (Copy)");
+      ? manualName
+      : chosenTemplate.name + gettext(" (Copy)");
 
     if (!selectedTemplateId) {
       showToast(gettext("Please select a global template."), "Warning");

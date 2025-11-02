@@ -115,7 +115,10 @@ function reorderSlideshowsByAspectRatio(slideshows, query) {
     const ratioParts = aspectInfo.ratioText
       .split(":")
       .map((part) => parseInt(part, 10));
-    if (ratioParts.length !== 2 || ratioParts.some((part) => Number.isNaN(part))) {
+    if (
+      ratioParts.length !== 2 ||
+      ratioParts.some((part) => Number.isNaN(part))
+    ) {
       remainder.push(slideshow);
       return;
     }
@@ -680,9 +683,7 @@ function renderSlideshowsTable(slideshows) {
     emptyListAlert.textContent =
       allSlideshows.length > 0
         ? gettext("No matching content found")
-        : gettext(
-            "No content found. Use the 'Add Content' button to the left",
-          );
+        : gettext("No content found. Use the 'Add Content' button to the left");
     return;
   }
   emptyListAlert.classList.add("d-none");

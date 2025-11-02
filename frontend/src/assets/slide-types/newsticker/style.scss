@@ -66,6 +66,7 @@ body.light-mode #newsTickerBox {
   flex: 1;
   overflow: hidden;
   position: relative;
+
   /* vanilla-marquee adds its own inner styles for animation */
 }
 
@@ -108,5 +109,5 @@ body.light-mode .news-items .feed_name {
 }
 
 #clock {
-font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;
 }

@@ -50,8 +50,8 @@ export const WinkasSlideType = {
     return {
       location: config.location || "",
       sub_locations: config.sub_locations || [],
-  // Marquee-only: we no longer offer a paginated mode, only scroll speed (1-10)
-  scroll_speed: config.scroll_speed || 5,
+      // Marquee-only: we no longer offer a paginated mode, only scroll speed (1-10)
+      scroll_speed: config.scroll_speed || 5,
     };
   },
 
@@ -229,7 +229,7 @@ export const WinkasSlideType = {
       sub_locations: (config.sub_locations || []).join(","),
       // Always use marquee (continuous scrolling)
       continuous_scroll: "1",
-  scroll_speed: config.scroll_speed || 5,
+      scroll_speed: config.scroll_speed || 5,
     };
 
     return SlideTypeUtils.generateSlideUrl(

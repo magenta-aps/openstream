@@ -808,7 +808,7 @@ async function confirmDeleteMedia() {
 
   if (
     confirm(
-      `${gettext('Are you sure you want to delete')} "${title}"? ${gettext('This action cannot be undone.')}`
+      `${gettext("Are you sure you want to delete")} "${title}"? ${gettext("This action cannot be undone.")}`,
     )
   ) {
     try {

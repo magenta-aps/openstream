@@ -568,8 +568,8 @@ function populateSlideshowSelect(slideshows) {
     noMatchOption.selected = true;
     noMatchOption.textContent = currentSlideshowPlaylist
       ? gettext(
-        `No slideshows available with aspect ratio ${currentSlideshowPlaylist.aspect_ratio}`,
-      )
+          `No slideshows available with aspect ratio ${currentSlideshowPlaylist.aspect_ratio}`,
+        )
       : gettext("No slideshows available");
     select.appendChild(noMatchOption);
     return;

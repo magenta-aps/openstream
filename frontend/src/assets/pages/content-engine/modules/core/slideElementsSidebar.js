@@ -272,29 +272,33 @@ function setSidebarCollapsed(collapsed) {
 }
 
 function applySidebarCollapsedState(container, collapsed) {
-  const sidebar = container.closest('.slide-right-sidebar') || document.querySelector('.slide-right-sidebar');
+  const sidebar =
+    container.closest(".slide-right-sidebar") ||
+    document.querySelector(".slide-right-sidebar");
   if (!sidebar) return;
 
   if (collapsed) {
-    sidebar.classList.add('collapsed');
+    sidebar.classList.add("collapsed");
   } else {
-    sidebar.classList.remove('collapsed');
+    sidebar.classList.remove("collapsed");
   }
 
   // Update collapse button icon
-  const btn = sidebar.querySelector('.sidebar-collapse-btn');
+  const btn = sidebar.querySelector(".sidebar-collapse-btn");
   if (btn) {
-    const icon = btn.querySelector('.collapse-icon');
+    const icon = btn.querySelector(".collapse-icon");
     if (icon) {
-      icon.textContent = collapsed ? '<<' : '>>';
+      icon.textContent = collapsed ? "<<" : ">>";
     }
-    btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+    btn.setAttribute("aria-pressed", collapsed ? "true" : "false");
   }
 }
 
 function createElementRow(elData, state) {
   const summary = elementSummary(elData);
-  const displayName = elData.name || (summary.type === "tiptap-textbox" ? gettext("Textbox") : summary.type);
+  const displayName =
+    elData.name ||
+    (summary.type === "tiptap-textbox" ? gettext("Textbox") : summary.type);
   const rank = state.rankMap[elData.id] || "-";
   const elementType =
     elData.type === "iframe" && elData.isDynamic
@@ -1736,22 +1740,22 @@ function createExpandCollapseButton() {
   return button;
 }
 
-
-
 function attachSidebarToggleHandler() {
-  const btn = document.querySelector('.slide-right-sidebar .sidebar-collapse-btn');
+  const btn = document.querySelector(
+    ".slide-right-sidebar .sidebar-collapse-btn",
+  );
   if (!btn) return;
-  const sidebar = btn.closest('.slide-right-sidebar');
+  const sidebar = btn.closest(".slide-right-sidebar");
   if (!sidebar) return;
   // prevent double attaching
   if (btn.__osToggleAttached) return;
   btn.__osToggleAttached = true;
 
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const collapsed = sidebar.classList.toggle('collapsed');
+    const collapsed = sidebar.classList.toggle("collapsed");
     setSidebarCollapsed(collapsed);
-    const container = document.getElementById('slide-elements-list');
+    const container = document.getElementById("slide-elements-list");
     if (container) applySidebarCollapsedState(container, collapsed);
   });
 }
@@ -1828,7 +1832,7 @@ function startSidebarPolling() {
 export function initSlideElementsSidebar() {
   // Apply persisted collapsed state before initial render
   const collapsed = isSidebarCollapsed();
-  const container = document.getElementById('slide-elements-list');
+  const container = document.getElementById("slide-elements-list");
   if (container) applySidebarCollapsedState(container, collapsed);
 
   renderSlideElementsSidebar();

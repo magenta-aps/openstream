@@ -966,13 +966,16 @@ function getFilters() {
   try {
     if (mediaCategoryEl) {
       const nonToggleCheckboxes = mediaCategoryEl.querySelectorAll(
-        'input[type="checkbox"]:not(#toggleAll)'
+        'input[type="checkbox"]:not(#toggleAll)',
       );
       const checkedNonToggle = mediaCategoryEl.querySelectorAll(
-        'input[type="checkbox"]:checked:not(#toggleAll)'
+        'input[type="checkbox"]:checked:not(#toggleAll)',
       );
       // If every non-toggle checkbox is checked, treat as "no category filter"
-      if (nonToggleCheckboxes.length > 0 && checkedNonToggle.length === nonToggleCheckboxes.length) {
+      if (
+        nonToggleCheckboxes.length > 0 &&
+        checkedNonToggle.length === nonToggleCheckboxes.length
+      ) {
         categories = []; // omit categories from filters below
       }
     }

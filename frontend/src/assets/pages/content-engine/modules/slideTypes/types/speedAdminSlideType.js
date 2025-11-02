@@ -82,8 +82,7 @@ export const SpeedAdminSlideType = {
     const schoolSelect = document.getElementById("location_name-input");
     if (!schoolSelect || !this.currentSchoolsData) return;
 
-    schoolSelect.innerHTML =
-      `<option disabled selected>${gettext("Select a location...")}</option>`;
+    schoolSelect.innerHTML = `<option disabled selected>${gettext("Select a location...")}</option>`;
 
     this.currentSchoolsData.forEach((school) => {
       const option = document.createElement("option");

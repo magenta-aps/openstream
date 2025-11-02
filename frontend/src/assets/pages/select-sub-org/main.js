@@ -7,7 +7,14 @@ import {
   gettext,
   fetchUserLangugage,
 } from "../../utils/locales";
-import { getOrgId, getSuborgId, initOrgQueryParams, parentOrgID, showToast, getOrgName } from "../../utils/utils";
+import {
+  getOrgId,
+  getSuborgId,
+  initOrgQueryParams,
+  parentOrgID,
+  showToast,
+  getOrgName,
+} from "../../utils/utils";
 import { token } from "../../utils/utils";
 import { myUserId } from "../../utils/utils";
 import { signOut } from "../../utils/utils";
@@ -67,7 +74,7 @@ async function createSuborg(orgId, suborgName) {
 }
 
 async function onSubmitAddSuborg() {
-  const orgId = parentOrgID
+  const orgId = parentOrgID;
   if (!orgId) {
     showToast(gettext("Organisation id missing"), "Error");
     return;
@@ -88,7 +95,9 @@ async function onSubmitAddSuborg() {
       err.className = "invalid-feedback d-block";
       input.parentElement.appendChild(err);
     }
-    err.textContent = gettext("A suborganisation with this name already exists in this organisation.");
+    err.textContent = gettext(
+      "A suborganisation with this name already exists in this organisation.",
+    );
     return;
   }
   const createdSuborg = await createSuborg(orgId, suborgName);
@@ -169,7 +178,9 @@ async function onSubmitAddBranch() {
       err.className = "invalid-feedback d-block";
       input.parentElement.appendChild(err);
     }
-    err.textContent = gettext("A branch with this name already exists in this suborganisation.");
+    err.textContent = gettext(
+      "A branch with this name already exists in this suborganisation.",
+    );
     return;
   }
   const createdBranch = await createBranch(suborgId, branchName);
@@ -552,8 +563,8 @@ cancel
     const currentOrgId = parentOrgID;
     const filteredSubOrgs = currentOrgId
       ? subOrgsData.filter(
-        (s) => String(s.organisation) === String(currentOrgId),
-      )
+          (s) => String(s.organisation) === String(currentOrgId),
+        )
       : subOrgsData;
 
     filteredSubOrgs.forEach((s) => {
@@ -711,10 +722,7 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
   }
 
   suborgList.forEach(async (suborg) => {
-    if (
-      parseInt(suborg.organisation) ===
-      parseInt(parentOrgID)
-    ) {
+    if (parseInt(suborg.organisation) === parseInt(parentOrgID)) {
       if (suborg.name === "Global") {
         const selectBtn = document.createElement("button");
 
@@ -744,8 +752,14 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
           }
         }
 
-        if (!templateBranchId && (isActingUserOrgAdmin || suborg.user_role === "suborg_admin")) {
-          const suborgBranch = await createBranch(suborg.id, "suborg_templates");
+        if (
+          !templateBranchId &&
+          (isActingUserOrgAdmin || suborg.user_role === "suborg_admin")
+        ) {
+          const suborgBranch = await createBranch(
+            suborg.id,
+            "suborg_templates",
+          );
           templateBranchId = suborgBranch.id;
         }
 
@@ -995,7 +1009,13 @@ function selectBranch(
   orgId,
   orgName,
 ) {
-  window.location.href = "/dashboard?orgId=" + orgId + "&suborgId=" + suborgId + "&branchId=" + branchId;
+  window.location.href =
+    "/dashboard?orgId=" +
+    orgId +
+    "&suborgId=" +
+    suborgId +
+    "&branchId=" +
+    branchId;
 }
 
 async function createUser(
@@ -1126,7 +1146,9 @@ async function onSubmitEditSuborg() {
       err.className = "invalid-feedback d-block";
       input.parentElement.appendChild(err);
     }
-    err.textContent = gettext("A suborganisation with this name already exists in this organisation.");
+    err.textContent = gettext(
+      "A suborganisation with this name already exists in this organisation.",
+    );
     return;
   }
   const updatedSuborg = await updateSuborg(suborgId, suborgName);
@@ -1262,12 +1284,18 @@ async function onSubmitEditBranch() {
   // Need to find the suborg id for this branch from subOrgsData
   let parentSuborgId = null;
   for (const s of subOrgsData) {
-    if (s.branches && s.branches.some((b) => String(b.id) === String(branchId))) {
+    if (
+      s.branches &&
+      s.branches.some((b) => String(b.id) === String(branchId))
+    ) {
       parentSuborgId = s.id;
       break;
     }
   }
-  if (parentSuborgId && isDuplicateBranchName(parentSuborgId, branchName, branchId)) {
+  if (
+    parentSuborgId &&
+    isDuplicateBranchName(parentSuborgId, branchName, branchId)
+  ) {
     const input = document.getElementById("editBranchNameInput");
     input.classList.add("is-invalid");
     let err = document.getElementById("editBranchNameError");
@@ -1277,7 +1305,9 @@ async function onSubmitEditBranch() {
       err.className = "invalid-feedback d-block";
       input.parentElement.appendChild(err);
     }
-    err.textContent = gettext("A branch with this name already exists in this suborganisation.");
+    err.textContent = gettext(
+      "A branch with this name already exists in this suborganisation.",
+    );
     return;
   }
   const updatedBranch = await updateBranch(branchId, branchName);
@@ -1468,7 +1498,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       let branchId = null;
       // Require a selected suborganisation for suborg_admin and employee roles
       if ((role === "suborg_admin" || role === "employee") && !subId) {
-        showToast(gettext("Please select a suborganisation for this role."), "Warning");
+        showToast(
+          gettext("Please select a suborganisation for this role."),
+          "Warning",
+        );
         return;
       }
       if (role === "employee") {
@@ -1639,7 +1672,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const err = await resp.json();
           await showToast(
             gettext("Error removing user from organization: ") +
-            JSON.stringify(err),
+              JSON.stringify(err),
           );
         } else {
           await showToast(
@@ -1697,5 +1730,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
   initOrgQueryParams();
-
 });

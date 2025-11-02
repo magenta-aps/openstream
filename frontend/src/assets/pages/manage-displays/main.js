@@ -460,7 +460,7 @@ function openEditDisplayModal(groupId, displayId) {
   if (copyNotification) copyNotification.style.display = "none";
 
   let group = null;
-  
+
   // Handle ungrouped displays (inactive screens)
   if (groupId === "inactive") {
     group = { displays: ungroupedDisplays };
@@ -920,7 +920,9 @@ function renderUngroupedDisplays() {
         return;
       }
 
-      if (!validateDisplayGroupAspectRatio(movedDisplayId, destinationGroupId)) {
+      if (
+        !validateDisplayGroupAspectRatio(movedDisplayId, destinationGroupId)
+      ) {
         const display = displaysData.find((d) => d.id === movedDisplayId);
         const targetGroup =
           destinationGroupId === null
@@ -2012,9 +2014,9 @@ function renderGroups() {
     const rightDiv = document.createElement("div");
     rightDiv.classList.add("d-flex", "align-items-center");
 
-  const expandIcon = document.createElement("span");
-  expandIcon.classList.add("expand-icon", "material-symbols-outlined");
-  expandIcon.textContent = "expand_less";
+    const expandIcon = document.createElement("span");
+    expandIcon.classList.add("expand-icon", "material-symbols-outlined");
+    expandIcon.textContent = "expand_less";
     // Make sure the expand icon also shows the pointer cursor
     expandIcon.style.cursor = "pointer";
 

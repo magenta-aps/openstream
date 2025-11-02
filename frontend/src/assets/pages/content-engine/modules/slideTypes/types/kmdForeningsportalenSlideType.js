@@ -135,9 +135,15 @@ export const KmdForeningsportalenSlideType = {
 
     const subLocations = this.currentLocationsData[selectedLocation];
 
-    if (!subLocations || (Array.isArray(subLocations) && subLocations.length === 0) || (typeof subLocations === 'object' && Object.keys(subLocations).length === 0)) {
+    if (
+      !subLocations ||
+      (Array.isArray(subLocations) && subLocations.length === 0) ||
+      (typeof subLocations === "object" &&
+        Object.keys(subLocations).length === 0)
+    ) {
       if (noLocationsMessage) {
-        noLocationsMessage.textContent = "No sub-locations available for this location.";
+        noLocationsMessage.textContent =
+          "No sub-locations available for this location.";
         noLocationsMessage.style.display = "block";
       }
       return;
@@ -159,7 +165,8 @@ export const KmdForeningsportalenSlideType = {
             </div>
           </div>
         `;
-        if (multiSelectContainer) multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
+        if (multiSelectContainer)
+          multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
       });
     } else {
       Object.entries(subLocations).forEach(([key, value]) => {
@@ -175,7 +182,8 @@ export const KmdForeningsportalenSlideType = {
             </div>
           </div>
         `;
-        if (multiSelectContainer) multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
+        if (multiSelectContainer)
+          multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
       });
     }
 

@@ -404,7 +404,15 @@ function renderLatestSlideshows(items) {
     btn.addEventListener("click", () => {
       // Open manage content page for this slideshow
       localStorage.setItem("selectedSlideshowID", it.id);
-      window.location.href = "/edit-content?id=" + it.id + "&mode=edit&orgId=" + parentOrgID + "&suborgId=" + selectedSubOrgID + "&branchId=" + selectedBranchID;
+      window.location.href =
+        "/edit-content?id=" +
+        it.id +
+        "&mode=edit&orgId=" +
+        parentOrgID +
+        "&suborgId=" +
+        selectedSubOrgID +
+        "&branchId=" +
+        selectedBranchID;
     });
 
     details.appendChild(btn);
@@ -452,7 +460,15 @@ function renderLatestPlaylists(items) {
     btn.className = "btn btn-sm dashboard-btn-outline";
     btn.textContent = gettext("Open");
     btn.addEventListener("click", () => {
-      window.location.href = "/slideshow-playlists?playlist_id=" + it.id + "&orgId=" + parentOrgID + "&suborgId=" + selectedSubOrgID + "&branchId=" + selectedBranchID;
+      window.location.href =
+        "/slideshow-playlists?playlist_id=" +
+        it.id +
+        "&orgId=" +
+        parentOrgID +
+        "&suborgId=" +
+        selectedSubOrgID +
+        "&branchId=" +
+        selectedBranchID;
     });
 
     details.appendChild(btn);
@@ -556,7 +572,13 @@ function renderUpcoming(items) {
 
 (async () => {
   if ((await getSubOrgName(selectedSubOrgID)) === "Global") {
-    window.location.href = "/manage-fonts-and-color-scheme?branchId=" + selectedBranchID + "&suborgId=" + selectedSubOrgID + "&orgId=" + parentOrgID;
+    window.location.href =
+      "/manage-fonts-and-color-scheme?branchId=" +
+      selectedBranchID +
+      "&suborgId=" +
+      selectedSubOrgID +
+      "&orgId=" +
+      parentOrgID;
   }
 })();
 

@@ -166,10 +166,10 @@ export async function playSlideshow(showInfoBox = true) {
       // Single-slide: show and wait for exit
       const { slide, index } = activeSlides[0];
 
-  const slideCounterEl = document.getElementById("slideCounter");
-  const countdownEl = document.getElementById("countdown");
-  if (slideCounterEl) slideCounterEl.innerText = gettext("Slide") + ": 1/1";
-  if (countdownEl) countdownEl.innerText = "";
+      const slideCounterEl = document.getElementById("slideCounter");
+      const countdownEl = document.getElementById("countdown");
+      if (slideCounterEl) slideCounterEl.innerText = gettext("Slide") + ": 1/1";
+      if (countdownEl) countdownEl.innerText = "";
       store.currentSlideIndex = index;
       loadSlide(slide, undefined, true, true);
       // Ensure slide is properly scaled after loading
@@ -186,11 +186,13 @@ export async function playSlideshow(showInfoBox = true) {
       for (let i = 0; i < count && slideshowRunning; i++) {
         const { slide, index } = activeSlides[i];
         // Update info
-  const slideCounterEl = document.getElementById("slideCounter");
-  let remaining = slide.duration;
-  const countdownEl = document.getElementById("countdown");
-  if (slideCounterEl) slideCounterEl.innerText = gettext("Slide") + `: ${i + 1}/${count}`;
-  if (countdownEl) countdownEl.innerText = gettext("Next in") + `: ${remaining}s`;
+        const slideCounterEl = document.getElementById("slideCounter");
+        let remaining = slide.duration;
+        const countdownEl = document.getElementById("countdown");
+        if (slideCounterEl)
+          slideCounterEl.innerText = gettext("Slide") + `: ${i + 1}/${count}`;
+        if (countdownEl)
+          countdownEl.innerText = gettext("Next in") + `: ${remaining}s`;
 
         // Load slide first, then set up countdown
         store.currentSlideIndex = index;
@@ -275,9 +277,10 @@ function showInteractivePreviewFromEditor() {
   document
     .getElementById("exitInteractiveBtn")
     .addEventListener("click", () => {
-  queryParams.mode = "edit";
-  if (infoBox && document.body.contains(infoBox)) document.body.removeChild(infoBox);
-  exitPlayerMode();
+      queryParams.mode = "edit";
+      if (infoBox && document.body.contains(infoBox))
+        document.body.removeChild(infoBox);
+      exitPlayerMode();
       scaleSlide(previewContainer);
       loadSlide(
         store.slides[store.currentSlideIndex],

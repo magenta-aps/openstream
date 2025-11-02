@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import "./style.scss";
-import VanillaMarquee from 'vanilla-marquee'; // Import vanilla-marquee
+import VanillaMarquee from "vanilla-marquee"; // Import vanilla-marquee
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 
@@ -123,10 +123,9 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(() => {
           new VanillaMarquee(newsBox, {
             speed: config.tickerSpeed,
-            recalcResize: true, 
+            recalcResize: true,
           });
         });
-        
       })
       .catch((e) => {
         console.error("RSS error:", e);

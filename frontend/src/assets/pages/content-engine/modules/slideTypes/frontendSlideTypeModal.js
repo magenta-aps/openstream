@@ -73,7 +73,7 @@ class FrontendSlideTypeModal {
                   <!-- Search and Table Column -->
                   <div class="col-md-9">
                     <div class="mb-3">
-                      <input type="text" class="form-control" id="slideTypeSearchInput" placeholder="${gettext('Search slide types...')}">
+                      <input type="text" class="form-control" id="slideTypeSearchInput" placeholder="${gettext("Search slide types...")}">
                     </div>
                     
                     <div class="table-responsive">

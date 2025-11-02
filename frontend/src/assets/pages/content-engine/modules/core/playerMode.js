@@ -69,22 +69,59 @@ export function enterPlayerMode(previewContainer) {
         // rules that otherwise force 100% sizing. This preserves the
         // smart scaling behavior implemented by `scaleSlide`.
         previewSlide.style.position = previewSlide.style.position || "absolute";
-        previewSlide.style.transformOrigin = previewSlide.style.transformOrigin || "center";
-        if (typeof store !== "undefined" && store.emulatedWidth && store.emulatedHeight) {
-          previewSlide.style.setProperty("width", store.emulatedWidth + "px", "important");
-          previewSlide.style.setProperty("height", store.emulatedHeight + "px", "important");
+        previewSlide.style.transformOrigin =
+          previewSlide.style.transformOrigin || "center";
+        if (
+          typeof store !== "undefined" &&
+          store.emulatedWidth &&
+          store.emulatedHeight
+        ) {
+          previewSlide.style.setProperty(
+            "width",
+            store.emulatedWidth + "px",
+            "important",
+          );
+          previewSlide.style.setProperty(
+            "height",
+            store.emulatedHeight + "px",
+            "important",
+          );
         }
       }
       if (zoomWrapper) {
-        if (typeof store !== "undefined" && store.emulatedWidth && store.emulatedHeight) {
-          zoomWrapper.style.setProperty("width", store.emulatedWidth + "px", "important");
-          zoomWrapper.style.setProperty("height", store.emulatedHeight + "px", "important");
+        if (
+          typeof store !== "undefined" &&
+          store.emulatedWidth &&
+          store.emulatedHeight
+        ) {
+          zoomWrapper.style.setProperty(
+            "width",
+            store.emulatedWidth + "px",
+            "important",
+          );
+          zoomWrapper.style.setProperty(
+            "height",
+            store.emulatedHeight + "px",
+            "important",
+          );
         }
       }
       if (gridContainer) {
-        if (typeof store !== "undefined" && store.emulatedWidth && store.emulatedHeight) {
-          gridContainer.style.setProperty("width", store.emulatedWidth + "px", "important");
-          gridContainer.style.setProperty("height", store.emulatedHeight + "px", "important");
+        if (
+          typeof store !== "undefined" &&
+          store.emulatedWidth &&
+          store.emulatedHeight
+        ) {
+          gridContainer.style.setProperty(
+            "width",
+            store.emulatedWidth + "px",
+            "important",
+          );
+          gridContainer.style.setProperty(
+            "height",
+            store.emulatedHeight + "px",
+            "important",
+          );
         }
       }
     }
@@ -123,13 +160,16 @@ export function exitPlayerMode() {
       const gridContainer = zoomWrapper?.querySelector(".grid-container");
 
       if (previewSlide && originalStyles.previewSlideCss !== null) {
-        previewSlide.style.cssText = originalStyles.previewSlideCss || previewSlide.style.cssText;
+        previewSlide.style.cssText =
+          originalStyles.previewSlideCss || previewSlide.style.cssText;
       }
       if (zoomWrapper && originalStyles.zoomWrapperCss !== null) {
-        zoomWrapper.style.cssText = originalStyles.zoomWrapperCss || zoomWrapper.style.cssText;
+        zoomWrapper.style.cssText =
+          originalStyles.zoomWrapperCss || zoomWrapper.style.cssText;
       }
       if (gridContainer && originalStyles.gridContainerCss !== null) {
-        gridContainer.style.cssText = originalStyles.gridContainerCss || gridContainer.style.cssText;
+        gridContainer.style.cssText =
+          originalStyles.gridContainerCss || gridContainer.style.cssText;
       }
     }
 

@@ -100,10 +100,10 @@ async function createScreen() {
       // Server returned non-JSON body even though request succeeded.
       console.warn(
         "createScreen: server returned non-JSON response:",
-        parsed.__rawText
+        parsed.__rawText,
       );
       throw new Error(
-        gettext("Unexpected server response when creating screen.")
+        gettext("Unexpected server response when creating screen."),
       );
     }
 
@@ -132,7 +132,7 @@ async function checkForGroupAssignment(screenId) {
       if (data && data.__rawText) {
         console.warn(
           "checkForGroupAssignment: server returned non-JSON response:",
-          data.__rawText
+          data.__rawText,
         );
         // Treat as not assigned so we show registration and continue polling
         return false;
@@ -212,8 +212,8 @@ async function initializeScreen() {
     console.error("Error initializing screen:", error);
     showError(
       gettext(
-        "Failed to initialize screen registration. Please check your API key and try again."
-      )
+        "Failed to initialize screen registration. Please check your API key and try again.",
+      ),
     );
   }
 }

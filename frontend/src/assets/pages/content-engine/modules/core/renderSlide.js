@@ -607,8 +607,7 @@ async function _startSlideshowPlayer() {
   } else {
     // Not interactive mode: ensure any player-mode class is removed
     try {
-
-    } catch (e) { }
+    } catch (e) {}
 
     if (store.slides.length > 0) {
       await playSlideshow(false);
@@ -828,7 +827,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
             ) {
               try {
                 console.log("click blocked by debounce");
-              } catch (e) { }
+              } catch (e) {}
               return;
             }
             window.__os_lastInteractivePageChangeAt = now;
@@ -850,7 +849,6 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       });
     }
   }
-
 
   if (el.type === "tiptap-textbox") {
     _renderTiptapTextbox(el, container, isInteractivePlayback);

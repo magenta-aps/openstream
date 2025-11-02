@@ -5,8 +5,7 @@ import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 
-
-import InfiniteMarquee from 'vanilla-infinite-marquee';
+import InfiniteMarquee from "vanilla-infinite-marquee";
 
 // Parse config from query parameters
 const config = {
@@ -17,7 +16,7 @@ const config = {
 };
 
 // Marquee options from query params
-const scrollSpeed = Number(queryParams.scroll_speed)
+const scrollSpeed = Number(queryParams.scroll_speed);
 
 const speeds = {
   1: 20,
@@ -30,8 +29,7 @@ const speeds = {
   8: 160,
   9: 180,
   10: 200,
-}
-
+};
 
 const baseUrl = queryParams.baseUrl || BASE_URL;
 
@@ -135,7 +133,6 @@ async function fetchAndDisplayBookings() {
     const data = await response.json();
     console.log("Fetched bookings data:", data);
     displayBookingsInCarousel(data);
-
   } catch (error) {
     console.error("Error fetching bookings:", error);
     displayError("Error loading bookings");
@@ -194,32 +191,31 @@ function displayBookingsInCarousel(locationBookings) {
   // 3. Add the single list to the body container
   bookingBody.appendChild(list);
 
-  // calculate pxPrSec before style.height is set to 100%, so scrollHeight is based on the number of bookings so we can set a proper speed. If we set the style.height first, 
+  // calculate pxPrSec before style.height is set to 100%, so scrollHeight is based on the number of bookings so we can set a proper speed. If we set the style.height first,
   // scrollHeight will be equal to the container height and speed will be way off.
 
   const pxPrSec = (bookingBody.scrollHeight / speeds[scrollSpeed]) * 1000;
 
   // Set booking body height to 100% to enable proper scrolling so Infinite-marquee can be initialized correctly.
 
-  bookingBody.style.height = '100%';
+  bookingBody.style.height = "100%";
 
   new InfiniteMarquee({
-    element: '#booking-body',
+    element: "#booking-body",
     speed: pxPrSec,
-    direction: 'top',
+    direction: "top",
     duplicateCount: 10,
     on: {
       beforeInit: () => {
-        console.log('Not Yet Initialized');
+        console.log("Not Yet Initialized");
       },
 
       afterInit: () => {
-        console.log('Initialized');
-      }
-    }
+        console.log("Initialized");
+      },
+    },
   });
 }
-
 
 // Parse WinKAS timestamp formats into JS Date objects.
 function parseWinKASDate(input) {
