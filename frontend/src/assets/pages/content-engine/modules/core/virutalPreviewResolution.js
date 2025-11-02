@@ -85,14 +85,14 @@ export function initVirtualPreviewResolution() {
     const optionWidth = parseInt(option.getAttribute("data-width"), 10);
     const optionHeight = parseInt(option.getAttribute("data-height"), 10);
 
-    if (!store.emulatedHeight && !store.emulatedHeight) {
-      store.emulatedHeight = "1080";
-      store.emulatedWidth = "1920";
+    if (!store.emulatedWidth && !store.emulatedHeight) {
+      store.emulatedHeight = 1080;
+      store.emulatedWidth = 1920;
     }
 
     if (
-      optionWidth === store.emulatedWidth &&
-      optionHeight === store.emulatedHeight
+      optionWidth === Number(store.emulatedWidth) &&
+      optionHeight === Number(store.emulatedHeight)
     ) {
       option.classList.add("active");
     } else {
@@ -182,54 +182,75 @@ export function updateResolutionModalToCurrentState() {
 export async function updateResolution(selectedResolution) {
   {
     store.showGrid = document.getElementById("showGrid").checked;
-    if (selectedResolution.width > 0 && selectedResolution.height > 0) {
-      store.emulatedWidth = selectedResolution.width;
-      store.emulatedHeight = selectedResolution.height;
-      const currentAspectRatio = getCurrentAspectRatio();
+    const nextWidth = Number(selectedResolution.width);
+    const nextHeight = Number(selectedResolution.height);
 
-      // Update aspect ratio displays
-      const aspectRatioElement = document.getElementById("aspect-ratio");
-      if (aspectRatioElement) {
-        aspectRatioElement.innerText = currentAspectRatio;
-      }
-      const aspectRatioValueElement =
-        document.getElementById("aspect-ratio-value");
-      if (aspectRatioValueElement) {
-        aspectRatioValueElement.innerText = currentAspectRatio;
-      }
+    if (!Number.isFinite(nextWidth) || !Number.isFinite(nextHeight)) {
+      console.warn("updateResolution: invalid resolution", selectedResolution);
+      return;
+    }
 
-      // Update template's aspect ratio in template mode
-      if (
-        (queryParams.mode === "template_editor" ||
-          queryParams.mode === "suborg_templates") &&
-        store.currentSlideIndex > -1 &&
-        store.slides[store.currentSlideIndex]
-      ) {
-        const currentTemplate = store.slides[store.currentSlideIndex];
-        currentTemplate.aspect_ratio = currentAspectRatio;
-        console.log(`Updated template aspect ratio to: ${currentAspectRatio}`);
-      }
+    if (nextWidth <= 0 || nextHeight <= 0) {
+      console.warn("updateResolution: non-positive resolution", selectedResolution);
+      return;
+    }
 
-      if (store.currentSlideIndex > -1) {
-        loadSlide(
-          store.slides[store.currentSlideIndex],
-          ".preview-slide",
-          true,
-        );
-      }
+    const widthChanged = nextWidth !== Number(store.emulatedWidth);
+    const heightChanged = nextHeight !== Number(store.emulatedHeight);
+
+    store.emulatedWidth = nextWidth;
+    store.emulatedHeight = nextHeight;
+    const currentAspectRatio = getCurrentAspectRatio();
+
+    // Update aspect ratio displays
+    const aspectRatioElement = document.getElementById("aspect-ratio");
+    if (aspectRatioElement) {
+      aspectRatioElement.innerText = currentAspectRatio;
+    }
+    const aspectRatioValueElement =
+      document.getElementById("aspect-ratio-value");
+    if (aspectRatioValueElement) {
+      aspectRatioValueElement.innerText = currentAspectRatio;
+    }
+
+    // Update template's aspect ratio in template mode
+    if (
+      (queryParams.mode === "template_editor" ||
+        queryParams.mode === "suborg_templates") &&
+      store.currentSlideIndex > -1 &&
+      store.slides[store.currentSlideIndex]
+    ) {
+      const currentTemplate = store.slides[store.currentSlideIndex];
+      currentTemplate.aspect_ratio = currentAspectRatio;
+      console.log(`Updated template aspect ratio to: ${currentAspectRatio}`);
+    }
+
+    const shouldReloadSlide =
+      store.currentSlideIndex > -1 && (widthChanged || heightChanged);
+
+    if (shouldReloadSlide) {
+      loadSlide(
+        store.slides[store.currentSlideIndex],
+        ".preview-slide",
+        true,
+        true,
+      );
+    }
+
+    if (widthChanged || heightChanged) {
       scaleAllSlides();
 
       // Force update zoom after resolution change to fix scaling issues
       setTimeout(() => {
         updateAllSlidesZoom();
       }, 50);
+    }
 
-      const resolutionModal = document.getElementById("resolutionModal");
-      if (resolutionModal) {
-        const modalInstance = bootstrap.Modal.getInstance(resolutionModal);
-        if (modalInstance) {
-          modalInstance.hide();
-        }
+    const resolutionModal = document.getElementById("resolutionModal");
+    if (resolutionModal) {
+      const modalInstance = bootstrap.Modal.getInstance(resolutionModal);
+      if (modalInstance) {
+        modalInstance.hide();
       }
     }
 
@@ -238,6 +259,9 @@ export async function updateResolution(selectedResolution) {
     }
 
     showSavingStatus();
-    await fetchUnifiedTemplates();
+
+    if (widthChanged || heightChanged) {
+      await fetchUnifiedTemplates();
+    }
   }
 }
