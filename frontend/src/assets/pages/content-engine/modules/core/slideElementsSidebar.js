@@ -1653,16 +1653,32 @@ function initSortable(container, state) {
 
         safePushCurrentSlideState();
 
+        const elementsMap = buildElementsMapForSortable(state);
+        const changedElements = new Map();
+
         ids.forEach((id, index) => {
-          const element =
-            state.slide.elements?.find((item) => item.id === id) || null;
+          const element = elementsMap.get(id);
           if (!element) return;
 
-          element.zIndex = ids.length - index;
-          const domEl = document.getElementById(`el-${id}`);
-          if (domEl) {
-            domEl.style.zIndex = String(element.zIndex);
+          const newZIndex = ids.length - index;
+          if ((Number(element.zIndex) || 0) !== newZIndex) {
+            element.zIndex = newZIndex;
+            changedElements.set(element.id, element);
           }
+        });
+
+        const alwaysOnTopUpdates = recalculateAlwaysOnTopZIndices(state.elements);
+        alwaysOnTopUpdates.forEach((element) => {
+          changedElements.set(element.id, element);
+        });
+
+        changedElements.forEach((element) => {
+          const domEl = document.getElementById(`el-${element.id}`);
+          if (domEl) {
+            domEl.style.zIndex =
+              element.zIndex != null ? String(element.zIndex) : "";
+          }
+          safeUpdateSlideElement(element);
         });
 
         setTimeout(() => {
