@@ -56,7 +56,6 @@ import { initShape } from "./modules/elements/shapeElement.js";
 import { initBoxElement } from "./modules/elements/boxElement.js";
 import { initTableElement } from "./modules/elements/tableElement.js";
 import { initListElement } from "./modules/elements/listElement.js";
-import { initTextbox } from "./modules/elements/textbox.js";
 import { initTiptapTextbox } from "./modules/elements/tiptapTextbox.js";
 import { initVideoElement } from "./modules/elements/videoElement.js";
 import { initPlaceholderElement } from "./modules/elements/placeholderElement.js";
@@ -102,7 +101,6 @@ initStatusBar();
 initZoomController();
 
 const initCommonEditorFeatures = () => {
-  initTextbox();
   initTiptapTextbox();
   initUndoRedo();
   initDeleteElement();

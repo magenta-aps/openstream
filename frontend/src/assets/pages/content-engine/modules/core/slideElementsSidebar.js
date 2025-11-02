@@ -226,8 +226,7 @@ function buildActiveIconsHtml(elData) {
 function getElementTypeIcon(type) {
   const iconMap = {
     image: "image",
-    textbox: "text_fields",
-    "tiptap-textbox": "draw",
+    "tiptap-textbox": "text_fields",
     video: "videocam",
     "dynamic-element": "dynamic_feed",
     "embed-website": "language",
@@ -295,7 +294,7 @@ function applySidebarCollapsedState(container, collapsed) {
 
 function createElementRow(elData, state) {
   const summary = elementSummary(elData);
-  const displayName = elData.name || summary.type;
+  const displayName = elData.name || (summary.type === "tiptap-textbox" ? gettext("Textbox") : summary.type);
   const rank = state.rankMap[elData.id] || "-";
   const elementType =
     elData.type === "iframe" && elData.isDynamic

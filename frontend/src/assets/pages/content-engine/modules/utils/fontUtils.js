@@ -306,19 +306,19 @@ async function loadProtectedFontsViaFontFace(fonts, headers = {}) {
 }
 
 /**
- * Gets all available fonts (custom + default system fonts)
- * @returns {Array} Array of all available fonts
+ * Gets all available custom fonts fetched from the backend
+ * @returns {Array} Array of custom font objects
  */
 export function getAvailableFonts() {
   return availableFonts;
 }
 
 /**
- * Gets default system fonts
+ * Gets default system fonts. Arial is exposed only when no custom fonts exist.
  * @returns {Array} Array of default system font names
  */
 export function getDefaultFonts() {
-  return ["Arial"];
+  return availableFonts.length === 0 ? ["Arial"] : [];
 }
 
 /**
@@ -326,7 +326,12 @@ export function getDefaultFonts() {
  * @returns {string} Default font name
  */
 export function getDefaultFont() {
-  return availableFonts.length > 0 ? availableFonts[0].name : "Arial";
+  if (availableFonts.length > 0) {
+    return availableFonts[0].name;
+  }
+
+  const defaults = getDefaultFonts();
+  return defaults.length > 0 ? defaults[0] : "Arial";
 }
 
 /**

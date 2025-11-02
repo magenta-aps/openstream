@@ -28,7 +28,6 @@ import { _renderShape } from "../elements/shapeElement.js";
 import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
 import { _renderList } from "../elements/listElement.js";
-import { _renderTextbox } from "../elements/textbox.js";
 import { _renderTiptapTextbox } from "../elements/tiptapTextbox.js";
 import { _renderVideo } from "../elements/videoElement.js";
 import { _renderPlaceholder } from "../elements/placeholderElement.js";
@@ -597,10 +596,10 @@ async function _startSlideshowPlayer() {
       // Centralized player-mode entry so interactive and slideshow
       // playback share the same behavior.
       try {
-  const previewContainer = document.querySelector(".preview-container");
-  // store state centrally on slide store
-  const _playerMode = enterPlayerMode(previewContainer);
-  if (previewContainer) scaleSlide(previewContainer);
+        const previewContainer = document.querySelector(".preview-container");
+        // store state centrally on slide store
+        const _playerMode = enterPlayerMode(previewContainer);
+        if (previewContainer) scaleSlide(previewContainer);
       } catch (e) {
         console.warn("Failed to enter player mode:", e);
       }
@@ -608,8 +607,8 @@ async function _startSlideshowPlayer() {
   } else {
     // Not interactive mode: ensure any player-mode class is removed
     try {
-   
-    } catch (e) {}
+
+    } catch (e) { }
 
     if (store.slides.length > 0) {
       await playSlideshow(false);
@@ -799,7 +798,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
         }
 
         ev.stopPropagation();
-        
+
         selectElement(container, el);
       });
       makeDraggable(container, el);
@@ -829,7 +828,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
             ) {
               try {
                 console.log("click blocked by debounce");
-              } catch (e) {}
+              } catch (e) { }
               return;
             }
             window.__os_lastInteractivePageChangeAt = now;
@@ -852,9 +851,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     }
   }
 
-  if (el.type === "textbox") {
-    _renderTextbox(el, container, isInteractivePlayback);
-  } else if (el.type === "tiptap-textbox") {
+
+  if (el.type === "tiptap-textbox") {
     _renderTiptapTextbox(el, container, isInteractivePlayback);
   } else if (el.type === "embed-website") {
     _renderEmbedWebsite(el, container);

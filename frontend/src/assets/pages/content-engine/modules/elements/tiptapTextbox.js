@@ -21,13 +21,139 @@ import {
 } from "../utils/fontUtils.js";
 import { gettext } from "../../../../utils/locales.js";
 import { getNewZIndex } from "../utils/domUtils.js";
-import {
-  autoResizeTextbox,
-  fontSizeMapping,
-  lineHeightMapping,
-  letterSpacingMapping,
-  fontWeightMapping,
-} from "./textbox.js";
+import { GridUtils } from "../config/gridConfig.js";
+
+export function autoResizeTextbox(textEl, containerEl, dataObj) {
+  const cellHeight = GridUtils.getCellHeight(store.emulatedHeight);
+  const requiredRows = Math.ceil(textEl.scrollHeight / cellHeight);
+  if (requiredRows > dataObj.gridHeight) {
+    dataObj.gridHeight = requiredRows;
+    containerEl.style.gridRowEnd = `span ${requiredRows}`;
+  }
+}
+
+export const fontSizeMapping = {
+  1: "1.02vw",
+  2: "1.07vw",
+  3: "1.13vw",
+  4: "1.23vw",
+  5: "1.33vw",
+  6: "1.44vw",
+  7: "1.54vw",
+  8: "1.75vw",
+  9: "1.96vw",
+  10: "2.17vw",
+  11: "2.38vw",
+  12: "2.58vw",
+  13: "2.79vw",
+  14: "3.00vw",
+  15: "3.21vw",
+  16: "3.42vw",
+  17: "3.63vw",
+  18: "3.83vw",
+  19: "4.04vw",
+  20: "4.25vw",
+  21: "4.67vw",
+  22: "5.08vw",
+  23: "5.50vw",
+  24: "5.92vw",
+  25: "6.33vw",
+  26: "6.75vw",
+  27: "7.17vw",
+  28: "8.00vw",
+  29: "8.83vw",
+  30: "9.67vw",
+  31: "10.50vw",
+  32: "11.33vw",
+  33: "12.17vw",
+  34: "13.00vw",
+  35: "13.83vw",
+  36: "14.67vw",
+  37: "15.50vw",
+  38: "16.33vw",
+  39: "17.17vw",
+  40: "18.00vw",
+  41: "18.83vw",
+  42: "19.67vw",
+  43: "20.50vw",
+  44: "21.33vw",
+  45: "22.17vw",
+  46: "23.00vw",
+  47: "23.83vw",
+  48: "24.67vw",
+  49: "25.50vw",
+  50: "26.33vw",
+  51: "27.17vw",
+};
+
+export const lineHeightMapping = {
+  0.5: "0.5",
+  0.6: "0.6",
+  0.7: "0.7",
+  0.8: "0.8",
+  0.9: "0.9",
+  1: "1",
+  1.1: "1.1",
+  1.2: "1.2",
+  1.3: "1.3",
+  1.4: "1.4",
+  1.5: "1.5",
+  1.6: "1.6",
+  1.8: "1.8",
+  2: "2",
+  2.2: "2.2",
+  2.5: "2.5",
+  3: "3",
+};
+
+export const letterSpacingMapping = {
+  "-0.1": "-0.1vw",
+  "-0.05": "-0.05vw",
+  "-0.02": "-0.02vw",
+  normal: "normal",
+  0.01: "0.01vw",
+  0.02: "0.02vw",
+  0.03: "0.03vw",
+  0.04: "0.04vw",
+  0.05: "0.05vw",
+  0.06: "0.06vw",
+  0.07: "0.07vw",
+  0.08: "0.08vw",
+  0.09: "0.09vw",
+  0.1: "0.1vw",
+  0.12: "0.12vw",
+  0.15: "0.15vw",
+  0.18: "0.18vw",
+  0.2: "0.2vw",
+  0.25: "0.25vw",
+  0.3: "0.3vw",
+  0.4: "0.4vw",
+  0.5: "0.5vw",
+  0.6: "0.6vw",
+  0.7: "0.7vw",
+  0.8: "0.8vw",
+  0.9: "0.9vw",
+  1: "1vw",
+  1.2: "1.2vw",
+  1.5: "1.5vw",
+  1.8: "1.8vw",
+  2: "2vw",
+};
+
+
+export const fontWeightMapping = {
+  normal: "normal",
+  100: "100",
+  200: "200",
+  300: "300",
+  400: "400",
+  500: "500",
+  600: "600",
+  700: "700",
+  800: "800",
+  900: "900",
+};
+
 
 const tiptapToolbar = document.querySelector(".tiptap-toolbar");
 const fontFamilySelect = document.querySelector(
@@ -274,7 +400,10 @@ function populateFontDropdown() {
   if (!fontFamilySelect) return;
   fontFamilySelect.innerHTML = "";
 
+  const availableFonts = getAvailableFonts();
   const defaultFonts = getDefaultFonts();
+  const usingFallbackFonts = defaultFonts.length > 0;
+
   defaultFonts.forEach((fontName) => {
     const option = document.createElement("option");
     option.value = fontName;
@@ -283,7 +412,6 @@ function populateFontDropdown() {
     fontFamilySelect.appendChild(option);
   });
 
-  const availableFonts = getAvailableFonts();
   availableFonts.forEach((font) => {
     if (!font?.name) return;
     const option = document.createElement("option");
@@ -292,6 +420,10 @@ function populateFontDropdown() {
     option.style.fontFamily = `"${font.name}"`;
     fontFamilySelect.appendChild(option);
   });
+
+  if (availableFonts.length > 0 && !usingFallbackFonts) {
+    console.log("Fonts loaded...");
+  }
 }
 
 function applyElementStyles(elementData, wrapper, container) {
@@ -609,15 +741,26 @@ function handleFontWeightChange(e) {
   const value = e.target.value;
   const editor = getActiveEditor();
   const applyDefaults = shouldApplyDefaultFormatting(editor);
+  const currentFontFamily =
+    store.selectedElementData?.fontFamily || getDefaultFont();
 
   pushCurrentSlideState();
 
   let headlessApplied = true;
   if (editor) {
-    editor.chain().focus().setFontWeight(value).run();
+    const chain = editor.chain().focus();
+    if (currentFontFamily) {
+      chain.setFontFamily(currentFontFamily);
+    }
+    chain.setFontWeight(value).run();
     updateToolbarFromEditor(editor);
   } else {
-    headlessApplied = !!applyCommandToEntireElement((chain) => chain.setFontWeight(value));
+    headlessApplied = !!applyCommandToEntireElement((chain) => {
+      if (currentFontFamily) {
+        chain.setFontFamily(currentFontFamily);
+      }
+      chain.setFontWeight(value);
+    });
     if (!headlessApplied) {
       return;
     }

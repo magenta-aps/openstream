@@ -11,10 +11,6 @@ import {
 import { setupImageSizeMode } from "../elements/imageElement.js";
 import { setupTableToolbar } from "../elements/tableElement.js";
 import {
-  updateModeRadioButtons,
-  updateToolbarDropdowns,
-} from "../elements/textbox.js";
-import {
   updateTiptapToolbarState,
   finalizeAllTiptapEditors,
 } from "../elements/tiptapTextbox.js";
@@ -359,9 +355,6 @@ export function selectElement(el, dataObj) {
     // Create gradient wrapper instead of applying border image directly
     createGradientWrapper(el);
     // Update mode radio buttons based on element's state
-    updateModeRadioButtons();
-    // Update toolbar dropdowns (font size, family, line height) based on element's properties
-    updateToolbarDropdowns();
   } else if (dataObj.type === "tiptap-textbox") {
     hideElementToolbars();
     const tiptapToolbar = document.querySelector(".tiptap-toolbar");
