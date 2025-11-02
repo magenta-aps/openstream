@@ -6,3 +6,19 @@
 body {
   background-color: $secondary;
 }
+
+#organisations-list {
+  max-height: min(60vh, 32rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+#organisations-list .organisation-card:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 576px) {
+  #organisations-list {
+    max-height: 50vh;
+  }
+}
