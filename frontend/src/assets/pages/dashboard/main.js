@@ -129,13 +129,7 @@ function renderNowPlaying(items) {
     time.innerHTML = `<span class=\"dashboard-body-text text-darkest-gray small-text\"><span class=\"material-symbols-outlined icon-16 me-1\" aria-hidden=\"true\">event</span>${new Date().toLocaleString()}</span>`;
     left.appendChild(time);
 
-    const right = document.createElement("div");
-    right.className = "calendar-entry-right-action";
-    right.innerHTML = `
-      <button class=\"icon-btn\" aria-label=\"${gettext("Change view")}\">\n        <span class=\"material-symbols-outlined icon-16 text-darkest-gray\" aria-hidden=\"true\">swap_horiz</span>\n      </button>`;
-
     article.appendChild(left);
-    article.appendChild(right);
     container.appendChild(article);
   });
 }
@@ -299,13 +293,7 @@ function renderNowPlayingGrouped(groups) {
     time.innerHTML = `<span class=\"dashboard-body-text text-darkest-gray small-text\"><span class=\"material-symbols-outlined icon-16 me-1\" aria-hidden=\"true\">event</span>${new Date().toLocaleString()}</span>`;
     left.appendChild(time);
 
-    const right = document.createElement("div");
-    right.className = "calendar-entry-right-action";
-    right.innerHTML = `
-      <button class=\"icon-btn\" aria-label=\"${gettext("Change view")}\">\n        <span class=\"material-symbols-outlined icon-16 text-darkest-gray\" aria-hidden=\"true\">swap_horiz</span>\n      </button>`;
-
     article.appendChild(left);
-    article.appendChild(right);
     container.appendChild(article);
   });
 }
@@ -562,7 +550,7 @@ function renderUpcoming(items) {
 
     const right = document.createElement("div");
     right.className = "calendar-entry-right-action";
-    right.innerHTML = `<span class=\"material-symbols-outlined icon-16 text-darkest-gray\" aria-hidden=\"true\">event</span>`;
+    
 
     article.appendChild(left);
     article.appendChild(right);

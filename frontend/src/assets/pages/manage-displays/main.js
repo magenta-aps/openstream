@@ -2261,17 +2261,6 @@ async function initCalendar() {
           ? '<span class="material-symbols-outlined recurring-icon text-white mx-1" style="font-size: 24px; opacity: 0.9;">autorenew</span>'
           : '<span class="material-symbols-outlined event-icon text-white mx-1" style="font-size: 24px; opacity: 0.9;">event</span>';
 
-        // Check if this event combines with default or overrides
-        const eventData = arg.event.extendedProps?.eventData;
-        const combineWithDefault = eventData?.combine_with_default || false;
-        const combineIcon = combineWithDefault
-          ? `<span class="material-symbols-outlined combine-icon text-white" style="font-size: 24px;  opacity: 0.9;" title="${gettext(
-              "Combines with default content",
-            )}">stack</span>`
-          : `<span class="material-symbols-outlined override-icon text-white " style="font-size: 24px; opacity: 0.9;" title="${gettext(
-              "Overrides default content",
-            )}">swap_horiz</span>`;
-
         // Split title by newline to separate group name and content
         const titleParts = arg.event.title.split("\n");
         const groupName = titleParts[0] || "";
@@ -2334,7 +2323,7 @@ async function initCalendar() {
                 </div>
                 <div style="line-height: 1.1; background-color: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center;" class="p-1">
                   <div style="display: flex; align-items: center;">
-                    ${eventIcon}${combineIcon}
+                    ${eventIcon}
                   </div>
                   <div style="font-size: 13px; opacity: 0.8; max-width: calc(100% - 60px) !important; word-break: normal !important;">
                     ${timeDisplay}
@@ -2361,7 +2350,7 @@ async function initCalendar() {
                 </div>
                 <div style="line-height: 1.1; background-color: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center;" class="p-1">
                   <div style="display: flex;  align-items: center;">
-                    ${eventIcon}${combineIcon}
+                    ${eventIcon}
                   </div>
                    <div style="font-size: 13px; opacity: 0.8; max-width: calc(100% - 60px) !important; word-break: normal !important;">
                     ${timeDisplay}
@@ -2809,8 +2798,6 @@ function createListEventElement(event) {
   const startDate = new Date(event.start);
   const endDate = new Date(event.end);
   const isRecurring = event.extendedProps?.isRecurring || false;
-  const eventData = event.extendedProps?.eventData;
-  const combineWithDefault = eventData?.combine_with_default || false;
 
   // Check if this is a multi-day event and which day we're showing
   const isMultiDay = event._isMultiDay || false;
@@ -2927,15 +2914,6 @@ function createListEventElement(event) {
                   "Recurring",
                 )}</span>`
               : ""
-          }
-          ${
-            combineWithDefault
-              ? `<span class="badge bg-info"><span class="material-symbols-outlined">add</span> ${gettext(
-                  "Combines",
-                )}</span>`
-              : `<span class="badge bg-warning"><span class="material-symbols-outlined">swap_horiz</span> ${gettext(
-                  "Overrides",
-                )}</span>`
           }
         </div>
       </div>
