@@ -437,3 +437,7 @@ export async function deleteSuborgTemplate(templateId) {
     throw err;
   }
 }
+
+const templateEditorLink  = document.querySelector('a[href="/manage-templates?mode=template_editor"]');
+
+  templateEditorLink.href = '/manage-templates?mode=suborg_templates';
