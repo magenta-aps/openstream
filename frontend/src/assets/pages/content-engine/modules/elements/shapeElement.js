@@ -417,6 +417,21 @@ export function initShape() {
 
     // Outline toggle
     if (outlineToggleBtn) {
+      const ensureOutlineToggleIcon = () => {
+        let iconEl = outlineToggleBtn.querySelector(
+          ".material-symbols-outlined",
+        );
+        if (!iconEl) {
+          iconEl = document.createElement("i");
+          iconEl.classList.add("material-symbols-outlined");
+          outlineToggleBtn.prepend(iconEl);
+        }
+        return iconEl;
+      };
+      const syncOutlineToggleIcon = (isEnabled) => {
+        const iconEl = ensureOutlineToggleIcon();
+        iconEl.textContent = isEnabled ? "visibility" : "visibility_off";
+      };
       // Initialize toggle state
       if (
         window.selectedElementForUpdate &&
@@ -425,9 +440,9 @@ export function initShape() {
         const isOutlineEnabled =
           window.selectedElementForUpdate.element.useOutline;
         outlineToggleBtn.classList.toggle("active", isOutlineEnabled);
-        outlineToggleBtn.innerHTML = isOutlineEnabled
-          ? '<i class="bi bi-eye"></i>'
-          : '<i class="bi bi-eye-slash"></i>';
+        syncOutlineToggleIcon(isOutlineEnabled);
+      } else {
+        syncOutlineToggleIcon(true);
       }
 
       outlineToggleBtn.addEventListener("click", () => {
@@ -441,9 +456,7 @@ export function initShape() {
 
           // Update button appearance
           outlineToggleBtn.classList.toggle("active", elementData.useOutline);
-          outlineToggleBtn.innerHTML = elementData.useOutline
-            ? '<i class="bi bi-eye"></i>'
-            : '<i class="bi bi-eye-slash"></i>';
+          syncOutlineToggleIcon(elementData.useOutline);
 
           // Update the shape rendering
           const elementDom = window.selectedElementForUpdate.container;
