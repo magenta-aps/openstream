@@ -409,6 +409,7 @@ function populateFontDropdown() {
     option.value = fontName;
     option.textContent = fontName;
     option.style.fontFamily = fontName;
+    option.title = fontName;
     fontFamilySelect.appendChild(option);
   });
 
@@ -418,6 +419,7 @@ function populateFontDropdown() {
     option.value = font.name;
     option.textContent = font.name;
     option.style.fontFamily = `"${font.name}"`;
+    option.title = font.name;
     fontFamilySelect.appendChild(option);
   });
 

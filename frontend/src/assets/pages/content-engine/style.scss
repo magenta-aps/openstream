@@ -176,6 +176,26 @@ body {
   height: 48px;
 }
 
+
+.tiptap-toolbar .tiptap-font-size-select,
+.tiptap-toolbar .tiptap-line-height-select,
+.tiptap-toolbar .tiptap-letter-spacing-select,
+.tiptap-toolbar .tiptap-font-weight-select {
+  width: auto;
+  padding-right: 1.5rem;
+}
+
+
+
+.tiptap-toolbar .tiptap-font-family-select {
+  min-width: 6rem;
+  max-width: 7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 1.5rem;
+}
+
 .toolbar-section {
   display: flex;
   align-items: center;

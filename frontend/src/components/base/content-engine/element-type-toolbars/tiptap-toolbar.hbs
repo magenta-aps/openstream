@@ -1,24 +1,12 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 {{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="tiptap-toolbar" title="Textbox" }}
-    <div class="mx-3 d-flex align-items-center">
-        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text direction">
-            <input type="radio" class="btn-check" name="tiptapTextDirectionToggle" id="tiptapHorizontalTextMode" value="horizontal" checked>
-            <label class="btn btn-outline-secondary btn-sm" for="tiptapHorizontalTextMode" title="{% trans 'Horizontal Text' %}">
-                <span class="material-symbols-outlined">text_rotation_none</span>
-            </label>
-            <input type="radio" class="btn-check" name="tiptapTextDirectionToggle" id="tiptapVerticalTextMode" value="vertical">
-            <label class="btn btn-outline-secondary btn-sm" for="tiptapVerticalTextMode" title="{% trans 'Vertical Text' %}">
-                <span class="material-symbols-outlined">text_rotation_down</span>
-            </label>
-        </div>
-    </div>
-    <div class="mx-3 d-flex">
-        <span class="me-1 align-self-center">Font:</span>
+    <div class="me-3 d-flex">
+        <span class="me-1 align-self-center material-symbols-outlined" role="img" aria-label="{% trans 'Font Family' %}" title="{% trans 'Font Family' %}">font_download</span>
         {{#> base/form/dropdown id="" class="tiptap-font-family-select mx-1 form-select form-select-sm" }}
             <!-- Populated by JS -->
         {{/base/form/dropdown}}
-        <span class="me-1 align-self-center">Size:</span>
+        <span class="me-1 ms-2 align-self-center material-symbols-outlined" role="img" aria-label="{% trans 'Font Size' %}" title="{% trans 'Font Size' %}">format_size</span>
         {{#> base/form/dropdown id="" class="tiptap-font-size-select mx-1 form-select form-select-sm" }}
             {{> base/form/dropdown-option value="1" text="10"}}
             {{> base/form/dropdown-option value="2" text="11"}}
@@ -72,7 +60,20 @@
             {{> base/form/dropdown-option value="50" text="496"}}
             {{> base/form/dropdown-option value="51" text="512"}}
         {{/base/form/dropdown}}
-        <span class="me-1 align-self-center">Line Ht:</span>
+        <span class="me-1 ms-2 align-self-center material-symbols-outlined" role="img" aria-label="{% trans 'Font Weight' %}" title="{% trans 'Font Weight' %}">line_weight</span>
+        {{#> base/form/dropdown id="" class="tiptap-font-weight-select mx-1 form-select form-select-sm" title="{% trans 'Font Weight' %}" }}
+            {{> base/form/dropdown-option value="normal" text="Normal" selected=true}}
+            {{> base/form/dropdown-option value="100" text="100"}}
+            {{> base/form/dropdown-option value="200" text="200"}}
+            {{> base/form/dropdown-option value="300" text="300"}}
+            {{> base/form/dropdown-option value="400" text="400"}}
+            {{> base/form/dropdown-option value="500" text="500"}}
+            {{> base/form/dropdown-option value="600" text="600"}}
+            {{> base/form/dropdown-option value="700" text="700"}}
+            {{> base/form/dropdown-option value="800" text="800"}}
+            {{> base/form/dropdown-option value="900" text="900"}}
+        {{/base/form/dropdown}}
+        <span class="me-1 ms-2 align-self-center material-symbols-outlined" role="img" aria-label="{% trans 'Line Height' %}" title="{% trans 'Line Height' %}">format_line_spacing</span>
         {{#> base/form/dropdown id="" class="tiptap-line-height-select mx-1 form-select form-select-sm" title="{% trans 'Line Height' %}" }}
             {{> base/form/dropdown-option value="0.5" text="0.5"}}
             {{> base/form/dropdown-option value="0.6" text="0.6"}}
@@ -92,7 +93,7 @@
             {{> base/form/dropdown-option value="2.5" text="2.5"}}
             {{> base/form/dropdown-option value="3" text="3"}}
         {{/base/form/dropdown}}
-        <span class="me-1 align-self-center">Spacing:</span>
+        <span class="me-1 ms-2 align-self-center material-symbols-outlined" role="img" aria-label="{% trans 'Letter Spacing' %}" title="{% trans 'Letter Spacing' %}">horizontal_distribute</span>
         {{#> base/form/dropdown id="" class="tiptap-letter-spacing-select mx-1 form-select form-select-sm" title="{% trans 'Letter Spacing' %}" }}
             {{> base/form/dropdown-option value="-0.1" text="-0.1vw"}}
             {{> base/form/dropdown-option value="-0.05" text="-0.05vw"}}
@@ -126,27 +127,14 @@
             {{> base/form/dropdown-option value="1.8" text="1.8vw"}}
             {{> base/form/dropdown-option value="2" text="2vw"}}
         {{/base/form/dropdown}}
-        <span class="me-1 align-self-center">Weight:</span>
-        {{#> base/form/dropdown id="" class="tiptap-font-weight-select mx-1 form-select form-select-sm" title="{% trans 'Font Weight' %}" }}
-            {{> base/form/dropdown-option value="normal" text="Normal" selected=true}}
-            {{> base/form/dropdown-option value="100" text="100"}}
-            {{> base/form/dropdown-option value="200" text="200"}}
-            {{> base/form/dropdown-option value="300" text="300"}}
-            {{> base/form/dropdown-option value="400" text="400"}}
-            {{> base/form/dropdown-option value="500" text="500"}}
-            {{> base/form/dropdown-option value="600" text="600"}}
-            {{> base/form/dropdown-option value="700" text="700"}}
-            {{> base/form/dropdown-option value="800" text="800"}}
-            {{> base/form/dropdown-option value="900" text="900"}}
-        {{/base/form/dropdown}}
-    </div>
-    <div class="mx-4 d-flex">
-        {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapTextColorBtn" class="tiptap-text-color-picker" icon="format_color_text" tooltip="{% trans 'Change Text Color' %}"}}
     </div>
     <div class="mx-3 d-flex">
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapBoldBtn" icon="format_bold" tooltip="{% trans 'Make Text Bold' %}"}}
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapItalicBtn" icon="format_italic" tooltip="{% trans 'Make Text Italic' %}"}}
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapUnderlineBtn" icon="format_underlined" tooltip="{% trans 'Underline Text' %}"}}
+    </div>
+    <div class="mx-4 d-flex">
+        {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapTextColorBtn" class="tiptap-text-color-picker" icon="format_color_text" tooltip="{% trans 'Change Text Color' %}"}}
     </div>
     <div class="mx-3 d-flex">
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextLeftBtn" icon="format_align_left" tooltip="{% trans 'Align Text Left' %}"}}
@@ -157,5 +145,17 @@
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextTopBtn" icon="vertical_align_top" tooltip="{% trans 'Align Top' %}"}}
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextMiddleBtn" icon="vertical_align_center" tooltip="{% trans 'Align Middle' %}"}}
         {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextBottomBtn" icon="vertical_align_bottom" tooltip="{% trans 'Align Bottom' %}"}}
+    </div>
+    <div class="mx-3 d-flex align-items-center">
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text direction">
+            <input type="radio" class="btn-check" name="tiptapTextDirectionToggle" id="tiptapHorizontalTextMode" value="horizontal" checked>
+            <label class="btn btn-outline-secondary btn-sm" for="tiptapHorizontalTextMode" title="{% trans 'Horizontal Text' %}">
+                <span class="material-symbols-outlined">text_rotation_none</span>
+            </label>
+            <input type="radio" class="btn-check" name="tiptapTextDirectionToggle" id="tiptapVerticalTextMode" value="vertical">
+            <label class="btn btn-outline-secondary btn-sm" for="tiptapVerticalTextMode" title="{% trans 'Vertical Text' %}">
+                <span class="material-symbols-outlined">text_rotation_down</span>
+            </label>
+        </div>
     </div>
 {{/base/content-engine/element-type-toolbars/containers/element-type-toolbars-container}}
