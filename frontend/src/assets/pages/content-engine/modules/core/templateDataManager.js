@@ -3,7 +3,12 @@
 import { store } from "./slideStore.js";
 import { loadSlide, scaleAllSlides } from "./renderSlide.js";
 import { updateSlideSelector } from "./slideSelector.js";
-import { showToast, token, parentOrgID } from "../../../../utils/utils.js";
+import {
+  showToast,
+  token,
+  parentOrgID,
+  selectedSubOrgID,
+} from "../../../../utils/utils.js";
 import { showSavingStatus } from "./slideshowDataManager.js"; // Assuming this can be reused
 import { updateResolution } from "./virutalPreviewResolution.js";
 import { updateAllSlidesZoom } from "../utils/zoomController.js";
@@ -521,7 +526,11 @@ export async function deleteTemplateOnBackend(templateId) {
   // Check if we're in suborg templates mode
   const queryParams = new URLSearchParams(window.location.search);
   const isSuborgMode = queryParams.get("mode") === "suborg_templates";
-  const suborgId = queryParams.get("suborg_id");
+  const suborgId =
+    queryParams.get("suborgId") ??
+    queryParams.get("suborg_id") ??
+    selectedSubOrgID ??
+    "";
 
   try {
     // Use appropriate endpoint based on mode
@@ -557,7 +566,7 @@ export async function deleteTemplateOnBackend(templateId) {
       // Refresh org templates; do not reapply a previously captured
       // resolution. The populate function will set resolution based on
       // the currently selected template (or defaults) when applicable.
-      await fetchAllOrgTemplatesAndPopulateStore(parentOrgID);
+      await fetchAllOrgTemplatesAndPopulateStore();
     }
     return true;
   } catch (err) {
