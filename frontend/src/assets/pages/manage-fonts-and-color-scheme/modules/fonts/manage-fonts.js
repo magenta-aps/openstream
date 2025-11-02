@@ -4,11 +4,18 @@ import { showToast, genericFetch, parentOrgID } from "../../../../utils/utils";
 import * as bootstrap from "bootstrap";
 import { BASE_URL } from "../../../../utils/constants";
 import { gettext } from "../../../../utils/locales";
+import {
+  fetchTextFormattingSettings,
+  getTextFormattingSettings,
+  updateTextFormattingSettings,
+  TEXT_FORMATTING_FEATURES,
+} from "../../../../utils/textFormattingSettings.js";
 
 // Global variables
 let isAdmin = false;
 let fonts = [];
 let deleteId = null;
+let textFormattingSettings = getTextFormattingSettings();
 
 // DOM elements
 const fontsTableBody = document.getElementById("fonts-table-body");
@@ -46,11 +53,34 @@ const deleteModal = new bootstrap.Modal(
   document.getElementById("deleteFontModal"),
 );
 
+// Text formatting option elements
+const textOptionsCard = document.getElementById("text-options-card");
+const textOptionsLoading = document.getElementById("text-options-loading");
+const textOptionsForm = document.getElementById("text-options-form");
+const textOptionsAdminMessage = document.getElementById(
+  "admin-required-message-text-options",
+);
+const textOptionInputs = {
+  [TEXT_FORMATTING_FEATURES.BOLD]: document.getElementById(
+    "tiptap-option-bold",
+  ),
+  [TEXT_FORMATTING_FEATURES.ITALIC]: document.getElementById(
+    "tiptap-option-italic",
+  ),
+  [TEXT_FORMATTING_FEATURES.UNDERLINE]: document.getElementById(
+    "tiptap-option-underline",
+  ),
+  [TEXT_FORMATTING_FEATURES.FONT_WEIGHT]: document.getElementById(
+    "tiptap-option-font-weight",
+  ),
+};
+
 /**
  * Initialize fonts management
  */
 export default async function initializeManageFonts() {
   await loadFonts();
+  await loadTextFormattingOptions();
   setupEventListeners();
 }
 
@@ -228,6 +258,112 @@ function renderFonts() {
     // Add row to table
     fontsTableBody.appendChild(row);
   });
+}
+
+function renderTextFormattingOptions() {
+  Object.entries(textOptionInputs).forEach(([featureKey, input]) => {
+    if (!input) return;
+    const isEnabled = !!textFormattingSettings[featureKey];
+    input.checked = isEnabled;
+    input.disabled = !isAdmin;
+  });
+
+  if (textOptionsForm) {
+    if (isAdmin) {
+      textOptionsForm.classList.remove("disabled");
+    } else {
+      textOptionsForm.classList.add("disabled");
+    }
+  }
+
+  if (textOptionsAdminMessage) {
+    textOptionsAdminMessage.classList.toggle("d-none", isAdmin);
+  }
+}
+
+async function loadTextFormattingOptions() {
+  if (!textOptionsCard) {
+    return;
+  }
+
+  if (textOptionsLoading) {
+    textOptionsLoading.classList.remove("d-none");
+  }
+  if (textOptionsForm) {
+    textOptionsForm.classList.add("d-none");
+  }
+
+  renderTextFormattingOptions();
+
+  try {
+    textFormattingSettings = await fetchTextFormattingSettings({ silent: false });
+  } catch (error) {
+    console.error("Error loading text formatting options:", error);
+    const detail = error?.detail || error?.message || "";
+    const detailText = detail ? ` ${detail}` : "";
+    showToast(
+      `${gettext("Failed to load toolbar options.")}${detailText}`,
+      "Error",
+    );
+    textFormattingSettings = getTextFormattingSettings();
+  } finally {
+    renderTextFormattingOptions();
+    if (textOptionsLoading) {
+      textOptionsLoading.classList.add("d-none");
+    }
+    if (textOptionsForm) {
+      textOptionsForm.classList.remove("d-none");
+    }
+  }
+}
+
+async function handleTextOptionToggle(featureKey, isEnabled) {
+  const input = textOptionInputs[featureKey];
+  if (!input) {
+    return;
+  }
+
+  if (!isAdmin) {
+    input.checked = !!textFormattingSettings[featureKey];
+    showToast(
+      gettext("You must be an organization admin to modify toolbar options."),
+      "Error",
+    );
+    return;
+  }
+
+  const previousValue = !!textFormattingSettings[featureKey];
+  if (previousValue === isEnabled) {
+    return;
+  }
+
+  input.disabled = true;
+
+  try {
+    textFormattingSettings = await updateTextFormattingSettings({
+      [featureKey]: isEnabled,
+    });
+    renderTextFormattingOptions();
+    showToast(gettext("Toolbar option updated"), "Success");
+  } catch (error) {
+    console.error("Error updating toolbar option:", error);
+    const detail = error?.detail || error?.message || "";
+    input.checked = previousValue;
+    textFormattingSettings = {
+      ...textFormattingSettings,
+      [featureKey]: previousValue,
+    };
+    renderTextFormattingOptions();
+    const detailText = detail ? ` ${detail}` : "";
+    showToast(
+      `${gettext("Failed to update toolbar option.")}${detailText}`,
+      "Error",
+    );
+  } finally {
+    if (isAdmin) {
+      input.disabled = false;
+    }
+  }
 }
 
 /**
@@ -484,4 +620,11 @@ function setupEventListeners() {
 
   // Confirm delete button
   confirmDeleteBtn.addEventListener("click", deleteFont);
+
+  Object.entries(textOptionInputs).forEach(([featureKey, input]) => {
+    if (!input) return;
+    input.addEventListener("change", (event) => {
+      handleTextOptionToggle(featureKey, event.target.checked);
+    });
+  });
 }

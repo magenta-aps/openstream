@@ -39,6 +39,38 @@
                             {% trans "No custom fonts found. Add a new font to get started." %}
                         </div>
                     </div>
+                    <div class="card shadow-xl rounded-4 border-0 p-3 d-flex flex-column gap-3" id="text-options-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="m-0 text-secondary">{% trans "Tiptap Toolbar Options" %}</h4>
+                        </div>
+                        <p class="text-muted small mb-0">{% trans "Choose which formatting controls are available in the text toolbar." %}</p>
+                        <div id="admin-required-message-text-options" class="alert alert-warning d-none" role="alert">
+                            {% trans "You must be an organization admin to modify toolbar options." %}
+                        </div>
+                        <div id="text-options-loading" class="text-center py-3">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">{% trans "Loading..." %}</span>
+                            </div>
+                        </div>
+                        <form id="text-options-form" class="d-none d-flex flex-column gap-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tiptap-option-bold">
+                                <label class="form-check-label" for="tiptap-option-bold">{% trans "Show Bold button" %}</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tiptap-option-italic">
+                                <label class="form-check-label" for="tiptap-option-italic">{% trans "Show Italic button" %}</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tiptap-option-underline">
+                                <label class="form-check-label" for="tiptap-option-underline">{% trans "Show Underline button" %}</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tiptap-option-font-weight">
+                                <label class="form-check-label" for="tiptap-option-font-weight">{% trans "Show Font Weight dropdown" %}</label>
+                            </div>
+                        </form>
+                    </div>
                 </div>
                 <div class="w-100 d-flex flex-column gap-2">
                     <div id="admin-required-message-colors" class="alert alert-warning d-none">{% trans "You must be an organization admin to view or modify colors." %}</div>

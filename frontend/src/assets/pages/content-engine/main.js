@@ -76,13 +76,17 @@ import {
   fetchAndInitializeFonts,
   waitForFontsReady,
 } from "./modules/utils/fontUtils.js";
+import { fetchTextFormattingSettings } from "../../utils/textFormattingSettings.js";
 import { syncGridConfigWithCSS } from "./modules/config/gridConfig.js";
 import { initStatusBar } from "./modules/utils/statusBar.js";
 import initSlideElementsSidebar from "./modules/core/slideElementsSidebar.js";
 import { initZoomController } from "./modules/utils/zoomController.js";
 import * as bootstrap from "bootstrap";
 
-await fetchAndInitializeFonts();
+await Promise.all([
+  fetchAndInitializeFonts(),
+  fetchTextFormattingSettings(),
+]);
 (async () => {
   await fetchUserLangugage();
   translateHTML();

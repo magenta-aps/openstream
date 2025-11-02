@@ -70,15 +70,15 @@
         </div>
         <div class="vr mx-3 my-1"></div>
 
-        <div class="d-flex">
+        <div class="d-flex" id="tiptapBasicFormattingGroup" data-toolbar-feature-group="basic-formatting">
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapBoldBtn" icon="format_bold"
-            tooltip="{% trans 'Make Text Bold' %}"}}
+            tooltip="{% trans 'Make Text Bold' %}" dataAttrs='data-feature="bold"'}}
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapItalicBtn"
-            icon="format_italic" tooltip="{% trans 'Make Text Italic' %}"}}
+            icon="format_italic" tooltip="{% trans 'Make Text Italic' %}" dataAttrs='data-feature="italic"'}}
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapUnderlineBtn"
-            icon="format_underlined" tooltip="{% trans 'Underline Text' %}"}}
+            icon="format_underlined" tooltip="{% trans 'Underline Text' %}" dataAttrs='data-feature="underline"'}}
         </div>
-        <div class="vr mx-3 my-1"></div>
+        <div class="vr mx-3 my-1" id="tiptapBasicFormattingSeparator"></div>
         <div class="d-flex align-items-center">
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapTextColorBtn"
             class="tiptap-text-color-picker" icon="format_color_text" tooltip="{% trans 'Change Text Color' %}"}}
@@ -162,8 +162,9 @@
         {{> base/form/dropdown-option value="1.8" text="1.8vw"}}
         {{> base/form/dropdown-option value="2" text="2vw"}}
         {{/base/form/dropdown}}
-        <div class="vr my-1"></div>
+        <div class="vr my-1" id="tiptapFontWeightPreSeparator"></div>
     </div>
+    <div class="mx-3 d-flex align-items-center tiptap-font-weight-group" id="tiptapFontWeightGroup" data-toolbar-feature-group="font-weight">
         <span class="me-1 align-self-center material-symbols-outlined" role="img" aria-label="{% trans 'Font Weight' %}"
             title="{% trans 'Font Weight' %}">line_weight</span>
         {{#> base/form/dropdown id="" class="tiptap-font-weight-select mx-1 form-select form-select-sm bg-transparent border-light-gray" title="{% trans
@@ -179,7 +180,8 @@
         {{> base/form/dropdown-option value="800" text="800"}}
         {{> base/form/dropdown-option value="900" text="900"}}
         {{/base/form/dropdown}}
-        <div class="vr my-1"></div>
+    </div>
+        <div class="vr my-1" id="tiptapFontWeightPostSeparator"></div>
        
     <div class="mx-3 d-flex align-items-center">
         <div class="btn-group btn-group-sm me-2" role="group" aria-label="Text direction">

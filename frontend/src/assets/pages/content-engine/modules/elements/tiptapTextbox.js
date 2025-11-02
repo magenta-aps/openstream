@@ -22,6 +22,11 @@ import {
 import { gettext } from "../../../../utils/locales.js";
 import { getNewZIndex } from "../utils/domUtils.js";
 import { GridUtils } from "../config/gridConfig.js";
+import {
+  getTextFormattingSettings,
+  isTextFormattingFeatureEnabled,
+  TEXT_FORMATTING_FEATURES,
+} from "../../../../utils/textFormattingSettings.js";
 
 export function autoResizeTextbox(textEl, containerEl, dataObj) {
   const cellHeight = GridUtils.getCellHeight(store.emulatedHeight);
@@ -187,6 +192,11 @@ const alignRightBtn = document.getElementById("tiptapAlignTextRightBtn");
 const alignTopBtn = document.getElementById("tiptapAlignTextTopBtn");
 const alignMiddleBtn = document.getElementById("tiptapAlignTextMiddleBtn");
 const alignBottomBtn = document.getElementById("tiptapAlignTextBottomBtn");
+const basicFormattingGroup = document.getElementById("tiptapBasicFormattingGroup");
+const basicFormattingSeparator = document.getElementById("tiptapBasicFormattingSeparator");
+const fontWeightPreSeparator = document.getElementById("tiptapFontWeightPreSeparator");
+const fontWeightGroup = document.getElementById("tiptapFontWeightGroup");
+const fontWeightPostSeparator = document.getElementById("tiptapFontWeightPostSeparator");
 
 const DEFAULT_TEXT_HTML = `<p>${gettext("Double click to edit text")}</p>`;
 const tiptapEditors = new Map();
@@ -195,6 +205,60 @@ const textDirectionMapping = {
   horizontal: "horizontal-tb",
   vertical: "vertical-rl",
 };
+
+function getToolbarButtonWrapper(buttonEl) {
+  if (!buttonEl) {
+    return null;
+  }
+  return (
+    buttonEl.closest("[data-bs-toggle=\"tooltip\"]") ||
+    buttonEl.parentElement ||
+    buttonEl
+  );
+}
+
+function setToolbarButtonVisibility(buttonEl, isVisible) {
+  const wrapper = getToolbarButtonWrapper(buttonEl);
+  if (wrapper) {
+    wrapper.classList.toggle("d-none", !isVisible);
+  }
+  if (buttonEl) {
+    buttonEl.disabled = !isVisible;
+  }
+}
+
+function applyToolbarFeatureVisibility() {
+  const settings = getTextFormattingSettings();
+  const boldEnabled = !!settings[TEXT_FORMATTING_FEATURES.BOLD];
+  const italicEnabled = !!settings[TEXT_FORMATTING_FEATURES.ITALIC];
+  const underlineEnabled = !!settings[TEXT_FORMATTING_FEATURES.UNDERLINE];
+  const fontWeightEnabled = !!settings[TEXT_FORMATTING_FEATURES.FONT_WEIGHT];
+
+  setToolbarButtonVisibility(boldBtn, boldEnabled);
+  setToolbarButtonVisibility(italicBtn, italicEnabled);
+  setToolbarButtonVisibility(underlineBtn, underlineEnabled);
+
+  const hasBasicFormatting = boldEnabled || italicEnabled || underlineEnabled;
+  if (basicFormattingGroup) {
+    basicFormattingGroup.classList.toggle("d-none", !hasBasicFormatting);
+  }
+  if (basicFormattingSeparator) {
+    basicFormattingSeparator.classList.toggle("d-none", !hasBasicFormatting);
+  }
+
+  if (fontWeightGroup) {
+    fontWeightGroup.classList.toggle("d-none", !fontWeightEnabled);
+  }
+  if (fontWeightPreSeparator) {
+    fontWeightPreSeparator.classList.toggle("d-none", !fontWeightEnabled);
+  }
+  if (fontWeightPostSeparator) {
+    fontWeightPostSeparator.classList.toggle("d-none", !fontWeightEnabled);
+  }
+  if (fontWeightSelect) {
+    fontWeightSelect.disabled = !fontWeightEnabled;
+  }
+}
 
 function findKeyByValue(mapping, targetValue) {
   if (targetValue == null) return null;
@@ -553,9 +617,21 @@ function syncToolbarFromData() {
 
 function updateToolbarFromEditor(editor) {
   if (!editor) return;
-  boldBtn?.classList.toggle("active", editor.isActive("bold"));
-  italicBtn?.classList.toggle("active", editor.isActive("italic"));
-  underlineBtn?.classList.toggle("active", editor.isActive("underline"));
+  if (isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.BOLD)) {
+    boldBtn?.classList.toggle("active", editor.isActive("bold"));
+  } else {
+    boldBtn?.classList.remove("active");
+  }
+  if (isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.ITALIC)) {
+    italicBtn?.classList.toggle("active", editor.isActive("italic"));
+  } else {
+    italicBtn?.classList.remove("active");
+  }
+  if (isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.UNDERLINE)) {
+    underlineBtn?.classList.toggle("active", editor.isActive("underline"));
+  } else {
+    underlineBtn?.classList.remove("active");
+  }
 
   const attrs = editor.getAttributes("textStyle") || {};
 
@@ -804,6 +880,9 @@ function handleLetterSpacingChange(e) {
 }
 
 function handleFontWeightChange(e) {
+  if (!isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.FONT_WEIGHT)) {
+    return;
+  }
   const value = e.target.value;
   const editor = getActiveEditor();
   const applyDefaults = shouldApplyDefaultFormatting(editor);
@@ -818,6 +897,11 @@ function handleFontWeightChange(e) {
     if (currentFontFamily) {
       chain.setFontFamily(currentFontFamily);
     }
+    if (typeof chain.unsetBold === "function") {
+      chain.unsetBold();
+    } else if (typeof chain.unsetMark === "function") {
+      chain.unsetMark("bold");
+    }
     chain.setFontWeight(value).run();
     updateToolbarFromEditor(editor);
   } else {
@@ -825,11 +909,17 @@ function handleFontWeightChange(e) {
       if (currentFontFamily) {
         chain.setFontFamily(currentFontFamily);
       }
+      if (typeof chain.unsetBold === "function") {
+        chain.unsetBold();
+      } else if (typeof chain.unsetMark === "function") {
+        chain.unsetMark("bold");
+      }
       chain.setFontWeight(value);
     });
     if (!headlessApplied) {
       return;
     }
+    boldBtn?.classList.remove("active");
   }
 
   if (!editor || applyDefaults) {
@@ -848,6 +938,9 @@ function handleFontWeightChange(e) {
 }
 
 function handleBoldClick() {
+  if (!isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.BOLD)) {
+    return;
+  }
   pushCurrentSlideState();
   const editor = getActiveEditor();
 
@@ -875,6 +968,9 @@ function handleBoldClick() {
 }
 
 function handleItalicClick() {
+  if (!isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.ITALIC)) {
+    return;
+  }
   pushCurrentSlideState();
   const editor = getActiveEditor();
 
@@ -902,6 +998,9 @@ function handleItalicClick() {
 }
 
 function handleUnderlineClick() {
+  if (!isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.UNDERLINE)) {
+    return;
+  }
   pushCurrentSlideState();
   const editor = getActiveEditor();
 
@@ -1209,6 +1308,7 @@ function addTiptapTextboxToSlide() {
 }
 
 export function initTiptapTextbox() {
+  applyToolbarFeatureVisibility();
   populateFontDropdown();
 
   const addBtn = document.querySelector('[data-type="tiptap-textbox"]');

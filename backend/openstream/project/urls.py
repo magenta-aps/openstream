@@ -60,6 +60,7 @@ from app.views import (
     ValidateTokenView,
     CustomColorAPIView,
     CustomFontAPIView,
+    TextFormattingSettingsAPIView,
     UserLanguagePreferenceView,
     SendLoginEmailView,
     ResetPasswordView,
@@ -408,6 +409,11 @@ urlpatterns = [
         "api/fonts/<int:pk>/",
         CustomFontAPIView.as_view(),
         name="font_detail_crud",
+    ),
+    path(
+        "api/text-formatting-settings/",
+        TextFormattingSettingsAPIView.as_view(),
+        name="text_formatting_settings",
     ),
     path(
         "api/user-language-preference/",

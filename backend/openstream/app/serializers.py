@@ -40,6 +40,7 @@ from app.models import (
     BranchURLCollectionItem,
     CustomColor,
     CustomFont,
+    TextFormattingSettings,
     RegisteredSlideTypes,
 )
 
@@ -1234,6 +1235,20 @@ class CustomFontSerializer(serializers.ModelSerializer):
                 )
 
         return data
+
+
+class TextFormattingSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextFormattingSettings
+        fields = [
+            "id",
+            "organisation",
+            "allow_bold",
+            "allow_italic",
+            "allow_underline",
+            "allow_font_weight",
+        ]
+        read_only_fields = ["id", "organisation"]
 
 
 ###############################################################################

@@ -1113,6 +1113,21 @@ class CustomFont(models.Model):
         )  # Ensure unique font names per organisation
 
 
+class TextFormattingSettings(models.Model):
+    organisation = models.OneToOneField(
+        Organisation,
+        on_delete=models.CASCADE,
+        related_name="text_formatting_settings",
+    )
+    allow_bold = models.BooleanField(default=True)
+    allow_italic = models.BooleanField(default=True)
+    allow_underline = models.BooleanField(default=True)
+    allow_font_weight = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Text formatting settings for {self.organisation.name}"
+
+
 ###############################################################################
 # API Keys
 ###############################################################################

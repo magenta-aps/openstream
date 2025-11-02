@@ -59,6 +59,7 @@ from app.models import (
     BranchURLCollectionItem,
     CustomColor,
     CustomFont,
+    TextFormattingSettings,
     RegisteredSlideTypes,
 )
 from app.serializers import (
@@ -90,6 +91,7 @@ from app.serializers import (
     BranchURLCollectionItemSerializer,  # optional
     CustomColorSerializer,
     CustomFontSerializer,
+    TextFormattingSettingsSerializer,
     RegisteredSlideTypesSerializer,
 )
 from django.conf import settings
@@ -4281,6 +4283,77 @@ class CustomFontAPIView(APIView):
         # Delete the font
         custom_font.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TextFormattingSettingsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def _get_organisation_from_request(request):
+        org_id = request.query_params.get("organisation_id")
+        if not org_id:
+            return None, Response(
+                {"detail": "organisation_id parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            organisation = Organisation.objects.get(pk=org_id)
+        except Organisation.DoesNotExist:
+            return None, Response(
+                {"detail": "Organization not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return organisation, None
+
+    def get(self, request):
+        organisation, error_response = self._get_organisation_from_request(request)
+        if error_response:
+            return error_response
+
+        if not (
+            user_is_super_admin(request.user)
+            or user_belongs_to_organisation(request.user, organisation)
+        ):
+            return Response(
+                {"detail": "You don't have permission to access this organization."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        settings_obj, _ = TextFormattingSettings.objects.get_or_create(
+            organisation=organisation
+        )
+        serializer = TextFormattingSettingsSerializer(settings_obj)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        organisation, error_response = self._get_organisation_from_request(request)
+        if error_response:
+            return error_response
+
+        if not (
+            user_is_super_admin(request.user)
+            or user_is_admin_in_org(request.user, organisation)
+        ):
+            return Response(
+                {
+                    "detail": "You must be an organization admin to modify toolbar options."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        settings_obj, _ = TextFormattingSettings.objects.get_or_create(
+            organisation=organisation
+        )
+        serializer = TextFormattingSettingsSerializer(
+            settings_obj, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLanguagePreferenceView(APIView):
