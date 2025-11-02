@@ -44,7 +44,6 @@ body.player-mode .toolbar-container,
 body.player-mode .toolbar-general,
 body.player-mode .top-panel,
 body.player-mode .toolbar-section,
-body.player-mode .wysiwyg-toolbar,
 body.player-mode .sidebar-and-content-container > .left-sidebar,
 body.player-mode .main-content > :not(.slide-canvas),
 body.player-mode .slide-item,
@@ -425,7 +424,6 @@ body {
   transform: translate(-50%, -50%);
 }
 
-.wysiwyg-toolbar.disabled,
 .tiptap-toolbar.disabled {
   pointer-events: none;
 
@@ -722,7 +720,6 @@ span {
   align-items: center;
 }
 
-.wysiwyg-toolbar button,
 .tiptap-toolbar button {
   background: none;
   border: none;
@@ -730,7 +727,6 @@ span {
   margin-right: 5px;
 }
 
-.wysiwyg-toolbar .text-color-picker,
 .tiptap-toolbar .tiptap-text-color-picker {
   border: none;
   width: 32px;
@@ -744,7 +740,6 @@ span {
   /* Needed for absolutely positioned pseudo-element */
 }
 
-.wysiwyg-toolbar i,
 .tiptap-toolbar i {
   display: block;
   font-size: 24px;

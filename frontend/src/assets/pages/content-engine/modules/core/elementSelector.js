@@ -347,9 +347,6 @@ export function selectElement(el, dataObj) {
     createGradientWrapper(el);
   } else if (dataObj.type === "textbox") {
     hideElementToolbars();
-    const wysiwygToolbar = document.querySelector(".wysiwyg-toolbar");
-    wysiwygToolbar?.classList.replace("d-none", "d-flex");
-    wysiwygToolbar?.classList.remove("disabled");
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";
     // Create gradient wrapper instead of applying border image directly

@@ -101,9 +101,6 @@ export function loadSlide(
     noContentPlaceHolder.style.display = "none";
   }
 
-  const wysiwygToolbar = document.querySelector(".wysiwyg-toolbar");
-  _resetEditorSelection(wysiwygToolbar);
-
   _syncSlideBgColorIcon(slide.backgroundColor);
 
   const previewSlide = document.querySelector(targetContainer);
@@ -614,47 +611,6 @@ async function _startSlideshowPlayer() {
     }
   }
   renderPersistentElements();
-}
-
-function _resetEditorSelection(wysiwygToolbar) {
-  // Exit edit mode for any currently contentEditable elements
-  const activeEditableElements = document.querySelectorAll(
-    '[contenteditable="true"]',
-  );
-  activeEditableElements.forEach((editableEl) => {
-    editableEl.blur();
-    editableEl.contentEditable = false;
-  });
-
-  if (wysiwygToolbar) {
-    wysiwygToolbar.classList.add("disabled");
-  }
-  store.selectedElement = null;
-  store.selectedElementData = null;
-
-  const bgColorBtn = document.querySelector(
-    '#selected-element-toolbar button[title="Background Color"]',
-  );
-  if (bgColorBtn) bgColorBtn.style.backgroundColor = "";
-
-  const borderBtn = document.querySelector(
-    '#selected-element-toolbar button[title="Border"]',
-  );
-  if (borderBtn) borderBtn.style.border = "";
-
-  const boxShadowBtn = document.querySelector(
-    '#selected-element-toolbar button[title="Box Shadow"]',
-  );
-  if (boxShadowBtn) boxShadowBtn.style.border = "";
-
-  // Clear table cell edit indicators from all tables
-  document.querySelectorAll("table").forEach((table) => {
-    const allCells = table.querySelectorAll("th, td");
-    allCells.forEach((cell) => {
-      cell.style.outline = "";
-      cell.contentEditable = "false";
-    });
-  });
 }
 
 function _syncSlideBgColorIcon(backgroundColor) {
