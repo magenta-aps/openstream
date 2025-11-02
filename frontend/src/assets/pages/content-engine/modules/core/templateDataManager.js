@@ -441,7 +441,17 @@ export async function duplicateTemplateOnBackend(templateId) {
     return false;
   }
 
-  if (!parentOrgID) {
+  const queryParams = new URLSearchParams(window.location.search);
+  const isSuborgMode = queryParams.get("mode") === "suborg_templates";
+  const suborgIdFromParams =
+    queryParams.get("suborgId") ??
+    queryParams.get("suborg_id") ??
+    selectedSubOrgID ??
+    "";
+  const suborgIdInt = parseInt(suborgIdFromParams, 10);
+  const hasValidSuborgId = !Number.isNaN(suborgIdInt);
+
+  if (!isSuborgMode && !parentOrgID) {
     showToast(
       gettext("Organisation ID is missing. Cannot duplicate template."),
       "Error",
@@ -449,8 +459,119 @@ export async function duplicateTemplateOnBackend(templateId) {
     return false;
   }
 
+  if (isSuborgMode && !hasValidSuborgId) {
+    showToast(
+      gettext("Suborganisation ID is missing. Cannot duplicate template."),
+      "Error",
+    );
+    return false;
+  }
+
   try {
-    // First, get the original template
+    if (isSuborgMode && hasValidSuborgId) {
+      // Fetch the existing suborg template
+      const originalResp = await fetch(
+        `${BASE_URL}/api/suborg-templates/${templateId}/`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!originalResp.ok) {
+        throw new Error(
+          `Failed to fetch suborg template. Status: ${originalResp.status} ${await originalResp.text()}`,
+        );
+      }
+
+      const originalTemplate = await originalResp.json();
+
+      if (!originalTemplate?.parent_template?.id) {
+        showToast(
+          gettext(
+            "Cannot duplicate this template because the parent template reference is missing.",
+          ),
+          "Error",
+        );
+        return false;
+      }
+
+      // Step 1: create a fresh copy from the parent global template
+      const createPayload = {
+        suborg_id: suborgIdInt,
+        parent_template_id: originalTemplate.parent_template.id,
+        name: gettext("Copy of ") + originalTemplate.name,
+      };
+
+      const createResp = await fetch(`${BASE_URL}/api/suborg-templates/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(createPayload),
+      });
+
+      if (!createResp.ok) {
+        throw new Error(
+          `Failed to create duplicate template. Status: ${createResp.status} ${await createResp.text()}`,
+        );
+      }
+
+      const createdTemplate = await createResp.json();
+
+      // Step 2: apply the customised data from the original suborg template
+      const patchPayload = {
+        slideData: originalTemplate.slideData,
+        previewWidth: originalTemplate.previewWidth,
+        previewHeight: originalTemplate.previewHeight,
+        aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
+      };
+
+      if (originalTemplate.category?.id) {
+        patchPayload.category_id = originalTemplate.category.id;
+      }
+
+      if (originalTemplate.tags && originalTemplate.tags.length > 0) {
+        patchPayload.tag_ids = originalTemplate.tags.map((tag) => tag.id);
+      }
+
+      const patchResp = await fetch(
+        `${BASE_URL}/api/suborg-templates/${createdTemplate.id}/`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(patchPayload),
+        },
+      );
+
+      if (!patchResp.ok) {
+        throw new Error(
+          `Failed to update duplicated template. Status: ${patchResp.status} ${await patchResp.text()}`,
+        );
+      }
+
+      const duplicatedTemplate = await patchResp.json();
+      showToast(gettext("Template duplicated successfully."), "success");
+
+      const { fetchAllSuborgTemplatesAndPopulateStore } = await import(
+        "./suborgTemplateDataManager.js"
+      );
+      await fetchAllSuborgTemplatesAndPopulateStore(
+        suborgIdInt,
+        duplicatedTemplate.id,
+      );
+
+      return duplicatedTemplate;
+    }
+
+    // Global template duplication fallback
     const getResp = await fetch(
       `${BASE_URL}/api/slide-templates/${templateId}/`,
       {
@@ -470,13 +591,12 @@ export async function duplicateTemplateOnBackend(templateId) {
 
     const originalTemplate = await getResp.json();
 
-    // Create the duplicate with modified name
     const duplicatePayload = {
       name: gettext("Copy of ") + originalTemplate.name,
       slideData: originalTemplate.slideData,
       previewWidth: originalTemplate.previewWidth,
       previewHeight: originalTemplate.previewHeight,
-  aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
+      aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
       category_id: originalTemplate.category_id,
       tags: originalTemplate.tags || [],
     };
@@ -501,13 +621,7 @@ export async function duplicateTemplateOnBackend(templateId) {
 
     const duplicatedTemplate = await createResp.json();
     showToast(gettext("Template duplicated successfully."), "success");
-    // Refresh the template list and preserve selection of the new duplicate
     await fetchAllOrgTemplatesAndPopulateStore(duplicatedTemplate.id);
-
-    // Note: fetchAllOrgTemplatesAndPopulateStore will set the correct
-    // resolution/aspect-ratio based on the preserved template id. Do not
-    // reapply a previously captured resolution here as it may override
-    // the freshly loaded template's aspect ratio.
 
     return duplicatedTemplate;
   } catch (err) {
