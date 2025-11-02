@@ -25,6 +25,54 @@ const templateCategorySelect = document.getElementById("templateCategory");
 const confirmBtn = document.getElementById("confirmSaveTemplateBtn");
 // Removed old aspect ratio checkbox elements - now using simple dropdown
 
+const ASPECT_RATIO_FALLBACK = "16:9";
+
+function isAspectRatioLocked() {
+  return queryParams.mode === "suborg_templates";
+}
+
+function getAspectRatioForIndex(index = null) {
+  if (typeof index === "number" && index > -1 && store.slides[index]) {
+    return store.slides[index].aspect_ratio || ASPECT_RATIO_FALLBACK;
+  }
+
+  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
+    return store.slides[store.currentSlideIndex].aspect_ratio || ASPECT_RATIO_FALLBACK;
+  }
+
+  if (store.slides.length > 0) {
+    return store.slides[0].aspect_ratio || ASPECT_RATIO_FALLBACK;
+  }
+
+  return ASPECT_RATIO_FALLBACK;
+}
+
+function applyAspectRatioSelectState(preferredValue, lockSelection) {
+  const aspectRatioSelect = document.getElementById("templateAspectRatio");
+  if (!aspectRatioSelect) return;
+
+  const resolvedValue = preferredValue || aspectRatioSelect.value || ASPECT_RATIO_FALLBACK;
+  aspectRatioSelect.value = resolvedValue;
+
+  const aspectRatioGroup = aspectRatioSelect.closest(".mb-3");
+
+  if (lockSelection) {
+    aspectRatioSelect.setAttribute("disabled", "disabled");
+    aspectRatioSelect.classList.add("disabled");
+    aspectRatioSelect.setAttribute("aria-disabled", "true");
+    if (aspectRatioGroup) {
+      aspectRatioGroup.style.display = "none";
+    }
+  } else {
+    aspectRatioSelect.removeAttribute("disabled");
+    aspectRatioSelect.classList.remove("disabled");
+    aspectRatioSelect.removeAttribute("aria-disabled");
+    if (aspectRatioGroup) {
+      aspectRatioGroup.style.display = "";
+    }
+  }
+}
+
 // Aspect ratio is now handled by a simple dropdown - no complex event handling needed
 
 // Add change listeners to all ratio checkboxes
@@ -90,10 +138,11 @@ export function openSaveAsTemplateModal(index = null, isBlank = false) {
   fetchCategoriesForTemplate();
   fetchTagsForTemplate();
   // Reset aspect ratio to default when opening modal
-  const aspectRatioSelect = document.getElementById("templateAspectRatio");
-  if (aspectRatioSelect) {
-    aspectRatioSelect.value = "16:9";
-  }
+  const allowAspectRatioChanges = !isAspectRatioLocked();
+  const defaultAspectRatio = allowAspectRatioChanges
+    ? ASPECT_RATIO_FALLBACK
+    : getAspectRatioForIndex(isBlank ? store.currentSlideIndex : index);
+  applyAspectRatioSelectState(defaultAspectRatio, !allowAspectRatioChanges);
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
   bsModal.show();
@@ -131,10 +180,7 @@ export function openEditTemplateMetadataModal(index) {
 
 // Function to load aspect ratio from template data
 function loadAspectRatio(aspectRatio = "16:9") {
-  const aspectRatioSelect = document.getElementById("templateAspectRatio");
-  if (aspectRatioSelect) {
-    aspectRatioSelect.value = aspectRatio;
-  }
+  applyAspectRatioSelectState(aspectRatio, isAspectRatioLocked());
 }
 
 // Function to update "select all" checkboxes based on individual selections
@@ -350,8 +396,20 @@ if (confirmBtn) {
       ? document.getElementById("templateTags").value.split(",")
       : [];
 
+    const aspectRatioSelect = document.getElementById("templateAspectRatio");
+    const canEditAspectRatio = !isAspectRatioLocked();
+    const contextSlideIndex =
+      typeof store.editingTemplateIndex === "number"
+        ? store.editingTemplateIndex
+        : typeof store.currentTemplateSlideIndex === "number"
+          ? store.currentTemplateSlideIndex
+          : store.currentSlideIndex;
+    const enforcedAspectRatio = getAspectRatioForIndex(contextSlideIndex);
+
     // Get selected aspect ratio
-    const aspectRatio = document.getElementById("templateAspectRatio").value;
+    const aspectRatio = canEditAspectRatio
+      ? aspectRatioSelect?.value || enforcedAspectRatio
+      : enforcedAspectRatio;
 
     // Map common aspect ratios to sensible preview resolutions.
     // This ensures the server receives previewWidth/previewHeight matching
@@ -372,7 +430,7 @@ if (confirmBtn) {
     };
 
     // Use the mapped resolution for the selected aspect ratio if available
-    if (aspectRatio && aspectRatioMap[aspectRatio]) {
+    if (canEditAspectRatio && aspectRatio && aspectRatioMap[aspectRatio]) {
       selectedResolution = {
         width: aspectRatioMap[aspectRatio].width,
         height: aspectRatioMap[aspectRatio].height,

@@ -145,19 +145,27 @@ const initCommonEditorFeatures = () => {
   initQRCodeElement();
 };
 
-if (queryParams.mode === "edit") {
-  const button = document.querySelector("#aspect-ratio-container button");
+const disableAspectRatioControls = () => {
+  const aspectRatioContainer = document.getElementById(
+    "aspect-ratio-container",
+  );
+  const aspectRatioButton = aspectRatioContainer
+    ? aspectRatioContainer.querySelector("button")
+    : null;
+  if (aspectRatioButton) {
+    aspectRatioButton.remove();
+  }
+
   const aspectRatioSeparator = document.getElementById(
     "aspect-ratio-separator",
   );
-
-  if (button) {
-    button.remove();
-  }
-
   if (aspectRatioSeparator) {
     aspectRatioSeparator.remove();
   }
+};
+
+if (queryParams.mode === "edit") {
+  disableAspectRatioControls();
 
   makeActiveInNav("/manage-content");
   initSlideshowPlayer();
@@ -257,6 +265,7 @@ if (queryParams.mode === "suborg_templates") {
   document.getElementById("slideshow-mode-text").innerText = gettext(
     "Suborganisation Templates",
   );
+  disableAspectRatioControls();
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";

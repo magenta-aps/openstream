@@ -192,22 +192,34 @@ function getDistinctColor(id) {
 }
 
 function validateDisplayGroupAspectRatio(displayId, targetGroupId) {
-  // Find the display
   const display = displaysData.find((d) => d.id === displayId);
   if (!display) return false;
 
-  // If moving to ungrouped (targetGroupId is null), allow it
-  if (targetGroupId === null) return true;
+  if (
+    targetGroupId === null ||
+    targetGroupId === undefined ||
+    Number.isNaN(targetGroupId)
+  ) {
+    return true;
+  }
 
-  // Find the target group
   const targetGroup = groupsData.find((g) => g.id === targetGroupId);
   if (!targetGroup) return false;
 
-  // Check if aspect ratios match
   const displayAspectRatio = display.aspect_ratio || "16:9";
   const groupAspectRatio = targetGroup.aspect_ratio || "16:9";
 
   return displayAspectRatio === groupAspectRatio;
+}
+
+function getGroupIdFromElement(groupEl) {
+  if (!groupEl) return null;
+  const groupIdAttr = groupEl.getAttribute("data-group-id");
+  if (!groupIdAttr || groupIdAttr === "inactive") {
+    return null;
+  }
+  const parsedId = parseInt(groupIdAttr, 10);
+  return Number.isNaN(parsedId) ? null : parsedId;
 }
 
 function populateSlideshowPlaylistDropdown(
@@ -480,8 +492,28 @@ function openEditDisplayModal(groupId, displayId) {
   if (editDisplayGroupIdEl) editDisplayGroupIdEl.value = groupId;
   if (editDisplayIdEl) editDisplayIdEl.value = displayId;
   if (editDisplayNameEl) editDisplayNameEl.value = display.name || "";
-  if (editDisplayAspectRatioEl)
+  const aspectRatioNoticeEl = document.getElementById(
+    "editDisplayAspectRatioNotice",
+  );
+
+  if (editDisplayAspectRatioEl) {
     editDisplayAspectRatioEl.value = display.aspect_ratio || "16:9";
+
+    const isInGroup =
+      groupId !== "inactive" && groupId !== null && groupId !== undefined;
+
+    editDisplayAspectRatioEl.disabled = isInGroup;
+
+    if (aspectRatioNoticeEl) {
+      if (isInGroup) {
+        aspectRatioNoticeEl.removeAttribute("hidden");
+      } else {
+        aspectRatioNoticeEl.setAttribute("hidden", "true");
+      }
+    }
+  } else if (aspectRatioNoticeEl) {
+    aspectRatioNoticeEl.setAttribute("hidden", "true");
+  }
 
   // Build URL dynamically using current domain
   const urlPath =
@@ -532,18 +564,24 @@ async function saveDisplayChanges() {
   }
   const displayId = displayIdEl.value;
   const displayName = displayNameEl ? displayNameEl.value.trim() : "";
+  const aspectRatioLocked = aspectRatioEl ? aspectRatioEl.disabled : false;
   const aspectRatio = aspectRatioEl ? aspectRatioEl.value : "";
 
   if (!displayName) {
     alert(gettext("Display name cannot be empty!"));
     return;
   }
-  if (!aspectRatio) {
+  if (!aspectRatioLocked && !aspectRatio) {
     alert(gettext("Please select an aspect ratio."));
     return;
   }
 
   try {
+    const payload = { name: displayName };
+    if (!aspectRatioLocked) {
+      payload.aspect_ratio = aspectRatio;
+    }
+
     const res = await fetch(
       `${BASE_URL}/api/display-websites/${displayId}/?branch_id=${selectedBranchID}`,
       {
@@ -552,7 +590,7 @@ async function saveDisplayChanges() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: displayName, aspect_ratio: aspectRatio }),
+        body: JSON.stringify(payload),
       },
     );
     if (res.ok) {
@@ -734,21 +772,16 @@ function combineGroupsAndDisplays() {
 }
 
 function renderUngroupedDisplays() {
-  // If there are no ungrouped displays, exit early
-  if (!ungroupedDisplays || !ungroupedDisplays.length) return;
-
   const groupsContainer = document.getElementById("groupsContainer");
+  if (!groupsContainer) return;
 
-  // Create a "group"-styled container for ungrouped displays
   const groupDiv = document.createElement("div");
   groupDiv.classList.add("group", "group-ungrouped");
-  groupDiv.setAttribute("data-group-id", "inactive"); // so we know it's the ungrouped ones / inactive displays
+  groupDiv.setAttribute("data-group-id", "inactive");
 
-  // Create the group header
   const headerDiv = document.createElement("div");
   headerDiv.classList.add("group-header");
 
-  // Left side: icon + title
   const leftDiv = document.createElement("div");
   leftDiv.classList.add("d-flex", "align-items-center");
 
@@ -766,90 +799,133 @@ function renderUngroupedDisplays() {
 
   headerDiv.appendChild(leftDiv);
 
-  // Right side: just the expand/collapse icon
   const rightDiv = document.createElement("div");
   rightDiv.classList.add("d-flex", "align-items-center");
 
+  const expandIcon = document.createElement("span");
+  expandIcon.classList.add("expand-icon", "material-symbols-outlined");
+  expandIcon.textContent = "expand_less";
+  expandIcon.style.cursor = "pointer";
+  expandIcon.onclick = (e) => {
+    e.stopPropagation();
+    toggleGroup(expandIcon);
+  };
+  rightDiv.appendChild(expandIcon);
+
   headerDiv.appendChild(rightDiv);
 
-  // Append the header to the main group div
-  groupDiv.appendChild(headerDiv);
-
-  // Create the container for the ungrouped display items
-  const ungroupedDisplaysDiv = document.createElement("div");
-  ungroupedDisplaysDiv.classList.add("group-displays");
-  // By default, keep it expanded (like your current groups)
-  ungroupedDisplaysDiv.style.display = "block";
-
-  // Render each ungrouped display
-  ungroupedDisplays.forEach((display) => {
-    const displayDiv = document.createElement("div");
-    displayDiv.classList.add("display-item");
-    displayDiv.setAttribute("data-display-id", display.id);
-
-    const dragIndicator = document.createElement("span");
-    dragIndicator.classList.add("material-symbols-outlined", "me-2");
-    dragIndicator.textContent = "drag_indicator";
-    dragIndicator.style.color = "var(--gray)";
-    displayDiv.appendChild(dragIndicator);
-
-    const tvIcon = document.createElement("span");
-    tvIcon.classList.add("material-symbols-outlined", "me-2");
-    tvIcon.textContent = "tv";
-    tvIcon.style.color = "var(--dark-gray)";
-    displayDiv.appendChild(tvIcon);
-
-    const displayTitle = document.createElement("span");
-    displayTitle.classList.add("text-truncate");
-    displayTitle.textContent = display.name;
-    displayTitle.title = display.name;
-    displayDiv.appendChild(displayTitle);
-
-    // Add aspect ratio badge for ungrouped display
-    const displayAspectRatioBadge = document.createElement("span");
-    displayAspectRatioBadge.classList.add("badge", "bg-info", "ms-2");
-    displayAspectRatioBadge.style.fontSize = "0.6rem";
-    displayAspectRatioBadge.textContent = display.aspect_ratio || "16:9";
-    displayDiv.appendChild(displayAspectRatioBadge);
-
-    const displayEditIcon = document.createElement("span");
-    displayEditIcon.classList.add(
-      "material-symbols-outlined",
-      "edit-icon-btn",
-    );
-    displayEditIcon.textContent = "edit";
-    displayEditIcon.onclick = (e) => {
-      e.stopPropagation();
-      openEditDisplayModal("inactive", display.id);
-    };
-    displayDiv.appendChild(displayEditIcon);
-
-    ungroupedDisplaysDiv.appendChild(displayDiv);
+  headerDiv.addEventListener("click", () => {
+    toggleGroup(expandIcon);
   });
 
-  groupDiv.appendChild(ungroupedDisplaysDiv);
+  groupDiv.appendChild(headerDiv);
 
-  // Finally, append our “ungrouped group” block to the groups container
+  const ungroupedDisplaysDiv = document.createElement("div");
+  ungroupedDisplaysDiv.classList.add("group-displays");
+  ungroupedDisplaysDiv.style.display = "block";
+
+  if (!ungroupedDisplays || ungroupedDisplays.length === 0) {
+    const emptyState = document.createElement("div");
+    emptyState.classList.add(
+      "inactive-empty",
+      "text-muted",
+      "fst-italic",
+      "py-2",
+    );
+    emptyState.textContent = gettext("No inactive displays");
+    ungroupedDisplaysDiv.appendChild(emptyState);
+  } else {
+    ungroupedDisplays.forEach((display) => {
+      const displayDiv = document.createElement("div");
+      displayDiv.classList.add("display-item");
+      displayDiv.setAttribute("data-display-id", display.id);
+
+      const dragIndicator = document.createElement("span");
+      dragIndicator.classList.add("material-symbols-outlined", "me-2");
+      dragIndicator.textContent = "drag_indicator";
+      dragIndicator.style.color = "var(--gray)";
+      displayDiv.appendChild(dragIndicator);
+
+      const tvIcon = document.createElement("span");
+      tvIcon.classList.add("material-symbols-outlined", "me-2");
+      tvIcon.textContent = "tv";
+      tvIcon.style.color = "var(--dark-gray)";
+      displayDiv.appendChild(tvIcon);
+
+      const displayTitle = document.createElement("span");
+      displayTitle.classList.add("text-truncate");
+      displayTitle.textContent = display.name;
+      displayTitle.title = display.name;
+      displayDiv.appendChild(displayTitle);
+
+      const displayAspectRatioBadge = document.createElement("span");
+      displayAspectRatioBadge.classList.add("badge", "bg-info", "ms-2");
+      displayAspectRatioBadge.style.fontSize = "0.6rem";
+      displayAspectRatioBadge.textContent = display.aspect_ratio || "16:9";
+      displayDiv.appendChild(displayAspectRatioBadge);
+
+      const displayEditIcon = document.createElement("span");
+      displayEditIcon.classList.add(
+        "material-symbols-outlined",
+        "edit-icon-btn",
+      );
+      displayEditIcon.textContent = "edit";
+      displayEditIcon.onclick = (e) => {
+        e.stopPropagation();
+        openEditDisplayModal("inactive", display.id);
+      };
+      displayDiv.appendChild(displayEditIcon);
+
+      ungroupedDisplaysDiv.appendChild(displayDiv);
+    });
+  }
+
+  groupDiv.appendChild(ungroupedDisplaysDiv);
   groupsContainer.appendChild(groupDiv);
 
-  // Make the ungrouped container sortable so displays can be dragged into real groups
   Sortable.create(ungroupedDisplaysDiv, {
-    group: "shared", // Must match the same "shared" group used by real groups
+    group: { name: "shared", pull: true, put: true },
     animation: 150,
+    draggable: ".display-item",
+    onStart: function (evt) {
+      draggedItem = evt.item;
+    },
     onEnd: async function (evt) {
-      const movedDisplayId = parseInt(evt.item.getAttribute("data-display-id"));
-      // If the user drags it into another real group
-      const newGroupEl = evt.to.closest(".group");
-      const newGroupId = newGroupEl
-        ? parseInt(newGroupEl.getAttribute("data-group-id"))
-        : null; // Or remain null if not dropped in a real group
+      draggedItem = null;
+      if (!evt.to || !evt.from) {
+        await refreshData();
+        return;
+      }
 
-      // Validate aspect ratio compatibility before making API call
-      if (!validateDisplayGroupAspectRatio(movedDisplayId, newGroupId)) {
+      const movedEl = evt.item;
+      const movedDisplayId = parseInt(
+        movedEl.getAttribute("data-display-id"),
+        10,
+      );
+      if (Number.isNaN(movedDisplayId)) {
+        await refreshData();
+        return;
+      }
+
+      const destinationGroupEl = evt.to.closest(".group");
+      if (!destinationGroupEl) {
+        await refreshData();
+        return;
+      }
+      const destinationGroupId = getGroupIdFromElement(destinationGroupEl);
+      const originGroupId = getGroupIdFromElement(evt.from.closest(".group"));
+
+      if (destinationGroupId === originGroupId) {
+        await refreshData();
+        return;
+      }
+
+      if (!validateDisplayGroupAspectRatio(movedDisplayId, destinationGroupId)) {
         const display = displaysData.find((d) => d.id === movedDisplayId);
-        const targetGroup = newGroupId
-          ? groupsData.find((g) => g.id === newGroupId)
-          : null;
+        const targetGroup =
+          destinationGroupId === null
+            ? null
+            : groupsData.find((g) => g.id === destinationGroupId);
 
         if (targetGroup) {
           showToast(
@@ -860,9 +936,16 @@ function renderUngroupedDisplays() {
           );
         }
 
-        // Revert the UI change by refreshing
         await refreshData();
         return;
+      }
+
+      if (destinationGroupId === null) {
+        const emptyStateEl =
+          destinationGroupEl.querySelector(".inactive-empty");
+        if (emptyStateEl) {
+          emptyStateEl.remove();
+        }
       }
 
       try {
@@ -874,7 +957,9 @@ function renderUngroupedDisplays() {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ display_website_group: newGroupId }),
+            body: JSON.stringify({
+              display_website_group: destinationGroupId,
+            }),
           },
         );
         if (res.ok) {
@@ -882,13 +967,11 @@ function renderUngroupedDisplays() {
         } else {
           console.error("Failed to update display group");
           showToast(gettext("Failed to update display group"), "Error");
-          // Revert the UI change
           await refreshData();
         }
       } catch (error) {
         console.error("Error updating display group:", error);
         showToast(gettext("Error updating display group"), "Error");
-        // Revert the UI change
         await refreshData();
       }
     },
@@ -1929,9 +2012,9 @@ function renderGroups() {
     const rightDiv = document.createElement("div");
     rightDiv.classList.add("d-flex", "align-items-center");
 
-    const expandIcon = document.createElement("span");
-    expandIcon.classList.add("expand-icon", "material-symbols-outlined");
-    expandIcon.textContent = "expand_more";
+  const expandIcon = document.createElement("span");
+  expandIcon.classList.add("expand-icon", "material-symbols-outlined");
+  expandIcon.textContent = "expand_less";
     // Make sure the expand icon also shows the pointer cursor
     expandIcon.style.cursor = "pointer";
 
@@ -2025,29 +2108,47 @@ function renderGroups() {
 
     // Sortable for drag-and-drop
     Sortable.create(displaysDiv, {
-      group: "shared",
+      group: { name: "shared", pull: true, put: true },
       animation: 150,
+      draggable: ".display-item",
       onStart: function (evt) {
         draggedItem = evt.item;
       },
       onEnd: async function (evt) {
         draggedItem = null;
-        if (!evt.to || !evt.from) return;
+        if (!evt.to || !evt.from) {
+          await refreshData();
+          return;
+        }
         const movedEl = evt.item;
-        const newGroupEl = evt.to.closest(".group");
-        const newGroupId = newGroupEl
-          ? parseInt(newGroupEl.getAttribute("data-group-id"))
-          : null;
         const movedDisplayId = parseInt(
           movedEl.getAttribute("data-display-id"),
+          10,
         );
+        if (Number.isNaN(movedDisplayId)) {
+          await refreshData();
+          return;
+        }
 
-        // Validate aspect ratio compatibility before making API call
+        const destinationGroupEl = evt.to.closest(".group");
+        if (!destinationGroupEl) {
+          await refreshData();
+          return;
+        }
+        const newGroupId = getGroupIdFromElement(destinationGroupEl);
+        const originGroupId = getGroupIdFromElement(evt.from.closest(".group"));
+
+        if (newGroupId === originGroupId) {
+          await refreshData();
+          return;
+        }
+
         if (!validateDisplayGroupAspectRatio(movedDisplayId, newGroupId)) {
           const display = displaysData.find((d) => d.id === movedDisplayId);
-          const targetGroup = newGroupId
-            ? groupsData.find((g) => g.id === newGroupId)
-            : null;
+          const targetGroup =
+            newGroupId === null
+              ? null
+              : groupsData.find((g) => g.id === newGroupId);
 
           if (targetGroup) {
             showToast(
@@ -2058,7 +2159,6 @@ function renderGroups() {
             );
           }
 
-          // Revert the UI change by refreshing
           await refreshData();
           return;
         }
@@ -2080,13 +2180,11 @@ function renderGroups() {
           } else {
             console.error("Failed to update display group");
             showToast(gettext("Failed to update display group"), "Error");
-            // Revert the UI change
             await refreshData();
           }
         } catch (error) {
           console.error("Error updating display group:", error);
           showToast(gettext("Error updating display group"), "Error");
-          // Revert the UI change
           await refreshData();
         }
       },

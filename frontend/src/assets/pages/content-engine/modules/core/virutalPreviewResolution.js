@@ -15,6 +15,7 @@ export function initVirtualPreviewResolution() {
   };
 
   const options = document.querySelectorAll(".resolution-option");
+  const allowAspectRatioChanges = queryParams.mode !== "suborg_templates";
 
   options.forEach((option) => {
     const optionWidth = parseInt(option.getAttribute("data-width"), 10);
@@ -33,6 +34,12 @@ export function initVirtualPreviewResolution() {
     } else {
       option.classList.remove("active");
     }
+
+    if (!allowAspectRatioChanges) {
+      option.classList.add("disabled", "pe-none");
+      option.setAttribute("aria-disabled", "true");
+      option.style.pointerEvents = "none";
+    }
   });
 
   // Initialize aspect ratio value display
@@ -42,26 +49,46 @@ export function initVirtualPreviewResolution() {
     aspectRatioValueElement.innerText = currentAspectRatio;
   }
 
-  options.forEach((option) => {
-    option.addEventListener("click", () => {
-      options.forEach((opt) => opt.classList.remove("active"));
-      option.classList.add("active");
-      selectedResolution = {
-        width: parseInt(option.getAttribute("data-width"), 10),
-        height: parseInt(option.getAttribute("data-height"), 10),
-      };
+  if (allowAspectRatioChanges) {
+    options.forEach((option) => {
+      option.addEventListener("click", () => {
+        options.forEach((opt) => opt.classList.remove("active"));
+        option.classList.add("active");
+        selectedResolution = {
+          width: parseInt(option.getAttribute("data-width"), 10),
+          height: parseInt(option.getAttribute("data-height"), 10),
+        };
+      });
     });
-  });
+  }
 
-  document
-    .getElementById("saveResolutionBtn")
-    .addEventListener("click", async () => {
-      updateResolution(selectedResolution);
-    });
+  const saveResolutionBtn = document.getElementById("saveResolutionBtn");
+  if (saveResolutionBtn) {
+    if (allowAspectRatioChanges) {
+      saveResolutionBtn.addEventListener("click", async () => {
+        updateResolution(selectedResolution);
+      });
+    } else {
+      saveResolutionBtn.setAttribute("disabled", "disabled");
+      saveResolutionBtn.classList.add("disabled");
+    }
+  }
+
+  if (!allowAspectRatioChanges) {
+    const aspectRatioButton = document.querySelector(
+      "#aspect-ratio-container button",
+    );
+    if (aspectRatioButton) {
+      aspectRatioButton.setAttribute("disabled", "disabled");
+      aspectRatioButton.classList.add("disabled");
+      aspectRatioButton.removeAttribute("data-bs-toggle");
+      aspectRatioButton.removeAttribute("data-bs-target");
+    }
+  }
 
   // Update resolution modal selection when it's shown
   const resolutionModal = document.getElementById("resolutionModal");
-  if (resolutionModal) {
+  if (resolutionModal && allowAspectRatioChanges) {
     resolutionModal.addEventListener("show.bs.modal", () => {
       updateResolutionModalToCurrentState();
     });

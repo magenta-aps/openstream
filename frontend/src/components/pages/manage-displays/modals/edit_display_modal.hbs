@@ -30,6 +30,9 @@
                 {{> base/form/dropdown-option value="1:1.85" text="1:1.85 (Portrait - Cinema)"}}
                 {{> base/form/dropdown-option value="1:2.39" text="1:2.39 (Portrait - Widescreen)"}}
             {{/base/form/dropdown}}
+            <div class="form-text text-muted" id="editDisplayAspectRatioNotice" hidden>
+                {% trans "Move the display to Inactive Displays to change the aspect ratio." %}
+            </div>
             {{> base/form/invalid-feedback text="Please select an aspect ratio."}}
         </div>
         <div class="mb-3">
