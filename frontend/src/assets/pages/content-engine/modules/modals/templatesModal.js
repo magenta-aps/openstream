@@ -17,15 +17,177 @@ import { updateResolution } from "../core/virutalPreviewResolution.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import * as bootstrap from "bootstrap";
 import { gettext } from "../../../../utils/locales.js";
+import {
+  DEFAULT_ASPECT_RATIO,
+  DISPLAYABLE_ASPECT_RATIOS,
+  ORIENTATION,
+  getAspectRatioDefinition,
+  getAspectRatiosByOrientation,
+  getResolutionForAspectRatio,
+} from "../../../../utils/availableAspectRatios.js";
 
 const modalEl = document.getElementById("saveAsTemplateModal");
 const modalTitleEl = document.getElementById("saveAsTemplateModalLabel");
 const templateNameField = document.getElementById("templateName");
 const templateCategorySelect = document.getElementById("templateCategory");
 const confirmBtn = document.getElementById("confirmSaveTemplateBtn");
-// Removed old aspect ratio checkbox elements - now using simple dropdown
+const templateAspectRatioInput = document.getElementById("templateAspectRatio");
+const templateAspectRatioContainers = document.querySelectorAll(
+  ".js-template-aspect-ratio-options",
+);
+const templateAspectRatioGroup = document.querySelector(
+  ".js-template-aspect-ratio-group",
+);
 
-const ASPECT_RATIO_FALLBACK = "16:9";
+const templateAspectRatioOptionMap = new Map();
+
+function getTemplateAspectRatiosForOrientation(orientation) {
+  if (orientation === ORIENTATION.LANDSCAPE) {
+    return getAspectRatiosByOrientation(ORIENTATION.LANDSCAPE);
+  }
+
+  if (orientation === ORIENTATION.PORTRAIT) {
+    return getAspectRatiosByOrientation(ORIENTATION.PORTRAIT);
+  }
+
+  if (orientation === ORIENTATION.SQUARE) {
+    return getAspectRatiosByOrientation(ORIENTATION.SQUARE);
+  }
+
+  return DISPLAYABLE_ASPECT_RATIOS;
+}
+
+function createTemplateAspectRatioOption(container, ratio) {
+  const wrapper = document.createElement("div");
+  wrapper.className =
+    "template-resolution-option-wrapper d-flex flex-column align-items-center";
+
+  if (ratio.note) {
+    const note = document.createElement("div");
+    note.className =
+      "template-resolution-option-note text-muted text-center";
+    note.textContent = ratio.note;
+    wrapper.appendChild(note);
+  }
+
+  const option = document.createElement("div");
+  option.className =
+    "template-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer";
+  option.setAttribute("data-ratio", ratio.value);
+  option.setAttribute("data-width", ratio.width);
+  option.setAttribute("data-height", ratio.height);
+  option.style.width = `${ratio.smallMenuPreviewWidth || 60}px`;
+  option.style.height = `${ratio.smallMenuPreviewHeight || 40}px`;
+  option.title = ratio.label;
+  option.textContent = ratio.value;
+
+  option.addEventListener("click", () => {
+    selectTemplateAspectRatio(ratio.value, { force: true });
+  });
+
+  wrapper.addEventListener("click", (event) => {
+    if (event.target !== option) {
+      selectTemplateAspectRatio(ratio.value, { force: true });
+    }
+  });
+
+  wrapper.appendChild(option);
+  container.appendChild(wrapper);
+  templateAspectRatioOptionMap.set(ratio.value, { option, wrapper, ratio });
+}
+
+function ensureTemplateAspectRatioOption(value) {
+  if (!value || templateAspectRatioOptionMap.has(value)) {
+    return;
+  }
+
+  const definition = getAspectRatioDefinition(value);
+  if (!definition) {
+    return;
+  }
+
+  const orientation = definition.orientation || ORIENTATION.LANDSCAPE;
+  const container = Array.from(templateAspectRatioContainers).find(
+    (node) => node.getAttribute("data-orientation") === orientation,
+  );
+
+  if (!container) {
+    return;
+  }
+
+  createTemplateAspectRatioOption(container, definition);
+}
+
+function updateTemplateAspectRatioActiveState(selectedValue) {
+  templateAspectRatioOptionMap.forEach(({ option }) => {
+    option.classList.toggle(
+      "active",
+      option.getAttribute("data-ratio") === selectedValue,
+    );
+  });
+}
+
+function selectTemplateAspectRatio(value, { force = false } = {}) {
+  const definition = getAspectRatioDefinition(value);
+  const resolvedValue = definition ? definition.value : DEFAULT_ASPECT_RATIO;
+
+  ensureTemplateAspectRatioOption(resolvedValue);
+
+  if (!force && templateAspectRatioInput?.value === resolvedValue) {
+    updateTemplateAspectRatioActiveState(resolvedValue);
+    return;
+  }
+
+  if (templateAspectRatioInput) {
+    templateAspectRatioInput.value = resolvedValue;
+  }
+
+  updateTemplateAspectRatioActiveState(resolvedValue);
+}
+
+function renderTemplateAspectRatioOptions() {
+  if (!templateAspectRatioContainers.length) {
+    return;
+  }
+
+  templateAspectRatioOptionMap.clear();
+
+  templateAspectRatioContainers.forEach((container) => {
+    const orientation = container.getAttribute("data-orientation");
+    const ratios = getTemplateAspectRatiosForOrientation(orientation);
+
+    container.innerHTML = "";
+
+    ratios.forEach((ratio) => {
+      createTemplateAspectRatioOption(container, ratio);
+    });
+
+    const card = container.closest(".card");
+    if (card) {
+      card.classList.toggle("d-none", ratios.length === 0);
+    }
+  });
+
+  const initialValue =
+    templateAspectRatioInput?.value || DEFAULT_ASPECT_RATIO;
+  selectTemplateAspectRatio(initialValue, { force: true });
+}
+
+function setTemplateAspectRatioDisabled(disabled) {
+  templateAspectRatioOptionMap.forEach(({ option, wrapper }) => {
+    if (disabled) {
+      option.classList.add("disabled", "opacity-50");
+      option.setAttribute("aria-disabled", "true");
+      wrapper.style.pointerEvents = "none";
+    } else {
+      option.classList.remove("disabled", "opacity-50");
+      option.removeAttribute("aria-disabled");
+      wrapper.style.pointerEvents = "";
+    }
+  });
+}
+
+renderTemplateAspectRatioOptions();
 
 function isAspectRatioLocked() {
   return queryParams.mode === "suborg_templates";
@@ -33,87 +195,34 @@ function isAspectRatioLocked() {
 
 function getAspectRatioForIndex(index = null) {
   if (typeof index === "number" && index > -1 && store.slides[index]) {
-    return store.slides[index].aspect_ratio || ASPECT_RATIO_FALLBACK;
+    return store.slides[index].aspect_ratio || DEFAULT_ASPECT_RATIO;
   }
 
   if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
     return (
       store.slides[store.currentSlideIndex].aspect_ratio ||
-      ASPECT_RATIO_FALLBACK
+      DEFAULT_ASPECT_RATIO
     );
   }
 
   if (store.slides.length > 0) {
-    return store.slides[0].aspect_ratio || ASPECT_RATIO_FALLBACK;
+    return store.slides[0].aspect_ratio || DEFAULT_ASPECT_RATIO;
   }
 
-  return ASPECT_RATIO_FALLBACK;
+  return DEFAULT_ASPECT_RATIO;
 }
 
 function applyAspectRatioSelectState(preferredValue, lockSelection) {
-  const aspectRatioSelect = document.getElementById("templateAspectRatio");
-  if (!aspectRatioSelect) return;
-
   const resolvedValue =
-    preferredValue || aspectRatioSelect.value || ASPECT_RATIO_FALLBACK;
-  aspectRatioSelect.value = resolvedValue;
+    preferredValue || templateAspectRatioInput?.value || DEFAULT_ASPECT_RATIO;
 
-  const aspectRatioGroup = aspectRatioSelect.closest(".mb-3");
+  selectTemplateAspectRatio(resolvedValue, { force: true });
 
-  if (lockSelection) {
-    aspectRatioSelect.setAttribute("disabled", "disabled");
-    aspectRatioSelect.classList.add("disabled");
-    aspectRatioSelect.setAttribute("aria-disabled", "true");
-    if (aspectRatioGroup) {
-      aspectRatioGroup.style.display = "none";
-    }
-  } else {
-    aspectRatioSelect.removeAttribute("disabled");
-    aspectRatioSelect.classList.remove("disabled");
-    aspectRatioSelect.removeAttribute("aria-disabled");
-    if (aspectRatioGroup) {
-      aspectRatioGroup.style.display = "";
-    }
-  }
-}
-
-// Aspect ratio is now handled by a simple dropdown - no complex event handling needed
-
-// Add change listeners to all ratio checkboxes
-document.addEventListener("DOMContentLoaded", () => {
-  document
-    .querySelectorAll('input[name="aspectRatios"]')
-    .forEach((checkbox) => {
-      checkbox.addEventListener("change", updateAspectRatioSummary);
-    });
-});
-
-// Function to update aspect ratio selection summary
-function updateAspectRatioSummary() {
-  const selectedRatios = Array.from(
-    document.querySelectorAll('input[name="aspectRatios"]:checked'),
-  ).map((checkbox) => checkbox.value);
-
-  const countSummary =
-    document.getElementById("aspectRatioSummary") ||
-    document.createElement("div");
-  if (!document.getElementById("aspectRatioSummary")) {
-    countSummary.id = "aspectRatioSummary";
-    countSummary.className = "mt-2 text-info small";
-    const container = document.querySelector(
-      ".modal-body form .mb-3:last-of-type",
-    );
-    if (container) container.appendChild(countSummary);
+  if (templateAspectRatioGroup) {
+    templateAspectRatioGroup.style.display = lockSelection ? "none" : "";
   }
 
-  if (selectedRatios.length > 0) {
-    countSummary.innerHTML = `<i class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">check_circle</i> ${selectedRatios.length} ${gettext("aspect ratio")}${selectedRatios.length !== 1 ? gettext("s") : ""} ${gettext("selected")}`;
-  } else {
-    countSummary.innerHTML = `<i class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">info</i> ${gettext("No aspect ratios selected yet")}`;
-  }
-
-  // Update select all checkboxes
-  updateSelectAllCheckboxes();
+  setTemplateAspectRatioDisabled(lockSelection);
 }
 
 export function openSaveAsTemplateModal(index = null, isBlank = false) {
@@ -144,15 +253,13 @@ export function openSaveAsTemplateModal(index = null, isBlank = false) {
   // Reset aspect ratio to default when opening modal
   const allowAspectRatioChanges = !isAspectRatioLocked();
   const defaultAspectRatio = allowAspectRatioChanges
-    ? ASPECT_RATIO_FALLBACK
+    ? DEFAULT_ASPECT_RATIO
     : getAspectRatioForIndex(isBlank ? store.currentSlideIndex : index);
   applyAspectRatioSelectState(defaultAspectRatio, !allowAspectRatioChanges);
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
   bsModal.show();
 }
-
-// Aspect ratio selection is now a simple dropdown
 
 export function openEditTemplateMetadataModal(index) {
   const templateToEdit = store.slides[index];
@@ -176,33 +283,15 @@ export function openEditTemplateMetadataModal(index) {
 
   fetchCategoriesForTemplate(templateToEdit.categoryId);
   fetchTagsForTemplate(templateToEdit.tagIds || []);
-  loadAspectRatio(templateToEdit.aspect_ratio || "16:9");
+  loadAspectRatio(templateToEdit.aspect_ratio || DEFAULT_ASPECT_RATIO);
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
   bsModal.show();
 }
 
-// Function to load aspect ratio from template data
-function loadAspectRatio(aspectRatio = "16:9") {
+function loadAspectRatio(aspectRatio = DEFAULT_ASPECT_RATIO) {
+  ensureTemplateAspectRatioOption(aspectRatio);
   applyAspectRatioSelectState(aspectRatio, isAspectRatioLocked());
-}
-
-// Function to update "select all" checkboxes based on individual selections
-function updateSelectAllCheckboxes() {
-  const landscapeRatios = document.querySelectorAll(".landscape-ratio");
-  const portraitRatios = document.querySelectorAll(".portrait-ratio");
-
-  // Check if all landscape ratios are selected
-  const allLandscapeSelected = Array.from(landscapeRatios).every(
-    (checkbox) => checkbox.checked,
-  );
-  if (selectAllLandscape) selectAllLandscape.checked = allLandscapeSelected;
-
-  // Check if all portrait ratios are selected
-  const allPortraitSelected = Array.from(portraitRatios).every(
-    (checkbox) => checkbox.checked,
-  );
-  if (selectAllPortrait) selectAllPortrait.checked = allPortraitSelected;
 }
 
 async function fetchCategoriesForTemplate(selectedCategoryId = null) {
@@ -400,7 +489,6 @@ if (confirmBtn) {
       ? document.getElementById("templateTags").value.split(",")
       : [];
 
-    const aspectRatioSelect = document.getElementById("templateAspectRatio");
     const canEditAspectRatio = !isAspectRatioLocked();
     const contextSlideIndex =
       typeof store.editingTemplateIndex === "number"
@@ -412,32 +500,19 @@ if (confirmBtn) {
 
     // Get selected aspect ratio
     const aspectRatio = canEditAspectRatio
-      ? aspectRatioSelect?.value || enforcedAspectRatio
+      ? templateAspectRatioInput?.value || enforcedAspectRatio
       : enforcedAspectRatio;
+
+    ensureTemplateAspectRatioOption(aspectRatio);
 
     // Map common aspect ratios to sensible preview resolutions.
     // This ensures the server receives previewWidth/previewHeight matching
     // the chosen aspect ratio instead of the currently selected template's values.
-    const aspectRatioMap = {
-      "16:9": { width: 1920, height: 1080 },
-      "4:3": { width: 1024, height: 768 },
-      "21:9": { width: 3440, height: 1440 },
-      "1.85:1": { width: 1998, height: 1080 },
-      "2.39:1": { width: 2048, height: 858 },
-      "9:16": { width: 1080, height: 1920 },
-      "3:4": { width: 768, height: 1024 },
-      "9:21": { width: 1440, height: 3440 },
-      "1:1.85": { width: 1080, height: 1998 },
-      "1:2.39": { width: 858, height: 2048 },
-      "3:2": { width: 1440, height: 960 },
-      "1:1": { width: 1080, height: 1080 },
-    };
-
-    // Use the mapped resolution for the selected aspect ratio if available
-    if (canEditAspectRatio && aspectRatio && aspectRatioMap[aspectRatio]) {
+    if (canEditAspectRatio && aspectRatio) {
+      const resolution = getResolutionForAspectRatio(aspectRatio);
       selectedResolution = {
-        width: aspectRatioMap[aspectRatio].width,
-        height: aspectRatioMap[aspectRatio].height,
+        width: resolution.width,
+        height: resolution.height,
       };
     }
 

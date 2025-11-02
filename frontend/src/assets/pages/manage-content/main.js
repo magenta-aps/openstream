@@ -31,6 +31,14 @@ import {
   fetchUserLangugage,
   gettext,
 } from "../../utils/locales";
+import {
+  DEFAULT_ASPECT_RATIO,
+  DISPLAYABLE_ASPECT_RATIOS,
+  ORIENTATION,
+  findAspectRatioValueByDimensions,
+  getAspectRatiosByOrientation,
+  getResolutionForAspectRatio,
+} from "../../utils/availableAspectRatios";
 
 // Initialize translations
 (async () => {
@@ -48,19 +56,14 @@ let tagsList = [];
 let sortBy = "name";
 let sortDir = "asc";
 
-function gcd(a, b) {
-  return b === 0 ? a : gcd(b, a % b);
-}
-
 function getAspectRatioInfo(slideshow) {
   const width = slideshow.previewWidth || slideshow.preview_width || 0;
   const height = slideshow.previewHeight || slideshow.preview_height || 0;
   const widthInt = parseInt(width, 10);
   const heightInt = parseInt(height, 10);
   if (widthInt > 0 && heightInt > 0) {
-    const divisor = gcd(widthInt, heightInt);
     return {
-      ratioText: `${widthInt / divisor}:${heightInt / divisor}`,
+      ratioText: findAspectRatioValueByDimensions(widthInt, heightInt),
       pixelText: `${widthInt}x${heightInt}`,
     };
   }
@@ -284,6 +287,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initialize aspect ratio selection
   let selectedAspectRatio = null;
+  renderAspectRatioSelection();
   initializeAspectRatioSelection();
 
   createSlideshowMode.addEventListener("input", (e) => {
@@ -301,10 +305,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       createSlideshowName.value = "";
       createSlideshowMode.value = "slideshow";
 
-      // Reset aspect ratio selection - default to 16:9
+      // Reset aspect ratio selection - default to configured default
       resetAspectRatioSelection();
       const defaultOption = document.querySelector(
-        '.create-resolution-option[data-ratio="16:9"]',
+        `.create-resolution-option[data-ratio="${DEFAULT_ASPECT_RATIO}"]`,
       );
       if (defaultOption) {
         defaultOption.classList.add("active");
@@ -312,6 +316,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           width: parseInt(defaultOption.getAttribute("data-width")),
           height: parseInt(defaultOption.getAttribute("data-height")),
           ratio: defaultOption.getAttribute("data-ratio"),
+        };
+      } else {
+        const resolution = getResolutionForAspectRatio(DEFAULT_ASPECT_RATIO);
+        selectedAspectRatio = {
+          width: resolution.width,
+          height: resolution.height,
+          ratio: DEFAULT_ASPECT_RATIO,
         };
       }
 
@@ -355,6 +366,69 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (queryParams.createSlideshow === "true") {
     openCreateSlideshowModal();
+  }
+
+  function renderAspectRatioSelection() {
+    const containers = document.querySelectorAll(
+      ".js-aspect-ratio-options",
+    );
+
+    containers.forEach((container) => {
+      const orientation = container.getAttribute("data-orientation");
+      let ratios;
+      if (orientation === ORIENTATION.LANDSCAPE) {
+        ratios = getAspectRatiosByOrientation(ORIENTATION.LANDSCAPE);
+      } else if (orientation === ORIENTATION.PORTRAIT) {
+        ratios = getAspectRatiosByOrientation(ORIENTATION.PORTRAIT);
+      } else if (orientation === ORIENTATION.SQUARE) {
+        ratios = getAspectRatiosByOrientation(ORIENTATION.SQUARE);
+      } else {
+        ratios = DISPLAYABLE_ASPECT_RATIOS;
+      }
+
+      container.innerHTML = "";
+
+      ratios.forEach((ratio) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "resolution-option-wrapper d-flex flex-column align-items-center";
+
+        if (ratio.note) {
+          const note = document.createElement("div");
+          note.className = "resolution-option-note text-muted small text-center";
+          note.textContent = ratio.note;
+          wrapper.appendChild(note);
+        }
+
+        const option = document.createElement("div");
+        option.className =
+          "create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer";
+        option.setAttribute("data-width", ratio.width);
+        option.setAttribute("data-height", ratio.height);
+        option.setAttribute("data-ratio", ratio.value);
+        option.setAttribute("data-small-preview-width", ratio.smallMenuPreviewWidth);
+        option.setAttribute("data-small-preview-height", ratio.smallMenuPreviewHeight);
+        option.setAttribute("data-medium-preview-width", ratio.mediumMenuPreviewWidth);
+        option.setAttribute("data-medium-preview-height", ratio.mediumMenuPreviewHeight);
+        option.style.width = `${ratio.smallMenuPreviewWidth}px`;
+        option.style.height = `${ratio.smallMenuPreviewHeight}px`;
+        option.title = ratio.label;
+        option.textContent = ratio.value;
+
+        wrapper.appendChild(option);
+        container.appendChild(wrapper);
+
+        wrapper.addEventListener("click", (event) => {
+          if (event.target !== option) {
+            option.click();
+          }
+        });
+      });
+
+      const card = container.closest(".card");
+      if (card) {
+        card.classList.toggle("d-none", ratios.length === 0);
+      }
+    });
   }
 
   function initializeAspectRatioSelection() {

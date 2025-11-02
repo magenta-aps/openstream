@@ -13,6 +13,10 @@ import {
 } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
+import {
+  getResolutionForAspectRatio,
+  findAspectRatioValueByDimensions,
+} from "../../../../utils/availableAspectRatios.js";
 import * as bootstrap from "bootstrap";
 let unifiedTemplates = [];
 let selectedUnifiedTemplate = null;
@@ -21,27 +25,12 @@ let selectedUnifiedTemplate = null;
  * Set the resolution based on aspect ratio and update resolution modal
  */
 function setResolutionFromAspectRatio(aspectRatio) {
-  const aspectRatioMap = {
-    "16:9": { width: 1920, height: 1080 },
-    "4:3": { width: 1024, height: 768 },
-    "21:9": { width: 3440, height: 1440 },
-    "1.85:1": { width: 1998, height: 1080 },
-    "2.39:1": { width: 2048, height: 858 },
-    "9:16": { width: 1080, height: 1920 },
-    "3:4": { width: 768, height: 1024 },
-    "9:21": { width: 1440, height: 3440 },
-    "1:1.85": { width: 1080, height: 1998 },
-    "1:2.39": { width: 858, height: 2048 },
-    "3:2": { width: 1440, height: 960 }, // fallback
-    "1:1": { width: 1080, height: 1080 }, // fallback
-  };
-
-  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
-  store.emulatedWidth = resolution.width;
-  store.emulatedHeight = resolution.height;
+  const { width, height } = getResolutionForAspectRatio(aspectRatio);
+  store.emulatedWidth = width;
+  store.emulatedHeight = height;
 
   // Update resolution modal to show the correct active option
-  updateResolutionModalSelection(resolution.width, resolution.height);
+  updateResolutionModalSelection(width, height);
 
   // Update the aspect ratio display in the UI
   updateAspectRatioDisplay();
@@ -104,29 +93,10 @@ export function getCurrentAspectRatio() {
     return null;
   }
 
-  const width = store.emulatedWidth;
-  const height = store.emulatedHeight;
-
-  // Check for common aspect ratios based on dimensions (matching resolution modal)
-  if (width === 1920 && height === 1080) return "16:9";
-  if (width === 1024 && height === 768) return "4:3";
-  if (width === 3440 && height === 1440) return "21:9";
-  if (width === 1998 && height === 1080) return "1.85:1";
-  if (width === 2048 && height === 858) return "2.39:1";
-  if (width === 1080 && height === 1920) return "9:16";
-  if (width === 768 && height === 1024) return "3:4";
-  if (width === 1440 && height === 3440) return "9:21";
-  if (width === 1080 && height === 1998) return "1:1.85";
-  if (width === 858 && height === 2048) return "1:2.39";
-  // Fallback ratios
-  if (width === 1440 && height === 960) return "3:2";
-  if (width === 1080 && height === 1080) return "1:1";
-
-  // If dimensions don't match any predefined ratio, return a simplified ratio
-  // This is a fallback but the UI only offers specific ratio options
-  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-  const divisor = gcd(width, height);
-  return `${width / divisor}:${height / divisor}`;
+  return findAspectRatioValueByDimensions(
+    store.emulatedWidth,
+    store.emulatedHeight,
+  );
 }
 
 const templateMiniSearcher = createMiniSearchInstance(

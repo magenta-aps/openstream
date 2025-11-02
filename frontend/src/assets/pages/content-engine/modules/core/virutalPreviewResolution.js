@@ -7,8 +7,72 @@ import { queryParams } from "../../../../utils/utils.js";
 import { fetchUnifiedTemplates, getCurrentAspectRatio } from "./addSlide.js";
 import { updateAllSlidesZoom } from "../utils/zoomController.js";
 import * as bootstrap from "bootstrap";
+import {
+  DISPLAYABLE_ASPECT_RATIOS,
+  ORIENTATION,
+  getAspectRatiosByOrientation,
+} from "../../../../utils/availableAspectRatios.js";
+
+function getAspectRatiosForOrientation(orientation) {
+  if (orientation === ORIENTATION.LANDSCAPE) {
+    return getAspectRatiosByOrientation(ORIENTATION.LANDSCAPE);
+  }
+
+  if (orientation === ORIENTATION.PORTRAIT) {
+    return getAspectRatiosByOrientation(ORIENTATION.PORTRAIT);
+  }
+
+  if (orientation === ORIENTATION.SQUARE) {
+    return getAspectRatiosByOrientation(ORIENTATION.SQUARE);
+  }
+
+  return DISPLAYABLE_ASPECT_RATIOS;
+}
+
+function renderResolutionOptions() {
+  const containers = document.querySelectorAll(".js-resolution-options");
+
+  containers.forEach((container) => {
+    const orientation = container.getAttribute("data-orientation");
+    const ratios = getAspectRatiosForOrientation(orientation);
+
+    container.innerHTML = "";
+
+    ratios.forEach((ratio) => {
+      const option = document.createElement("div");
+      option.className =
+        "resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5";
+      option.setAttribute("data-width", ratio.width);
+      option.setAttribute("data-height", ratio.height);
+      option.setAttribute("data-ratio", ratio.value);
+  option.setAttribute("data-small-preview-width", ratio.smallMenuPreviewWidth);
+  option.setAttribute("data-small-preview-height", ratio.smallMenuPreviewHeight);
+  option.setAttribute("data-medium-preview-width", ratio.mediumMenuPreviewWidth);
+  option.setAttribute("data-medium-preview-height", ratio.mediumMenuPreviewHeight);
+      option.title = ratio.label;
+
+      if (
+        ratio.mediumMenuPreviewWidth !== undefined &&
+        ratio.mediumMenuPreviewHeight !== undefined
+      ) {
+        option.style.width = `${ratio.mediumMenuPreviewWidth}px`;
+        option.style.height = `${ratio.mediumMenuPreviewHeight}px`;
+      }
+
+      option.textContent = ratio.value;
+      container.appendChild(option);
+    });
+
+    const section = container.parentElement;
+    if (section) {
+      section.classList.toggle("d-none", ratios.length === 0);
+    }
+  });
+}
 
 export function initVirtualPreviewResolution() {
+  renderResolutionOptions();
+
   let selectedResolution = {
     width: store.emulatedWidth || undefined,
     height: store.emulatedHeight || undefined,
@@ -160,9 +224,13 @@ export async function updateResolution(selectedResolution) {
         updateAllSlidesZoom();
       }, 50);
 
-      bootstrap.Modal.getInstance(
-        document.getElementById("resolutionModal"),
-      ).hide();
+      const resolutionModal = document.getElementById("resolutionModal");
+      if (resolutionModal) {
+        const modalInstance = bootstrap.Modal.getInstance(resolutionModal);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
     }
 
     if (queryParams.mode !== "template_editor") {

@@ -11,55 +11,19 @@
             <!-- Landscape Options -->
             <div class="mb-4">
                 <h4 class="mb-3">{% trans "Landscape" %}</h4>
-                <div class="d-flex justify-content-evenly align-items-center flex-wrap">
-                    <div id="resolution-16-9"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="1920"
-                         data-height="1080">16:9</div>
-                    <div id="resolution-4-3"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="1024"
-                         data-height="768">4:3</div>
-                    <div id="resolution-21-9"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="3440"
-                         data-height="1440">21:9</div>
-                    <div id="resolution-1-85-1"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="1998"
-                         data-height="1080">1.85:1</div>
-                    <div id="resolution-2-39-1"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="2048"
-                         data-height="858">2.39:1</div>
-                </div>
+             <div class="d-flex justify-content-evenly align-items-center flex-wrap gap-2 js-resolution-options" data-orientation="landscape"></div>
             </div>
             <hr class="mb-4">
             <!-- Portrait Options -->
-            <div>
+          <div class="mb-4">
                 <h4 class="mb-3">{% trans "Portrait" %}</h4>
-                <div class="d-flex justify-content-evenly align-items-center flex-wrap">
-                    <div id="resolution-9-16"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="1080"
-                         data-height="1920">9:16</div>
-                    <div id="resolution-3-4"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="768"
-                         data-height="1024">3:4</div>
-                    <div id="resolution-9-21"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="1440"
-                         data-height="3440">9:21</div>
-                    <div id="resolution-1-1-85"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="1080"
-                         data-height="1998">1:1.85</div>
-                    <div id="resolution-1-2-39"
-                         class="resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold fs-5"
-                         data-width="858"
-                         data-height="2048">1:2.39</div>
-                </div>
+             <div class="d-flex justify-content-evenly align-items-center flex-wrap gap-2 js-resolution-options" data-orientation="portrait"></div>
+          </div>
+          <hr class="mb-4">
+          <!-- Square Options -->
+          <div>
+             <h4 class="mb-3">{% trans "Square" %}</h4>
+             <div class="d-flex justify-content-evenly align-items-center flex-wrap gap-2 js-resolution-options" data-orientation="square"></div>
             </div>
         </form>
     {{/inline}}

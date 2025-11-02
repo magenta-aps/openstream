@@ -1,7 +1,7 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 <form id="createSlideshowForm">
-    {{#> base/modal/modal id="createSlideshowModal" }}
+    {{#> base/modal/modal id="createSlideshowModal" size="modal-xl" }}
         {{#*inline "header"}}
             {{> base/modal/modal-title title="Create Slideshow"}}
             {{> base/modal/modal-header-close}}
@@ -58,17 +58,8 @@
                         <h6 class="mb-0">{% trans "Landscape" %}</h6>
                     </div>
                     <div class="card-body py-2">
-                        <div class="d-flex justify-content-start align-items-center flex-wrap gap-2">
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="1920" data-height="1080" data-ratio="16:9">16:9</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="1024" data-height="768" data-ratio="4:3">4:3</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="3440" data-height="1440" data-ratio="21:9">21:9</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="1998" data-height="1080" data-ratio="1.85:1">1.85:1</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="2048" data-height="858" data-ratio="2.39:1">2.39:1</div>
+                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-aspect-ratio-options" data-orientation="landscape">
+                            <!-- Aspect ratio options inserted dynamically -->
                         </div>
                     </div>
                 </div>
@@ -78,17 +69,19 @@
                         <h6 class="mb-0">{% trans "Portrait" %}</h6>
                     </div>
                     <div class="card-body py-2">
-                        <div class="d-flex justify-content-start align-items-center flex-wrap gap-2">
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="1080" data-height="1920" data-ratio="9:16">9:16</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="768" data-height="1024" data-ratio="3:4">3:4</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="1440" data-height="3440" data-ratio="9:21">9:21</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="1080" data-height="1998" data-ratio="1:1.85">1:1.85</div>
-                            <div class="create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer"
-                                data-width="858" data-height="2048" data-ratio="1:2.39">1:2.39</div>
+                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-aspect-ratio-options" data-orientation="portrait">
+                            <!-- Aspect ratio options inserted dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Square section -->
+                <div class="card mt-2">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">{% trans "Square" %}</h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-aspect-ratio-options" data-orientation="square">
+                            <!-- Aspect ratio options inserted dynamically -->
                         </div>
                     </div>
                 </div>

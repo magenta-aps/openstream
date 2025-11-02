@@ -19,6 +19,11 @@ import {
   gettext,
 } from "../../utils/locales";
 import Sortable from "sortablejs";
+import {
+  DEFAULT_ASPECT_RATIO,
+  DISPLAYABLE_ASPECT_RATIOS,
+  getAspectRatioDefinition,
+} from "../../utils/availableAspectRatios";
 
 // Initialize translations
 (async () => {
@@ -113,6 +118,100 @@ async function fetchAPIKey() {
 
 fetchAPIKey();
 
+function ensureAspectRatioOption(selectElement, ratioValue) {
+  if (!selectElement || !ratioValue) {
+    return;
+  }
+
+  const existingOption = Array.from(selectElement.options).find(
+    (option) => option.value === ratioValue,
+  );
+  if (existingOption) {
+    return;
+  }
+
+  const definition = getAspectRatioDefinition(ratioValue);
+  const option = document.createElement("option");
+  option.value = ratioValue;
+  option.textContent = definition?.label || ratioValue;
+  selectElement.appendChild(option);
+}
+
+function populateAspectRatioSelect(
+  selectElement,
+  {
+    includePlaceholder = true,
+    selectedValue = null,
+    placeholderText = gettext("Select aspect ratio"),
+    placeholderValue = "",
+    placeholderSelectedWhenEmpty = true,
+    placeholderDisabled = true,
+  } = {},
+) {
+  if (!selectElement) {
+    return;
+  }
+
+  const resolvedSelected = selectedValue ?? selectElement.value ?? "";
+
+  selectElement.innerHTML = "";
+
+  if (includePlaceholder) {
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = placeholderValue;
+    placeholderOption.textContent = placeholderText;
+    placeholderOption.disabled = placeholderDisabled;
+    placeholderOption.selected =
+      placeholderSelectedWhenEmpty && !resolvedSelected;
+    selectElement.appendChild(placeholderOption);
+  }
+
+  DISPLAYABLE_ASPECT_RATIOS.forEach((ratio) => {
+    const option = document.createElement("option");
+    option.value = ratio.value;
+    option.textContent = ratio.label;
+    selectElement.appendChild(option);
+  });
+
+  if (resolvedSelected) {
+    ensureAspectRatioOption(selectElement, resolvedSelected);
+    selectElement.value = resolvedSelected;
+  } else if (!includePlaceholder) {
+    selectElement.value = DEFAULT_ASPECT_RATIO;
+  }
+}
+
+function setAspectRatioSelectValue(selectElement, ratioValue) {
+  if (!selectElement) {
+    return;
+  }
+
+  const resolvedValue = ratioValue || DEFAULT_ASPECT_RATIO;
+  ensureAspectRatioOption(selectElement, resolvedValue);
+  selectElement.value = resolvedValue;
+}
+
+[
+  {
+    element: document.getElementById("addGroupAspectRatio"),
+  },
+  {
+    element: document.getElementById("editGroupAspectRatio"),
+  },
+  {
+    element: document.getElementById("editDisplayAspectRatio"),
+  },
+  {
+    element: document.getElementById("registrationAspectRatio"),
+    options: {
+      placeholderText: gettext("Default (16:9)"),
+      placeholderValue: "",
+      placeholderSelectedWhenEmpty: true,
+      placeholderDisabled: false,
+    },
+  },
+].forEach(({ element, options }) => populateAspectRatioSelect(element, options));
+
 function showConfirmModal(message, onConfirm) {
   const confirmModalEl = document.getElementById("confirmModal");
   const confirmModal = new bootstrap.Modal(confirmModalEl);
@@ -206,8 +305,8 @@ function validateDisplayGroupAspectRatio(displayId, targetGroupId) {
   const targetGroup = groupsData.find((g) => g.id === targetGroupId);
   if (!targetGroup) return false;
 
-  const displayAspectRatio = display.aspect_ratio || "16:9";
-  const groupAspectRatio = targetGroup.aspect_ratio || "16:9";
+  const displayAspectRatio = display.aspect_ratio || DEFAULT_ASPECT_RATIO;
+  const groupAspectRatio = targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
   return displayAspectRatio === groupAspectRatio;
 }
@@ -281,7 +380,7 @@ function openAddGroupModal() {
       "addGroupDefaultSlideshow",
       null,
       gettext("Select a default slideshow"),
-      "16:9", // Default aspect ratio
+      DEFAULT_ASPECT_RATIO,
     );
   } else {
     // Show playlist container, hide slideshow container.
@@ -294,7 +393,7 @@ function openAddGroupModal() {
       "addGroupDefaultPlaylist",
       null,
       gettext("Select a default slideshow playlist"),
-      "16:9", // Default aspect ratio
+      DEFAULT_ASPECT_RATIO,
     );
   }
 
@@ -308,8 +407,10 @@ function openEditGroupModal(groupId) {
   if (!group) return;
   document.getElementById("editGroupId").value = group.id;
   document.getElementById("editGroupName").value = group.name;
-  document.getElementById("editGroupAspectRatio").value =
-    group.aspect_ratio || "16:9";
+  const editGroupAspectRatioSelect = document.getElementById(
+    "editGroupAspectRatio",
+  );
+  setAspectRatioSelectValue(editGroupAspectRatioSelect, group.aspect_ratio);
 
   // Check which default content is set
   if (group.default_slideshow) {
@@ -325,7 +426,7 @@ function openEditGroupModal(groupId) {
       "editGroupDefaultSlideshow",
       group.default_slideshow.id,
       gettext("Select a default slideshow"),
-      group.aspect_ratio || "16:9",
+      group.aspect_ratio || DEFAULT_ASPECT_RATIO,
     );
   } else if (group.default_playlist) {
     // Set the radio button for playlist
@@ -340,7 +441,7 @@ function openEditGroupModal(groupId) {
       "editGroupDefaultPlaylist",
       group.default_playlist.id,
       gettext("Select a default slideshow playlist"),
-      group.aspect_ratio || "16:9",
+      group.aspect_ratio || DEFAULT_ASPECT_RATIO,
     );
   }
   if (editGroupModal) {
@@ -497,7 +598,7 @@ function openEditDisplayModal(groupId, displayId) {
   );
 
   if (editDisplayAspectRatioEl) {
-    editDisplayAspectRatioEl.value = display.aspect_ratio || "16:9";
+    setAspectRatioSelectValue(editDisplayAspectRatioEl, display.aspect_ratio);
 
     const isInGroup =
       groupId !== "inactive" && groupId !== null && groupId !== undefined;
@@ -861,7 +962,8 @@ function renderUngroupedDisplays() {
       const displayAspectRatioBadge = document.createElement("span");
       displayAspectRatioBadge.classList.add("badge", "bg-info", "ms-2");
       displayAspectRatioBadge.style.fontSize = "0.6rem";
-      displayAspectRatioBadge.textContent = display.aspect_ratio || "16:9";
+      displayAspectRatioBadge.textContent =
+        display.aspect_ratio || DEFAULT_ASPECT_RATIO;
       displayDiv.appendChild(displayAspectRatioBadge);
 
       const displayEditIcon = document.createElement("span");
@@ -932,7 +1034,7 @@ function renderUngroupedDisplays() {
         if (targetGroup) {
           showToast(
             gettext(
-              `Cannot move display "${display.name}" (${display.aspect_ratio || "16:9"}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || "16:9"}). Aspect ratios must match.`,
+              `Cannot move display "${display.name}" (${display.aspect_ratio || DEFAULT_ASPECT_RATIO}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO}). Aspect ratios must match.`,
             ),
             "Error",
           );
@@ -1999,7 +2101,8 @@ function renderGroups() {
     const aspectRatioBadge = document.createElement("span");
     aspectRatioBadge.classList.add("badge", "bg-secondary", "ms-2");
     aspectRatioBadge.style.fontSize = "0.65rem";
-    aspectRatioBadge.textContent = group.aspect_ratio || "16:9";
+    aspectRatioBadge.textContent =
+      group.aspect_ratio || DEFAULT_ASPECT_RATIO;
     leftDiv.appendChild(aspectRatioBadge);
 
     const editIcon = document.createElement("span");
@@ -2087,7 +2190,8 @@ function renderGroups() {
       const displayAspectRatioBadge = document.createElement("span");
       displayAspectRatioBadge.classList.add("badge", "bg-info", "ms-2");
       displayAspectRatioBadge.style.fontSize = "0.6rem";
-      displayAspectRatioBadge.textContent = display.aspect_ratio || "16:9";
+      displayAspectRatioBadge.textContent =
+        display.aspect_ratio || DEFAULT_ASPECT_RATIO;
       displayDiv.appendChild(displayAspectRatioBadge);
 
       const displayEditIcon = document.createElement("span");
@@ -2155,7 +2259,7 @@ function renderGroups() {
           if (targetGroup) {
             showToast(
               gettext(
-                `Cannot move display "${display.name}" (${display.aspect_ratio || "16:9"}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || "16:9"}). Aspect ratios must match.`,
+                    `Cannot move display "${display.name}" (${display.aspect_ratio || DEFAULT_ASPECT_RATIO}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO}). Aspect ratios must match.`,
               ),
               "Error",
             );

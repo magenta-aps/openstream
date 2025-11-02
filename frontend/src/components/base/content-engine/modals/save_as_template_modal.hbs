@@ -1,6 +1,6 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-{{#> base/modal/modal id="saveAsTemplateModal" ariaLabelledby="saveAsTemplateModalLabel" }}
+{{#> base/modal/modal id="saveAsTemplateModal" ariaLabelledby="saveAsTemplateModalLabel" size="modal-xl" }}
     {{#*inline "header"}}
         {{> base/modal/modal-title title="Save Slide as Template" id="saveAsTemplateModalLabel"}}
         {{> base/modal/modal-header-close}}
@@ -44,18 +44,38 @@
                 {{> base/form/input type="hidden" id="templateTags"}}
             </div>
 
-            <div class="mb-3">
+            <div class="mb-3 js-template-aspect-ratio-group">
                 {{> base/form/label for="templateAspectRatio" text="Aspect Ratio"}}
-                <p class="text-muted small">{% trans "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio." %}</p>
-                <select class="form-select" id="templateAspectRatio" name="aspectRatio">
-                    <option value="16:9">16:9 (Landscape)</option>
-                    <option value="4:3">4:3 (Landscape)</option>
-                    <option value="21:9">21:9 (Ultra-wide)</option>
-                    <option value="3:2">3:2 (Landscape)</option>
-                    <option value="9:16">9:16 (Portrait)</option>
-                    <option value="3:4">3:4 (Portrait)</option>
-                    <option value="1:1">1:1 (Square)</option>
-                </select>
+                <p class="text-muted small mb-3">{% trans "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio." %}</p>
+
+                <div class="card mb-2">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">{% trans "Landscape" %}</h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-template-aspect-ratio-options" data-orientation="landscape"></div>
+                    </div>
+                </div>
+
+                <div class="card mb-2">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">{% trans "Portrait" %}</h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-template-aspect-ratio-options" data-orientation="portrait"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">{% trans "Square" %}</h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-template-aspect-ratio-options" data-orientation="square"></div>
+                    </div>
+                </div>
+
+                {{> base/form/input type="hidden" id="templateAspectRatio" name="aspectRatio"}}
             </div>
 
             {{> base/form/input type="hidden" id="templateOrgId"}}

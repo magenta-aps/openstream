@@ -129,9 +129,30 @@ td i {
   transition: all 0.2s ease;
   border-radius: 4px;
   padding: 8px 12px;
-  min-width: 60px;
-  height: 40px;
+  min-width: 48px;
+  min-height: 48px;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.resolution-option-wrapper {
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.resolution-option-note {
+  min-height: 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-transform: none;
 }
 
 .create-resolution-option:hover {
@@ -144,58 +165,6 @@ td i {
   border: 2px solid $neutral-blue !important;
   background-color: $lightest-gray !important;
   color: $neutral-blue;
-}
-
-/* Landscape create ratios */
-.create-resolution-option[data-ratio="16:9"] {
-  width: 80px;
-  height: 45px;
-}
-
-.create-resolution-option[data-ratio="4:3"] {
-  width: 60px;
-  height: 45px;
-}
-
-.create-resolution-option[data-ratio="21:9"] {
-  width: 105px;
-  height: 45px;
-}
-
-.create-resolution-option[data-ratio="1.85:1"] {
-  width: 92px;
-  height: 50px;
-}
-
-.create-resolution-option[data-ratio="2.39:1"] {
-  width: 119px;
-  height: 50px;
-}
-
-/* Portrait create ratios */
-.create-resolution-option[data-ratio="9:16"] {
-  width: 45px;
-  height: 80px;
-}
-
-.create-resolution-option[data-ratio="3:4"] {
-  width: 45px;
-  height: 60px;
-}
-
-.create-resolution-option[data-ratio="9:21"] {
-  width: 45px;
-  height: 105px;
-}
-
-.create-resolution-option[data-ratio="1:1.85"] {
-  width: 50px;
-  height: 92px;
-}
-
-.create-resolution-option[data-ratio="1:2.39"] {
-  width: 50px;
-  height: 119px;
 }
 
 .search-icon {

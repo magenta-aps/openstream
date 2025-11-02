@@ -21,6 +21,10 @@ import {
   gettext,
 } from "../../utils/locales";
 import { BASE_URL } from "../../utils/constants";
+import {
+  DEFAULT_ASPECT_RATIO,
+  DISPLAYABLE_ASPECT_RATIOS,
+} from "../../utils/availableAspectRatios";
 
 // Initialize translations
 (async () => {
@@ -38,6 +42,29 @@ let currentSlideshowPlaylistId = null;
 let currentSlideshowPlaylist = null; // Store the full playlist object
 let playlistToRenameId = null;
 let initialSelectedPlaylistId = null;
+
+function populatePlaylistAspectRatioSelect() {
+  const aspectRatioSelect = document.getElementById("playlist-aspect-ratio");
+  if (!aspectRatioSelect) return;
+
+  aspectRatioSelect.innerHTML = "";
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = gettext("Select aspect ratio");
+  placeholderOption.disabled = true;
+  placeholderOption.selected = true;
+  aspectRatioSelect.appendChild(placeholderOption);
+
+  DISPLAYABLE_ASPECT_RATIOS.forEach((ratio) => {
+    const option = document.createElement("option");
+    option.value = ratio.value;
+    option.textContent = ratio.label;
+    aspectRatioSelect.appendChild(option);
+  });
+}
+
+populatePlaylistAspectRatioSelect();
 
 async function fetchSlideshowPlaylists() {
   try {
@@ -85,8 +112,8 @@ function renderSlideshowPlaylists(slideshowPlaylists) {
     nameSpan.style.hyphens = "auto";
     nameSpan.style.fontWeight = "500";
 
-    const aspectRatioSpan = document.createElement("small");
-    aspectRatioSpan.textContent = pl.aspect_ratio || "16:9";
+  const aspectRatioSpan = document.createElement("small");
+  aspectRatioSpan.textContent = pl.aspect_ratio || DEFAULT_ASPECT_RATIO;
     aspectRatioSpan.className = "text-muted";
     aspectRatioSpan.style.fontSize = "0.75rem";
 
@@ -332,7 +359,8 @@ function editSlideshowPlaylist(playlist) {
       "playlist-aspect-ratio-display",
     );
     if (aspectRatioDisplay) {
-      aspectRatioDisplay.textContent = playlist.aspect_ratio || "16:9";
+      aspectRatioDisplay.textContent =
+        playlist.aspect_ratio || DEFAULT_ASPECT_RATIO;
     }
   }
 

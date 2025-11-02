@@ -10,6 +10,10 @@ import { updateAllSlidesZoom } from "../utils/zoomController.js";
 import { getCurrentAspectRatio } from "./addSlide.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
+import {
+  DEFAULT_ASPECT_RATIO,
+  getResolutionForAspectRatio,
+} from "../../../../utils/availableAspectRatios.js";
 
 let templateAutosaveTimer = null;
 
@@ -19,27 +23,12 @@ let lastStoredSingleSlideStr = null;
  * Set the resolution based on aspect ratio and update resolution modal
  */
 function setResolutionFromAspectRatio(aspectRatio) {
-  const aspectRatioMap = {
-    "16:9": { width: 1920, height: 1080 },
-    "4:3": { width: 1024, height: 768 },
-    "21:9": { width: 3440, height: 1440 },
-    "1.85:1": { width: 1998, height: 1080 },
-    "2.39:1": { width: 2048, height: 858 },
-    "9:16": { width: 1080, height: 1920 },
-    "3:4": { width: 768, height: 1024 },
-    "9:21": { width: 1440, height: 3440 },
-    "1:1.85": { width: 1080, height: 1998 },
-    "1:2.39": { width: 858, height: 2048 },
-    "3:2": { width: 1440, height: 960 }, // fallback
-    "1:1": { width: 1080, height: 1080 }, // fallback
-  };
-
-  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
-  store.emulatedWidth = resolution.width;
-  store.emulatedHeight = resolution.height;
+  const { width, height } = getResolutionForAspectRatio(aspectRatio);
+  store.emulatedWidth = width;
+  store.emulatedHeight = height;
 
   // Update resolution modal to show the correct active option
-  updateResolutionModalSelection(resolution.width, resolution.height);
+  updateResolutionModalSelection(width, height);
 
   // Update the aspect ratio display in the UI
   updateAspectRatioDisplay();
@@ -51,7 +40,7 @@ function setResolutionFromAspectRatio(aspectRatio) {
   }, 50);
 
   console.log(
-    `Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`,
+    `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
   );
 }
 
@@ -134,7 +123,8 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
         slideObject.templateId = template.id;
         slideObject.templateOriginalName = template.name;
         slideObject.name = template.name;
-        slideObject.aspect_ratio = template.aspect_ratio || "16:9";
+        slideObject.aspect_ratio =
+          template.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
         slideObject.categoryId =
           template.category_id ||
@@ -212,7 +202,8 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
       const currentTemplateSlide = store.slides[store.currentSlideIndex];
 
       // Set resolution based on template's aspect ratio
-      const aspectRatio = currentTemplateSlide.aspect_ratio || "16:9";
+      const aspectRatio =
+        currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
       setResolutionFromAspectRatio(aspectRatio);
 
       // Fallback to previewWidth/Height if needed
@@ -298,7 +289,7 @@ export async function saveCurrentTemplateData() {
     previewWidth: store.emulatedWidth,
     previewHeight: store.emulatedHeight,
     organisation_id: orgId,
-    aspect_ratio: currentSlideObject.aspect_ratio || "16:9",
+  aspect_ratio: currentSlideObject.aspect_ratio || DEFAULT_ASPECT_RATIO,
   };
 
   // Use the correct endpoint based on whether it's a suborg template or global template
@@ -334,7 +325,7 @@ export async function saveCurrentTemplateData() {
     currentSlideObject.previewWidth = updatedTemplateFromServer.previewWidth;
     currentSlideObject.previewHeight = updatedTemplateFromServer.previewHeight;
     currentSlideObject.aspect_ratio =
-      updatedTemplateFromServer.aspect_ratio || "16:9";
+  updatedTemplateFromServer.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
     lastStoredSingleSlideStr = JSON.stringify(currentSlideObject);
 
@@ -480,7 +471,7 @@ export async function duplicateTemplateOnBackend(templateId) {
       slideData: originalTemplate.slideData,
       previewWidth: originalTemplate.previewWidth,
       previewHeight: originalTemplate.previewHeight,
-      aspect_ratio: originalTemplate.aspect_ratio || "16:9",
+  aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
       category_id: originalTemplate.category_id,
       tags: originalTemplate.tags || [],
     };

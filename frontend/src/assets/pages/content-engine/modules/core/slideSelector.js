@@ -31,6 +31,7 @@ import {
   initTemplateEditor,
 } from "./templateDataManager.js"; // Removed fetchAllOrgTemplatesAndPopulateStore, added initTemplateEditor
 import { gettext } from "../../../../utils/locales.js";
+import { getResolutionForAspectRatio } from "../../../../utils/availableAspectRatios.js";
 
 let slideSortable; // Declare a variable to store the Sortable instance
 
@@ -38,27 +39,12 @@ let slideSortable; // Declare a variable to store the Sortable instance
  * Set the resolution based on aspect ratio and update resolution modal
  */
 function setResolutionFromAspectRatio(aspectRatio) {
-  const aspectRatioMap = {
-    "16:9": { width: 1920, height: 1080 },
-    "4:3": { width: 1024, height: 768 },
-    "21:9": { width: 3440, height: 1440 },
-    "1.85:1": { width: 1998, height: 1080 },
-    "2.39:1": { width: 2048, height: 858 },
-    "9:16": { width: 1080, height: 1920 },
-    "3:4": { width: 768, height: 1024 },
-    "9:21": { width: 1440, height: 3440 },
-    "1:1.85": { width: 1080, height: 1998 },
-    "1:2.39": { width: 858, height: 2048 },
-    "3:2": { width: 1440, height: 960 }, // fallback
-    "1:1": { width: 1080, height: 1080 }, // fallback
-  };
-
-  const resolution = aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
-  store.emulatedWidth = resolution.width;
-  store.emulatedHeight = resolution.height;
+  const { width, height } = getResolutionForAspectRatio(aspectRatio);
+  store.emulatedWidth = width;
+  store.emulatedHeight = height;
 
   // Update resolution modal to show the correct active option
-  updateResolutionModalSelection(resolution.width, resolution.height);
+  updateResolutionModalSelection(width, height);
 
   // Update the aspect ratio display in the UI
   updateAspectRatioDisplay();
@@ -72,7 +58,7 @@ function setResolutionFromAspectRatio(aspectRatio) {
   }, 50);
 
   console.log(
-    `Set resolution to ${resolution.width}x${resolution.height} for aspect ratio ${aspectRatio}`,
+    `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
   );
 }
 
