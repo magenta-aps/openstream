@@ -1,7 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
-import { showToast, genericFetch, parentOrgID } from "../../../../utils/utils";
+import {
+  showToast,
+  genericFetch,
+  parentOrgID,
+  isUserOrgAdminForOrganisation,
+} from "../../../../utils/utils";
 import * as bootstrap from "bootstrap";
+import Sortable from "sortablejs";
 import { BASE_URL } from "../../../../utils/constants";
 import { gettext } from "../../../../utils/locales";
 import {
@@ -15,6 +21,7 @@ import {
 let isAdmin = false;
 let fonts = [];
 let deleteId = null;
+let fontsSortable = null;
 let textFormattingSettings = getTextFormattingSettings();
 
 // DOM elements
@@ -99,63 +106,8 @@ async function loadFonts() {
       return;
     }
 
-    // Ensure we know if the user is an org admin (or super_admin) before rendering
-    try {
-      const suborgs = await genericFetch(
-        `${BASE_URL}/api/user/suborganisations/`,
-        "GET",
-      );
-      // The backend represents org_admin by user_role === 'org_admin' or if super_admin they get all suborgs
-      const actingOrgId = String(parentOrgID);
-      // If any returned suborg has user_role 'org_admin' for our parent org, set admin
-      isAdmin =
-        suborgs.some((s) => {
-          // serializer returns .organisation as id and .user_role
-          return (
-            (String(s.organisation) === actingOrgId &&
-              s.user_role === "org_admin") ||
-            (s.user_role === "org_admin" &&
-              String(s.organisation) === actingOrgId)
-          );
-        }) ||
-        suborgs.some((s) => s.user_role === "org_admin") ||
-        (suborgs.length > 0 &&
-          suborgs.some(
-            (s) =>
-              s.user_role === null &&
-              s.organisation &&
-              String(s.organisation) === actingOrgId,
-          ));
-
-      // If backend returned everything because user is super_admin, treat as admin
-      if (suborgs && Array.isArray(suborgs) && suborgs.length > 0) {
-        // backend returns all suborgs for super_admin; detect by presence of the parent org in list
-        if (suborgs.some((s) => String(s.organisation) === actingOrgId)) {
-          // if user is super_admin they will have entries for this organisation or org_admin implied
-          // keep isAdmin true if already true or set here
-          // no-op beyond leaving isAdmin true
-        }
-      }
-
-      // Update UI controls
-      if (isAdmin) {
-        document.getElementById("add-font-modal-btn").style.display =
-          "inline-block";
-        adminRequiredMessage.classList.add("d-none");
-      } else {
-        document.getElementById("add-font-modal-btn").style.display = "none";
-        adminRequiredMessage.classList.remove("d-none");
-      }
-    } catch (err) {
-      // If we fail to determine admin status, default to hiding admin controls
-      console.warn(
-        "Failed to fetch suborganisations to determine admin status:",
-        err,
-      );
-      document.getElementById("add-font-modal-btn").style.display = "none";
-      adminRequiredMessage.classList.remove("d-none");
-      isAdmin = false;
-    }
+    isAdmin = await isUserOrgAdminForOrganisation(parentOrgID);
+    toggleFontAdminUI();
 
     // Fetch fonts from the API with organisation_id parameter
     fonts = await genericFetch(
@@ -163,6 +115,7 @@ async function loadFonts() {
       "GET",
     );
 
+    sortFontsInPlace();
     // Update UI
     renderFonts();
   } catch (error) {
@@ -173,31 +126,132 @@ async function loadFonts() {
   }
 }
 
+function toggleFontAdminUI() {
+  if (addFontModalBtn) {
+    addFontModalBtn.style.display = isAdmin ? "inline-block" : "none";
+    addFontModalBtn.disabled = !isAdmin;
+  }
+  if (adminRequiredMessage) {
+    adminRequiredMessage.classList.toggle("d-none", isAdmin);
+  }
+}
+
+function sortFontsInPlace() {
+  fonts.sort((a, b) => {
+    const posA =
+      typeof a.position === "number" ? a.position : Number.MAX_SAFE_INTEGER;
+    const posB =
+      typeof b.position === "number" ? b.position : Number.MAX_SAFE_INTEGER;
+    if (posA !== posB) return posA - posB;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function destroyFontsSortable() {
+  if (fontsSortable) {
+    fontsSortable.destroy();
+    fontsSortable = null;
+  }
+}
+
+function initFontsSortable() {
+  destroyFontsSortable();
+  if (!isAdmin || !fontsTableBody || fonts.length < 2) {
+    return;
+  }
+
+  fontsSortable = new Sortable(fontsTableBody, {
+    animation: 150,
+    handle: ".drag-handle",
+    onEnd: handleFontsReorder,
+  });
+}
+
+async function handleFontsReorder() {
+  if (!isAdmin) {
+    return;
+  }
+
+  const rows = Array.from(fontsTableBody.querySelectorAll("tr"));
+  const updates = rows.map((row, index) => ({
+    id: row.dataset.id,
+    position: index + 1,
+  }));
+
+  try {
+    await Promise.all(
+      updates.map(({ id, position }) =>
+        genericFetch(
+          `${BASE_URL}/api/fonts/${id}/?organisation_id=${parentOrgID}`,
+          "PATCH",
+          { position },
+        ),
+      ),
+    );
+
+    const fontsById = new Map(
+      fonts.map((font) => [String(font.id), { ...font }]),
+    );
+    fonts = updates
+      .map(({ id, position }) => {
+        const font = fontsById.get(String(id));
+        if (!font) return null;
+        font.position = position;
+        return font;
+      })
+      .filter(Boolean);
+
+    sortFontsInPlace();
+    renderFonts();
+    showToast(gettext("Font order updated"), "Success");
+  } catch (error) {
+    const detail = error?.detail || error?.message || "";
+    showToast(
+      `${gettext("Failed to update font order.")}${detail ? ` ${detail}` : ""}`,
+      "Error",
+    );
+    await loadFonts();
+  }
+}
+
 /**
  * Render fonts in the table
  */
 function renderFonts() {
-  // Clear the table
+  destroyFontsSortable();
   fontsTableBody.innerHTML = "";
 
   if (!fonts || fonts.length === 0) {
-    // Show no fonts message
     noFontsMessage.classList.remove("d-none");
     return;
   }
 
-  // Hide no fonts message
   noFontsMessage.classList.add("d-none");
+  sortFontsInPlace();
 
-  // Add each font to the table
   fonts.forEach((font) => {
     const row = document.createElement("tr");
+    row.dataset.id = font.id;
+    if (typeof font.position === "number") {
+      row.dataset.position = String(font.position);
+    }
 
-    // Create font name cell
+    const dragCell = document.createElement("td");
+    dragCell.className = "drag-cell";
+    const dragIcon = document.createElement("span");
+    dragIcon.className = "material-symbols-outlined drag-icon";
+    dragIcon.textContent = "drag_indicator";
+    if (isAdmin) {
+      dragIcon.classList.add("drag-handle");
+      dragCell.title = gettext("Drag to reorder");
+    } else {
+      dragCell.classList.add("drag-cell-disabled");
+    }
+    dragCell.appendChild(dragIcon);
+
     const nameCell = document.createElement("td");
     nameCell.textContent = font.name;
 
-    // Create preview cell with example text
     const previewCell = document.createElement("td");
     const exampleText = document.createElement("span");
     exampleText.textContent = gettext(
@@ -205,14 +259,13 @@ function renderFonts() {
     );
     exampleText.className = "font-preview-text";
 
-    // Create and apply a style for this font
     const style = document.createElement("style");
     style.textContent = `
         @font-face {
           font-family: 'CustomFont-${font.id}';
           src: url('${font.font_url}');
         }
-        
+
         .font-preview-${font.id} {
           font-family: 'CustomFont-${font.id}', sans-serif;
           font-size: 14px;
@@ -223,11 +276,8 @@ function renderFonts() {
     exampleText.classList.add(`font-preview-${font.id}`);
     previewCell.appendChild(exampleText);
 
-    // Create actions cell
     const actionsCell = document.createElement("td");
     actionsCell.className = "action-cell-td";
-
-    // Only show edit/delete buttons if user is admin
     if (isAdmin) {
       const editBtn = document.createElement("button");
       editBtn.className = "btn btn-sm btn-outline-secondary-light me-2";
@@ -249,14 +299,15 @@ function renderFonts() {
       actionsCell.textContent = gettext("View only");
     }
 
-    // Add cells to row
+    row.appendChild(dragCell);
     row.appendChild(nameCell);
     row.appendChild(previewCell);
     row.appendChild(actionsCell);
 
-    // Add row to table
     fontsTableBody.appendChild(row);
   });
+
+  initFontsSortable();
 }
 
 function renderTextFormattingOptions() {
@@ -605,7 +656,9 @@ async function deleteFont() {
  */
 function setupEventListeners() {
   // Add font modal button
-  addFontModalBtn.addEventListener("click", openAddModal);
+  if (addFontModalBtn) {
+    addFontModalBtn.addEventListener("click", openAddModal);
+  }
 
   // Add font form submission
   addFontForm.addEventListener("submit", (e) => {

@@ -1170,7 +1170,7 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
 class CustomColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomColor
-        fields = ["id", "name", "hexValue", "type", "organisation"]
+        fields = ["id", "name", "hexValue", "type", "position", "organisation"]
         read_only_fields = [
             "id",
             "organisation",
@@ -1209,7 +1209,7 @@ class CustomColorSerializer(serializers.ModelSerializer):
 class CustomFontSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomFont
-        fields = ["id", "name", "font_url", "organisation"]
+        fields = ["id", "name", "font_url", "position", "organisation"]
         read_only_fields = ["id", "organisation"]
 
     def validate(self, data):

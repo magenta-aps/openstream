@@ -17,12 +17,14 @@ export let baseColors = [
     name: "Black",
     hexValue: "#000000",
     type: "Standard",
+    position: 0,
   },
   {
     id: -1,
     name: "White",
     hexValue: "#FFFFFF",
     type: "Standard",
+    position: 1,
   },
 ];
 
@@ -54,13 +56,20 @@ async function fetchCustomColors() {
         name: color.name,
         hexValue: color.hexValue,
         type: color.type,
+        position: typeof color.position === "number" ? color.position : null,
       }));
+
+      customColors.sort((a, b) => {
+        const posA =
+          typeof a.position === "number" ? a.position : Number.MAX_SAFE_INTEGER;
+        const posB =
+          typeof b.position === "number" ? b.position : Number.MAX_SAFE_INTEGER;
+        if (posA !== posB) return posA - posB;
+        return a.name.localeCompare(b.name);
+      });
 
       // Combine default colors with custom colors
       baseColors = [...defaultColors, ...customColors];
-
-      // Sort colors by ID (default colors will stay at top due to negative IDs)
-      baseColors.sort((a, b) => a.id - b.id);
     } else {
       console.warn("No custom colors returned from API or invalid format.");
       // Keep only the default black and white colors
@@ -69,6 +78,7 @@ async function fetchCustomColors() {
     console.error("Error fetching custom colors:", error);
     showToast(gettext("Failed to load custom colors."), "Error");
     // Keep only the default black and white colors
+    baseColors = baseColors.filter((color) => color.id < 0);
   }
 }
 

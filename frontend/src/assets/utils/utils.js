@@ -261,6 +261,63 @@ export async function genericFetch(
   return result;
 }
 
+let cachedSuborganisationsPromise = null;
+
+async function fetchUserSuborganisationsWithRoles() {
+  if (!localStorage.getItem("accessToken")) {
+    return [];
+  }
+  if (!cachedSuborganisationsPromise) {
+    cachedSuborganisationsPromise = genericFetch(
+      `${BASE_URL}/api/user/suborganisations/`,
+      "GET",
+    ).catch((err) => {
+      cachedSuborganisationsPromise = null;
+      throw err;
+    });
+  }
+  return cachedSuborganisationsPromise;
+}
+
+export async function isUserOrgAdminForOrganisation(orgId) {
+  if (!orgId) {
+    return false;
+  }
+
+  try {
+    const suborgs = await fetchUserSuborganisationsWithRoles();
+    if (!Array.isArray(suborgs)) {
+      return false;
+    }
+
+    const actingOrgId = String(orgId);
+    return (
+      suborgs.some(
+        (s) =>
+          String(s.organisation) === actingOrgId &&
+          s.user_role === "org_admin",
+      ) ||
+      suborgs.some(
+        (s) =>
+          s.user_role === "org_admin" &&
+          (!s.organisation || String(s.organisation) === actingOrgId),
+      ) ||
+      suborgs.some(
+        (s) =>
+          s.user_role === null &&
+          s.organisation &&
+          String(s.organisation) === actingOrgId,
+      )
+    );
+  } catch (error) {
+    console.warn(
+      "Failed to determine organisation admin status from suborganisations response:",
+      error,
+    );
+    return false;
+  }
+}
+
 export async function updateUserLanguagePreference() {
   if (!localStorage.getItem("accessToken")) {
     return;

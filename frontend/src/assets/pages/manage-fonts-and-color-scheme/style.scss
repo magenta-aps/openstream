@@ -58,3 +58,27 @@
   for some reason it works if ANY height is set for the element together with the flex-grow: 1 */
   height: 10px;
 }
+
+.drag-cell {
+  width: 2.5rem;
+  text-align: center;
+  color: $secondary;
+}
+
+.drag-cell-disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.drag-icon {
+  font-size: 1.25rem;
+  vertical-align: middle;
+}
+
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}

@@ -3770,7 +3770,9 @@ class CustomColorAPIView(APIView):
             )
 
         # Filter colors by the organisation
-        colors = CustomColor.objects.filter(organisation=organisation)
+        colors = CustomColor.objects.filter(organisation=organisation).order_by(
+            "position", "name"
+        )
         serializer = CustomColorSerializer(colors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -4034,7 +4036,9 @@ class CustomFontAPIView(APIView):
                 )
         else:
             # Get all fonts for the organization
-            custom_fonts = CustomFont.objects.filter(organisation=organisation)
+            custom_fonts = CustomFont.objects.filter(organisation=organisation).order_by(
+                "position", "name"
+            )
             serializer = CustomFontSerializer(custom_fonts, many=True)
             return Response(serializer.data)
 
@@ -4073,6 +4077,7 @@ class CustomFontAPIView(APIView):
 
         uploaded_file = request.FILES.get("file")
         allowed_extensions = (".woff2", ".woff", ".ttf", ".otf")
+        saved_path = None
 
         if uploaded_file:
             # Validate extension
@@ -4123,20 +4128,22 @@ class CustomFontAPIView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        # If uploaded_file not provided, expect client to send font_url in body
-        serializer = CustomFontSerializer(
-            data=data, context={"organisation": organisation}
-        )
-        if serializer.is_valid():
-            # Assign the font to the specified organization
-            serializer.save(organisation=organisation)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # If serializer invalid and we saved a file, attempt to cleanup the saved file
+            # If uploaded_file not provided, expect client to send font_url in body
+            serializer = CustomFontSerializer(
+                data=data, context={"organisation": organisation}
+            )
+            if serializer.is_valid():
+                # Assign the font to the specified organization
+                serializer.save(organisation=organisation)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # If serializer invalid and we saved a file, attempt to clean up the saved file
         if uploaded_file and saved_path:
             try:
                 default_storage.delete(saved_path)
             except Exception:
                 pass
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):

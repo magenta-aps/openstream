@@ -1069,16 +1069,28 @@ class CustomColor(models.Model):
             ("text", "Text"),
         ],
     )
+    position = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         unique_together = (
             "organisation",
             "name",
         )  # Ensure unique names within an organisation
-        ordering = ["organisation", "type", "name"]
+        ordering = ["organisation", "position", "name"]
 
     def __str__(self):
         return f"{self.organisation.name} - {self.type}: {self.name} ({self.hexValue})"
+
+    def save(self, *args, **kwargs):
+        if self.position in (None, 0) and self.organisation_id:
+            max_position = (
+                CustomColor.objects.filter(organisation=self.organisation)
+                .exclude(pk=self.pk)
+                .aggregate(models.Max("position"))["position__max"]
+                or 0
+            )
+            self.position = max_position + 1
+        super().save(*args, **kwargs)
 
 
 ###############################################################################
@@ -1100,6 +1112,7 @@ class CustomFont(models.Model):
     font_url = models.URLField(
         max_length=500, help_text=_("URL to the font file (e.g., WOFF2, TTF)")
     )
+    position = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.organisation.name})"
@@ -1111,6 +1124,18 @@ class CustomFont(models.Model):
             "organisation",
             "name",
         )  # Ensure unique font names per organisation
+        ordering = ["organisation", "position", "name"]
+
+    def save(self, *args, **kwargs):
+        if self.position in (None, 0) and self.organisation_id:
+            max_position = (
+                CustomFont.objects.filter(organisation=self.organisation)
+                .exclude(pk=self.pk)
+                .aggregate(models.Max("position"))["position__max"]
+                or 0
+            )
+            self.position = max_position + 1
+        super().save(*args, **kwargs)
 
 
 class TextFormattingSettings(models.Model):
