@@ -26,6 +26,7 @@ FRONTDESK_API_KEY = os.environ.get("FRONTDESK_API_KEY")
 WINKAS_USERNAME = os.environ.get("WINKAS_USERNAME")
 WINKAS_PW = os.environ.get("WINKAS_PW")
 WINKAS_CONTRACTCODE = os.environ.get("WINKAS_CONTRACTCODE")
+FRONTEND_PASSWORD_RESET_URL = os.environ.get("FRONTEND_PASSWORD_RESET_URL")
 
 
 DEBUG = os.environ.get("DEBUG") == "True"

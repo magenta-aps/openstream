@@ -15,6 +15,7 @@ import pytz
 import pandas as pd
 import re
 from pathlib import Path
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from django.core.cache import cache
 
 import copy
@@ -4506,8 +4507,7 @@ class ResetPasswordView(APIView):
             signer = TimestampSigner()
             token = signer.sign(f"password_reset_{user.id}")
 
-            # Create the reset URL
-            reset_url = f"{request.build_absolute_uri('/reset-password-confirm/')}?token={token}"
+            reset_url = self._resolve_reset_url(request, token)
 
             # Send email with reset link
             subject = "OpenStream - Password Reset Request"
@@ -4562,6 +4562,27 @@ The OpenStream Team
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    @staticmethod
+    def _resolve_reset_url(request, token):
+        """Resolve where to send the password reset based on settings."""
+        frontend_reset_url = getattr(settings, "FRONTEND_PASSWORD_RESET_URL", None)
+
+        if frontend_reset_url:
+            # Support simple token placeholders for convenience
+            if "{token}" in frontend_reset_url:
+                return frontend_reset_url.replace("{token}", token)
+
+            # Ensure the token query parameter is appended/overwritten
+            parsed = urlparse(frontend_reset_url)
+            query = parse_qs(parsed.query, keep_blank_values=True)
+            query["token"] = [token]
+            new_query = urlencode(query, doseq=True)
+            return urlunparse(parsed._replace(query=new_query))
+
+        base_url = request.build_absolute_uri("/reset-password-confirm/")
+        separator = "&" if "?" in base_url else "?"
+        return f"{base_url}{separator}token={token}"
 
 
 class ConfirmPasswordResetView(APIView):
