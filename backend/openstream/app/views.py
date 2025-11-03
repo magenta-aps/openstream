@@ -4036,9 +4036,9 @@ class CustomFontAPIView(APIView):
                 )
         else:
             # Get all fonts for the organization
-            custom_fonts = CustomFont.objects.filter(organisation=organisation).order_by(
-                "position", "name"
-            )
+            custom_fonts = CustomFont.objects.filter(
+                organisation=organisation
+            ).order_by("position", "name")
             serializer = CustomFontSerializer(custom_fonts, many=True)
             return Response(serializer.data)
 

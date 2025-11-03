@@ -14,8 +14,9 @@ def populate_positions(apps, schema_editor):
     )
     for org_id in color_org_ids:
         colors = list(
-            CustomColor.objects.filter(organisation_id=org_id)
-            .order_by("type", "name", "id")
+            CustomColor.objects.filter(organisation_id=org_id).order_by(
+                "type", "name", "id"
+            )
         )
         for index, color in enumerate(colors, start=1):
             color.position = index
@@ -29,9 +30,7 @@ def populate_positions(apps, schema_editor):
     )
     for org_id in font_org_ids:
         fonts = list(
-            CustomFont.objects.filter(organisation_id=org_id).order_by(
-                "name", "id"
-            )
+            CustomFont.objects.filter(organisation_id=org_id).order_by("name", "id")
         )
         for index, font in enumerate(fonts, start=1):
             font.position = index
