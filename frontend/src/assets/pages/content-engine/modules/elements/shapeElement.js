@@ -283,7 +283,7 @@ export function initShape() {
         10,
         false,
       );
-      btn.title = shapeType;
+      btn.title = gettext(shapeType);
       // expose the shape type for delegated handling
       btn.dataset.shapeType = shapeType;
       shapeTypeContent.appendChild(btn);

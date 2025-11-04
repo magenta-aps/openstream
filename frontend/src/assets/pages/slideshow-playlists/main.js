@@ -30,6 +30,7 @@ import {
 (async () => {
   await fetchUserLangugage();
   translateHTML();
+  populatePlaylistAspectRatioSelect();
 })();
 
 makeActiveInNav("/slideshow-playlists");
@@ -64,7 +65,6 @@ function populatePlaylistAspectRatioSelect() {
   });
 }
 
-populatePlaylistAspectRatioSelect();
 
 async function fetchSlideshowPlaylists() {
   try {

@@ -4,7 +4,7 @@
     <input type="radio" name="{{name}}" id="{{id}}" class="form-check-input m-0" value="{{value}}" {{#if checked}}checked{{/if}} {{#if
         required}}required{{/if}} autocomplete="{{autocomplete}}">
     <label for="{{id}}" class="form-check-label d-flex align-items-center" aria-label="{{ariaLabel}}">
-        {{#if text}}{{text}}{{/if}}
+        {{#if text}}{% trans "{{text}}" %}{{/if}}
         {{#if icon}}<i class="fs-4 material-symbols-outlined">{{icon}}</i>{{/if}}
     </label>
 </div>

@@ -198,6 +198,8 @@ function enableZoomMode(zoomLevel) {
       previewSlide.style.left = "0";
       previewSlide.style.transform = `scale(${zoomScale})`;
       previewSlide.style.transformOrigin = "top left";
+      previewSlide.style.width = store.emulatedWidth + "px";
+      previewSlide.style.height = store.emulatedHeight + "px";
 
       // Update current scale in store for grid calculations
       store.currentScale = zoomScale;

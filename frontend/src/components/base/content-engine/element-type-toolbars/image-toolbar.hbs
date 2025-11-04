@@ -22,8 +22,8 @@
     <span class="ms-2">{% trans "Sizing" %}</span>
     <!-- Image Size Options -->
     <div class="d-flex align-items-center gap-2 rounded ms-3">
-        {{> base/form/radio name="imageSize" id="image-size-scale" value="scaled" text='{% trans "Scale" %}' autocomplete="off" ariaLabel="Image size scaled"}}
-        {{> base/form/radio name="imageSize" id="image-size-stretch" value="stretch" text='{% trans "Stretch" %}' autocomplete="off" ariaLabel="Image size stretch"}}
-        {{> base/form/radio name="imageSize" id="image-size-original" value="original" text='{% trans "Original" %}' autocomplete="off" ariaLabel="Image size original"}}
+    {{> base/form/radio name="imageSize" id="image-size-scale" value="scaled" text="Scale" autocomplete="off" ariaLabel="Image size scaled"}}
+    {{> base/form/radio name="imageSize" id="image-size-stretch" value="stretch" text="Stretch" autocomplete="off" ariaLabel="Image size stretch"}}
+    {{> base/form/radio name="imageSize" id="image-size-original" value="original" text="Original" autocomplete="off" ariaLabel="Image size original"}}
     </div>
 {{/base/content-engine/element-type-toolbars/containers/element-type-toolbars-container}}

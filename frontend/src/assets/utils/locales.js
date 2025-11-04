@@ -2,6 +2,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import translations from "./translations.json";
 
+try {
+  const storedLanguage = localStorage.getItem("userLanguage");
+  if (storedLanguage) {
+    document.documentElement.lang = storedLanguage;
+  }
+} catch (error) {
+  // Ignore storage access errors and fall back to the default document language.
+}
+
 export function translateHTML() {
   const lang = document.documentElement.lang;
 

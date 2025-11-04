@@ -1545,6 +1545,15 @@ span {
   font-size: 0.875rem;
 }
 
+.form-select {
+  min-width: 4rem;
+  text-overflow: ellipsis;
+}
+
+.tiptap-font-family-select {
+  min-width: 6rem;
+}
+
 .table-popover .form-check-label {
   font-size: 0.875rem;
   color: $darkest-gray;

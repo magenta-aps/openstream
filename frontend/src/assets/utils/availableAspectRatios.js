@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { gettext } from "./locales";
+
 export const ORIENTATION = {
   LANDSCAPE: "landscape",
   PORTRAIT: "portrait",
@@ -30,9 +32,11 @@ function calculatePreviewDimensions(width, height, maxDimension) {
   return { width: Math.max(scaledWidth, 1), height: maxDimension };
 }
 
-function buildLabel(ratioValue, orientation, note) {
-  const orientationText = ORIENTATION_LABEL[orientation] || "";
-  const suffix = note ? ` - ${note}` : "";
+function buildLabel(ratioValue, orientation, noteKey) {
+  const orientationKey = ORIENTATION_LABEL[orientation] || "";
+  const orientationText = orientationKey ? gettext(orientationKey) : "";
+  const noteText = noteKey ? gettext(noteKey) : "";
+  const suffix = noteText ? ` - ${noteText}` : "";
   return `${ratioValue} (${orientationText}${suffix})`;
 }
 
@@ -118,14 +122,23 @@ function createDefinitionsForBase(baseRatio) {
     width,
     height,
     orientation: isSquare ? ORIENTATION.SQUARE : ORIENTATION.LANDSCAPE,
-    label: buildLabel(value, isSquare ? ORIENTATION.SQUARE : ORIENTATION.LANDSCAPE, note),
+    noteKey: note,
+    get note() {
+      return this.noteKey ? gettext(this.noteKey) : "";
+    },
+    get label() {
+      return buildLabel(
+        this.value,
+        this.orientation,
+        this.noteKey,
+      );
+    },
     inUI,
     isDefault,
     smallMenuPreviewWidth: landscapeSmallPreview.width,
     smallMenuPreviewHeight: landscapeSmallPreview.height,
     mediumMenuPreviewWidth: landscapeMediumPreview.width,
     mediumMenuPreviewHeight: landscapeMediumPreview.height,
-    note,
   });
 
   if (!isSquare && allowPortrait) {
@@ -148,14 +161,23 @@ function createDefinitionsForBase(baseRatio) {
       width: swappedWidth,
       height: swappedHeight,
       orientation: ORIENTATION.PORTRAIT,
-      label: buildLabel(portraitValue, ORIENTATION.PORTRAIT, note),
+      noteKey: note,
+      get note() {
+        return this.noteKey ? gettext(this.noteKey) : "";
+      },
+      get label() {
+        return buildLabel(
+          this.value,
+          this.orientation,
+          this.noteKey,
+        );
+      },
       inUI,
       isDefault: false,
       smallMenuPreviewWidth: portraitSmallPreview.width,
       smallMenuPreviewHeight: portraitSmallPreview.height,
       mediumMenuPreviewWidth: portraitMediumPreview.width,
       mediumMenuPreviewHeight: portraitMediumPreview.height,
-      note,
     });
   }
 

@@ -185,10 +185,10 @@ function showBorderPopover(button, currentBorderData, callback) {
 
   // Individual side checkboxes (all shown, all checked by default)
   const sideCheckboxes = [
-    { label: "Top", checked: currentSides.top, key: "top" },
-    { label: "Right", checked: currentSides.right, key: "right" },
-    { label: "Bottom", checked: currentSides.bottom, key: "bottom" },
-    { label: "Left", checked: currentSides.left, key: "left" },
+    { label: gettext("Top"), checked: currentSides.top, key: "top" },
+    { label: gettext("Right"), checked: currentSides.right, key: "right" },
+    { label: gettext("Bottom"), checked: currentSides.bottom, key: "bottom" },
+    { label: gettext("Left"), checked: currentSides.left, key: "left" },
   ];
 
   sideCheckboxes.forEach((side) => {

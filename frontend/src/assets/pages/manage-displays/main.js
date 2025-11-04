@@ -1626,9 +1626,9 @@ function refreshScheduledContentDropdowns() {
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
     slideshowSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
     playlistSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
 
     // Hide aspect ratio indicators
     groupAspectRatioIndicator.style.display = "none";
@@ -1699,9 +1699,9 @@ function refreshEditScheduledContentDropdowns() {
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
     slideshowSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
     playlistSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
     return;
   }
 
@@ -1768,9 +1768,9 @@ function refreshRecurringScheduledContentDropdowns() {
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
     slideshowSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
     playlistSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
 
     // Hide aspect ratio indicators
     groupAspectRatioIndicator.style.display = "none";
@@ -1843,9 +1843,9 @@ function refreshEditRecurringScheduledContentDropdowns() {
     slideshowSelect.disabled = true;
     playlistSelect.disabled = true;
     slideshowSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
     playlistSelect.innerHTML =
-      '<option value="" disabled selected>Select Group First</option>';
+      `<option value="" disabled selected>${gettext("Select Group First")}</option>`;
     return;
   }
 

@@ -417,7 +417,7 @@
     "da": " Afspil Slideshow"
   },
   "Change Preview Aspect Ratio": {
-    "da": "Skift Forhåndsvisning Aspect Ratio"
+    "da": "Skift forhåndsvisning for størrelsesforhold"
   },
   " Undo": {
     "da": " Fortryd"
@@ -1185,7 +1185,7 @@
     "da": "Angiv et slideshow navn."
   },
   "Please select an aspect ratio.": {
-    "da": "Vælg et aspect ratio."
+    "da": "Vælg et størrelsesforhold."
   },
   "Failed to create slideshow.": {
     "da": "Kunne ikke oprette slideshow."
@@ -1629,10 +1629,10 @@
     "da": "Du kan ikke ændre den valgte tilstand efter oprettelse."
   },
   "Aspect Ratio": {
-    "da": "Aspect Ratio"
+    "da": "Størrelsesforhold"
   },
   "Choose the aspect ratio for your slideshow content. This determines the display dimensions.": {
-    "da": "Vælg aspect ratio for dit slideshow indhold. Dette bestemmer display dimensionerne."
+    "da": "Vælg størrelsesforhold for dit slideshow indhold. Dette bestemmer display dimensionerne."
   },
   "Landscape": {
     "da": "Landskab"
@@ -1689,7 +1689,7 @@
     "da": "Vælg en skabelon at oprette en ny slide fra"
   },
   "Showing templates compatible with aspect ratio:": {
-    "da": "Viser skabeloner kompatible med aspect ratio:"
+    "da": "Viser skabeloner kompatible med størrelsesforhold:"
   },
   "🔎 Search by name, category or tags...": {
     "da": "🔎 Søg efter navn, kategori eller tags..."
@@ -1989,10 +1989,10 @@
     "da": "Vælg tags..."
   },
   "Suitable Aspect Ratios": {
-    "da": "Egnede Aspect Ratios"
+    "da": "Egnede størrelsesforhold"
   },
   "Select aspect ratios this template is designed to work with. This helps users find templates appropriate for their display size.": {
-    "da": "Vælg aspect ratios denne skabelon er designet til at arbejde med. Dette hjælper brugere med at finde skabeloner passende til deres display størrelse."
+    "da": "Vælg størrelsesforhold denne skabelon er designet til at arbejde med. Dette hjælper brugere med at finde skabeloner passende til deres display størrelse."
   },
   "Show Grid": {
     "da": "Vis Gitter"
@@ -2067,7 +2067,7 @@
     "da": "Indlejr Website"
   },
   "Website URL": {
-    "da": "Website URL"
+    "da": "Hjemmeside URL"
   },
   "Select Website From List": {
     "da": "Vælg Website Fra Liste"
@@ -2298,7 +2298,7 @@
     "da": "Fjern Farve"
   },
   "aspect ratio": {
-    "da": "aspect ratio"
+    "da": "størrelsesforhold"
   },
   "s": {
     "da": "s"
@@ -2307,7 +2307,7 @@
     "da": "valgt"
   },
   "No aspect ratios selected yet": {
-    "da": "Ingen aspect ratios valgt endnu"
+    "da": "Ingen størrelses valgt endnu"
   },
   "No slide index provided.": {
     "da": "Intet slide indeks angivet."
@@ -2322,7 +2322,7 @@
     "da": "Opret Ny Tom Skabelon"
   },
   "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio.": {
-    "da": "Vælg en aspect ratio denne skabelon er designet til. Forhåndsvisningen vil automatisk justere til denne aspect ratio."
+    "da": "Vælg et størrelsesforhold denne skabelon er designet til. Forhåndsvisningen vil automatisk justere til dette størrelsesforhold."
   },
   "Save Template": {
     "da": "Gem Skabelon"
@@ -2409,7 +2409,7 @@
     "da": "Dobbeltklik for at redigere tekst"
   },
   "Header": {
-    "da": "Header"
+    "da": "Overskrift"
   },
   "Row": {
     "da": "Række"
@@ -3360,7 +3360,7 @@
     "da": "Du kan ikke kombinere med standardindhold, når gruppen har interaktivt slideshow som standard"
   },
   "Aspect ratio": {
-    "da": "Aspect ratio"
+    "da": "Størrelsesforhold"
   },
   "Confirm Delete Slideshow": {
     "da": "Bekræft sletning af slideshow"
@@ -3369,7 +3369,7 @@
     "da": "Er du sikker på, at du vil slette slideshowet"
   },
   "Aspect Ratio:": {
-    "da": "Billedformat:"
+    "da": "Størrelsesforhold:"
   },
   "Reset Password": {
     "da": "Nulstil adgangskode"
@@ -3684,9 +3684,105 @@
     "da": "Det Digitale Folkebibliotek begivenheds API"
   },
   "Newsfeed": {
-    "da": "Nyhedsfeed"  
+    "da": "Nyhedsfeed"
   },
   "DR News Feed": {
     "da": "DR Nyhedsfeed"
+  },
+  "circle": {
+    "da": "cirkel"
+  },
+  "cloud": {
+    "da": "sky"
+  },
+  "diamond": {
+    "da": "rombe"
+  },
+  "down-arrow": {
+    "da": "pil ned"
+  },
+  "ellipse": {
+    "da": "ellipse"
+  },
+  "half-triangle": {
+    "da": "halv trekant"
+  },
+  "heart": {
+    "da": "hjerte"
+  },
+  "hexagon": {
+    "da": "sekskant"
+  },
+  "left-arrow": {
+    "da": "pil til venstre"
+  },
+  "octagon": {
+    "da": "ottekant"
+  },
+  "parallelogram": {
+    "da": "parallelogram"
+  },
+  "pentagon": {
+    "da": "femkant"
+  },
+  "plus": {
+    "da": "plus"
+  },
+  "right-arrow": {
+    "da": "pil til højre"
+  },
+  "right-triangle": {
+    "da": "retvinklet trekant"
+  },
+  "semicircle": {
+    "da": "halvcirkel"
+  },
+  "square": {
+    "da": "kvadrat"
+  },
+  "star": {
+    "da": "stjerne"
+  },
+  "trapezoid": {
+    "da": "trapez"
+  },
+  "up-arrow": {
+    "da": "pil op"
+  },
+  "triangle": {
+    "da": "trekant"
+  },
+  "Top": {
+    "da": "Top"
+  },
+  "Bottom": {
+    "da": "Bund"
+  },
+  "Left": {
+    "da": "Venstre"
+  },
+  "Right": {
+    "da": "Højre"
+  },
+  "Most Common": {
+    "da": "Mest Almindelig"
+  },
+  "Common on old monitors": {
+    "da": "Almindelig på gamle skærme"
+  },
+  "Ultrawide": {
+    "da": "Ultrabred"
+  },
+  "Cinema": {
+    "da": "Biograf"
+  },
+  "Ultra Widescreen": {
+    "da": "Ultra bredformat"
+  },
+  "If registering the screen with an external tool (for example OS2BorgerPC or our Electron app), copy the API key below and paste it into the tool's registration dialog.": {
+    "da": "Hvis du registrerer skærmen med et eksternt værktøj (for eksempel OS2BorgerPC eller vores Electron-app), skal du kopiere API-nøglen nedenfor og indsætte den i værktøjets registreringsdialog."
+  },
+  "Select Group First": {
+    "da": "Vælg Gruppe Først"
   }
 }
