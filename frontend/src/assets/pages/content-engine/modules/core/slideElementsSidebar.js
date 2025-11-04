@@ -394,7 +394,7 @@ function createElementRow(elData, state) {
   if (posEl) posEl.textContent = summary.pos;
 
   const nameInput = row.querySelector('[data-role="name-input"]');
-  if (nameInput) nameInput.value = displayName;
+  if (nameInput) nameInput.value = gettext(displayName);
 
   const linkSelect = row.querySelector('[data-role="link-select"]');
   if (state.showLinkSelect && linkSelect) {

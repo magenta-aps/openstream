@@ -81,6 +81,13 @@ function updateTranslations(keys) {
     translations = JSON.parse(fs.readFileSync(translationsFile, 'utf-8'));
   }
 
+  // Remove keys that contain {{ or }}
+  for (const key in translations) {
+    if (key.includes('{{') || key.includes('}}')) {
+      delete translations[key];
+    }
+  }
+
   for (const key of keys) {
     if (!translations[key]) {
       translations[key] = {
@@ -95,7 +102,8 @@ function updateTranslations(keys) {
 
 async function main() {
   const keys = await extractTransTags();
-  updateTranslations(keys);
+  const filteredKeys = keys.filter(key => !key.includes('{{') && !key.includes('}}'));
+  updateTranslations(filteredKeys);
 }
 
 main().catch(console.error);

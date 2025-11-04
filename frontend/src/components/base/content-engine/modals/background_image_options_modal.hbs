@@ -13,7 +13,7 @@
                 <i class="material-symbols-outlined me-1">image</i>
                 {% trans "Background Image" %}
             </h6>
-            {{> base/buttons/icon-button type='button' id='bgOption-changeImage' variant='primary' class='w-100 mb-2' icon='photo_library' text='{% trans "Change Background Image" %}'}}
+            {{> base/buttons/icon-button type='button' id='bgOption-changeImage' variant='primary' class='w-100 mb-2' icon='photo_library' text='Change Background Image'}}
             <small class="text-muted">{% trans "Select a different image for the slide background" %}</small>
         </div>
         <hr>
@@ -25,16 +25,16 @@
             </h6>
             <div class="row g-2">
                 <div class="col-6">
-                    {{> base/buttons/icon-button type='button' id='bgOption-contain' class='w-100 bg-option-btn' variant='outline-primary' data-option='contain' icon='fit_screen' text='{% trans "Contain" %}'}}
+                    {{> base/buttons/icon-button type='button' id='bgOption-contain' class='w-100 bg-option-btn' variant='outline-primary' data-option='contain' icon='fit_screen' text='Contain'}}
                 </div>
                 <div class="col-6">
-                    {{> base/buttons/icon-button type='button' id='bgOption-original' class='w-100 bg-option-btn' variant='outline-primary' data-option='auto' icon='photo_size_select_actual' text='{% trans "Original Size" %}'}}
+                    {{> base/buttons/icon-button type='button' id='bgOption-original' class='w-100 bg-option-btn' variant='outline-primary' data-option='auto' icon='photo_size_select_actual' text='Original Size'}}
                 </div>
                 <div class="col-6">
-                    {{> base/buttons/icon-button type='button' id='bgOption-stretch' class='w-100 bg-option-btn' variant='outline-primary' data-option='100% 100%' icon='open_in_full' text='{% trans "Stretch" %}'}}
+                    {{> base/buttons/icon-button type='button' id='bgOption-stretch' class='w-100 bg-option-btn' variant='outline-primary' data-option='100% 100%' icon='open_in_full' text='Stretch'}}
                 </div>
                 <div class="col-6">
-                    {{> base/buttons/icon-button type='button' id='bgOption-repeat' class='w-100 bg-option-btn' variant='outline-primary' data-option='repeat' icon='grid_view' text='{% trans "Repeat" %}'}}
+                    {{> base/buttons/icon-button type='button' id='bgOption-repeat' class='w-100 bg-option-btn' variant='outline-primary' data-option='repeat' icon='grid_view' text='Repeat'}}
                 </div>
             </div>
         </div>
@@ -47,22 +47,22 @@
             </h6>
             <div class="row g-2">
                 <div class="col-4">
-                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='top left' icon='north_west' text='{% trans "Top Left" %}'}}
+                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='top left' icon='north_west' text='Top Left'}}
                 </div>
                 <div class="col-4">
-                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='center' icon='center_focus_strong' text='{% trans "Center" %}'}}
+                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='center' icon='center_focus_strong' text='Center'}}
                 </div>
                 <div class="col-4">
-                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='top right' icon='north_east' text='{% trans "Top Right" %}'}}
+                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='top right' icon='north_east' text='Top Right'}}
                 </div>
                 <div class="col-4">
-                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='bottom left' icon='south_west' text='{% trans "Bottom Left" %}'}}
+                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn h-100' variant='outline-secondary' data-position='bottom left' icon='south_west' text='Bottom Left'}}
                 </div>
                 <div class="col-4">
                     <!-- Empty space for better visual balance -->
                 </div>
                 <div class="col-4">
-                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn' variant='outline-secondary' data-position='bottom right' icon='south_east' text='{% trans "Bottom Right" %}'}}
+                    {{> base/buttons/icon-button type='button' class='w-100 bg-position-btn' variant='outline-secondary' data-position='bottom right' icon='south_east' text='Bottom Right'}}
                 </div>
             </div>
         </div>
@@ -72,11 +72,11 @@
                 <i class="material-symbols-outlined me-1">delete</i>
                 {% trans "Remove Background" %}
             </h6>
-            {{> base/buttons/icon-button type='button' id='bgOption-remove' class='w-100' variant='outline-danger' icon='no_photography' text='{% trans "Remove Background Image" %}'}}
+            {{> base/buttons/icon-button type='button' id='bgOption-remove' class='w-100' variant='outline-danger' icon='no_photography' text='Remove Background Image'}}
         </div>
     {{/inline}}
 
     {{#*inline "footer"}}
-    {{> base/buttons/icon-button type='button' variant='secondary' data-bs-dismiss='modal' icon='close' text='{% trans "Close" %}'}}
+    {{> base/buttons/icon-button type='button' variant='secondary' data-bs-dismiss='modal' icon='close' text='Close'}}
     {{/inline}}
 {{/base/modal/modal}}

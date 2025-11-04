@@ -159,16 +159,16 @@
     "da": "Administrér medier"
   },
   "Media Library": {
-    "da":"Mediebibliotek"
+    "da": "Mediebibliotek"
   },
-  "Global media files are files that are available throughout the whole organization and in templates. Here files such as logos will be uploaded.":{
-    "da":"Globale mediefiler er filer som er tilgængelige i hele organisationen og i skabeloner. Her vil filer såsom logoer blive uploadet."
+  "Global media files are files that are available throughout the whole organization and in templates. Here files such as logos will be uploaded.": {
+    "da": "Globale mediefiler er filer som er tilgængelige i hele organisationen og i skabeloner. Her vil filer såsom logoer blive uploadet."
   },
   "files": {
-    "da":"filer"
+    "da": "filer"
   },
   "Results per site:": {
-    "da":"Resultater per side:"
+    "da": "Resultater per side:"
   },
   "Upload New Media": {
     "da": "Upload ny mediefil"
@@ -176,13 +176,13 @@
   "Title": {
     "da": "Titel"
   },
-  "Subtitle":{
-    "da":"Undertitel"
+  "Subtitle": {
+    "da": "Undertitel"
   },
   "Search by Title": {
     "da": "Søg efter Titel"
   },
-  "Search for media file" : {
+  "Search for media file": {
     "da": "Søg efter mediefil"
   },
   "Manage Fonts and Color Scheme": {
@@ -222,7 +222,7 @@
     "da": "Udvid Alle"
   },
   "Collapse All": {
-    "da":"Sammentræk Alle"
+    "da": "Sammentræk Alle"
   },
   "Select All": {
     "da": "Vælg Alle"
@@ -677,8 +677,8 @@
   "Suborganisation created successfully!": {
     "da": "Underorganisation oprettet succesfuldt!"
   },
-  "A suborganisation with this name already exists in this organisation.":{
-    "da":"Der eksisterer allerede en underorganisation med dette navn i denne organisation."
+  "A suborganisation with this name already exists in this organisation.": {
+    "da": "Der eksisterer allerede en underorganisation med dette navn i denne organisation."
   },
   "Error creating branch: ": {
     "da": "Fejl ved oprettelse af afdeling: "
@@ -692,14 +692,14 @@
   "Branch created successfully!": {
     "da": "Afdeling oprettet succesfuldt!"
   },
-  "A branch with this name already exists in this suborganisation.":{
-    "da":"Der eksisterer allerede en afdeling med dette navn i denne underorganisation."
+  "A branch with this name already exists in this suborganisation.": {
+    "da": "Der eksisterer allerede en afdeling med dette navn i denne underorganisation."
   },
   "Delete branch": {
     "da": "Slet afdeling"
   },
-  "Are you sure you want to delete branch":{
-    "da":"Er du sikker på, du vil slette afdeling"
+  "Are you sure you want to delete branch": {
+    "da": "Er du sikker på, du vil slette afdeling"
   },
   "Failed to fetch org users:": {
     "da": "Kunne ikke hente organisationsbrugere:"
@@ -725,11 +725,11 @@
   "Failed to remove membership, status:": {
     "da": "Kunne ikke fjerne medlemskab, status:"
   },
-  "Are you sure you want to remove user":{
-    "da":"Er du sikker på, du vil fjerne brugeren"
+  "Are you sure you want to remove user": {
+    "da": "Er du sikker på, du vil fjerne brugeren"
   },
-  "from the organization":{
-    "da":"fra organisationen"
+  "from the organization": {
+    "da": "fra organisationen"
   },
   "Error removing membership:": {
     "da": "Fejl ved fjernelse af medlemskab:"
@@ -764,8 +764,8 @@
   "Delete suborg": {
     "da": "Slet underorganisation"
   },
-  "Are you sure you want to delete suborganisation":{
-    "da":"Er du sikker på, du vil slette underorganisation"
+  "Are you sure you want to delete suborganisation": {
+    "da": "Er du sikker på, du vil slette underorganisation"
   },
   "Error updating branch: ": {
     "da": "Fejl ved opdatering af afdeling: "
@@ -938,7 +938,7 @@
   "Upload Media": {
     "da": "Upload Medie"
   },
-  "Preview Media":{
+  "Preview Media": {
     "da": "Forhåndsvisning af Medie"
   },
   "None": {
@@ -947,7 +947,7 @@
   "File extensions": {
     "da": "Filtyper"
   },
-  "Nothing selected":{
+  "Nothing selected": {
     "da": "Intet valgt"
   },
   "Error fetching tags": {
@@ -1028,8 +1028,8 @@
   "Error fetching registration URL.": {
     "da": "Fejl ved hentning af registrerings URL."
   },
-  "Error: SubOrganisation ID is missing. Cannot load template editor.":{
-    "da":"Fejl: Underorganisations ID mangler. Kan ikke indlæse skabelon editor."
+  "Error: SubOrganisation ID is missing. Cannot load template editor.": {
+    "da": "Fejl: Underorganisations ID mangler. Kan ikke indlæse skabelon editor."
   },
   "Are you sure you want to delete this display?": {
     "da": "Er du sikker på at du vil slette denne skærm?"
@@ -1205,8 +1205,8 @@
   "No matching content found": {
     "da": "Intet matchende indhold fundet"
   },
-  "No content found. Use the 'Add Content' button to the left":{
-    "da":"Intet indhold fundet. Brug 'Tilføj Indhold' knappen til venstre"
+  "No content found. Use the 'Add Content' button to the left": {
+    "da": "Intet indhold fundet. Brug 'Tilføj Indhold' knappen til venstre"
   },
   "Edit Name": {
     "da": "Rediger Navn"
@@ -1706,49 +1706,49 @@
   "Add Dynamic Content": {
     "da": "Tilføj Dynamisk Indhold"
   },
-  "Choose a municipality:":{
-    "da":"Vælg en kommune:"
+  "Choose a municipality:": {
+    "da": "Vælg en kommune:"
   },
-  "Choose a library:":{
-    "da":"Vælg et bibliotek:"
+  "Choose a library:": {
+    "da": "Vælg et bibliotek:"
   },
-  "Select library":{
-    "da":"Vælg et bibliotek"
+  "Select library": {
+    "da": "Vælg et bibliotek"
   },
-  "Number of days:":{
-    "da":"Antal dage:"
+  "Number of days:": {
+    "da": "Antal dage:"
   },
-  "Enter number of days":{
-    "da":"Indtast antal dage"
+  "Enter number of days": {
+    "da": "Indtast antal dage"
   },
-  "Slide Duration (in seconds):":{
-    "da":"Slide varighed (i sekunder):"
+  "Slide Duration (in seconds):": {
+    "da": "Slide varighed (i sekunder):"
   },
-  "Select municipality":{
-    "da":"Vælg en kommune"
+  "Select municipality": {
+    "da": "Vælg en kommune"
   },
-  "Choose layout:":{
-    "da":"Vælg et layout:"
+  "Choose layout:": {
+    "da": "Vælg et layout:"
   },
-  "Choose content:":{
-    "da":"Vælg indhold:"
+  "Choose content:": {
+    "da": "Vælg indhold:"
   },
-  "Select a location...":{
+  "Select a location...": {
     "da": "Vælg en lokation..."
   },
-  "Select all sub-locations":{
+  "Select all sub-locations": {
     "da": "Vælg alle under-lokationer"
   },
-  "Please select at least one sub-location to display bookings.":{
+  "Please select at least one sub-location to display bookings.": {
     "da": "Vælg venligst mindst én underlokation for at vise bookinger."
   },
-  "Scroll speed":{
-    "da":"Scroll hastighed"
+  "Scroll speed": {
+    "da": "Scroll hastighed"
   },
-  "Lower values = faster scrolling. Adjust to taste.":{
-    "da":"Lave værdier = hurtigere scrolling. Juster efter smag."
+  "Lower values = faster scrolling. Adjust to taste.": {
+    "da": "Lave værdier = hurtigere scrolling. Juster efter smag."
   },
-  "Current:":{
+  "Current:": {
     "da": "Nuværende:"
   },
   "Filter by Category": {
@@ -1760,65 +1760,65 @@
   "Search": {
     "da": "Søg"
   },
-  "Search slide types...":{
-    "da":"Søg efter dynamisk indhold..."
+  "Search slide types...": {
+    "da": "Søg efter dynamisk indhold..."
   },
-  "Generate Slide":{
-    "da":"Generer slide"
+  "Generate Slide": {
+    "da": "Generer slide"
   },
-  "Back to Overview":{
-    "da":"Tilbage til overblik"
+  "Back to Overview": {
+    "da": "Tilbage til overblik"
   },
-  "About this widget:":{
+  "About this widget:": {
     "da": "Om denne widget:"
   },
-  "Displays the daily schedule for a selected school from Speed Admin, showing courses, rooms, times, and teachers.":{
+  "Displays the daily schedule for a selected school from Speed Admin, showing courses, rooms, times, and teachers.": {
     "da": "Viser den daglige plan for en valgt skole fra Speed Admin og viser fag, lokaler, tidspunkter og lærere."
   },
-  "Select School":{
+  "Select School": {
     "da": "Vælg skole"
   },
-  "Displayed Information":{
+  "Displayed Information": {
     "da": "Viste oplysninger"
   },
-  "Course Titles":{
+  "Course Titles": {
     "da": "Fagtitler"
   },
-  "Room Assignments":{
+  "Room Assignments": {
     "da": "Lokaletildelinger"
   },
-  "Start & End Times":{
+  "Start & End Times": {
     "da": "Start- og sluttider"
   },
-  "Teacher Information":{
+  "Teacher Information": {
     "da": "Læreroplysninger"
   },
-  "This element displays the live frontdesk queue for LTK Borgerservice, helping customers see current wait times and queue status.":{
-    "da":"Dette element viser live frontdesk-køen for LTK Borgerservice, og hjælper kunder med at se aktuelle ventetider og køstatus."
+  "This element displays the live frontdesk queue for LTK Borgerservice, helping customers see current wait times and queue status.": {
+    "da": "Dette element viser live frontdesk-køen for LTK Borgerservice, og hjælper kunder med at se aktuelle ventetider og køstatus."
   },
-  "Features:":{
-    "da":"Funktioner:"
+  "Features:": {
+    "da": "Funktioner:"
   },
-  "Live Queue Status":{
-    "da":"Live kø status"
+  "Live Queue Status": {
+    "da": "Live kø status"
   },
-  "Real-time Updates":{
-    "da":"Realtid updateringer"
+  "Real-time Updates": {
+    "da": "Realtid updateringer"
   },
-  "Enter the full Dreambroker channel URL (e.g.,":{
-    "da":"Indsæt den fulde Dreambroker kanal URL (f.eks.,"
+  "Enter the full Dreambroker channel URL (e.g.,": {
+    "da": "Indsæt den fulde Dreambroker kanal URL (f.eks.,"
   },
-  "Audio Settings":{
-    "da":"Lyd indstillinger"
+  "Audio Settings": {
+    "da": "Lyd indstillinger"
   },
-  "Mute Video (Recommended for displays)":{
-    "da":"Slå lyden fra video (Anbefalet for skærme)"
+  "Mute Video (Recommended for displays)": {
+    "da": "Slå lyden fra video (Anbefalet for skærme)"
   },
-  "Videos are muted by default in edit mode. Audio settings only apply when the display is live.":{
-    "da":"Videoer er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
+  "Videos are muted by default in edit mode. Audio settings only apply when the display is live.": {
+    "da": "Videoer er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
   },
   "DR-Style News Display:": {
-  "da": "DR-stil nyhedsvisning:"
+    "da": "DR-stil nyhedsvisning:"
   },
   "Creates a news carousel with optional weather and clock, based on DR RSS Feed and DMI Weather API.": {
     "da": "Opretter et nyhedskarousel med valgfri vejr- og klokkevisning, baseret på DR RSS-feed og DMI's vejr-API."
@@ -1922,14 +1922,14 @@
   "Clock size in pixels": {
     "da": "Urstørrelse i pixels"
   },
-  "Mute audio (Recommended for displays)":{
-    "da":"Slå lyden fra (Anbefalet for skærme)"
+  "Mute audio (Recommended for displays)": {
+    "da": "Slå lyden fra (Anbefalet for skærme)"
   },
-  "Streams are muted by default in edit mode. Audio settings only apply when the display is live.":{
-    "da":"Streams er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
+  "Streams are muted by default in edit mode. Audio settings only apply when the display is live.": {
+    "da": "Streams er som standard slået fra i redigeringstilstand. Lydindstillinger gælder kun, når displayet er live."
   },
-  "Select Channel":{
-    "da":"Vælg kanal"
+  "Select Channel": {
+    "da": "Vælg kanal"
   },
   "Action": {
     "da": "Handling"
@@ -2321,8 +2321,8 @@
   "Create New Blank Template": {
     "da": "Opret Ny Tom Skabelon"
   },
-  "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio.":{
-    "da":"Vælg en aspect ratio denne skabelon er designet til. Forhåndsvisningen vil automatisk justere til denne aspect ratio."
+  "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio.": {
+    "da": "Vælg en aspect ratio denne skabelon er designet til. Forhåndsvisningen vil automatisk justere til denne aspect ratio."
   },
   "Save Template": {
     "da": "Gem Skabelon"
@@ -2333,8 +2333,8 @@
   "Edit Template Details": {
     "da": "Rediger Skabelon Detaljer"
   },
-  "Template Details":{
-    "da":"Skabelon Detaljer"
+  "Template Details": {
+    "da": "Skabelon Detaljer"
   },
   "Tags selected": {
     "da": "Tags valgt"
@@ -2822,9 +2822,6 @@
   "Manage Displays": {
     "da": "Administrer Skærme"
   },
-  "{{title}}": {
-    "da": "{{titel}}"
-  },
   "description": {
     "da": "beskrivelse"
   },
@@ -2898,40 +2895,40 @@
     "da": "Rediger Skabeloner"
   },
   "Suborganisation Templates": {
-    "da":"Underorganisations Skabeloner"
+    "da": "Underorganisations Skabeloner"
   },
-  "Global Template":{
-    "da":"Global Skabelon"
+  "Global Template": {
+    "da": "Global Skabelon"
   },
-  "Create Template from Global Template":{
-    "da":"Opret skabelon fra Globale Skabeloner"
+  "Create Template from Global Template": {
+    "da": "Opret skabelon fra Globale Skabeloner"
   },
-  "Create Template":{
-    "da":"Opret Skabelon"
+  "Create Template": {
+    "da": "Opret Skabelon"
   },
-  "Please select a global template.":{
-    "da":"Vælg venligst en global skabelon."
+  "Please select a global template.": {
+    "da": "Vælg venligst en global skabelon."
   },
-  "Select a global template to create a copy for this suborganisation:":{
-    "da":"Vælg en global skabelon for at oprette en kopi til denne underorganisation:"
+  "Select a global template to create a copy for this suborganisation:": {
+    "da": "Vælg en global skabelon for at oprette en kopi til denne underorganisation:"
   },
-  "New Template Name":{
-    "da":"Ny Skabelon Navn"
+  "New Template Name": {
+    "da": "Ny Skabelon Navn"
   },
-  "Leave empty to use original name with '(Copy)' suffix":{
-    "da":"Lad den være tom for at bruge originalt navn med '(Copy)' suffix"
+  "Leave empty to use original name with '(Copy)' suffix": {
+    "da": "Lad den være tom for at bruge originalt navn med '(Copy)' suffix"
   },
-  "Select a template":{
-    "da":"Vælg en skabelon"
+  "Select a template": {
+    "da": "Vælg en skabelon"
   },
-  "Enter template name":{
-    "da":"Skriv skabelon navn"
+  "Enter template name": {
+    "da": "Skriv skabelon navn"
   },
-  "Template Preview":{
-    "da":"Skabelon Preview"
+  "Template Preview": {
+    "da": "Skabelon Preview"
   },
-  "Select a template to see preview":{
-    "da":"Vælg en skabelon for at se preview"
+  "Select a template to see preview": {
+    "da": "Vælg en skabelon for at se preview"
   },
   "Manage Content": {
     "da": "Administrer Indhold"
@@ -3026,18 +3023,6 @@
   "Global Settings": {
     "da": "Globale indstillinger"
   },
-  "{{btn-text}}": {
-    "da": ""
-  },
-  "{{#if message}}{{message}}{{else}}To confirm, type the following text exactly:{{/if}}": {
-    "da": ""
-  },
-  "{{text}}": {
-    "da": ""
-  },
-  "{{placeholder}}": {
-    "da": ""
-  },
   "Danish": {
     "da": "Dansk"
   },
@@ -3074,8 +3059,8 @@
   "Please enter a valid display name": {
     "da": "Indtast et gyldigt skærmnavn"
   },
-  "Date & Time":{
-    "da":"Dato & Tid"
+  "Date & Time": {
+    "da": "Dato & Tid"
   },
   "Start Date & Time": {
     "da": "Start Dato & Tid"
@@ -3168,7 +3153,7 @@
     "da": "Upload en skrifttypefil, som understøttes af browsere (WOFF2, WOFF, TTF, OTF)."
   },
   "A font with this name already exists in this organisation.": {
-    "da":"En font med dette navn findes allerede i denne organisation."
+    "da": "En font med dette navn findes allerede i denne organisation."
   },
   "Font File (optional)": {
     "da": "Skrifttype Fil (valgfri)"
@@ -3329,58 +3314,379 @@
   "Show details": {
     "da": "Vis detaljer"
   },
-  "Location":{
-    "da":"Lokation"
+  "Location": {
+    "da": "Lokation"
   },
-  "QR code":{
-    "da":"QR kode"
+  "QR code": {
+    "da": "QR kode"
   },
-  "Pinned":{
-    "da":"Fastgjort"
+  "Pinned": {
+    "da": "Fastgjort"
   },
-  "Locked":{
-    "da":"Låst"
+  "Locked": {
+    "da": "Låst"
   },
-  "Selection blocked":{
-    "da":"Elementet er blockeret"
+  "Selection blocked": {
+    "da": "Elementet er blockeret"
   },
-  "URL":{
-    "da":"URL"
+  "URL": {
+    "da": "URL"
   },
-  "Foreground":{
-    "da":"Forgrund"
+  "Foreground": {
+    "da": "Forgrund"
   },
-  "Quality":{
-    "da":"Kvalitet"
+  "Quality": {
+    "da": "Kvalitet"
   },
-  "Low":{
-    "da":"Lav"
+  "Low": {
+    "da": "Lav"
   },
-  "Medium":{
-    "da":"Medium"
+  "Medium": {
+    "da": "Medium"
   },
-  "High":{
-    "da":"Høj"
+  "High": {
+    "da": "Høj"
   },
-  "Ultra":{
-    "da":"Ultra"
+  "Ultra": {
+    "da": "Ultra"
   },
-  "Add QR Code":{
-    "da":"Tilføj QR kode"
+  "Add QR Code": {
+    "da": "Tilføj QR kode"
   },
-  "Normal":{
-    "da":"Normal"
+  "Normal": {
+    "da": "Normal"
   },
-  "You cannot combine with default content when the group has interactive slideshow as default":{
-    "da":"Du kan ikke kombinere med standardindhold, når gruppen har interaktivt slideshow som standard"
+  "You cannot combine with default content when the group has interactive slideshow as default": {
+    "da": "Du kan ikke kombinere med standardindhold, når gruppen har interaktivt slideshow som standard"
   },
-  "Aspect ratio":{
-    "da":"Aspect ratio"
+  "Aspect ratio": {
+    "da": "Aspect ratio"
   },
-  "Confirm Delete Slideshow":{
-    "da":"Bekræft sletning af slideshow"
+  "Confirm Delete Slideshow": {
+    "da": "Bekræft sletning af slideshow"
   },
-  "Are you sure you want to delete the slideshow":{
-    "da":"Er du sikker på, at du vil slette slideshowet"
+  "Are you sure you want to delete the slideshow": {
+    "da": "Er du sikker på, at du vil slette slideshowet"
+  },
+  "Aspect Ratio:": {
+    "da": "Billedformat:"
+  },
+  "Reset Password": {
+    "da": "Nulstil adgangskode"
+  },
+  "Reorder": {
+    "da": "Omarranger"
+  },
+  "Textbox Toolbar Options": {
+    "da": "Tekstboks værktøjslinjeindstillinger"
+  },
+  "Choose which formatting controls are available in the text toolbar.": {
+    "da": "Vælg hvilke formateringskontroller der skal være tilgængelige i tekstværktøjslinjen."
+  },
+  "You must be an organization admin to modify toolbar options.": {
+    "da": "Du skal være organisationsadministrator for at ændre værktøjslinjeindstillinger."
+  },
+  "Show Bold button": {
+    "da": "Vis knap til fed tekst"
+  },
+  "Show Italic button": {
+    "da": "Vis knap til kursiv tekst"
+  },
+  "Show Underline button": {
+    "da": "Vis knap til understregning"
+  },
+  "Show Font Weight dropdown": {
+    "da": "Vis rulleliste for skrifttykkelse"
+  },
+  "HEX": {
+    "da": "HEX"
+  },
+  "Search name, mode, category, aspect ratio, or tags...": {
+    "da": "Søg efter navn, tilstand, kategori, billedformat eller tags..."
+  },
+  "WinKAS Bookings Slide - Configuration": {
+    "da": "WinKAS bookingslide - konfiguration"
+  },
+  "Select aspect ratio": {
+    "da": "Vælg billedformat"
+  },
+  "No slideshows available": {
+    "da": "Ingen slideshows tilgængelige"
+  },
+  "Organisation id missing": {
+    "da": "Organisations-id mangler"
+  },
+  "Please select a suborganisation for this role.": {
+    "da": "Vælg en underorganisation til denne rolle."
+  },
+  "Error removing user from organization: ": {
+    "da": "Fejl ved fjernelse af bruger fra organisation: "
+  },
+  "User removed from organization successfully!": {
+    "da": "Bruger fjernet fra organisationen!"
+  },
+  "Both password fields are required.": {
+    "da": "Begge adgangskodefelter er påkrævet."
+  },
+  "The passwords do not match. Please try again.": {
+    "da": "Adgangskoderne matcher ikke. Prøv igen."
+  },
+  "Password must be at least 8 characters long.": {
+    "da": "Adgangskoden skal være mindst 8 tegn lang."
+  },
+  "Unable to reset password. Please try again.": {
+    "da": "Kan ikke nulstille adgangskode. Prøv igen."
+  },
+  "Your password has been updated. Redirecting to sign in...": {
+    "da": "Din adgangskode er opdateret. Omdirigerer til log ind..."
+  },
+  "Unable to reset password. Please try again later.": {
+    "da": "Kan ikke nulstille adgangskode. Prøv igen senere."
+  },
+  "Default (16:9)": {
+    "da": "Standard (16:9)"
+  },
+  "Internal error: missing display id.": {
+    "da": "Intern fejl: mangler skærm-id."
+  },
+  "No URL to copy.": {
+    "da": "Ingen URL at kopiere."
+  },
+  "No inactive displays": {
+    "da": "Ingen inaktive skærme"
+  },
+  "Failed to update display group": {
+    "da": "Kunne ikke opdatere skærmgruppe"
+  },
+  "Error updating display group": {
+    "da": "Fejl ved opdatering af skærmgruppe"
+  },
+  "Failed to copy API key to clipboard.": {
+    "da": "Kunne ikke kopiere API-nøgle til udklipsholder."
+  },
+  "Error initializing suborg template editor:": {
+    "da": "Fejl ved initialisering af underorganisations skabelon editor:"
+  },
+  "Unexpected server response when creating screen.": {
+    "da": "Uventet serversvar ved oprettelse af skærm."
+  },
+  "Move the display to Inactive Displays to change the aspect ratio.": {
+    "da": "Flyt skærmen til Inaktive Skærme for at ændre billedformatet."
+  },
+  "This modal helps you register a new screen. Use the browser registration option if you want to open a registration URL directly on the display, or use the API key if you register the screen from an external tool. Registrations apply to the currently selected branch:": {
+    "da": "Denne modal hjælper dig med at registrere en ny skærm. Brug browserregistrering, hvis du vil åbne en registrerings-URL direkte på skærmen, eller brug API-nøglen, hvis du registrerer skærmen fra et eksternt værktøj. Registreringer gælder for den aktuelt valgte afdeling:"
+  },
+  "Register in a web browser": {
+    "da": "Registrer i en webbrowser"
+  },
+  "Registering screens via web browser has one limitation: embedding external websites is not supported due to iframe restrictions. Use the Electron version of OpenStream to embed any website — it uses separate webviews for each embedded page, bypassing browser limitations. The OS2BorgerPC integration uses the Electron version of OpenStream.": {
+    "da": "Registrering af skærme via webbrowser har én begrænsning: indlejring af eksterne websites understøttes ikke på grund af iframe-begrænsninger. Brug Electron-versionen af OpenStream for at indlejre enhver hjemmeside, da den bruger separate webviews for hver indlejrede side og omgår browserbegrænsninger. OS2BorgerPC-integrationen bruger Electron-versionen af OpenStream."
+  },
+  "Open the following URL on the display you wish to register. You can optionally set an aspect ratio before copying the URL.": {
+    "da": "Åbn følgende URL på den skærm du vil registrere. Du kan valgfrit vælge et billedformat før du kopierer URL'en."
+  },
+  "Register with an external tool": {
+    "da": "Registrer med et eksternt værktøj"
+  },
+  "API key for external tools": {
+    "da": "API-nøgle til eksterne værktøjer"
+  },
+  "Square": {
+    "da": "Kvadrat"
+  },
+  "Decrease Font Size": {
+    "da": "Formindsk skriftstørrelse"
+  },
+  "Increase Font Size": {
+    "da": "Forøg skriftstørrelse"
+  },
+  "Letter Spacing": {
+    "da": "Bogstavafstand"
+  },
+  "Font Weight": {
+    "da": "Skrifttykkelse"
+  },
+  "Font order updated": {
+    "da": "Rækkefølge for skrifttyper opdateret"
+  },
+  "Failed to update font order.": {
+    "da": "Kunne ikke opdatere rækkefølge for skrifttyper."
+  },
+  "Drag to reorder": {
+    "da": "Træk for at omarrangere"
+  },
+  "Failed to load toolbar options.": {
+    "da": "Kunne ikke indlæse værktøjslinjeindstillinger."
+  },
+  "Toolbar option updated": {
+    "da": "Værktøjslinjeindstilling opdateret"
+  },
+  "Failed to update toolbar option.": {
+    "da": "Kunne ikke opdatere værktøjslinjeindstilling."
+  },
+  "No URL stored": {
+    "da": "Ingen URL gemt"
+  },
+  "Color order updated": {
+    "da": "Farverækkefølge opdateret"
+  },
+  "Failed to update color order.": {
+    "da": "Kunne ikke opdatere farverækkefølge."
+  },
+  "Error loading global templates: ": {
+    "da": "Fejl ved indlæsning af globale skabeloner: "
+  },
+  "No global templates available to create from.": {
+    "da": "Ingen globale skabeloner tilgængelige at oprette fra."
+  },
+  " (Copy)": {
+    "da": " (Kopi)"
+  },
+  "Creating...": {
+    "da": "Opretter..."
+  },
+  "Template created successfully!": {
+    "da": "Skabelon oprettet succesfuldt!"
+  },
+  "Error creating template: ": {
+    "da": "Fejl ved oprettelse af skabelon: "
+  },
+  "Grayscale (%):": {
+    "da": "Gråskala (%):"
+  },
+  "Box Shadow Settings": {
+    "da": "Indstillinger for boksskygge"
+  },
+  "Horizontal Offset:": {
+    "da": "Horisontal forskydning:"
+  },
+  "Vertical Offset:": {
+    "da": "Vertikal forskydning:"
+  },
+  "Blur Radius:": {
+    "da": "Sløringsradius:"
+  },
+  "Spread Radius:": {
+    "da": "Spredningsradius:"
+  },
+  "Color: ": {
+    "da": "Farve: "
+  },
+  "Done": {
+    "da": "Færdig"
+  },
+  "Radius: ": {
+    "da": "Radius: "
+  },
+  "Apply to corners:": {
+    "da": "Anvend på hjørner:"
+  },
+  "All corners": {
+    "da": "Alle hjørner"
+  },
+  "Border Settings": {
+    "da": "Kantindstillinger"
+  },
+  "Thickness: ": {
+    "da": "Tykkelse: "
+  },
+  "Apply to sides:": {
+    "da": "Anvend på sider:"
+  },
+  "Blur (px):": {
+    "da": "Sløring (px):"
+  },
+  "Suborganisation ID is missing. Cannot duplicate template.": {
+    "da": "Underorganisations-ID mangler. Kan ikke duplikere skabelon."
+  },
+  "SubOrganisation ID is missing. Cannot fetch templates.": {
+    "da": "Underorganisations-ID mangler. Kan ikke hente skabeloner."
+  },
+  "Error loading templates: ": {
+    "da": "Fejl ved indlæsning af skabeloner: "
+  },
+  "Failed to fetch and populate suborg templates.": {
+    "da": "Kunne ikke hente og udfylde underorganisationsskabeloner."
+  },
+  "Suborg template editor initialized successfully.": {
+    "da": "Underorganisations skabelon editor initialiseret succesfuldt."
+  },
+  "Error setting up template editor: ": {
+    "da": "Fejl ved opsætning af skabelon editor: "
+  },
+  "Please wait before changing page.": {
+    "da": "Vent venligst før du skifter side."
+  },
+  "Settings locked": {
+    "da": "Indstillinger låst"
+  },
+  "Settings locked by parent template": {
+    "da": "Indstillinger låst af overordnet skabelon"
+  },
+  "Settings locked by this template": {
+    "da": "Indstillinger låst af denne skabelon"
+  },
+  "Link": {
+    "da": "Link"
+  },
+  "Selection is blocked for this element": {
+    "da": "Markering er blokeret for dette element"
+  },
+  "Show element": {
+    "da": "Vis element"
+  },
+  "Cannot delete locked element": {
+    "da": "Kan ikke slette låst element"
+  },
+  "Are you sure you want to delete this element?": {
+    "da": "Er du sikker på at du vil slette dette element?"
+  },
+  "Hide details": {
+    "da": "Skjul detaljer"
+  },
+  "This element is locked": {
+    "da": "Dette element er låst"
+  },
+  "Color": {
+    "da": "Farve"
+  },
+  "image": {
+    "da": "billede"
+  },
+  "embed-website": {
+    "da": "indlejret-hjemmeside"
+  },
+  "shape": {
+    "da": "form"
+  },
+  "table": {
+    "da": "tabel"
+  },
+  "list": {
+    "da": "liste"
+  },
+  "qrcode": {
+    "da": "qr-kode"
+  },
+  "placeholder": {
+    "da": "pladsholder"
+  },
+  "Clock": {
+    "da": "Ur"
+  },
+  "Newsticker": {
+    "da": "Rullende Nyheder"
+  },
+  "Newsfeed with Image": {
+    "da": "Nyhedsfeed med billede"
+  },
+  "DDB Events API": {
+    "da": "Det Digitale Folkebibliotek begivenheds API"
+  },
+  "Newsfeed": {
+    "da": "Nyhedsfeed"  
+  },
+  "DR News Feed": {
+    "da": "DR Nyhedsfeed"
   }
 }

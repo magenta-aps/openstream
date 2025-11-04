@@ -413,7 +413,7 @@ export async function updateNavbarBranchName() {
     let branchName = await getBranchName(selectedBranchID);
     if (!branchName) branchName = "";
     if (branchName === "Global") {
-      branchName = "Global Settings";
+      branchName = gettext("Global Settings");
     }
     branchNameEl.innerText = branchName;
   }

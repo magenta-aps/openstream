@@ -5,7 +5,7 @@
 {{/if}}
 <button type="{{type}}" id="{{id}}" class="btn {{#if size}}btn-{{size}}{{/if}} {{#if variant}}btn-{{variant}}{{/if}} d-flex align-items-center {{#if class}}{{class}}{{/if}}" {{#if disabled}}disabled{{/if}} {{#if data-bs-dismiss}}data-bs-dismiss="{{data-bs-dismiss}}"{{/if}}{{#if data-option}} data-option="{{data-option}}"{{/if}}{{#if data-position}} data-position="{{data-position}}"{{/if}}{{#if dataAttrs}} {{{dataAttrs}}}{{/if}}>
     {{#if icon}}<i class="material-symbols-outlined {{#if icon-size}}fs-{{icon-size}}{{/if}}">{{icon}}</i>{{/if}}
-    {{#if text}}{{text}}{{else}}{{> @partial-block}}{{/if}}
+    {{#if text}}{% trans "{{text}}" %}{{else}}{{> @partial-block}}{{/if}}
 </button>
 {{#if tooltip}}
 </div>

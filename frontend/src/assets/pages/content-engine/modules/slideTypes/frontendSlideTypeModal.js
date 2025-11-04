@@ -334,7 +334,7 @@ class FrontendSlideTypeModal {
           <div class="form-check">
             <input class="form-check-input category-checkbox" type="checkbox" value="${category.id}" id="category-${category.id}" checked>
             <label class="form-check-label" for="category-${category.id}">
-              ${category.name} (${allowedSlideTypesInCategory.length})
+              ${gettext(category.name)} (${allowedSlideTypesInCategory.length})
             </label>
           </div>
         `;
@@ -357,8 +357,8 @@ class FrontendSlideTypeModal {
     this.visibleSlideTypes.forEach((slideType) => {
       html += `
         <tr>
-          <td>${slideType.name}</td>
-          <td>${slideType.categoryName}</td>
+          <td>${gettext(slideType.name)}</td>
+          <td>${gettext(slideType.categoryName)}</td>
           <td>
             <button type="button" class="btn btn-primary btn-sm open-slide-type-btn" data-slide-type-id="${slideType.id}">
               ${gettext("Open")}
