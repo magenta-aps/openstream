@@ -182,23 +182,6 @@ body {
   height: 48px;
 }
 
-.tiptap-toolbar .tiptap-font-size-select,
-.tiptap-toolbar .tiptap-line-height-select,
-.tiptap-toolbar .tiptap-letter-spacing-select,
-.tiptap-toolbar .tiptap-font-weight-select {
-  width: auto;
-  padding-right: 1.5rem;
-}
-
-.tiptap-toolbar .tiptap-font-family-select {
-  min-width: 6rem;
-  max-width: 7rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-right: 1.5rem;
-}
-
 .toolbar-section {
   display: flex;
   align-items: center;
@@ -750,10 +733,6 @@ span {
   font-size: 24px;
   line-height: 32px;
   text-align: center;
-}
-
-.form-select-sm {
-  min-width: 4rem;
 }
 
 #sidebar {
@@ -1796,13 +1775,6 @@ span {
 .bg-light.border.rounded {
   background-color: $lightest-gray !important;
 }
-
-.form-select-sm,
-.form-control-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
 .text-muted.small {
   font-size: 0.8rem;
   font-weight: 500;
