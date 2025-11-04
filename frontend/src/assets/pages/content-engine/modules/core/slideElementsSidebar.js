@@ -287,8 +287,11 @@ function applySidebarCollapsedState(container, collapsed) {
   const btn = sidebar.querySelector(".sidebar-collapse-btn");
   if (btn) {
     const icon = btn.querySelector(".collapse-icon");
+    if (!icon.classList.contains("material-symbols-outlined")) {
+      icon.classList.add("material-symbols-outlined");
+    }
     if (icon) {
-      icon.textContent = collapsed ? "<<" : ">>";
+      icon.textContent = collapsed ? "chevron_left" : "chevron_right";
     }
     btn.setAttribute("aria-pressed", collapsed ? "true" : "false");
   }
