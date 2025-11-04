@@ -76,6 +76,11 @@ body.player-mode .persistent-elements-container {
   max-width: none !important;
 }
 
+.zoom-wrapper {
+  container-type: size;
+  container-name: zoom-wrapper;
+}
+
 /* CSS Custom Properties for Grid Configuration */
 :root {
   --grid-columns: 100;
