@@ -14,6 +14,7 @@ translateHTML();
 
 import { BASE_URL } from "../../utils/constants";
 import {
+  createUrl,
   fetchUserLanguageFromBackend,
   initSignOutButton,
 } from "../../utils/utils";
@@ -97,6 +98,9 @@ function displayOrganisations(organisations) {
     return;
   }
 
+
+
+
   // If user has only one organization, redirect directly to it
   if (organisations.length === 1) {
     selectOrganisation(organisations[0]);
@@ -106,6 +110,14 @@ function displayOrganisations(organisations) {
   organisationsList.innerHTML = "";
 
   organisations.forEach((org) => {
+
+    console.log(org.name, window.ORG_NAME);
+
+    console.log(org.name === window.ORG_NAME);
+
+    if (window.ORG_NAME === org.name) {
+      selectOrganisation(org);
+    }
     const orgCard = createOrganisationCard(org);
     organisationsList.appendChild(orgCard);
   });
@@ -143,7 +155,8 @@ function createOrganisationCard(org) {
 // Select organization
 function selectOrganisation(org) {
   // Redirect to sub-organization selection
-  window.location.href = "/select-sub-org?orgId=" + org.id;
+
+  window.location.href = createUrl(`select-sub-org?orgId=${org.id}`);
 }
 
 function showError(message) {

@@ -19,6 +19,7 @@ import {
   initSignOutButton,
   setupDeleteConfirmation,
   selectedSubOrgID,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 
 updateNavbarUsername();
@@ -248,6 +249,7 @@ let currentlyEditingSlideshowId = null;
 ============================================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
   initOrgQueryParams();
+  initOrgUrlRouting();
   initSignOutButton();
   categoriesList = await fetchCategories();
   await fetchTags();
@@ -554,7 +556,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       showToast(gettext(err.message), "Error");
     }
   });
-  initOrgQueryParams();
 });
 
 async function fetchCategories() {

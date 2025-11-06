@@ -8,7 +8,7 @@ import {
   fetchUserLangugage,
 } from "../../utils/locales";
 import { BASE_URL } from "../../utils/constants";
-import { initSignOutButton } from "../../utils/utils";
+import { createUrl, initSignOutButton } from "../../utils/utils";
 
 await fetchUserLangugage();
 
@@ -66,7 +66,7 @@ document
       localStorage.setItem("accessToken", data.access);
       localStorage.setItem("username", username);
 
-      window.location.href = "/select-organisation";
+      window.location.href = createUrl("select-organisation");
     } catch (error) {
       document.getElementById("message").innerText = error.message;
     }
@@ -83,7 +83,7 @@ async function checkIfSignedIn() {
 
     if (response.ok) {
       // Token is valid, redirect to select-organisation
-      window.location.href = "/select-organisation";
+      window.location.href = createUrl("select-organisation");
     }
   }
 }

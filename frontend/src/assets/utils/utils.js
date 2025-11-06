@@ -927,15 +927,15 @@ export function initCollapseLeftSidebarBtn() {
       if (sidebar) {
         sidebar?.classList.toggle("collapsed")
       }
-      
+
       if (pageTitle) {
         pageTitle?.classList.toggle("d-none");
       }
-      
+
       if (sidebarContent) {
         sidebarContent?.classList.toggle("d-none");
       }
-      
+
       if (goBackBtn) {
         goBackBtn?.classList.toggle("d-none");
       }
@@ -947,4 +947,128 @@ export function initCollapseLeftSidebarBtn() {
       }
     });
   }
+}
+
+export function createUrl(path, includeSubOrg = false, includeBranch = false) {
+  const orgName = window.ORG_NAME;
+
+  if (!orgName) {
+    return path;
+  }
+
+  const [rawPath = "", rawQuery = ""] = String(path ?? "").split("?");
+  const normalizedPath = rawPath.replace(/^\/+/, "");
+  const hasTrailingSlash = normalizedPath.endsWith("/");
+  const encodedSegments = normalizedPath
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment));
+
+  const query = rawQuery ? `?${rawQuery}` : "";
+  const trailingSlash = hasTrailingSlash ? "/" : "";
+
+  let url = `/${encodeURIComponent(orgName)}`;
+
+  if (includeSubOrg && window.SUB_ORG) {
+    url += `/suborg/${encodeURIComponent(window.SUB_ORG)}`;
+  }
+
+  if (includeBranch && window.BRANCH) {
+    url += `/branch/${encodeURIComponent(window.BRANCH)}`;
+  }
+
+  if (encodedSegments.length) {
+    url += `/${encodedSegments.join("/")}`;
+  }
+
+  return `${url}${trailingSlash}${query}`;
+}
+
+export function initOrgUrlRouting() {
+  window.addEventListener(
+    "click",
+    (event) => {
+      const anchor = event.target.closest("a");
+      if (!anchor) return;
+
+      const hrefAttr = anchor.getAttribute("href");
+      if (!hrefAttr || hrefAttr.startsWith("#")) return;
+      if (anchor.hasAttribute("download")) return;
+
+      if (hrefAttr.startsWith("mailto:")) return;
+      if (hrefAttr.startsWith("tel:")) return;
+
+      const orgName = window.ORG_NAME;
+      if (!orgName) return;
+
+      let targetUrl;
+      try {
+        targetUrl = new URL(hrefAttr, window.location.href);
+      } catch (error) {
+        return;
+      }
+
+      if (targetUrl.origin !== window.location.origin) return;
+      if (!["http:", "https:"].includes(targetUrl.protocol)) return;
+
+      const encodedOrg = encodeURIComponent(orgName);
+      const pathSegments = targetUrl.pathname.split("/").filter(Boolean);
+
+      if (pathSegments.length === 0) return;
+      if (pathSegments[0] === encodedOrg || pathSegments[0] === orgName) return;
+
+      if (pathSegments[0].startsWith("@") || targetUrl.pathname.startsWith("/@")) return;
+
+      if (targetUrl.pathname.startsWith("/assets") || targetUrl.pathname.startsWith("/static")) {
+        return;
+      }
+
+      const isRootRelative = hrefAttr.startsWith("/");
+      const isAbsoluteSameOrigin = hrefAttr.startsWith(window.location.origin);
+
+      if (!isRootRelative && !isAbsoluteSameOrigin) {
+        return;
+      }
+
+      const keepTrailingSlash = targetUrl.pathname.endsWith("/");
+      const innerPath = targetUrl.pathname.replace(/^\/+/, "");
+      if (!innerPath) return;
+
+      const decodedSegments = pathSegments.map((segment) => {
+        try {
+          return decodeURIComponent(segment).toLowerCase();
+        } catch (error) {
+          return segment.toLowerCase();
+        }
+      });
+
+      const pathContainsSubOrg = decodedSegments.includes("suborg");
+      const pathContainsBranch = decodedSegments.includes("branch");
+
+      const includeSubOrg =
+        anchor.dataset.includeSuborg === "true"
+          ? Boolean(window.SUB_ORG)
+          : anchor.dataset.includeSuborg === "false"
+            ? false
+            : Boolean(window.SUB_ORG) && !pathContainsSubOrg;
+
+      const includeBranch =
+        anchor.dataset.includeBranch === "true"
+          ? Boolean(window.BRANCH)
+          : anchor.dataset.includeBranch === "false"
+            ? false
+            : Boolean(window.BRANCH) && !pathContainsBranch;
+
+      const newPath = createUrl(
+        `${innerPath}${keepTrailingSlash ? "/" : ""}${targetUrl.search}`,
+        includeSubOrg,
+        includeBranch,
+      );
+
+      const finalUrl = `${newPath}${targetUrl.hash || ""}`;
+
+      anchor.href = finalUrl;
+    },
+    true,
+  );
 }

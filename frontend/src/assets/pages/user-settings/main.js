@@ -11,6 +11,7 @@ import {
   genericFetch,
   initSignOutButton,
   initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import * as bootstrap from "bootstrap";
 import { BASE_URL } from "../../utils/constants";
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   fetchUserLangugage();
   translateHTML();
   initOrgQueryParams();
+  initOrgUrlRouting();
 
   const userForm = document.getElementById("user-form");
   const passwordForm = document.getElementById("password-form");

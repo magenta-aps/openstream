@@ -16,6 +16,7 @@ import {
   initSignOutButton,
   initOrgQueryParams,
   initCollapseLeftSidebarBtn,
+  initOrgUrlRouting,
 } from "../../utils/utils.js";
 import { getCurrentAspectRatio } from "./modules/core/addSlide.js";
 import { initAddSlide } from "./modules/core/addSlide.js";
@@ -475,6 +476,7 @@ function generalInit() {
     );
   }, 2000);
   initOrgQueryParams();
+  initOrgUrlRouting();
 }
 
 const signOutBtn = document.getElementById("signOutBtn");

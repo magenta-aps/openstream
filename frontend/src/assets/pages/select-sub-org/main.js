@@ -14,6 +14,8 @@ import {
   parentOrgID,
   showToast,
   getOrgName,
+  createUrl,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import { token } from "../../utils/utils";
 import { myUserId } from "../../utils/utils";
@@ -1035,13 +1037,9 @@ function selectBranch(
   orgId,
   orgName,
 ) {
-  window.location.href =
-    "/dashboard?orgId=" +
-    orgId +
-    "&suborgId=" +
-    suborgId +
-    "&branchId=" +
-    branchId;
+  window.SUB_ORG = suborgId;
+  window.BRANCH = branchId;
+  window.location.href = createUrl(`dashboard?orgId=${orgId}&suborgId=${suborgId}&branchId=${branchId}`, true, true);
 }
 
 async function createUser(
@@ -1756,4 +1754,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
   initOrgQueryParams();
+  initOrgUrlRouting();
 });

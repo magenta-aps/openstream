@@ -14,6 +14,7 @@ import {
   updateNavbarUsername,
   setupDeleteConfirmation,
   initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import {
   translateHTML,
@@ -728,4 +729,5 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   initOrgQueryParams();
+  initOrgUrlRouting();
 });
