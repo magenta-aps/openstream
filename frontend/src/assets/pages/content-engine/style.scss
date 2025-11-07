@@ -419,10 +419,6 @@ body {
   visibility: hidden;
 }
 
-.text-content span,
-.text-content div {
-  font-family: inherit;
-}
 
 /* New CSS for the media change button (used by images, videos, and embedded websites) */
 .media-change-btn {
@@ -715,7 +711,7 @@ span {
   margin-right: 5px;
 }
 
-.tiptap-toolbar .tiptap-text-color-picker {
+.tiptap-toolbar .tiptap-alor-picker {
   border: none;
   width: 32px;
   height: 32px;
@@ -1296,35 +1292,6 @@ span {
   animation: fadeIn 0.1s forwards;
 }
 
-.text-content {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  border: none;
-  outline: none;
-
-  /* Allow the text-content to shrink */
-  min-width: 0;
-  min-height: 0;
-  word-break: break-word;
-  line-height: 1.2;
-
-  /* Set a base line height for text content */
-}
-
-/* Ensure spans with font-size have proper line height */
-.text-content span[style*="font-size"] {
-  line-height: 1.2 !important;
-}
-
-.text-content:focus {
-  border: none;
-  outline: none;
-}
-
-.text-content[contenteditable="true"] {
-  cursor: text;
-}
 
 .resize-handle {
   display: none;
@@ -1566,15 +1533,12 @@ span {
 }
 
 /* Hide scrollbars for all elements inside a slide */
-.slide-element,
-.slide-element * {
-  overflow: hidden !important;
-  scrollbar-width: none;
+.slide-element {
+  overflow: hidden;
+}
 
-  /* Firefox */
-  -ms-overflow-style: none;
-
-  /* Internet Explorer 10+ */
+.tiptap-text-content {
+  height: 100%;
 }
 
 .slide-element *::-webkit-scrollbar {
@@ -2078,13 +2042,6 @@ span {
 
 .table {
   margin: 0 !important;
-}
-
-.text-content span {
-  vertical-align: baseline !important;
-  line-height: inherit;
-
-  /* Inherit line-height from immediate parent, not document root */
 }
 
 /* Persist element button - make pinned state look like hover state */

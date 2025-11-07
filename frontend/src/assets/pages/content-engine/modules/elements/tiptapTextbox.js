@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
-import { Editor, Extension } from "@tiptap/core";
+import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle, FontSize, LineHeight } from "@tiptap/extension-text-style";
 import FontFamily from "@tiptap/extension-font-family";
@@ -115,52 +115,62 @@ export const lineHeightMapping = {
   3: "3",
 };
 
-export const letterSpacingMapping = {
-  "-0.1": "-0.1cqw",
-  "-0.05": "-0.05cqw",
-  "-0.02": "-0.02cqw",
-  normal: "normal",
-  0.01: "0.01cqw",
-  0.02: "0.02cqw",
-  0.03: "0.03cqw",
-  0.04: "0.04cqw",
-  0.05: "0.05cqw",
-  0.06: "0.06cqw",
-  0.07: "0.07cqw",
-  0.08: "0.08cqw",
-  0.09: "0.09cqw",
-  0.1: "0.1cqw",
-  0.12: "0.12cqw",
-  0.15: "0.15cqw",
-  0.18: "0.18cqw",
-  0.2: "0.2cqw",
-  0.25: "0.25cqw",
-  0.3: "0.3cqw",
-  0.4: "0.4cqw",
-  0.5: "0.5cqw",
-  0.6: "0.6cqw",
-  0.7: "0.7cqw",
-  0.8: "0.8cqw",
-  0.9: "0.9cqw",
-  1: "1cqw",
-  1.2: "1.2cqw",
-  1.5: "1.5cqw",
-  1.8: "1.8cqw",
-  2: "2cqw",
-};
 
-export const fontWeightMapping = {
-  normal: "normal",
-  100: "100",
-  200: "200",
-  300: "300",
-  400: "400",
-  500: "500",
-  600: "600",
-  700: "700",
-  800: "800",
-  900: "900",
-};
+const DEFAULT_FONT_SIZE_KEY = "12";
+const DEFAULT_LINE_HEIGHT_KEY = "1.2";
+const DEFAULT_TEXT_COLOR = "#000000";
+
+function getFontSizeCssValue(key) {
+  const resolvedKey = key || DEFAULT_FONT_SIZE_KEY;
+  return fontSizeMapping[resolvedKey] || fontSizeMapping[DEFAULT_FONT_SIZE_KEY];
+}
+
+function getLineHeightCssValue(key) {
+  const resolvedKey = key || DEFAULT_LINE_HEIGHT_KEY;
+  return lineHeightMapping[resolvedKey] || resolvedKey;
+}
+
+function buildTextStyleAttributes(elementData) {
+  if (!elementData) return null;
+
+  const attrs = {};
+  const fontFamily = elementData.fontFamily || getDefaultFont();
+  const fontSize = getFontSizeCssValue(elementData.fontSize);
+  const lineHeight = getLineHeightCssValue(elementData.lineHeight);
+  const color = elementData.textColor || DEFAULT_TEXT_COLOR;
+
+  if (fontFamily) {
+    attrs.fontFamily = fontFamily;
+  }
+  if (fontSize) {
+    attrs.fontSize = fontSize;
+  }
+  if (lineHeight) {
+    attrs.lineHeight = lineHeight;
+  }
+  if (color) {
+    attrs.color = color;
+  }
+
+  return Object.keys(attrs).length ? attrs : null;
+}
+
+function textStyleAttrsEqual(existingAttrs, targetAttrs) {
+  if (!existingAttrs && !targetAttrs) return true;
+  if (!existingAttrs || !targetAttrs) return false;
+  const keys = new Set([
+    ...Object.keys(existingAttrs),
+    ...Object.keys(targetAttrs),
+  ]);
+  for (const key of keys) {
+    if ((existingAttrs[key] ?? null) !== (targetAttrs[key] ?? null)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 
 const tiptapToolbar = document.querySelector(".tiptap-toolbar");
 const fontFamilySelect = document.querySelector(".tiptap-font-family-select");
@@ -172,14 +182,6 @@ const fontSizeIncreaseBtn = document.getElementById(
   "tiptapFontSizeIncreaseBtn",
 );
 const lineHeightSelect = document.querySelector(".tiptap-line-height-select");
-const letterSpacingSelect = document.querySelector(
-  ".tiptap-letter-spacing-select",
-);
-const fontWeightSelect = document.querySelector(".tiptap-font-weight-select");
-const horizontalTextModeRadio = document.getElementById(
-  "tiptapHorizontalTextMode",
-);
-const verticalTextModeRadio = document.getElementById("tiptapVerticalTextMode");
 const textColorBtn = document.getElementById("tiptapTextColorBtn");
 const boldBtn = document.getElementById("tiptapBoldBtn");
 const italicBtn = document.getElementById("tiptapItalicBtn");
@@ -196,21 +198,10 @@ const basicFormattingGroup = document.getElementById(
 const basicFormattingSeparator = document.getElementById(
   "tiptapBasicFormattingSeparator",
 );
-const fontWeightPreSeparator = document.getElementById(
-  "tiptapFontWeightPreSeparator",
-);
-const fontWeightGroup = document.getElementById("tiptapFontWeightGroup");
-const fontWeightPostSeparator = document.getElementById(
-  "tiptapFontWeightPostSeparator",
-);
 
 const DEFAULT_TEXT_HTML = `<p>${gettext("Double click to edit text")}</p>`;
 const tiptapEditors = new Map();
 
-const textDirectionMapping = {
-  horizontal: "horizontal-tb",
-  vertical: "vertical-rl",
-};
 
 function getToolbarButtonWrapper(buttonEl) {
   if (!buttonEl) {
@@ -238,7 +229,6 @@ function applyToolbarFeatureVisibility() {
   const boldEnabled = !!settings[TEXT_FORMATTING_FEATURES.BOLD];
   const italicEnabled = !!settings[TEXT_FORMATTING_FEATURES.ITALIC];
   const underlineEnabled = !!settings[TEXT_FORMATTING_FEATURES.UNDERLINE];
-  const fontWeightEnabled = !!settings[TEXT_FORMATTING_FEATURES.FONT_WEIGHT];
 
   setToolbarButtonVisibility(boldBtn, boldEnabled);
   setToolbarButtonVisibility(italicBtn, italicEnabled);
@@ -251,19 +241,6 @@ function applyToolbarFeatureVisibility() {
   if (basicFormattingSeparator) {
     basicFormattingSeparator.classList.toggle("d-none", !hasBasicFormatting);
   }
-
-  if (fontWeightGroup) {
-    fontWeightGroup.classList.toggle("d-none", !fontWeightEnabled);
-  }
-  if (fontWeightPreSeparator) {
-    fontWeightPreSeparator.classList.toggle("d-none", !fontWeightEnabled);
-  }
-  if (fontWeightPostSeparator) {
-    fontWeightPostSeparator.classList.toggle("d-none", !fontWeightEnabled);
-  }
-  if (fontWeightSelect) {
-    fontWeightSelect.disabled = !fontWeightEnabled;
-  }
 }
 
 function findKeyByValue(mapping, targetValue) {
@@ -272,100 +249,25 @@ function findKeyByValue(mapping, targetValue) {
   return entry ? entry[0] : null;
 }
 
-const LetterSpacingExtension = Extension.create({
-  name: "letterSpacing",
-  addOptions() {
-    return {
-      types: ["textStyle"],
-    };
-  },
-  addGlobalAttributes() {
-    return [
-      {
-        types: this.options.types,
-        attributes: {
-          letterSpacing: {
-            default: null,
-            parseHTML: (element) => element.style.letterSpacing || null,
-            renderHTML: (attributes) => {
-              if (!attributes.letterSpacing) {
-                return {};
-              }
-              return {
-                style: `letter-spacing: ${attributes.letterSpacing}`,
-              };
-            },
-          },
-        },
-      },
-    ];
-  },
-  addCommands() {
-    return {
-      setLetterSpacing:
-        (letterSpacing) =>
-        ({ chain }) =>
-          chain().setMark("textStyle", { letterSpacing }).run(),
-      unsetLetterSpacing:
-        () =>
-        ({ chain }) =>
-          chain()
-            .setMark("textStyle", { letterSpacing: null })
-            .removeEmptyTextStyle()
-            .run(),
-    };
-  },
-});
-
-const FontWeightExtension = Extension.create({
-  name: "fontWeight",
-  addOptions() {
-    return {
-      types: ["textStyle"],
-    };
-  },
-  addGlobalAttributes() {
-    return [
-      {
-        types: this.options.types,
-        attributes: {
-          fontWeight: {
-            default: null,
-            parseHTML: (element) => element.style.fontWeight || null,
-            renderHTML: (attributes) => {
-              if (!attributes.fontWeight) {
-                return {};
-              }
-              return {
-                style: `font-weight: ${attributes.fontWeight}`,
-              };
-            },
-          },
-        },
-      },
-    ];
-  },
-  addCommands() {
-    return {
-      setFontWeight:
-        (fontWeight) =>
-        ({ chain }) =>
-          chain().setMark("textStyle", { fontWeight }).run(),
-      unsetFontWeight:
-        () =>
-        ({ chain }) =>
-          chain()
-            .setMark("textStyle", { fontWeight: null })
-            .removeEmptyTextStyle()
-            .run(),
-    };
-  },
-});
-
 function getTiptapExtensions() {
   return [
     StarterKit.configure({
+      blockquote: false,
+      bulletList: false,
+      code: false,
+      codeBlock: false,
+      dropcursor: false,
+      gapcursor: false,
+      hardBreak: false,
       heading: false,
+      horizontalRule: false,
+      listItem: false,
+      listKeymap: false,
+      link: false,
+      orderedList: false,
+      strike: false,
+      trailingNode: false,
+      underline: false,
     }),
     TextStyle,
     FontSize,
@@ -374,8 +276,6 @@ function getTiptapExtensions() {
       types: ["textStyle"],
     }),
     FontFamily,
-    LetterSpacingExtension,
-    FontWeightExtension,
     Underline,
     TextAlign.configure({
       types: ["paragraph"],
@@ -383,27 +283,20 @@ function getTiptapExtensions() {
   ];
 }
 
-function mapTextAlignForDirection(textAlign, direction) {
-  if (direction === "vertical") {
-    if (textAlign === "left") return "start";
-    if (textAlign === "right") return "end";
-    return "center";
-  }
-  return textAlign || "left";
-}
-
-function getTextWrapperByElement(el) {
-  return el?.querySelector?.(".tiptap-text-content");
-}
-
-function getSelectedTiptapWrapper() {
-  if (store.selectedElementData?.type !== "tiptap-textbox") return null;
-  return getTextWrapperByElement(store.selectedElement);
-}
-
 function getActiveEditor() {
   if (store.selectedElementData?.type !== "tiptap-textbox") return null;
   return tiptapEditors.get(store.selectedElementData.id) || null;
+}
+
+function getEditorDom(editor) {
+  if (!editor) return null;
+  return editor.view?.dom || editor.options.element || null;
+}
+
+function findElementDataById(elementId) {
+  return store.slides
+    ?.flatMap((slide) => slide.elements || [])
+    .find((el) => el.id === elementId);
 }
 
 function selectionCoversWholeDoc(editor) {
@@ -423,65 +316,92 @@ function selectionCoversWholeDoc(editor) {
 
 function shouldApplyDefaultFormatting(editor) {
   if (!editor) return true;
+  if (!editor.isEditable) return true;
   return selectionCoversWholeDoc(editor);
 }
 
-function createHeadlessEditorFromElement(elementData) {
-  return new Editor({
-    extensions: getTiptapExtensions(),
-    content: elementData.tiptapContent || elementData.text || DEFAULT_TEXT_HTML,
-  });
-}
-
-function applyCommandToEntireElement(commandBuilder) {
-  if (!store.selectedElementData) return;
-  const elementData = store.selectedElementData;
-  const headlessEditor = createHeadlessEditorFromElement(elementData);
-  const chain = headlessEditor.chain().focus().selectAll();
-  commandBuilder(chain);
-  const executed = chain.run();
-
-  if (!executed) {
-    headlessEditor.destroy();
-    return;
+function runEditorCommand(editor, applyToWholeDoc, commandBuilder) {
+  if (!editor) return false;
+  const wasEditable = editor.isEditable;
+  if (!wasEditable) {
+    editor.setEditable(true, false);
   }
 
-  const html = headlessEditor.getHTML();
-  elementData.tiptapContent = html;
-  elementData.text = html;
-  headlessEditor.destroy();
+  let chain = editor.chain().focus();
+  if (applyToWholeDoc) {
+    chain = chain.selectAll();
+  }
 
-  const wrapper = getSelectedTiptapWrapper();
-  if (wrapper) {
-    wrapper.innerHTML = html;
-    wrapper.setAttribute("contenteditable", "false");
+  const executed = commandBuilder(chain).run();
+
+  if (!wasEditable) {
+    editor.setEditable(false, false);
+    const dom = getEditorDom(editor);
+    if (dom && typeof dom.blur === "function") {
+      dom.blur();
+    }
   }
 
   return executed;
 }
 
-function destroyEditorForElement(elementId, preserveContent = true) {
+function disposeEditorForElement(elementId, preserveContent = true) {
   const existing = tiptapEditors.get(elementId);
   if (!existing) return;
-  const wrapper = existing.options.element;
+
   if (preserveContent) {
     const html = existing.getHTML();
-    const elementData = store.slides
-      ?.flatMap((slide) => slide.elements || [])
-      .find((el) => el.id === elementId);
+    const elementData = findElementDataById(elementId);
     if (elementData) {
       elementData.tiptapContent = html;
       elementData.text = html;
     }
-    if (wrapper) {
-      wrapper.innerHTML = html;
-    }
   }
+
   existing.destroy();
   tiptapEditors.delete(elementId);
-  if (wrapper) {
-    wrapper.setAttribute("contenteditable", "false");
+}
+
+function isDefaultElementContent(elementData) {
+  if (!elementData) return false;
+  const rawContent = elementData.tiptapContent || elementData.text;
+  if (!rawContent) return true;
+  return rawContent.trim() === DEFAULT_TEXT_HTML.trim();
+}
+
+function applyInitialTextFormatting(editor, elementData) {
+  if (!editor || !elementData) return;
+  if (!isDefaultElementContent(elementData)) return;
+
+  const applyToWholeDoc = true;
+
+  const fontFamily = elementData.fontFamily || getDefaultFont();
+  if (fontFamily) {
+    runEditorCommand(editor, applyToWholeDoc, (chain) =>
+      chain.setFontFamily(fontFamily),
+    );
   }
+
+  const fontSizeKey = elementData.fontSize || DEFAULT_FONT_SIZE_KEY;
+  const fontSizeValue = getFontSizeCssValue(fontSizeKey);
+  runEditorCommand(editor, applyToWholeDoc, (chain) =>
+    chain.setFontSize(fontSizeValue),
+  );
+
+  const lineHeightKey = elementData.lineHeight || DEFAULT_LINE_HEIGHT_KEY;
+  const lineHeightValue = getLineHeightCssValue(lineHeightKey);
+  runEditorCommand(editor, applyToWholeDoc, (chain) =>
+    chain.setLineHeight(lineHeightValue),
+  );
+
+  const textColor = elementData.textColor || DEFAULT_TEXT_COLOR;
+  if (textColor) {
+    runEditorCommand(editor, applyToWholeDoc, (chain) =>
+      chain.setColor(textColor),
+    );
+  }
+
+  updateToolbarFromEditor(editor);
 }
 
 function populateFontDropdown() {
@@ -516,18 +436,14 @@ function populateFontDropdown() {
   }
 }
 
-function applyElementStyles(elementData, wrapper, container) {
+function applyContainerStyles(elementData, wrapper) {
   if (!wrapper || !elementData) return;
-  const textAlign = elementData.textAlign || "left";
-  const direction = elementData.textDirection || "horizontal";
-  const writingMode = textDirectionMapping[direction] || "horizontal-tb";
-  wrapper.style.writingMode = writingMode;
-  if (container) {
-    container.style.writingMode = writingMode;
-  }
 
-  const resolvedAlign = mapTextAlignForDirection(textAlign, direction);
-  wrapper.style.textAlign = resolvedAlign;
+  if (elementData.textAlign) {
+    wrapper.style.textAlign = elementData.textAlign;
+  } else {
+    wrapper.style.removeProperty("text-align");
+  }
 
   if (elementData.verticalAlign) {
     wrapper.style.display = "flex";
@@ -538,33 +454,6 @@ function applyElementStyles(elementData, wrapper, container) {
     wrapper.style.removeProperty("flex-direction");
     wrapper.style.removeProperty("justify-content");
   }
-
-  const fontFamily = elementData.fontFamily || getDefaultFont();
-  wrapper.style.fontFamily = `"${fontFamily}"`;
-
-  const fontSize =
-    fontSizeMapping[elementData.fontSize] || fontSizeMapping["12"];
-  wrapper.style.fontSize = fontSize;
-
-  const lineHeight =
-    lineHeightMapping[elementData.lineHeight] ||
-    elementData.lineHeight ||
-    "1.2";
-  wrapper.style.lineHeight = lineHeight;
-
-  const letterSpacing =
-    letterSpacingMapping[elementData.letterSpacing] ||
-    elementData.letterSpacing ||
-    "normal";
-  wrapper.style.letterSpacing = letterSpacing;
-
-  const fontWeight =
-    fontWeightMapping[elementData.fontWeight] ||
-    elementData.fontWeight ||
-    "normal";
-  wrapper.style.fontWeight = fontWeight;
-
-  wrapper.style.color = elementData.textColor || "#000000";
 }
 
 function updateColorButton(color) {
@@ -617,22 +506,11 @@ function syncToolbarFromData() {
     fontFamilySelect.value = data.fontFamily || getDefaultFont();
   }
   if (fontSizeSelect) {
-    fontSizeSelect.value = data.fontSize || "12";
+    fontSizeSelect.value = data.fontSize || DEFAULT_FONT_SIZE_KEY;
     updateFontSizeStepperState(fontSizeSelect.value);
   }
   if (lineHeightSelect) {
-    lineHeightSelect.value = data.lineHeight || "1.2";
-  }
-  if (letterSpacingSelect) {
-    letterSpacingSelect.value = data.letterSpacing || "normal";
-  }
-  if (fontWeightSelect) {
-    fontWeightSelect.value = data.fontWeight || "normal";
-  }
-  if (horizontalTextModeRadio && verticalTextModeRadio) {
-    const direction = data.textDirection || "horizontal";
-    horizontalTextModeRadio.checked = direction !== "vertical";
-    verticalTextModeRadio.checked = direction === "vertical";
+    lineHeightSelect.value = data.lineHeight || DEFAULT_LINE_HEIGHT_KEY;
   }
   updateAlignmentButtons(data.textAlign || "left");
   updateVerticalAlignmentButtons(data.verticalAlign || "flex-start");
@@ -674,10 +552,12 @@ function updateToolbarFromEditor(editor) {
       if (sizeKey) {
         fontSizeSelect.value = sizeKey;
       } else if (store.selectedElementData) {
-        fontSizeSelect.value = store.selectedElementData.fontSize || "12";
+        fontSizeSelect.value =
+          store.selectedElementData.fontSize || DEFAULT_FONT_SIZE_KEY;
       }
     } else if (store.selectedElementData) {
-      fontSizeSelect.value = store.selectedElementData.fontSize || "12";
+      fontSizeSelect.value =
+        store.selectedElementData.fontSize || DEFAULT_FONT_SIZE_KEY;
     }
     updateFontSizeStepperState(fontSizeSelect.value);
   }
@@ -691,34 +571,14 @@ function updateToolbarFromEditor(editor) {
       lineHeightSelect.value = String(key);
     } else if (store.selectedElementData?.lineHeight) {
       lineHeightSelect.value = store.selectedElementData.lineHeight;
+    } else {
+      lineHeightSelect.value = DEFAULT_LINE_HEIGHT_KEY;
     }
   }
 
-  if (letterSpacingSelect) {
-    const letterSpacingValue =
-      attrs.letterSpacing || store.selectedElementData?.letterSpacing;
-    if (letterSpacingValue) {
-      const key =
-        findKeyByValue(letterSpacingMapping, letterSpacingValue) ||
-        letterSpacingValue;
-      letterSpacingSelect.value = String(key);
-    } else if (store.selectedElementData?.letterSpacing) {
-      letterSpacingSelect.value = store.selectedElementData.letterSpacing;
-    }
-  }
-
-  if (fontWeightSelect) {
-    const weightValue =
-      attrs.fontWeight || store.selectedElementData?.fontWeight;
-    if (weightValue) {
-      const key = findKeyByValue(fontWeightMapping, weightValue) || weightValue;
-      fontWeightSelect.value = String(key);
-    } else if (store.selectedElementData?.fontWeight) {
-      fontWeightSelect.value = store.selectedElementData.fontWeight;
-    }
-  }
-
-  updateColorButton(attrs.color || store.selectedElementData?.textColor);
+  const resolvedColor =
+    attrs.color || store.selectedElementData?.textColor || DEFAULT_TEXT_COLOR;
+  updateColorButton(resolvedColor);
 
   const textAlign = editor.isActive({ textAlign: "center" })
     ? "center"
@@ -744,32 +604,24 @@ function handleFontFamilyChange(e) {
 
   pushCurrentSlideState();
 
-  let headlessApplied = true;
-  if (editor) {
-    editor.chain().focus().setFontFamily(value).run();
-    updateToolbarFromEditor(editor);
-  } else {
-    headlessApplied = !!applyCommandToEntireElement((chain) =>
-      chain.setFontFamily(value),
-    );
-    if (!headlessApplied) {
-      return;
-    }
-  }
-
-  if (!editor || applyDefaults) {
+  if (!editor) {
     if (store.selectedElementData) {
       store.selectedElementData.fontFamily = value;
     }
-    const wrapper = getSelectedTiptapWrapper();
-    if (wrapper) {
-      wrapper.style.fontFamily = `"${value}"`;
-      const container = store.selectedElement;
-      if (container && store.selectedElementData) {
-        autoResizeTextbox(wrapper, container, store.selectedElementData);
-      }
-    }
+    return;
   }
+
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+    chain.setFontFamily(value),
+  );
+
+  if (!executed) return;
+
+  if (applyDefaults && store.selectedElementData) {
+    store.selectedElementData.fontFamily = value;
+  }
+
+  updateToolbarFromEditor(editor);
 }
 
 function getCurrentFontSizeKey() {
@@ -812,37 +664,29 @@ function handleFontSizeChange(e) {
   const key = e.target.value;
   const editor = getActiveEditor();
   const applyDefaults = shouldApplyDefaultFormatting(editor);
-  const cssValue = fontSizeMapping[key] || fontSizeMapping["12"];
+  const cssValue = getFontSizeCssValue(key);
 
   pushCurrentSlideState();
 
-  let headlessApplied = true;
-  if (editor) {
-    editor.chain().focus().setFontSize(cssValue).run();
-    updateToolbarFromEditor(editor);
-  } else {
-    headlessApplied = !!applyCommandToEntireElement((chain) =>
-      chain.setFontSize(cssValue),
-    );
-    if (!headlessApplied) {
-      return;
-    }
-  }
-
-  if (!editor || applyDefaults) {
+  if (!editor) {
     if (store.selectedElementData) {
       store.selectedElementData.fontSize = key;
     }
-    const wrapper = getSelectedTiptapWrapper();
-    if (wrapper) {
-      wrapper.style.fontSize = cssValue;
-      const container = store.selectedElement;
-      if (container && store.selectedElementData) {
-        autoResizeTextbox(wrapper, container, store.selectedElementData);
-      }
-    }
+    updateFontSizeStepperState(key);
+    return;
   }
 
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+    chain.setFontSize(cssValue),
+  );
+
+  if (!executed) return;
+
+  if (applyDefaults && store.selectedElementData) {
+    store.selectedElementData.fontSize = key;
+  }
+
+  updateToolbarFromEditor(editor);
   updateFontSizeStepperState(key);
 }
 
@@ -850,130 +694,28 @@ function handleLineHeightChange(e) {
   const key = e.target.value;
   const editor = getActiveEditor();
   const applyDefaults = shouldApplyDefaultFormatting(editor);
-  const value = lineHeightMapping[key] || key;
+  const value = getLineHeightCssValue(key);
 
   pushCurrentSlideState();
 
-  let headlessApplied = true;
-  if (editor) {
-    editor.chain().focus().setLineHeight(value).run();
-    updateToolbarFromEditor(editor);
-  } else {
-    headlessApplied = !!applyCommandToEntireElement((chain) =>
-      chain.setLineHeight(value),
-    );
-    if (!headlessApplied) {
-      return;
-    }
-  }
-
-  if (!editor || applyDefaults) {
+  if (!editor) {
     if (store.selectedElementData) {
       store.selectedElementData.lineHeight = key;
     }
-    const wrapper = getSelectedTiptapWrapper();
-    if (wrapper) {
-      wrapper.style.lineHeight = value;
-      const container = store.selectedElement;
-      if (container && store.selectedElementData) {
-        autoResizeTextbox(wrapper, container, store.selectedElementData);
-      }
-    }
-  }
-}
-
-function handleLetterSpacingChange(e) {
-  const key = e.target.value;
-  const editor = getActiveEditor();
-  const applyDefaults = shouldApplyDefaultFormatting(editor);
-  const value = letterSpacingMapping[key] || key;
-
-  pushCurrentSlideState();
-
-  let headlessApplied = true;
-  if (editor) {
-    editor.chain().focus().setLetterSpacing(value).run();
-    updateToolbarFromEditor(editor);
-  } else {
-    headlessApplied = !!applyCommandToEntireElement((chain) =>
-      chain.setLetterSpacing(value),
-    );
-    if (!headlessApplied) {
-      return;
-    }
-  }
-
-  if (!editor || applyDefaults) {
-    if (store.selectedElementData) {
-      store.selectedElementData.letterSpacing = key;
-    }
-    const wrapper = getSelectedTiptapWrapper();
-    if (wrapper) {
-      wrapper.style.letterSpacing = value;
-      const container = store.selectedElement;
-      if (container && store.selectedElementData) {
-        autoResizeTextbox(wrapper, container, store.selectedElementData);
-      }
-    }
-  }
-}
-
-function handleFontWeightChange(e) {
-  if (!isTextFormattingFeatureEnabled(TEXT_FORMATTING_FEATURES.FONT_WEIGHT)) {
     return;
   }
-  const value = e.target.value;
-  const editor = getActiveEditor();
-  const applyDefaults = shouldApplyDefaultFormatting(editor);
-  const currentFontFamily =
-    store.selectedElementData?.fontFamily || getDefaultFont();
 
-  pushCurrentSlideState();
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+    chain.setLineHeight(value),
+  );
 
-  let headlessApplied = true;
-  if (editor) {
-    const chain = editor.chain().focus();
-    if (currentFontFamily) {
-      chain.setFontFamily(currentFontFamily);
-    }
-    if (typeof chain.unsetBold === "function") {
-      chain.unsetBold();
-    } else if (typeof chain.unsetMark === "function") {
-      chain.unsetMark("bold");
-    }
-    chain.setFontWeight(value).run();
-    updateToolbarFromEditor(editor);
-  } else {
-    headlessApplied = !!applyCommandToEntireElement((chain) => {
-      if (currentFontFamily) {
-        chain.setFontFamily(currentFontFamily);
-      }
-      if (typeof chain.unsetBold === "function") {
-        chain.unsetBold();
-      } else if (typeof chain.unsetMark === "function") {
-        chain.unsetMark("bold");
-      }
-      chain.setFontWeight(value);
-    });
-    if (!headlessApplied) {
-      return;
-    }
-    boldBtn?.classList.remove("active");
+  if (!executed) return;
+
+  if (applyDefaults && store.selectedElementData) {
+    store.selectedElementData.lineHeight = key;
   }
 
-  if (!editor || applyDefaults) {
-    if (store.selectedElementData) {
-      store.selectedElementData.fontWeight = value;
-    }
-    const wrapper = getSelectedTiptapWrapper();
-    if (wrapper) {
-      wrapper.style.fontWeight = value;
-      const container = store.selectedElement;
-      if (container && store.selectedElementData) {
-        autoResizeTextbox(wrapper, container, store.selectedElementData);
-      }
-    }
-  }
+  updateToolbarFromEditor(editor);
 }
 
 function handleBoldClick() {
@@ -983,27 +725,16 @@ function handleBoldClick() {
   pushCurrentSlideState();
   const editor = getActiveEditor();
 
-  if (editor) {
-    editor.chain().focus().toggleBold().run();
-    updateToolbarFromEditor(editor);
-    return;
-  }
+  if (!editor) return;
 
-  const executed = applyCommandToEntireElement((chain) => chain.toggleBold());
-  if (!executed) {
-    return;
-  }
+  const applyDefaults = shouldApplyDefaultFormatting(editor);
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+    chain.toggleBold(),
+  );
 
-  if (boldBtn) {
-    const shouldActivate = !boldBtn.classList.contains("active");
-    boldBtn.classList.toggle("active", shouldActivate);
-  }
+  if (!executed) return;
 
-  const wrapper = getSelectedTiptapWrapper();
-  const container = store.selectedElement;
-  if (wrapper && container && store.selectedElementData) {
-    autoResizeTextbox(wrapper, container, store.selectedElementData);
-  }
+  updateToolbarFromEditor(editor);
 }
 
 function handleItalicClick() {
@@ -1013,27 +744,16 @@ function handleItalicClick() {
   pushCurrentSlideState();
   const editor = getActiveEditor();
 
-  if (editor) {
-    editor.chain().focus().toggleItalic().run();
-    updateToolbarFromEditor(editor);
-    return;
-  }
+  if (!editor) return;
 
-  const executed = applyCommandToEntireElement((chain) => chain.toggleItalic());
-  if (!executed) {
-    return;
-  }
+  const applyDefaults = shouldApplyDefaultFormatting(editor);
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+    chain.toggleItalic(),
+  );
 
-  if (italicBtn) {
-    const shouldActivate = !italicBtn.classList.contains("active");
-    italicBtn.classList.toggle("active", shouldActivate);
-  }
+  if (!executed) return;
 
-  const wrapper = getSelectedTiptapWrapper();
-  const container = store.selectedElement;
-  if (wrapper && container && store.selectedElementData) {
-    autoResizeTextbox(wrapper, container, store.selectedElementData);
-  }
+  updateToolbarFromEditor(editor);
 }
 
 function handleUnderlineClick() {
@@ -1043,29 +763,16 @@ function handleUnderlineClick() {
   pushCurrentSlideState();
   const editor = getActiveEditor();
 
-  if (editor) {
-    editor.chain().focus().toggleUnderline().run();
-    updateToolbarFromEditor(editor);
-    return;
-  }
+  if (!editor) return;
 
-  const executed = applyCommandToEntireElement((chain) =>
+  const applyDefaults = shouldApplyDefaultFormatting(editor);
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
     chain.toggleUnderline(),
   );
-  if (!executed) {
-    return;
-  }
 
-  if (underlineBtn) {
-    const shouldActivate = !underlineBtn.classList.contains("active");
-    underlineBtn.classList.toggle("active", shouldActivate);
-  }
+  if (!executed) return;
 
-  const wrapper = getSelectedTiptapWrapper();
-  const container = store.selectedElement;
-  if (wrapper && container && store.selectedElementData) {
-    autoResizeTextbox(wrapper, container, store.selectedElementData);
-  }
+  updateToolbarFromEditor(editor);
 }
 
 function setTextAlignment(targetAlign) {
@@ -1074,37 +781,30 @@ function setTextAlignment(targetAlign) {
 
   pushCurrentSlideState();
 
-  if (editor) {
-    editor.chain().focus().setTextAlign(targetAlign).run();
-    updateToolbarFromEditor(editor);
-  } else {
-    const executed = applyCommandToEntireElement((chain) =>
-      chain.setTextAlign(targetAlign),
-    );
-    if (!executed) {
-      return;
-    }
-  }
-
-  if (!editor || applyDefaults) {
+  if (!editor) {
     if (store.selectedElementData) {
       store.selectedElementData.textAlign = targetAlign;
     }
-    const wrapper = getSelectedTiptapWrapper();
-    if (wrapper && store.selectedElementData) {
-      const direction = store.selectedElementData.textDirection || "horizontal";
-      wrapper.style.textAlign = mapTextAlignForDirection(
-        targetAlign,
-        direction,
-      );
-      const container = store.selectedElement;
-      if (container) {
-        autoResizeTextbox(wrapper, container, store.selectedElementData);
-      }
-    }
+    updateAlignmentButtons(targetAlign);
+    return;
   }
 
-  updateAlignmentButtons(targetAlign);
+  const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+    chain.setTextAlign(targetAlign),
+  );
+
+  if (!executed) return;
+
+  if (applyDefaults && store.selectedElementData) {
+    store.selectedElementData.textAlign = targetAlign;
+  }
+
+  const dom = getEditorDom(editor);
+  if (dom && applyDefaults) {
+    applyContainerStyles(store.selectedElementData, dom);
+  }
+
+  updateToolbarFromEditor(editor);
 }
 
 function handleAlignLeft() {
@@ -1123,11 +823,10 @@ function setVerticalAlignment(value) {
   if (!store.selectedElementData) return;
   pushCurrentSlideState();
   store.selectedElementData.verticalAlign = value;
-  const wrapper = getSelectedTiptapWrapper();
-  if (wrapper) {
-    wrapper.style.display = "flex";
-    wrapper.style.flexDirection = "column";
-    wrapper.style.justifyContent = value;
+  const editor = getActiveEditor();
+  const dom = getEditorDom(editor);
+  if (dom) {
+    applyContainerStyles(store.selectedElementData, dom);
   }
   updateVerticalAlignmentButtons(value);
 }
@@ -1144,31 +843,6 @@ function handleAlignBottom() {
   setVerticalAlignment("flex-end");
 }
 
-function handleTextDirectionChange(e) {
-  const direction = e.target.value === "vertical" ? "vertical" : "horizontal";
-  pushCurrentSlideState();
-  if (store.selectedElementData) {
-    store.selectedElementData.textDirection = direction;
-  }
-  const wrapper = getSelectedTiptapWrapper();
-  const container = store.selectedElement;
-  if (wrapper) {
-    const writingMode = textDirectionMapping[direction];
-    wrapper.style.writingMode = writingMode;
-    const resolvedAlign = mapTextAlignForDirection(
-      store.selectedElementData?.textAlign || "left",
-      direction,
-    );
-    wrapper.style.textAlign = resolvedAlign;
-    if (container && store.selectedElementData) {
-      autoResizeTextbox(wrapper, container, store.selectedElementData);
-    }
-  }
-  if (container) {
-    container.style.writingMode = textDirectionMapping[direction];
-  }
-}
-
 function handleTextColorPickerClick() {
   if (!store.selectedElementData) return;
 
@@ -1181,33 +855,24 @@ function handleTextColorPickerClick() {
 
       pushCurrentSlideState();
 
-      if (editor) {
-        editor.chain().focus().setColor(chosenColor).run();
-        updateToolbarFromEditor(editor);
-      } else {
-        const executed = applyCommandToEntireElement((chain) =>
-          chain.setColor(chosenColor),
-        );
-        if (!executed) {
-          return;
-        }
+      if (!editor) {
+        store.selectedElementData.textColor = chosenColor;
+        updateColorButton(chosenColor);
+        return;
       }
 
+      const executed = runEditorCommand(editor, applyDefaults, (chain) =>
+        chain.setColor(chosenColor),
+      );
+
+      if (!executed) return;
+
+      if (applyDefaults && store.selectedElementData) {
+        store.selectedElementData.textColor = chosenColor;
+      }
+
+      updateToolbarFromEditor(editor);
       updateColorButton(chosenColor);
-
-      if (!editor || applyDefaults) {
-        if (store.selectedElementData) {
-          store.selectedElementData.textColor = chosenColor;
-        }
-        const wrapper = getSelectedTiptapWrapper();
-        if (wrapper) {
-          wrapper.style.color = chosenColor;
-          const container = store.selectedElement;
-          if (container && store.selectedElementData) {
-            autoResizeTextbox(wrapper, container, store.selectedElementData);
-          }
-        }
-      }
     },
     { allowRemove: false },
   );
@@ -1224,19 +889,75 @@ function createEditorForElement(elementData, wrapper, container) {
     element: wrapper,
     extensions: getTiptapExtensions(),
     content: elementData.tiptapContent || elementData.text || DEFAULT_TEXT_HTML,
-    autofocus: "end",
-    onUpdate: () => {
-      const html = editor.getHTML();
-      elementData.tiptapContent = html;
-      elementData.text = html;
-      if (wrapper && container) {
-        autoResizeTextbox(wrapper, container, elementData);
-      }
-      updateToolbarFromEditor(editor);
-    },
+    editable: false,
+    autofocus: false,
+  });
+
+  let applyingStoredMarks = false;
+  // Ensure cleared editors keep previous formatting by restoring stored textStyle marks.
+  function ensureStoredMarksForEmptyDoc() {
+    if (applyingStoredMarks) return;
+    if (!editor.isEditable) return;
+
+    const attrs = buildTextStyleAttributes(elementData);
+    if (!attrs) return;
+
+    const docText = editor.state.doc.textContent?.trim();
+    if (docText) return;
+
+    const state = editor.state;
+    const textStyleType = state.schema.marks.textStyle;
+    if (!textStyleType) return;
+
+    const currentStoredMarks =
+      state.storedMarks || state.selection.$from.marks();
+    const existingMarks = Array.isArray(currentStoredMarks)
+      ? [...currentStoredMarks]
+      : [];
+
+    const existingTextStyleMark = existingMarks.find(
+      (mark) => mark.type === textStyleType,
+    );
+    if (
+      existingTextStyleMark &&
+      textStyleAttrsEqual(existingTextStyleMark.attrs, attrs)
+    ) {
+      return;
+    }
+
+    const preservedMarks = existingMarks.filter(
+      (mark) => mark.type !== textStyleType,
+    );
+
+    applyingStoredMarks = true;
+    const tr = state.tr.setStoredMarks([
+      ...preservedMarks,
+      textStyleType.create(attrs),
+    ]);
+    tr.setMeta("addToHistory", false);
+    editor.view.dispatch(tr);
+    applyingStoredMarks = false;
+  }
+
+  editor.__ensureStoredMarksForEmptyDoc = ensureStoredMarksForEmptyDoc;
+
+  editor.on("update", () => {
+    const html = editor.getHTML();
+    elementData.tiptapContent = html;
+    elementData.text = html;
+    if (container) {
+      autoResizeTextbox(wrapper, container, elementData);
+    }
+    ensureStoredMarksForEmptyDoc();
+    updateToolbarFromEditor(editor);
   });
 
   editor.on("selectionUpdate", () => {
+    updateToolbarFromEditor(editor);
+  });
+
+  editor.on("focus", () => {
+    ensureStoredMarksForEmptyDoc();
     updateToolbarFromEditor(editor);
   });
 
@@ -1244,9 +965,14 @@ function createEditorForElement(elementData, wrapper, container) {
     const html = editor.getHTML();
     elementData.tiptapContent = html;
     elementData.text = html;
+    ensureStoredMarksForEmptyDoc();
   });
 
   editor.on("blur", ({ event }) => {
+    if (!editor.isEditable) {
+      return;
+    }
+
     const related = event?.relatedTarget || null;
     setTimeout(() => {
       const active = document.activeElement;
@@ -1259,12 +985,9 @@ function createEditorForElement(elementData, wrapper, container) {
 
       if (
         related?.closest?.(".tiptap-toolbar") ||
-        active?.closest?.(".tiptap-toolbar")
+        active?.closest?.(".tiptap-toolbar") ||
+        active?.closest?.(".toolbar-general")
       ) {
-        return;
-      }
-
-      if (active?.closest?.(".toolbar-general")) {
         return;
       }
 
@@ -1273,41 +996,49 @@ function createEditorForElement(elementData, wrapper, container) {
   });
 
   tiptapEditors.set(elementData.id, editor);
-  wrapper.setAttribute("contenteditable", "true");
+  applyInitialTextFormatting(editor, elementData);
+  applyContainerStyles(elementData, wrapper);
+  if (container) {
+    autoResizeTextbox(wrapper, container, elementData);
+  }
   updateToolbarFromEditor(editor);
   return editor;
 }
 
-function enterEditMode(elementData, wrapper, container) {
-  if (!elementData || !wrapper) return;
-  const existing = tiptapEditors.get(elementData.id);
-  if (existing) {
-    existing.chain().focus().run();
+function enterEditMode(elementData) {
+  if (!elementData) return;
+  const editor = tiptapEditors.get(elementData.id);
+  if (!editor) return;
+  if (editor.isEditable) {
+    editor.chain().focus().run();
     return;
   }
   pushCurrentSlideState();
-  wrapper.innerHTML = "";
-  const editor = createEditorForElement(elementData, wrapper, container);
+  editor.setEditable(true, false);
+  editor.__ensureStoredMarksForEmptyDoc?.();
   editor.chain().focus("end").run();
 }
 
 function finalizeEditorForElement(elementId) {
   const editor = tiptapEditors.get(elementId);
-  if (!editor) return;
-  const wrapper = editor.options.element;
+  if (!editor || !editor.isEditable) return;
+
   const html = editor.getHTML();
-  const data = store.slides
-    ?.flatMap((slide) => slide.elements || [])
-    .find((el) => el.id === elementId);
+  const data = findElementDataById(elementId);
   if (data) {
     data.tiptapContent = html;
     data.text = html;
   }
-  editor.destroy();
-  tiptapEditors.delete(elementId);
-  if (wrapper) {
-    wrapper.innerHTML = html;
-    wrapper.setAttribute("contenteditable", "false");
+
+  editor.setEditable(false, false);
+
+  const dom = getEditorDom(editor);
+  if (dom && typeof dom.blur === "function") {
+    dom.blur();
+  }
+
+  if (dom && data) {
+    applyContainerStyles(data, dom);
   }
 }
 
@@ -1318,7 +1049,7 @@ function addTiptapTextboxToSlide() {
   }
 
   pushCurrentSlideState();
-  const defaultFontSizeKey = "12";
+  const defaultFontSizeKey = DEFAULT_FONT_SIZE_KEY;
   const defaultFontFamily = getDefaultFont();
 
   const newTextbox = {
@@ -1333,13 +1064,10 @@ function addTiptapTextboxToSlide() {
     border: false,
     backgroundColor: "transparent",
     fontFamily: defaultFontFamily,
-    fontSize: defaultFontSizeKey,
-    lineHeight: "1.2",
-    letterSpacing: "normal",
-    textColor: "#000000",
-    fontWeight: "normal",
+  fontSize: defaultFontSizeKey,
+  lineHeight: DEFAULT_LINE_HEIGHT_KEY,
+  textColor: DEFAULT_TEXT_COLOR,
     textAlign: "left",
-    textDirection: "horizontal",
     verticalAlign: "flex-start",
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,
@@ -1367,8 +1095,6 @@ export function initTiptapTextbox() {
   fontSizeIncreaseBtn?.addEventListener("click", handleFontSizeIncreaseClick);
   fontSizeSelect?.addEventListener("change", handleFontSizeChange);
   lineHeightSelect?.addEventListener("change", handleLineHeightChange);
-  letterSpacingSelect?.addEventListener("change", handleLetterSpacingChange);
-  fontWeightSelect?.addEventListener("change", handleFontWeightChange);
 
   boldBtn?.addEventListener("click", handleBoldClick);
   italicBtn?.addEventListener("click", handleItalicClick);
@@ -1382,12 +1108,6 @@ export function initTiptapTextbox() {
   alignMiddleBtn?.addEventListener("click", handleAlignMiddle);
   alignBottomBtn?.addEventListener("click", handleAlignBottom);
 
-  horizontalTextModeRadio?.addEventListener(
-    "change",
-    handleTextDirectionChange,
-  );
-  verticalTextModeRadio?.addEventListener("change", handleTextDirectionChange);
-
   textColorBtn?.addEventListener("click", handleTextColorPickerClick);
 
   tiptapToolbar?.addEventListener("mousedown", handleToolbarMousedown);
@@ -1398,37 +1118,38 @@ export function initTiptapTextbox() {
 }
 
 export function _renderTiptapTextbox(el, container, isInteractivePlayback) {
-  destroyEditorForElement(el.id, true);
+  finalizeEditorForElement(el.id);
+  disposeEditorForElement(el.id);
+
   const textWrapper = document.createElement("div");
   textWrapper.classList.add("text-content", "tiptap-text-content");
   textWrapper.setAttribute("spellcheck", "false");
   textWrapper.setAttribute("autocorrect", "off");
   textWrapper.setAttribute("autocapitalize", "off");
   textWrapper.dataset.elementId = String(el.id);
-  textWrapper.contentEditable = "false";
-  textWrapper.innerHTML = el.tiptapContent || el.text || DEFAULT_TEXT_HTML;
 
-  applyElementStyles(el, textWrapper, container);
-  autoResizeTextbox(textWrapper, container, el);
+  container.appendChild(textWrapper);
 
-  if (
-    (!isInteractivePlayback && queryParams.mode === "edit") ||
-    (!isInteractivePlayback && queryParams.mode === "template_editor") ||
-    (!isInteractivePlayback && queryParams.mode === "suborg_templates")
-  ) {
+  const editor = createEditorForElement(el, textWrapper, container);
+
+  const isEditableContext =
+    !isInteractivePlayback &&
+    (queryParams.mode === "edit" ||
+      queryParams.mode === "template_editor" ||
+      queryParams.mode === "suborg_templates");
+
+  if (isEditableContext) {
     textWrapper.addEventListener("dblclick", (event) => {
       event.stopPropagation();
-      enterEditMode(el, textWrapper, container);
+      enterEditMode(el);
     });
 
     textWrapper.addEventListener("mousedown", (event) => {
-      if (textWrapper.isContentEditable) {
+      if (editor.isEditable) {
         event.stopPropagation();
       }
     });
   }
-
-  container.appendChild(textWrapper);
 }
 
 export function finalizeAllTiptapEditors() {
