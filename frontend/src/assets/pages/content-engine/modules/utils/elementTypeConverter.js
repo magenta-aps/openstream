@@ -53,11 +53,8 @@ function getElementDefaults() {
       fontFamily: defaultFont,
       fontSize: "12",
       lineHeight: "1.2",
-      letterSpacing: "normal",
       textColor: "#000000",
-      fontWeight: "normal",
       textAlign: "left",
-      textDirection: "horizontal",
       verticalAlign: "flex-start",
     },
 
