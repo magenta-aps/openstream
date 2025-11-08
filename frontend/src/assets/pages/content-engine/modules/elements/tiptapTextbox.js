@@ -350,7 +350,6 @@ function getTiptapExtensions(elementData) {
   return [
     StarterKit.configure({
       blockquote: false,
-      bold: false,
       bulletList: false,
       code: false,
       codeBlock: false,
