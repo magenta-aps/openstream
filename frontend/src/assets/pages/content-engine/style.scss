@@ -1531,6 +1531,7 @@ span {
 
 .tiptap-text-content {
   height: 100%;
+  white-space: pre-wrap;
 }
 
 .slide-element *::-webkit-scrollbar {

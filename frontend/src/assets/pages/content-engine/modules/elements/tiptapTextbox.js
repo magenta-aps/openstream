@@ -366,6 +366,9 @@ function getTiptapExtensions(elementData) {
       strike: false,
       trailingNode: false,
       underline: false,
+      paragraph: {
+        preserveWhitespace: 'full',
+      },
     }),
     TextStyle.extend({
       addAttributes() {
@@ -993,6 +996,9 @@ function createEditorForElement(elementData, wrapper, container) {
     content: elementData.tiptapContent || elementData.text || DEFAULT_TEXT_HTML,
     editable: false,
     autofocus: false,
+    parseOptions: {
+      preserveWhitespace: 'full',
+    },
     editorProps: {
       handleKeyDown: (view, event) => {
         // Intercept Ctrl+A to create a proper content-only selection
