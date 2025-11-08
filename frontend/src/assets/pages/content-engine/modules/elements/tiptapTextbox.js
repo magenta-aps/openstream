@@ -356,7 +356,7 @@ function getTiptapExtensions(elementData) {
       codeBlock: false,
       dropcursor: false,
       gapcursor: false,
-      hardBreak: false,
+      hardBreak: true,
       heading: false,
       undoRedo: false,
       horizontalRule: false,
@@ -1011,6 +1011,19 @@ function createEditorForElement(elementData, wrapper, container) {
           }
           return true; // Prevent default handler
         }
+        
+        // Handle Tab key to insert tab character instead of changing focus
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          const { state } = view;
+          const { selection } = state;
+          
+          // Insert tab character
+          const tr = state.tr.insertText('\t', selection.from, selection.to);
+          view.dispatch(tr);
+          return true;
+        }
+        
         return false; // Allow other keys to proceed normally
       },
     },
