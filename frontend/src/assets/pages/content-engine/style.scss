@@ -711,19 +711,6 @@ span {
   margin-right: 5px;
 }
 
-.tiptap-toolbar .tiptap-alor-picker {
-  border: none;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  background: none;
-  padding: 0;
-  position: relative;
-  display: block !important;
-
-  /* Needed for absolutely positioned pseudo-element */
-}
-
 .tiptap-toolbar i {
   display: block;
   font-size: 24px;
