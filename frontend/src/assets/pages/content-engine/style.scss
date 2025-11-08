@@ -697,6 +697,11 @@ span {
   user-select: none;
 }
 
+.ProseMirror-focused {
+  cursor: text;
+  height: 100%;
+}
+
 .selected-element-options {
   height: 50%;
   display: flex;
