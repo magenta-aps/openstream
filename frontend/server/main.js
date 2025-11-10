@@ -135,6 +135,19 @@ const start = async () => {
             return next()
         }
 
+        const segments = pathname.split('/').filter(Boolean)
+
+        if (segments.length === 1 && !segments[0].includes('.')) {
+            const [rawOrgName] = segments
+            const orgName = decodeSegment(rawOrgName)
+
+            if (orgName) {
+                const queryIndex = req.originalUrl.indexOf('?')
+                const queryString = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : ''
+                return res.redirect(302, `/${encodeURIComponent(orgName)}/sign-in${queryString}`)
+            }
+        }
+
         const pageContext = parsePageContext(pathname)
 
         if (pageContext) {
