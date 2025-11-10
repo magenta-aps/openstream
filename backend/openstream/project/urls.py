@@ -339,7 +339,7 @@ urlpatterns = [
     path("api/branches/<int:pk>/", BranchDetailAPIView.as_view(), name="branch_detail"),
     # Name lookup endpoints
     path(
-        "api/organisations/<int:pk>/name/",
+        "api/organisations/<str:identifier>/name/",
         OrganisationNameAPIView.as_view(),
         name="organisation_name",
     ),

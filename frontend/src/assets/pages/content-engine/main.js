@@ -475,7 +475,6 @@ function generalInit() {
       (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
     );
   }, 2000);
-  initOrgQueryParams();
   initOrgUrlRouting();
 }
 

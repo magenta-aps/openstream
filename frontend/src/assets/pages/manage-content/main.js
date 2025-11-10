@@ -13,7 +13,6 @@ import {
   showToast,
   parentOrgID,
   genericFetch,
-  initOrgQueryParams,
   updateNavbarBranchName,
   updateNavbarUsername,
   initSignOutButton,
@@ -248,7 +247,6 @@ let currentlyEditingSlideshowId = null;
    1) Initialization: fetch data, set up event listeners
 ============================================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
-  initOrgQueryParams();
   initOrgUrlRouting();
   initSignOutButton();
   categoriesList = await fetchCategories();

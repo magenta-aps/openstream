@@ -10,7 +10,6 @@ import {
   showToast,
   genericFetch,
   initSignOutButton,
-  initOrgQueryParams,
   initOrgUrlRouting,
 } from "../../utils/utils";
 import * as bootstrap from "bootstrap";
@@ -24,7 +23,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateNavbarUsername();
   fetchUserLangugage();
   translateHTML();
-  initOrgQueryParams();
   initOrgUrlRouting();
 
   const userForm = document.getElementById("user-form");

@@ -292,6 +292,27 @@ def check_api_access(user, api_name):
     ).exists()
 
 
+def get_organisation_from_identifier(identifier):
+    """Resolve an organisation by numeric id or unique name."""
+    if identifier is None:
+        return None
+
+    if isinstance(identifier, Organisation):
+        return identifier
+
+    # Normalise to string for downstream checks
+    value = str(identifier).strip()
+    if not value:
+        return None
+
+    lookup = {"pk": int(value)} if value.isdigit() else {"name__iexact": value}
+
+    try:
+        return Organisation.objects.get(**lookup)
+    except Organisation.DoesNotExist:
+        return None
+
+
 ###############################################################################
 # SubOrganisation CRUD
 ###############################################################################
@@ -303,29 +324,36 @@ class SubOrganisationListCreateAPIView(APIView):
     def get(self, request):
         """
         Lists suborgs in a given organisation if the user is org_admin or suborg_admin.
-        Expects ?org_id=<ORG_ID>
+        Expects ?org_id=<ORG_IDENTIFIER> (numeric id or unique name)
         """
-        org_id = request.query_params.get("org_id")
-        if not org_id:
+        org_identifier = request.query_params.get("org_id")
+        if not org_identifier:
             return Response(
                 {"error": "Please provide an 'org_id' query parameter."},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
+            return Response(
+                {"error": f"Organisation '{org_identifier}' not found."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         # If user is org_admin or super_admin => see all suborgs of that org
         is_org_admin_or_super = (
             user_is_super_admin(request.user)
             or OrganisationMembership.objects.filter(
-                user=request.user, organisation_id=org_id, role="org_admin"
+                user=request.user, organisation=organisation, role="org_admin"
             ).exists()
         )
 
         if is_org_admin_or_super:
-            suborgs = SubOrganisation.objects.filter(organisation_id=org_id)
+            suborgs = SubOrganisation.objects.filter(organisation=organisation)
         else:
             # suborg_admin => only suborgs in which they have 'suborg_admin'
             suborgs = SubOrganisation.objects.filter(
-                organisation_id=org_id,
+                organisation=organisation,
                 memberships__user=request.user,
                 memberships__role="suborg_admin",
             ).distinct()
@@ -416,8 +444,10 @@ class SubOrganisationDetailAPIView(APIView):
 class OrganisationNameAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
-        org = get_object_or_404(Organisation, pk=pk)
+    def get(self, request, identifier):
+        org = get_organisation_from_identifier(identifier)
+        if not org:
+            raise Http404("Organization not found.")
 
         # Allow if user is super_admin or member of the organisation
         if not (
@@ -2460,8 +2490,8 @@ class RegisteredSlideTypesAPIView(APIView):
     API view for fetching registered slide types for an organisation.
     - GET: Returns a list of registered slide types for the specified organisation
 
-    Query params (for user authentication):
-      - org_id (required): The organisation ID to fetch slide types for
+        Query params (for user authentication):
+            - org_id (required): The organisation identifier (numeric id or unique name) to fetch slide types for
 
     Query params (for API key authentication):
       - branch_id (optional): Required when using non-branch-limited API key
@@ -2511,16 +2541,15 @@ class RegisteredSlideTypesAPIView(APIView):
                 return Response({"detail": "Authentication required."}, status=401)
 
             # For user authentication, org_id parameter is required
-            org_id = request.query_params.get("org_id")
-            if not org_id:
+            org_identifier = request.query_params.get("org_id")
+            if not org_identifier:
                 return Response(
                     {"error": "org_id parameter is required"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            try:
-                organisation = Organisation.objects.get(id=org_id)
-            except Organisation.DoesNotExist:
+            organisation = get_organisation_from_identifier(org_identifier)
+            if not organisation:
                 return Response(
                     {"error": "Organisation not found"},
                     status=status.HTTP_404_NOT_FOUND,
@@ -2958,18 +2987,17 @@ class CategoryAPIView(APIView):
         """
         If pk is provided, return a single category.
         Otherwise, return all categories for the specified organisation.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -2999,18 +3027,17 @@ class CategoryAPIView(APIView):
     def post(self, request):
         """
         Create a new category. Only org_admin or super_admin users can do this.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3036,18 +3063,17 @@ class CategoryAPIView(APIView):
     def put(self, request, pk):
         """
         Fully update a category. Only org_admin or super_admin users can do this.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3079,18 +3105,17 @@ class CategoryAPIView(APIView):
     def patch(self, request, pk):
         """
         Partially update a category. Only org_admin or super_admin users can do this.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3122,18 +3147,17 @@ class CategoryAPIView(APIView):
     def delete(self, request, pk):
         """
         Delete a category. Only org_admin or super_admin users can do this.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3166,18 +3190,17 @@ class TagListCreateAPIView(APIView):
     def get(self, request):
         """
         Get all tags for the specified organisation.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3199,18 +3222,17 @@ class TagListCreateAPIView(APIView):
     def post(self, request):
         """
         Create a new tag. Only org_admin or super_admin users can do this.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3246,16 +3268,15 @@ class TagDetailAPIView(APIView):
         Get a single tag by ID.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3279,16 +3300,15 @@ class TagDetailAPIView(APIView):
         Update a tag. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3315,16 +3335,15 @@ class TagDetailAPIView(APIView):
         Delete a tag. Only org_admin or super_admin users can do this.
         Requires ?organisation_id=<ORG_ID> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3386,7 +3405,7 @@ class SlideTemplateAPIView(APIView):
     def get(self, request, pk=None):
         """
         - If pk is provided, return that template detail (check membership).
-        - Otherwise, expect ?organisation_id=... to list all templates of that org (global templates only).
+    - Otherwise, expect ?organisation_id=... (id or name) to list all templates of that org (global templates only).
         """
         if pk:
             template = get_object_or_404(SlideTemplate, pk=pk)
@@ -3398,13 +3417,15 @@ class SlideTemplateAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         # List - only global templates (no suborganisation)
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id query param is required."}, status=400
             )
 
-        org = get_object_or_404(Organisation, pk=org_id)
+        org = get_organisation_from_identifier(org_identifier)
+        if not org:
+            return Response({"detail": "Organization not found."}, status=404)
         if not user_belongs_to_organisation(request.user, org):
             return Response({"detail": "Not allowed."}, status=403)
 
@@ -3417,16 +3438,18 @@ class SlideTemplateAPIView(APIView):
     def post(self, request):
         """
         Creates a new SlideTemplate.
-        Expects ?organisation_id=...
+    Expects ?organisation_id=... (id or name)
         The rest of the JSON (name, slideData, category_id, tag_ids) is in the request body.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id query param is required."}, status=400
             )
 
-        org = get_object_or_404(Organisation, pk=org_id)
+        org = get_organisation_from_identifier(org_identifier)
+        if not org:
+            return Response({"detail": "Organization not found."}, status=404)
         if not user_is_admin_in_org(request.user, org):
             return Response({"detail": "Not allowed."}, status=403)
 
@@ -3848,18 +3871,17 @@ class CustomColorAPIView(APIView):
     def get(self, request):
         """
         Retrieves custom colors for the specified organization.
-        Requires ?organisation_id=<ORG_ID> parameter.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3884,19 +3906,18 @@ class CustomColorAPIView(APIView):
     def post(self, request):
         """
         Create a new custom color.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Only organization admins or super admins can create colors.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3926,19 +3947,18 @@ class CustomColorAPIView(APIView):
     def patch(self, request, pk):
         """
         Partially update a custom color.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Only organization admins or super admins can update colors.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -3978,19 +3998,18 @@ class CustomColorAPIView(APIView):
     def delete(self, request, pk):
         """
         Delete a custom color.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Only organization admins or super admins can delete colors.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -4025,14 +4044,14 @@ class CustomFontAPIView(APIView):
     def get(self, request, pk=None):
         """
         Retrieves custom fonts for the specified organization.
-        Requires ?organisation_id=<ORG_ID> parameter.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Optional: Provide pk to get a specific font.
         """
-        org_id = request.query_params.get("organisation_id")
+        org_identifier = request.query_params.get("organisation_id")
         dw = None
         # If no organisation_id provided, try to infer it from a display website id
         # Support common param names used across the app: 'displayWebsiteId', 'display_website_id', or 'id'
-        if not org_id:
+        if not org_identifier:
             display_website_id = (
                 request.query_params.get("displayWebsiteId")
                 or request.query_params.get("display_website_id")
@@ -4060,11 +4079,9 @@ class CustomFontAPIView(APIView):
                 )
 
             organisation = dw.branch.suborganisation.organisation
-            org_id = organisation.id
         else:
-            try:
-                organisation = get_object_or_404(Organisation, pk=org_id)
-            except:
+            organisation = get_organisation_from_identifier(org_identifier)
+            if not organisation:
                 return Response(
                     {"detail": "Organization not found."},
                     status=status.HTTP_404_NOT_FOUND,
@@ -4105,7 +4122,7 @@ class CustomFontAPIView(APIView):
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
-                if str(key_org.id) != str(org_id):
+                if key_org.id != organisation.id:
                     return Response(
                         {
                             "detail": "API key does not grant access to this organisation."
@@ -4150,19 +4167,18 @@ class CustomFontAPIView(APIView):
     def post(self, request):
         """
         Create a new custom font.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Only organization admins or super admins can create fonts.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -4254,19 +4270,18 @@ class CustomFontAPIView(APIView):
     def patch(self, request, pk):
         """
         Partially update a custom font.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Only organization admins or super admins can update fonts.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -4357,19 +4372,18 @@ class CustomFontAPIView(APIView):
     def delete(self, request, pk):
         """
         Delete a custom font.
-        Requires ?organisation_id=<ORG_ID> parameter.
+    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         Only organization admins or super admins can delete fonts.
         """
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = get_object_or_404(Organisation, pk=org_id)
-        except:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return Response(
                 {"detail": "Organization not found."}, status=status.HTTP_404_NOT_FOUND
             )
@@ -4402,16 +4416,15 @@ class TextFormattingSettingsAPIView(APIView):
 
     @staticmethod
     def _get_organisation_from_request(request):
-        org_id = request.query_params.get("organisation_id")
-        if not org_id:
+        org_identifier = request.query_params.get("organisation_id")
+        if not org_identifier:
             return None, Response(
                 {"detail": "organisation_id parameter is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            organisation = Organisation.objects.get(pk=org_id)
-        except Organisation.DoesNotExist:
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
             return None, Response(
                 {"detail": "Organization not found."},
                 status=status.HTTP_404_NOT_FOUND,

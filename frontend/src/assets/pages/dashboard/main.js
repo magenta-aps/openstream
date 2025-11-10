@@ -14,7 +14,6 @@ import {
   updateNavbarUsername,
   makeActiveInNav,
   initSignOutButton,
-  initOrgQueryParams,
   selectedBranchID,
   selectedSubOrgID,
   getSubOrgName,
@@ -581,6 +580,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateNavbarBranchName();
   makeActiveInNav("/dashboard");
   initSignOutButton();
-  initOrgQueryParams();
   initOrgUrlRouting();
 });

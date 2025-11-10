@@ -11,7 +11,6 @@ import {
   showToast,
   autoHyphenate,
   initSignOutButton,
-  initOrgQueryParams,
   initOrgUrlRouting,
 } from "../../utils/utils";
 import {
@@ -1937,7 +1936,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   await refreshData();
   initCalendar();
   initOrgUrlRouting();
-  initOrgQueryParams();
 });
 
 function populateDropdown(

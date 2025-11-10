@@ -14,11 +14,11 @@ for (const [key, value] of urlSearchParams.entries()) {
 
 export const token = localStorage.getItem("accessToken");
 
-export const parentOrgID = queryParams.orgId || "";
+export const parentOrgID = window.ORG_NAME || "";
 
-export const selectedSubOrgID = queryParams.suborgId || "";
+export const selectedSubOrgID = window.SUB_ORG || "";
 
-export const selectedBranchID = queryParams.branchId || "";
+export const selectedBranchID = window.BRANCH || "";
 
 export const myUserId = localStorage.getItem("myUserId") || "";
 
@@ -824,17 +824,7 @@ export function getSuborgId() {
  * Fetches organisation/suborg/branch name by id and returns the name string or null
  */
 export async function getOrgName(id) {
-  if (!id) return null;
-  try {
-    const res = await genericFetch(
-      `${BASE_URL}/api/organisations/${id}/name/`,
-      "GET",
-    );
-    return res?.name ?? null;
-  } catch (err) {
-    console.error("getOrgName error:", err);
-    return null;
-  }
+  return window.ORG_NAME || null;
 }
 
 export async function getSubOrgName(id) {
@@ -864,56 +854,7 @@ export async function getBranchName(id) {
     return null;
   }
 }
-export function initOrgQueryParams() {
-  window.addEventListener(
-    "click",
-    function (event) {
-      const anchor = event.target.closest("a");
-      if (!anchor) return;
 
-      let linkHref;
-      try {
-        linkHref = new URL(anchor.href);
-      } catch (e) {
-        return;
-      }
-
-      if (linkHref.origin !== window.location.origin) return;
-      if (!["http:", "https:"].includes(linkHref.protocol)) return;
-
-      if (
-        linkHref.pathname === window.location.pathname &&
-        linkHref.search === window.location.search
-      ) {
-        if (linkHref.hash) return;
-      }
-
-      const orgId = getOrgId();
-      const suborgId = getSuborgId();
-      const branchId = getBranchId();
-
-      // Normalize pathname (remove trailing slashes) to compare reliably
-      const normalizedPath = linkHref.pathname.replace(/\/+$/, "");
-
-      if (normalizedPath === "/select-sub-org") {
-        // For /select-sub-org only ensure orgId is present; remove others
-        if (orgId) {
-          linkHref.searchParams.set("orgId", orgId);
-        }
-        linkHref.searchParams.delete("suborgId");
-        linkHref.searchParams.delete("branchId");
-      } else {
-        // Default behavior: add/update all available ids
-        if (orgId) linkHref.searchParams.set("orgId", orgId);
-        if (suborgId) linkHref.searchParams.set("suborgId", suborgId);
-        if (branchId) linkHref.searchParams.set("branchId", branchId);
-      }
-
-      anchor.href = linkHref.href;
-    },
-    true,
-  );
-}
 
 export function initCollapseLeftSidebarBtn() {
   const collapseBtn = document.getElementById("collapse-left-sidebar-btn");
