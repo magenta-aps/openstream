@@ -365,7 +365,23 @@ class SubOrganisationListCreateAPIView(APIView):
         """
         Creates a new suborg in the given org. Must be org_admin.
         """
-        serializer = SubOrganisationSerializer(data=request.data)
+        data = request.data.copy()
+
+        org_identifier = data.get("organisation_id")
+        if org_identifier is not None:
+            organisation = get_organisation_from_identifier(org_identifier)
+            if not organisation:
+                return Response(
+                    {
+                        "organisation_id": [
+                            "Organisation not found for the supplied identifier."
+                        ]
+                    },
+                    status=400,
+                )
+            data["organisation_id"] = organisation.id
+
+        serializer = SubOrganisationSerializer(data=data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
 
