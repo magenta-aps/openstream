@@ -110,14 +110,6 @@ function displayOrganisations(organisations) {
   organisationsList.innerHTML = "";
 
   organisations.forEach((org) => {
-
-    console.log(org.name, window.ORG_NAME);
-
-    console.log(org.name === window.ORG_NAME);
-
-    if (window.ORG_NAME === org.name) {
-      selectOrganisation(org);
-    }
     const orgCard = createOrganisationCard(org);
     organisationsList.appendChild(orgCard);
   });
@@ -156,7 +148,7 @@ function createOrganisationCard(org) {
 function selectOrganisation(org) {
   // Redirect to sub-organization selection
 
-  window.location.href = createUrl(`select-sub-org?orgId=${org.id}`);
+  window.location.href = `/${org.name}/select-sub-org`;
 }
 
 function showError(message) {

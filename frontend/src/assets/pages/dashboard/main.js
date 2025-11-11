@@ -19,6 +19,7 @@ import {
   getSubOrgName,
   parentOrgID,
   initOrgUrlRouting,
+  createUrl,
 } from "../../utils/utils.js";
 
 // Fetch branch-level active content and render into the "Afspilles nu" column
@@ -545,12 +546,7 @@ function renderUpcoming(items) {
 (async () => {
   if ((await getSubOrgName(selectedSubOrgID)) === "Global") {
     window.location.href =
-      "/manage-fonts-and-color-scheme?branchId=" +
-      selectedBranchID +
-      "&suborgId=" +
-      selectedSubOrgID +
-      "&orgId=" +
-      parentOrgID;
+      createUrl("/manage-fonts-and-color-scheme", true, true);
   }
 })();
 

@@ -333,7 +333,7 @@ if (queryParams.mode === "suborg_templates") {
     }
   });
 
-  const suborgId = queryParams.suborgId;
+  const suborgId = window.SUB_ORG;
 
   if (suborgId) {
     // Fetch and display suborg name

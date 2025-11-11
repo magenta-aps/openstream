@@ -19,6 +19,7 @@ import {
   setupDeleteConfirmation,
   selectedSubOrgID,
   initOrgUrlRouting,
+  createUrl,
 } from "../../utils/utils";
 
 updateNavbarUsername();
@@ -547,7 +548,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       slideshowCreatedModal.show();
 
       openSlideshowBtn.onclick = () => {
-        window.location.href = `/edit-content?id=${data.id}&mode=edit&orgId=${parentOrgID}&suborgId=${selectedSubOrgID}&branchId=${selectedBranchID}`;
+        window.location.href = createUrl(`/edit-content?id=${data.id}&mode=edit`, true, true);
       };
     } catch (err) {
       console.error(err);

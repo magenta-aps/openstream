@@ -4,7 +4,6 @@ import {
   showToast,
   genericFetch,
   parentOrgID,
-  isUserOrgAdminForOrganisation,
 } from "../../../../utils/utils";
 import * as bootstrap from "bootstrap";
 import Sortable from "sortablejs";
@@ -18,7 +17,6 @@ import {
 } from "../../../../utils/textFormattingSettings.js";
 
 // Global variables
-let isAdmin = false;
 let fonts = [];
 let deleteId = null;
 let fontsSortable = null;
@@ -106,9 +104,6 @@ async function loadFonts() {
       return;
     }
 
-    isAdmin = await isUserOrgAdminForOrganisation(parentOrgID);
-    toggleFontAdminUI();
-
     // Fetch fonts from the API with organisation_id parameter
     fonts = await genericFetch(
       `${BASE_URL}/api/fonts/?organisation_id=${parentOrgID}`,
@@ -123,16 +118,6 @@ async function loadFonts() {
     showToast(gettext("Failed to load fonts: ") + error.message, "Error");
   } finally {
     loadingSpinner.classList.add("d-none");
-  }
-}
-
-function toggleFontAdminUI() {
-  if (addFontModalBtn) {
-    addFontModalBtn.style.display = isAdmin ? "inline-block" : "none";
-    addFontModalBtn.disabled = !isAdmin;
-  }
-  if (adminRequiredMessage) {
-    adminRequiredMessage.classList.toggle("d-none", isAdmin);
   }
 }
 
@@ -156,7 +141,7 @@ function destroyFontsSortable() {
 
 function initFontsSortable() {
   destroyFontsSortable();
-  if (!isAdmin || !fontsTableBody || fonts.length < 2) {
+  if (!fontsTableBody || fonts.length < 2) {
     return;
   }
 
@@ -168,10 +153,6 @@ function initFontsSortable() {
 }
 
 async function handleFontsReorder() {
-  if (!isAdmin) {
-    return;
-  }
-
   const rows = Array.from(fontsTableBody.querySelectorAll("tr"));
   const updates = rows.map((row, index) => ({
     id: row.dataset.id,
@@ -241,16 +222,12 @@ function renderFonts() {
     const dragIcon = document.createElement("span");
     dragIcon.className = "material-symbols-outlined drag-icon";
     dragIcon.textContent = "drag_indicator";
-    if (isAdmin) {
-      dragIcon.classList.add("drag-handle");
-      dragCell.title = gettext("Drag to reorder");
-    } else {
-      dragCell.classList.add("drag-cell-disabled");
-    }
+    dragIcon.classList.add("drag-handle");
+    dragCell.title = gettext("Drag to reorder");
     dragCell.appendChild(dragIcon);
 
     const nameCell = document.createElement("td");
-    nameCell.textContent = font.name;
+    nameCell.textContent = font.name;c
 
     const previewCell = document.createElement("td");
     const exampleText = document.createElement("span");
@@ -278,26 +255,22 @@ function renderFonts() {
 
     const actionsCell = document.createElement("td");
     actionsCell.className = "action-cell-td";
-    if (isAdmin) {
-      const editBtn = document.createElement("button");
-      editBtn.className = "btn btn-sm btn-outline-secondary-light me-2";
-      editBtn.innerHTML =
-        '<span class="material-symbols-outlined text-secondary-hover">edit</span>';
-      editBtn.title = gettext("Edit");
-      editBtn.addEventListener("click", () => openEditModal(font));
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn btn-sm btn-outline-secondary-light me-2";
+    editBtn.innerHTML =
+      '<span class="material-symbols-outlined text-secondary-hover">edit</span>';
+    editBtn.title = gettext("Edit");
+    editBtn.addEventListener("click", () => openEditModal(font));
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "btn btn-sm btn-outline-secondary-light";
-      deleteBtn.innerHTML =
-        '<span class="material-symbols-outlined text-secondary-hover">delete_forever</span>';
-      deleteBtn.title = gettext("Delete");
-      deleteBtn.addEventListener("click", () => showDeleteConfirmation(font));
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn btn-sm btn-outline-secondary-light";
+    deleteBtn.innerHTML =
+      '<span class="material-symbols-outlined text-secondary-hover">delete_forever</span>';
+    deleteBtn.title = gettext("Delete");
+    deleteBtn.addEventListener("click", () => showDeleteConfirmation(font));
 
-      actionsCell.appendChild(editBtn);
-      actionsCell.appendChild(deleteBtn);
-    } else {
-      actionsCell.textContent = gettext("View only");
-    }
+    actionsCell.appendChild(editBtn);
+    actionsCell.appendChild(deleteBtn);
 
     row.appendChild(dragCell);
     row.appendChild(nameCell);
@@ -315,19 +288,14 @@ function renderTextFormattingOptions() {
     if (!input) return;
     const isEnabled = !!textFormattingSettings[featureKey];
     input.checked = isEnabled;
-    input.disabled = !isAdmin;
   });
 
   if (textOptionsForm) {
-    if (isAdmin) {
-      textOptionsForm.classList.remove("disabled");
-    } else {
-      textOptionsForm.classList.add("disabled");
-    }
+    textOptionsForm.classList.remove("disabled");
   }
 
   if (textOptionsAdminMessage) {
-    textOptionsAdminMessage.classList.toggle("d-none", isAdmin);
+    textOptionsAdminMessage.classList.add("d-none");
   }
 }
 
@@ -375,15 +343,6 @@ async function handleTextOptionToggle(featureKey, isEnabled) {
     return;
   }
 
-  if (!isAdmin) {
-    input.checked = !!textFormattingSettings[featureKey];
-    showToast(
-      gettext("You must be an organization admin to modify toolbar options."),
-      "Error",
-    );
-    return;
-  }
-
   const previousValue = !!textFormattingSettings[featureKey];
   if (previousValue === isEnabled) {
     return;
@@ -412,9 +371,7 @@ async function handleTextOptionToggle(featureKey, isEnabled) {
       "Error",
     );
   } finally {
-    if (isAdmin) {
-      input.disabled = false;
-    }
+    input.disabled = false;
   }
 }
 
@@ -422,14 +379,6 @@ async function handleTextOptionToggle(featureKey, isEnabled) {
  * Open the add font modal
  */
 function openAddModal() {
-  if (!isAdmin) {
-    showToast(
-      gettext("You must be an organization admin to add fonts"),
-      "Error",
-    );
-    return;
-  }
-
   // Reset form
   addFontForm.reset();
 
@@ -441,14 +390,6 @@ function openAddModal() {
  * Open the edit font modal
  */
 function openEditModal(font) {
-  if (!isAdmin) {
-    showToast(
-      gettext("You must be an organization admin to edit fonts"),
-      "Error",
-    );
-    return;
-  }
-
   // Populate form fields
   editFontIdInput.value = font.id;
   editFontNameInput.value = font.name;
@@ -489,14 +430,6 @@ function showDeleteConfirmation(font) {
  * Add a new font
  */
 async function addFont() {
-  if (!isAdmin) {
-    showToast(
-      gettext("You must be an organization admin to add fonts"),
-      "Error",
-    );
-    return;
-  }
-
   // Get form data
   const name = addFontNameInput.value.trim();
   const file = addFontFileInput ? addFontFileInput.files[0] : null;
@@ -550,14 +483,6 @@ async function addFont() {
  * Update an existing font
  */
 async function updateFont() {
-  if (!isAdmin) {
-    showToast(
-      gettext("You must be an organization admin to edit fonts"),
-      "Error",
-    );
-    return;
-  }
-
   const fontId = editFontIdInput.value;
 
   // Get form data

@@ -19,17 +19,17 @@ const serializeForInlineScript = (value) => JSON.stringify(value).replace(/</g, 
 
 const injectContext = (html, context) => {
     const payload = {
-        orgName: context.orgName,
+        orgName: context.orgName ?? null,
         subOrg: context.subOrg ?? null,
         branch: context.branch ?? null
     }
 
     const scriptContent = [
         `window.OPENSTREAM_CONTEXT = ${serializeForInlineScript(payload)};`,
-        'window.ORG_NAME = window.OPENSTREAM_CONTEXT.orgName;',
+        'if (window.OPENSTREAM_CONTEXT.orgName) window.ORG_NAME = window.OPENSTREAM_CONTEXT.orgName;',
         'if (window.OPENSTREAM_CONTEXT.subOrg) window.SUB_ORG = window.OPENSTREAM_CONTEXT.subOrg;',
         'if (window.OPENSTREAM_CONTEXT.branch) window.BRANCH = window.OPENSTREAM_CONTEXT.branch;',
-        'console.log("org name: " + window.ORG_NAME + ", sub org: " + window.SUB_ORG + ", branch: " + window.BRANCH);'
+        'console.log("org name: " + (window.ORG_NAME || "none") + ", sub org: " + (window.SUB_ORG || "none") + ", branch: " + (window.BRANCH || "none"));'
     ].join('')
 
     const script = `<script>${scriptContent}</script>`
@@ -137,8 +137,16 @@ const start = async () => {
 
         const segments = pathname.split('/').filter(Boolean)
 
+        // Allow /sign-in and /select-organisation without org name
         if (segments.length === 1 && !segments[0].includes('.')) {
-            const [rawOrgName] = segments
+            const page = segments[0]
+            
+            if (page === 'sign-in' || page === 'select-organisation') {
+                req.pageContext = { orgName: null, page }
+                return next()
+            }
+
+            const rawOrgName = page
             const orgName = decodeSegment(rawOrgName)
 
             if (orgName) {

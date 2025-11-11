@@ -810,7 +810,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
       )}`;
       manageTemplatesBtn.onclick = function (e) {
         e.stopPropagation();
-        window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborgId=${suborg.id}&branchId=${templateBranchId}`;
+
+        window.location.href = (`/${window.ORG_NAME}/suborg/${suborg.id}/branch/${templateBranchId}/manage-templates?mode=suborg_templates`);
       };
       suborgButtonsContainer.appendChild(manageTemplatesBtn);
     }
@@ -1034,7 +1035,7 @@ function selectBranch(
 ) {
   window.SUB_ORG = suborgId;
   window.BRANCH = branchId;
-  window.location.href = createUrl(`dashboard?orgId=${orgId}&suborgId=${suborgId}&branchId=${branchId}`, true, true);
+  window.location.href = createUrl(`dashboard`, true, true);
 }
 
 async function createUser(
@@ -1750,3 +1751,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initOrgUrlRouting();
 });
+
+console.log("test")
