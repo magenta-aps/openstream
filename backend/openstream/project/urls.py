@@ -240,7 +240,7 @@ urlpatterns = [
     # Users
     path("api/users/", CreateUserAPIView.as_view(), name="create_user"),
     path(
-        "api/organisations/<int:org_id>/users/",
+        "api/organisations/<str:org_identifier>/users/",
         OrganisationUsersListAPIView.as_view(),
         name="org_users",
     ),

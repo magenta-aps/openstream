@@ -2810,21 +2810,25 @@ class MembershipDetailAPIView(APIView):
 class OrganisationUsersListAPIView(ListAPIView):
     """
     Lists all users in a given org.
-    GET /api/organisations/<org_id>/users/
+    GET /api/organisations/<org_identifier>/users/
     """
 
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        org_id = self.kwargs["org_id"]
+        org_identifier = self.kwargs["org_identifier"]
+        organisation = get_organisation_from_identifier(org_identifier)
+        if not organisation:
+            raise Http404("Organisation not found.")
+
         # Ensure request.user is at least suborg_admin, org_admin in that org, or super_admin
         # For simplicity, let's say org_admin or super_admin can see all
         # or suborg_admin can see all users in the same org if we want that logic
         is_authorized = (
             user_is_super_admin(self.request.user)
             or OrganisationMembership.objects.filter(
-                user=self.request.user, organisation_id=org_id, role="org_admin"
+                user=self.request.user, organisation=organisation, role="org_admin"
             ).exists()
         )
         if not is_authorized:
@@ -2833,7 +2837,7 @@ class OrganisationUsersListAPIView(ListAPIView):
             return User.objects.none()
 
         return User.objects.filter(
-            organisation_memberships__organisation_id=org_id
+            organisation_memberships__organisation=organisation
         ).distinct()
 
 
