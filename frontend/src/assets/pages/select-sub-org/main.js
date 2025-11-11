@@ -29,10 +29,88 @@ let subOrgsData = [];
 let isActingUserOrgAdmin = false;
 let currentSelectedUserId = null;
 let isSuborgAdmin = false;
+const organisationIdCache = new Map();
 
 // Helper function to filter out suborg_templates branches (magic branches used for template management)
 function filterVisibleBranches(branches) {
   return branches.filter(branch => !branch.name.includes('suborg_templates'));
+}
+
+function normaliseOrgIdentifier(identifier) {
+  if (identifier === null || identifier === undefined) {
+    return { numeric: null, text: null };
+  }
+
+  const raw = String(identifier).trim();
+  if (!raw) {
+    return { numeric: null, text: null };
+  }
+
+  const numeric = /^\d+$/.test(raw) ? Number(raw) : null;
+  return { numeric, text: raw.toLowerCase() };
+}
+
+function organisationMatches(orgIdValue, orgNameValue, identifier) {
+  const { numeric, text } = normaliseOrgIdentifier(identifier);
+
+  if (numeric !== null && String(orgIdValue) === String(numeric)) {
+    return true;
+  }
+
+  if (text && orgNameValue) {
+    return String(orgNameValue).toLowerCase() === text;
+  }
+
+  return false;
+}
+
+function resolveOrganisationId(identifier) {
+  const { numeric } = normaliseOrgIdentifier(identifier);
+  if (numeric !== null) {
+    return numeric;
+  }
+
+  const match = subOrgsData.find((suborg) =>
+    organisationMatches(suborg.organisation, suborg.organisation_name, identifier),
+  );
+  return match ? match.organisation : null;
+}
+
+async function ensureOrganisationId(identifier) {
+  const cacheKey = String(identifier ?? "");
+  if (organisationIdCache.has(cacheKey)) {
+    return organisationIdCache.get(cacheKey);
+  }
+
+  const localResolution = resolveOrganisationId(identifier);
+  if (localResolution !== null) {
+    organisationIdCache.set(cacheKey, localResolution);
+    return localResolution;
+  }
+
+  try {
+    const resp = await fetch(`${BASE_URL}/api/organisations/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resp.ok) {
+      const organisations = await resp.json();
+      const match = organisations.find((org) =>
+        organisationMatches(org.id, org.name, identifier),
+      );
+      const resolved = match ? match.id : null;
+      organisationIdCache.set(cacheKey, resolved);
+      return resolved;
+    }
+    console.error(
+      gettext("Failed to resolve organisation identifier via API."),
+      resp.status,
+    );
+  } catch (error) {
+    console.error(gettext("Error resolving organisation identifier:"), error);
+  }
+
+  organisationIdCache.set(cacheKey, null);
+  return null;
 }
 
 function showAddSuborgModal() {
@@ -275,7 +353,9 @@ function showAddUserModal() {
   // Filter subOrgsData to only show suborgs from the current organization
   const currentOrgId = parentOrgID;
   const filteredSubOrgs = currentOrgId
-    ? subOrgsData.filter((s) => String(s.organisation) === String(currentOrgId))
+    ? subOrgsData.filter((s) =>
+        organisationMatches(s.organisation, s.organisation_name, currentOrgId),
+      )
     : subOrgsData;
 
   filteredSubOrgs.forEach((s) => {
@@ -354,7 +434,8 @@ async function fetchOrgUsers(orgId) {
       console.error(gettext("Failed to fetch org users:"), resp.status);
       return;
     }
-    const users = await resp.json();
+  const users = await resp.json();
+  const resolvedOrgId = (await ensureOrganisationId(orgId)) ?? orgId;
 
     // For each user, fetch their membership details
     const userPromises = users.map(async (user) => {
@@ -369,8 +450,8 @@ async function fetchOrgUsers(orgId) {
         return { ...user, role: null };
       }
       const memberships = await membershipResp.json();
-      const orgMembership = memberships.find(
-        (m) => String(m.organisation) === String(orgId),
+      const orgMembership = memberships.find((m) =>
+        organisationMatches(m.organisation, m.organisation_name, resolvedOrgId),
       );
       return { ...user, role: orgMembership ? orgMembership.role : null };
     });
@@ -563,8 +644,8 @@ cancel
     // Filter subOrgsData to only show suborgs from the current organization
     const currentOrgId = parentOrgID;
     const filteredSubOrgs = currentOrgId
-      ? subOrgsData.filter(
-          (s) => String(s.organisation) === String(currentOrgId),
+      ? subOrgsData.filter((s) =>
+          organisationMatches(s.organisation, s.organisation_name, currentOrgId),
         )
       : subOrgsData;
 
@@ -686,6 +767,7 @@ async function fetchSubOrgs() {
       document.getElementById("add-suborg-btn").style.display = "none";
     }
     subOrgsData = data;
+    organisationIdCache.clear();
 
     renderSuborgsAndBranches(data, isAnyTypeOfAdmin);
   } catch (error) {
@@ -709,12 +791,11 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
   const matchingSuborgs = suborgList.filter((suborg) => {
     const organisationId = String(suborg.organisation ?? "");
     const organisationName = suborg.organisation_name || "";
-
     const matchesById = parentOrgIdentifier
-      ? organisationId === parentOrgIdentifier
+      ? organisationMatches(organisationId, organisationName, parentOrgIdentifier)
       : false;
     const matchesByName = parentOrgName
-      ? organisationName === parentOrgName
+      ? organisationMatches(organisationId, organisationName, parentOrgName)
       : false;
 
     return matchesById || matchesByName;
@@ -1193,7 +1274,7 @@ function isDuplicateSuborgName(orgId, name, excludeId = null) {
   return subOrgsData.some((s) => {
     if (excludeId && String(s.id) === String(excludeId)) return false;
     return (
-      String(s.organisation) === String(orgId) &&
+      organisationMatches(s.organisation, s.organisation_name, orgId) &&
       String(s.name).toLowerCase() === lower
     );
   });
@@ -1456,6 +1537,15 @@ async function onSubmitAddNewUser() {
     return;
   }
 
+  const resolvedOrgId = await ensureOrganisationId(orgId);
+  if (resolvedOrgId === null && !/^\d+$/.test(String(orgId))) {
+    showToast(
+      gettext("Unable to resolve organisation identifier for membership creation."),
+      "Error",
+    );
+    return;
+  }
+
   const newUser = await createUser(
     username,
     email,
@@ -1468,7 +1558,7 @@ async function onSubmitAddNewUser() {
 
   const membershipPayload = {
     user: newUser.id,
-    organisation: orgId,
+    organisation: resolvedOrgId ?? orgId,
     role: role,
     suborganisation: null,
     branch: null,
