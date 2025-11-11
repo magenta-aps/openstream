@@ -26,8 +26,8 @@ EXPOSE 4174
 ENV NODE_ENV=development
 ENV PORT=4174
 
-# Start Express server (which will start Vite in middleware mode)
-CMD ["npm", "run", "start"]
+# Start Express server with nodemon (which will start Vite in middleware mode)
+CMD ["npm", "run", "dev:server"]
 
 # Production build stage
 FROM base AS build

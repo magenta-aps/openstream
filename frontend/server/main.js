@@ -137,11 +137,11 @@ const start = async () => {
 
         const segments = pathname.split('/').filter(Boolean)
 
-        // Allow /sign-in and /select-organisation without org name
+        // Allow /sign-in, /select-organisation, /connect-screen, and /open-screen without org name
         if (segments.length === 1 && !segments[0].includes('.')) {
             const page = segments[0]
             
-            if (page === 'sign-in' || page === 'select-organisation') {
+            if (page === 'sign-in' || page === 'select-organisation' || page === 'connect-screen' || page === 'open-screen') {
                 req.pageContext = { orgName: null, page }
                 return next()
             }
