@@ -39,7 +39,9 @@ class SignInView(APIView):
             "client_id": kc_client.client_id,
             "response_type": "code",
             "scope": "openid email profile",
-            "redirect_uri": f"http://localhost:8000/auth/code/?{urlencode({"org": org_realm})}",
+            "redirect_uri": request.build_absolute_uri(
+                f"/auth/code/?{urlencode({'org': org_realm})}"
+            ),
         }
 
         return redirect(
@@ -72,7 +74,9 @@ class AuthCodeView(APIView):
         try:
             token = kc_client.token_from_code(
                 code,
-                f"http://localhost:8000/auth/code/?{urlencode({"org": org_realm})}",
+                redirect_uri=request.build_absolute_uri(
+                    f"/auth/code/?{urlencode({'org': org_realm})}"
+                ),
             )
         except KeycloakError as e:
             handle_keycloak_error(e)
@@ -100,5 +104,5 @@ class AuthCodeView(APIView):
             "refresh": refresh,
         }
 
-        redirect_url = f"http://localhost:4174/{org_realm}/sign-in-callback?{urlencode(redirect_params)}"
+        redirect_url = f"{settings.FRONTEND_HOST}/{org_realm}/sign-in-callback?{urlencode(redirect_params)}"
         return redirect(redirect_url)
