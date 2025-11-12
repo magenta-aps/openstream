@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from datetime import datetime, timedelta, timezone as dt_timezone
 from django.utils import timezone
+from django.utils.text import slugify
 import logging
 import secrets
 import string
@@ -293,7 +294,7 @@ def check_api_access(user, api_name):
 
 
 def get_organisation_from_identifier(identifier):
-    """Resolve an organisation by numeric id or unique name."""
+    """Resolve an organisation by numeric id, URI name, or legacy display name."""
     if identifier is None:
         return None
 
@@ -305,12 +306,30 @@ def get_organisation_from_identifier(identifier):
     if not value:
         return None
 
-    lookup = {"pk": int(value)} if value.isdigit() else {"name__iexact": value}
+    if value.isdigit():
+        try:
+            return Organisation.objects.get(pk=int(value))
+        except Organisation.DoesNotExist:
+            return None
 
-    try:
-        return Organisation.objects.get(**lookup)
-    except Organisation.DoesNotExist:
-        return None
+    slug_candidate = slugify(value)
+    slug_lookups = []
+
+    if slug_candidate:
+        slug_lookups.append({"uri_name": slug_candidate})
+
+    # Legacy casing support for already-normalised slugs
+    slug_lookups.append({"uri_name": value.lower()})
+    # Final fallback to the human readable name (case-insensitive)
+    slug_lookups.append({"name__iexact": value})
+
+    for lookup in slug_lookups:
+        try:
+            return Organisation.objects.get(**lookup)
+        except Organisation.DoesNotExist:
+            continue
+
+    return None
 
 
 ###############################################################################
@@ -324,7 +343,7 @@ class SubOrganisationListCreateAPIView(APIView):
     def get(self, request):
         """
         Lists suborgs in a given organisation if the user is org_admin or suborg_admin.
-        Expects ?org_id=<ORG_IDENTIFIER> (numeric id or unique name)
+        Expects ?org_id=<ORG_IDENTIFIER> (numeric id or organisation URI name)
         """
         org_identifier = request.query_params.get("org_id")
         if not org_identifier:
@@ -2507,7 +2526,7 @@ class RegisteredSlideTypesAPIView(APIView):
     - GET: Returns a list of registered slide types for the specified organisation
 
         Query params (for user authentication):
-            - org_id (required): The organisation identifier (numeric id or unique name) to fetch slide types for
+            - org_id (required): The organisation identifier (numeric id or organisation URI name) to fetch slide types for
 
     Query params (for API key authentication):
       - branch_id (optional): Required when using non-branch-limited API key
@@ -3005,9 +3024,9 @@ class CategoryAPIView(APIView):
 
     def get(self, request, pk=None):
         """
-        If pk is provided, return a single category.
-        Otherwise, return all categories for the specified organisation.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            If pk is provided, return a single category.
+            Otherwise, return all categories for the specified organisation.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3046,8 +3065,8 @@ class CategoryAPIView(APIView):
 
     def post(self, request):
         """
-        Create a new category. Only org_admin or super_admin users can do this.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Create a new category. Only org_admin or super_admin users can do this.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3082,8 +3101,8 @@ class CategoryAPIView(APIView):
 
     def put(self, request, pk):
         """
-        Fully update a category. Only org_admin or super_admin users can do this.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Fully update a category. Only org_admin or super_admin users can do this.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3124,8 +3143,8 @@ class CategoryAPIView(APIView):
 
     def patch(self, request, pk):
         """
-        Partially update a category. Only org_admin or super_admin users can do this.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Partially update a category. Only org_admin or super_admin users can do this.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3166,8 +3185,8 @@ class CategoryAPIView(APIView):
 
     def delete(self, request, pk):
         """
-        Delete a category. Only org_admin or super_admin users can do this.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Delete a category. Only org_admin or super_admin users can do this.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3209,8 +3228,8 @@ class TagListCreateAPIView(APIView):
 
     def get(self, request):
         """
-        Get all tags for the specified organisation.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Get all tags for the specified organisation.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3241,8 +3260,8 @@ class TagListCreateAPIView(APIView):
 
     def post(self, request):
         """
-        Create a new tag. Only org_admin or super_admin users can do this.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Create a new tag. Only org_admin or super_admin users can do this.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3424,8 +3443,8 @@ class SlideTemplateAPIView(APIView):
 
     def get(self, request, pk=None):
         """
-        - If pk is provided, return that template detail (check membership).
-    - Otherwise, expect ?organisation_id=... (id or name) to list all templates of that org (global templates only).
+            - If pk is provided, return that template detail (check membership).
+        - Otherwise, expect ?organisation_id=... (id or name) to list all templates of that org (global templates only).
         """
         if pk:
             template = get_object_or_404(SlideTemplate, pk=pk)
@@ -3457,9 +3476,9 @@ class SlideTemplateAPIView(APIView):
 
     def post(self, request):
         """
-        Creates a new SlideTemplate.
-    Expects ?organisation_id=... (id or name)
-        The rest of the JSON (name, slideData, category_id, tag_ids) is in the request body.
+            Creates a new SlideTemplate.
+        Expects ?organisation_id=... (id or name)
+            The rest of the JSON (name, slideData, category_id, tag_ids) is in the request body.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3925,9 +3944,9 @@ class CustomColorAPIView(APIView):
 
     def post(self, request):
         """
-        Create a new custom color.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
-        Only organization admins or super admins can create colors.
+            Create a new custom color.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Only organization admins or super admins can create colors.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3966,9 +3985,9 @@ class CustomColorAPIView(APIView):
 
     def patch(self, request, pk):
         """
-        Partially update a custom color.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
-        Only organization admins or super admins can update colors.
+            Partially update a custom color.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Only organization admins or super admins can update colors.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -4017,9 +4036,9 @@ class CustomColorAPIView(APIView):
 
     def delete(self, request, pk):
         """
-        Delete a custom color.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
-        Only organization admins or super admins can delete colors.
+            Delete a custom color.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Only organization admins or super admins can delete colors.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -4186,9 +4205,9 @@ class CustomFontAPIView(APIView):
 
     def post(self, request):
         """
-        Create a new custom font.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
-        Only organization admins or super admins can create fonts.
+            Create a new custom font.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Only organization admins or super admins can create fonts.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -4289,9 +4308,9 @@ class CustomFontAPIView(APIView):
 
     def patch(self, request, pk):
         """
-        Partially update a custom font.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
-        Only organization admins or super admins can update fonts.
+            Partially update a custom font.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Only organization admins or super admins can update fonts.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -4391,9 +4410,9 @@ class CustomFontAPIView(APIView):
 
     def delete(self, request, pk):
         """
-        Delete a custom font.
-    Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
-        Only organization admins or super admins can delete fonts.
+            Delete a custom font.
+        Requires ?organisation_id=<ORG_IDENTIFIER> parameter.
+            Only organization admins or super admins can delete fonts.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:

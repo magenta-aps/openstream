@@ -21,6 +21,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.utils.text import slugify
 
 logger = logging.getLogger(__name__)
 
@@ -96,9 +97,35 @@ class UserExtended(models.Model):
 
 class Organisation(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    uri_name = models.SlugField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
+
+    def _generate_unique_uri_name(self, base_slug):
+        """Create a slug based on the supplied base and keep it unique."""
+        candidate = base_slug
+        suffix = 2
+
+        while (
+            Organisation.objects.exclude(pk=self.pk).filter(uri_name=candidate).exists()
+        ):
+            candidate = f"{base_slug}-{suffix}"
+            suffix += 1
+
+        return candidate
+
+    def save(self, *args, **kwargs):
+        """Ensure the URI-safe name exists, defaulting to a slug of the display name."""
+        slug_input = self.uri_name or self.name
+        desired_slug = slugify(slug_input or "")
+
+        if not desired_slug:
+            desired_slug = f"organisation-{uuid.uuid4().hex[:8]}"
+
+        self.uri_name = self._generate_unique_uri_name(desired_slug)
+
+        super().save(*args, **kwargs)
 
 
 class OrganisationAPIAccess(models.Model):

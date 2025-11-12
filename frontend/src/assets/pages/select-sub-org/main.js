@@ -50,15 +50,21 @@ function normaliseOrgIdentifier(identifier) {
   return { numeric, text: raw.toLowerCase() };
 }
 
-function organisationMatches(orgIdValue, orgNameValue, identifier) {
+function organisationMatches(orgIdValue, orgUriValue, orgNameValue, identifier) {
   const { numeric, text } = normaliseOrgIdentifier(identifier);
 
   if (numeric !== null && String(orgIdValue) === String(numeric)) {
     return true;
   }
 
-  if (text && orgNameValue) {
-    return String(orgNameValue).toLowerCase() === text;
+  if (text) {
+    if (orgUriValue && String(orgUriValue).toLowerCase() === text) {
+      return true;
+    }
+
+    if (orgNameValue && String(orgNameValue).toLowerCase() === text) {
+      return true;
+    }
   }
 
   return false;
@@ -71,7 +77,12 @@ function resolveOrganisationId(identifier) {
   }
 
   const match = subOrgsData.find((suborg) =>
-    organisationMatches(suborg.organisation, suborg.organisation_name, identifier),
+    organisationMatches(
+      suborg.organisation,
+      suborg.organisation_uri_name,
+      suborg.organisation_name,
+      identifier,
+    ),
   );
   return match ? match.organisation : null;
 }
@@ -95,7 +106,12 @@ async function ensureOrganisationId(identifier) {
     if (resp.ok) {
       const organisations = await resp.json();
       const match = organisations.find((org) =>
-        organisationMatches(org.id, org.name, identifier),
+        organisationMatches(
+          org.id,
+          org.uri_name,
+          org.name,
+          identifier,
+        ),
       );
       const resolved = match ? match.id : null;
       organisationIdCache.set(cacheKey, resolved);
@@ -354,7 +370,12 @@ function showAddUserModal() {
   const currentOrgId = parentOrgID;
   const filteredSubOrgs = currentOrgId
     ? subOrgsData.filter((s) =>
-        organisationMatches(s.organisation, s.organisation_name, currentOrgId),
+        organisationMatches(
+          s.organisation,
+          s.organisation_uri_name,
+          s.organisation_name,
+          currentOrgId,
+        ),
       )
     : subOrgsData;
 
@@ -451,7 +472,12 @@ async function fetchOrgUsers(orgId) {
       }
       const memberships = await membershipResp.json();
       const orgMembership = memberships.find((m) =>
-        organisationMatches(m.organisation, m.organisation_name, resolvedOrgId),
+        organisationMatches(
+          m.organisation,
+          m.organisation_uri_name,
+          m.organisation_name,
+          resolvedOrgId,
+        ),
       );
       return { ...user, role: orgMembership ? orgMembership.role : null };
     });
@@ -645,7 +671,12 @@ cancel
     const currentOrgId = parentOrgID;
     const filteredSubOrgs = currentOrgId
       ? subOrgsData.filter((s) =>
-          organisationMatches(s.organisation, s.organisation_name, currentOrgId),
+          organisationMatches(
+            s.organisation,
+            s.organisation_uri_name,
+            s.organisation_name,
+            currentOrgId,
+          ),
         )
       : subOrgsData;
 
@@ -791,11 +822,22 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
   const matchingSuborgs = suborgList.filter((suborg) => {
     const organisationId = String(suborg.organisation ?? "");
     const organisationName = suborg.organisation_name || "";
+    const organisationSlug = suborg.organisation_uri_name || "";
     const matchesById = parentOrgIdentifier
-      ? organisationMatches(organisationId, organisationName, parentOrgIdentifier)
+      ? organisationMatches(
+          organisationId,
+          organisationSlug,
+          organisationName,
+          parentOrgIdentifier,
+        )
       : false;
     const matchesByName = parentOrgName
-      ? organisationMatches(organisationId, organisationName, parentOrgName)
+      ? organisationMatches(
+          organisationId,
+          organisationSlug,
+          organisationName,
+          parentOrgName,
+        )
       : false;
 
     return matchesById || matchesByName;
@@ -1274,7 +1316,12 @@ function isDuplicateSuborgName(orgId, name, excludeId = null) {
   return subOrgsData.some((s) => {
     if (excludeId && String(s.id) === String(excludeId)) return false;
     return (
-      organisationMatches(s.organisation, s.organisation_name, orgId) &&
+      organisationMatches(
+        s.organisation,
+        s.organisation_uri_name,
+        s.organisation_name,
+        orgId,
+      ) &&
       String(s.name).toLowerCase() === lower
     );
   });

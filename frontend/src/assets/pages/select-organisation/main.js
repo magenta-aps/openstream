@@ -146,9 +146,9 @@ function createOrganisationCard(org) {
 
 // Select organization
 function selectOrganisation(org) {
-  // Redirect to sub-organization selection
-
-  window.location.href = `/${org.name}/select-sub-org`;
+  // Redirect to sub-organisation selection using the URI-friendly slug
+  const orgPath = org.uri_name || org.name;
+  window.location.href = `/${encodeURIComponent(orgPath)}/select-sub-org`;
 }
 
 function showError(message) {

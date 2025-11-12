@@ -79,7 +79,8 @@ def make_aware_if_needed(dt):
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organisation
-        fields = ["id", "name"]
+        fields = ["id", "name", "uri_name"]
+        read_only_fields = ["uri_name"]
 
 
 class OrganisationAPIAccessSerializer(serializers.ModelSerializer):
@@ -114,10 +115,20 @@ class SubOrganisationSerializer(serializers.ModelSerializer):
     organisation_id = serializers.PrimaryKeyRelatedField(
         source="organisation", queryset=Organisation.objects.all(), write_only=True
     )
+    organisation_uri_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SubOrganisation
-        fields = ["id", "name", "organisation", "organisation_id"]
+        fields = [
+            "id",
+            "name",
+            "organisation",
+            "organisation_id",
+            "organisation_uri_name",
+        ]
+
+    def get_organisation_uri_name(self, obj):
+        return obj.organisation.uri_name if obj.organisation_id else None
 
 
 class BranchSerializer(serializers.ModelSerializer):
@@ -997,6 +1008,7 @@ class ShowAllUserInfoSerializer(ShowUsernameAndEmailSerializer):
 class SubOrganisationWithRoleSerializer(serializers.ModelSerializer):
     user_role = serializers.SerializerMethodField()
     organisation_name = serializers.SerializerMethodField()
+    organisation_uri_name = serializers.SerializerMethodField()
     branches = serializers.SerializerMethodField()  # dynamic
 
     class Meta:
@@ -1006,6 +1018,7 @@ class SubOrganisationWithRoleSerializer(serializers.ModelSerializer):
             "name",
             "organisation",
             "organisation_name",
+            "organisation_uri_name",
             "user_role",
             "branches",
         ]
@@ -1019,6 +1032,9 @@ class SubOrganisationWithRoleSerializer(serializers.ModelSerializer):
 
     def get_organisation_name(self, suborg):
         return suborg.organisation.name
+
+    def get_organisation_uri_name(self, suborg):
+        return suborg.organisation.uri_name
 
     def get_branches(self, suborg):
         request = self.context.get("request")

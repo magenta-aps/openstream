@@ -784,8 +784,33 @@ export function getSuborgId() {
 /**
  * Fetches organisation/suborg/branch name by id and returns the name string or null
  */
+const orgNameCache = new Map();
+
 export async function getOrgName(id) {
-  return window.ORG_NAME || null;
+  const identifier = id || window.ORG_NAME;
+  if (!identifier) {
+    return null;
+  }
+
+  if (orgNameCache.has(identifier)) {
+    return orgNameCache.get(identifier);
+  }
+
+  const encoded = encodeURIComponent(identifier);
+
+  try {
+    const result = await genericFetch(
+      `${BASE_URL}/api/organisations/${encoded}/name/`,
+      "GET",
+    );
+    const resolvedName = result?.name ?? null;
+    orgNameCache.set(identifier, resolvedName);
+    return resolvedName;
+  } catch (error) {
+    console.error("Failed to fetch organisation name", error);
+    orgNameCache.set(identifier, null);
+    return null;
+  }
 }
 
 export async function getSubOrgName(id) {
