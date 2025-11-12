@@ -3,79 +3,51 @@
 import logging
 from urllib.parse import urlencode
 from django.conf import settings
-from django.http import HttpRequest
+from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
 from rest_framework.request import Request
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from osauth.errors import handle_keycloak_error
-from osauth.authentication import OSAuthRequired
-from osauth.keycloak import KeycloakError, kc_client_from_settings
+from osauth.keycloak import KeycloakClient, KeycloakError
 from osauth.serializers import TokenResponseSerializer
 
-from app.serializers import UserSerializer
-from osauth.authentication import OSAuthRequired
 
 logger = logging.getLogger(__name__)
 
-kc_client = kc_client_from_settings()
+User = get_user_model()
 
 
 class SignInView(APIView):
-    serializer_class = TokenResponseSerializer
-
-    def post(self, request: Request):
-        try:
-            token_resp = kc_client.authenticate(
-                request.data["username"],
-                request.data["password"],
-            )
-        except KeyError as e:
-            raise exceptions.ParseError(f"Missing {e}")
-
-        serializer = self.serializer_class(
-            instance=token_resp, context={"request": request}
-        )
-
-        return Response(serializer.data)
-
-
-class WhoAmIView(APIView):
-    authentication_classes = [OSAuthRequired]
-    serializer_class = UserSerializer
-
-    def get(self, request: HttpRequest, format=None):
-        serializer = self.serializer_class(
-            instance=request.user, context={"request": request}
-        )
-        return Response(serializer.data)
-
-
-# SSO views
-
-
-class SSOSignInView(APIView):
     def get(self, request: Request):
-        redirect_uri = request.GET.get("redirect_uri")
-        if not redirect_uri:
-            raise exceptions.APIException("Missing SSO redirect_uri")
+        org_realm = request.GET.get("org")
+        if not org_realm:
+            raise exceptions.APIException("Missing org_realm")
+
+        kc_client = KeycloakClient(
+            host=settings.KEYCLOAK_HOST,
+            port=settings.KEYCLOAK_PORT,
+            realm=org_realm,
+            client_id=settings.KEYCLOAK_CLIENT_ID,
+            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
+        )
 
         params = {
-            "client_id": settings.KEYCLOAK_CLIENT_ID,
+            "client_id": kc_client.client_id,
             "response_type": "code",
             "scope": "openid email profile",
-            "redirect_uri": redirect_uri,
+            "redirect_uri": f"http://localhost:8000/auth/code/?{urlencode({"org": org_realm})}",
         }
 
         return redirect(
-            f"http://localhost:8080/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/auth?{urlencode(params)}"
+            f"{kc_client.url_realm()}/protocol/openid-connect/auth?{urlencode(params)}"
         )
 
 
-class SSOAuthCodeView(APIView):
+class AuthCodeView(APIView):
     serializer_class = TokenResponseSerializer
 
     def get(self, request: Request):
@@ -83,16 +55,50 @@ class SSOAuthCodeView(APIView):
         if not code:
             raise exceptions.APIException("Missing SSO authorization code")
 
-        redirect_uri = request.GET.get("redirect_uri")
-        if not redirect_uri:
-            raise exceptions.APIException("Missing SSO redirect_uri")
+        org_realm = request.GET.get("org")
+        if not org_realm:
+            raise exceptions.APIException("Missing org_realm")
+
+        kc_client = KeycloakClient(
+            host=settings.KEYCLOAK_HOST,
+            port=settings.KEYCLOAK_PORT,
+            realm=org_realm,
+            client_id=settings.KEYCLOAK_CLIENT_ID,
+            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
+        )
 
         # Fetch access- & refresh-token using the authroization code
+        token = None
         try:
-            token_resp = kc_client.token_from_code(code, redirect_uri)
-            serializer = self.serializer_class(
-                instance=token_resp, context={"request": request}
+            token = kc_client.token_from_code(
+                code,
+                f"http://localhost:8000/auth/code/?{urlencode({"org": org_realm})}",
             )
-            return Response(serializer.data)
         except KeycloakError as e:
             handle_keycloak_error(e)
+
+        if not token:
+            logger.error("Token is None after successful fetch from Keycloak")
+            raise exceptions.AuthenticationFailed()
+
+        # Get, or create, django user
+        keycloak_user_info = kc_client.user_info(token.access_token)
+        email = keycloak_user_info.email
+        username = keycloak_user_info.preferred_username
+
+        user, created = User.objects.get_or_create(
+            username=username,
+            defaults={"email": email},
+        )
+
+        refresh = RefreshToken.for_user(user)
+        access = str(refresh.access_token)
+
+        redirect_params = {
+            "username": user.username,
+            "access": access,
+            "refresh": refresh,
+        }
+
+        redirect_url = f"http://localhost:4174/{org_realm}/sign-in-callback?{urlencode(redirect_params)}"
+        return redirect(redirect_url)

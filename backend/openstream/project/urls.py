@@ -3,9 +3,9 @@
 
 from django.contrib import admin
 from django.urls import path, include, re_path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from osauth.views import SSOAuthCodeView, SignInView, WhoAmIView
+from osauth.views import AuthCodeView, SignInView
 
 # DRF API Views
 from app.views import (
@@ -493,6 +493,5 @@ urlpatterns = [
     # Authentication endpoints
     ###############################################################################
     path("auth/signin/", SignInView.as_view(), name="osauth_signin"),
-    path("auth/whoami/", WhoAmIView.as_view(), name="osauth_whoami"),
-    path("auth/sso/code/", SSOAuthCodeView.as_view(), name="osauth_sso_code"),
+    path("auth/code/", AuthCodeView.as_view(), name="osauth_code"),
 ]
