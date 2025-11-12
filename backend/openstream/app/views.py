@@ -10,6 +10,7 @@ import json
 import requests
 import feedparser
 import dateutil.parser
+import unicodedata
 from zoneinfo import ZoneInfo
 import pytz
 import pandas as pd
@@ -5259,6 +5260,123 @@ DDB_EVENT_API_URLS = {
 }
 
 
+class DDBEventFetchError(Exception):
+    """Raised when fetching DDB events fails."""
+
+    def __init__(self, message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR):
+        super().__init__(message)
+        self.status_code = status_code
+
+def _normalize_text(value):
+    if not isinstance(value, (str, int, float)):
+        return ""
+
+    text = str(value).strip()
+    if not text:
+        return ""
+
+    normalized = unicodedata.normalize("NFKC", text)
+    return normalized.casefold()
+
+
+def _extract_unique_categories(events):
+    unique_categories = {}
+
+    for event in events or []:
+        categories = event.get("categories")
+
+        if isinstance(categories, list):
+            iterable = categories
+        elif categories is None:
+            iterable = []
+        else:
+            iterable = [categories]
+
+        for category in iterable:
+            normalized = _normalize_text(category)
+            if not normalized:
+                continue
+
+            label = str(category).strip()
+            unique_categories.setdefault(normalized, label)
+
+    # Return categories sorted alphabetically (case-insensitive) while keeping original casing
+    return sorted(unique_categories.values(), key=lambda value: value.casefold())
+
+
+def fetch_cached_ddb_events(kommune):
+    if kommune not in DDB_EVENT_API_URLS:
+        raise DDBEventFetchError(
+            f"{kommune} is an invalid kommune.",
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+    cache_key = f"ddb_events_{kommune}"
+    categories_cache_key = f"ddb_events_categories_{kommune}"
+    cached_events = cache.get(cache_key)
+
+    if isinstance(cached_events, list):
+        if cache.get(categories_cache_key) is None:
+            cache.set(
+                categories_cache_key,
+                _extract_unique_categories(cached_events),
+                timeout=1800,
+            )
+        return cached_events
+
+    api_url = DDB_EVENT_API_URLS[kommune]["url"]
+
+    try:
+        resp = requests.get(api_url, timeout=15)
+        resp.raise_for_status()
+        raw_response_text = resp.text
+        events = json.loads(raw_response_text)
+    except requests.RequestException as exc:
+        raise DDBEventFetchError(
+            "Failed to fetch data from external API",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise DDBEventFetchError(
+            f"Failed to decode JSON: {exc}",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from exc
+    except Exception as exc:
+        raise DDBEventFetchError(
+            f"Unexpected error processing response: {exc}",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from exc
+
+    valid_events = [event for event in events if isinstance(event, dict)]
+
+    cache.set(cache_key, valid_events, timeout=1800)
+    cache.set(
+        categories_cache_key,
+        _extract_unique_categories(valid_events),
+        timeout=1800,
+    )
+
+    return valid_events
+
+
+def get_cached_ddb_categories(kommune, events=None):
+    categories_cache_key = f"ddb_events_categories_{kommune}"
+    cached_categories = cache.get(categories_cache_key)
+
+    if isinstance(cached_categories, list):
+        return cached_categories
+
+    if events is None:
+        events = cache.get(f"ddb_events_{kommune}") or []
+
+    if not isinstance(events, list):
+        events = []
+
+    categories = _extract_unique_categories(events)
+    cache.set(categories_cache_key, categories, timeout=1800)
+    return categories
+
+
 class DDBProxyAPIView(APIView, TokenOrAPIKeyMixin):
     """Simple proxy endpoint for testing"""
 
@@ -5274,7 +5392,66 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response(DDB_EVENT_API_URLS)
+        include_categories_param = request.query_params.get(
+            "include_categories", "false"
+        )
+        include_categories = include_categories_param.lower() in {
+            "true",
+            "1",
+            "yes",
+        }
+
+        requested_kommune = request.query_params.get("kommune")
+
+        if requested_kommune and requested_kommune not in DDB_EVENT_API_URLS:
+            valid_keys = ", ".join(DDB_EVENT_API_URLS.keys())
+            return Response(
+                {
+                    "error": f"{requested_kommune} is an invalid kommune. Supported kommuner are: {valid_keys}",
+                    "validKommuner": list(DDB_EVENT_API_URLS.keys()),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        kommuner = (
+            [requested_kommune]
+            if requested_kommune
+            else list(DDB_EVENT_API_URLS.keys())
+        )
+
+        response_payload = {}
+
+        for kommune_name in kommuner:
+            kommune_data = copy.deepcopy(DDB_EVENT_API_URLS[kommune_name])
+
+            if include_categories:
+                categories = []
+                try:
+                    events = fetch_cached_ddb_events(kommune_name)
+                except DDBEventFetchError as error:
+                    logger.warning(
+                        "Failed to load DDB events for %s: %s",
+                        kommune_name,
+                        error,
+                    )
+                    if error.status_code == status.HTTP_400_BAD_REQUEST:
+                        return Response(
+                            {
+                                "error": str(error),
+                                "validKommuner": list(DDB_EVENT_API_URLS.keys()),
+                            },
+                            status=error.status_code,
+                        )
+                else:
+                    categories = get_cached_ddb_categories(
+                        kommune_name, events
+                    )
+
+                kommune_data["categories"] = categories
+
+            response_payload[kommune_name] = kommune_data
+
+        return Response(response_payload)
 
 
 class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
@@ -5309,47 +5486,75 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        api_url = DDB_EVENT_API_URLS[kommune]["url"]
+        available_libraries = {}
+        for library in DDB_EVENT_API_URLS[kommune].get("libraries", []):
+            normalized_library = _normalize_text(library)
+            if normalized_library:
+                available_libraries[normalized_library] = library
 
-        # Define a cache key unique for each kommune.
-        cache_key = f"ddb_events_{kommune}"
-        valid_events = cache.get(cache_key)
+        def _parse_multi_value_param(param_name):
+            values = []
+            raw_values = request.query_params.getlist(param_name)
+            for raw_value in raw_values:
+                if not raw_value:
+                    continue
+                # Allow comma-separated lists as well as repeated parameters.
+                split_values = [item.strip() for item in raw_value.split(",") if item.strip()]
+                values.extend(split_values)
+            return values
 
-        if valid_events is None:
-            try:
-                resp = requests.get(api_url)
-                resp.raise_for_status()
-                raw_response_text = resp.text
+        selected_libraries = _parse_multi_value_param("libraries")
+        if not selected_libraries:
+            selected_libraries = _parse_multi_value_param("branches")
+        if not selected_libraries:
+            selected_libraries = _parse_multi_value_param("library")
 
-                # Parse the raw response directly
-                events = json.loads(raw_response_text)
+        normalized_libraries = set()
+        for requested_library in selected_libraries:
+            lookup_key = _normalize_text(requested_library)
+            if lookup_key in available_libraries:
+                normalized_libraries.add(lookup_key)
 
-            except requests.RequestException as e:
-                return Response(
-                    {"error": "Failed to fetch data from external API"},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
-            except json.JSONDecodeError as e:
-                return Response(
-                    {"error": f"Failed to decode JSON: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-            except Exception as e:
-                return Response(
-                    {"error": f"Unexpected error processing response: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+        if selected_libraries and not normalized_libraries:
+            return Response(
+                {
+                    "error": "None of the requested libraries are available for the selected kommune.",
+                    "requested": selected_libraries,
+                    "available": list(available_libraries.values()),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            # Basic validation of events
-            valid_events = []
-            for event_data in events:
-                if isinstance(event_data, dict):
-                    valid_events.append(event_data)
+        try:
+            valid_events = fetch_cached_ddb_events(kommune)
+        except DDBEventFetchError as error:
+            return Response({"error": str(error)}, status=error.status_code)
 
-            if valid_events:
-                cache.set(cache_key, valid_events, timeout=1800)
-            else:
-                return Response([])
+        available_categories = {}
+        for category in get_cached_ddb_categories(kommune, valid_events):
+            normalized_category = _normalize_text(category)
+            if normalized_category:
+                available_categories[normalized_category] = category
+
+        selected_categories = _parse_multi_value_param("categories")
+        if not selected_categories:
+            selected_categories = _parse_multi_value_param("category")
+
+        normalized_categories = set()
+        for requested_category in selected_categories:
+            lookup_key = _normalize_text(requested_category)
+            if lookup_key in available_categories:
+                normalized_categories.add(lookup_key)
+
+        if selected_categories and not normalized_categories:
+            return Response(
+                {
+                    "error": "None of the requested categories are available for the selected kommune.",
+                    "requested": selected_categories,
+                    "available": list(available_categories.values()),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Filter events based on the 'days' parameter.
         if not valid_events:
@@ -5384,11 +5589,92 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
         except Exception as e:
             pass
 
+        if normalized_libraries:
+
+            def _event_matches_selected_libraries(event):
+                event_branches = event.get("branches")
+                candidate_names = set()
+
+                if isinstance(event_branches, list):
+                    candidate_names.update(
+                        _normalize_text(branch)
+                        for branch in event_branches
+                        if _normalize_text(branch)
+                    )
+                elif isinstance(event_branches, (str, int, float)):
+                    normalized_branch = _normalize_text(event_branches)
+                    if normalized_branch:
+                        candidate_names.add(normalized_branch)
+
+                branch_name = event.get("branch")
+                if isinstance(branch_name, (str, int, float)):
+                    normalized_branch = _normalize_text(branch_name)
+                    if normalized_branch:
+                        candidate_names.add(normalized_branch)
+
+                address_location = event.get("address", {}).get("location")
+                if isinstance(address_location, (str, int, float)):
+                    normalized_branch = _normalize_text(address_location)
+                    if normalized_branch:
+                        candidate_names.add(normalized_branch)
+
+                location_name = event.get("location")
+                if isinstance(location_name, (str, int, float)):
+                    normalized_branch = _normalize_text(location_name)
+                    if normalized_branch:
+                        candidate_names.add(normalized_branch)
+
+                venue_name = event.get("venue_name")
+                if isinstance(venue_name, (str, int, float)):
+                    normalized_branch = _normalize_text(venue_name)
+                    if normalized_branch:
+                        candidate_names.add(normalized_branch)
+
+                return bool(candidate_names & normalized_libraries)
+
+            filtered_events = [
+                event for event in filtered_events if _event_matches_selected_libraries(event)
+            ]
+
+        if normalized_categories:
+
+            def _event_matches_selected_categories(event):
+                event_categories = event.get("categories")
+                candidate_categories = set()
+
+                if isinstance(event_categories, list):
+                    candidate_categories.update(
+                        _normalize_text(category)
+                        for category in event_categories
+                        if _normalize_text(category)
+                    )
+                elif isinstance(event_categories, (str, int, float)):
+                    normalized_value = _normalize_text(event_categories)
+                    if normalized_value:
+                        candidate_categories.add(normalized_value)
+
+                return bool(candidate_categories & normalized_categories)
+
+            filtered_events = [
+                event for event in filtered_events if _event_matches_selected_categories(event)
+            ]
+
         # Apply additional filters
         extra_filters = {
             key: value.lower()
             for key, value in request.query_params.items()
-            if key not in ["sort", "order", "kommune", "days"]
+            if key
+            not in [
+                "sort",
+                "order",
+                "kommune",
+                "days",
+                "libraries",
+                "library",
+                "branches",
+                "categories",
+                "category",
+            ]
         }
         if extra_filters:
             final_filtered_events = [

@@ -6,14 +6,45 @@ import { queryParams } from "../../utils/utils";
 import QRCode from "qrcode";
 
 // Parse config from query parameters
+const parsedLibraries = (() => {
+  const primary = queryParams.libraries || queryParams.branches;
+  if (primary) {
+    return primary
+      .split(",")
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+  }
+
+  const fallback = queryParams.library;
+  return fallback ? [fallback.trim()] : [];
+})();
+
+const parsedCategories = (() => {
+  if (queryParams.categories) {
+    return queryParams.categories
+      .split(",")
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+  }
+
+  const fallback = queryParams.category;
+  return fallback ? [fallback.trim()] : [];
+})();
+
 const config = {
   kommune: queryParams.kommune || "",
-  library: queryParams.library || "",
+  libraries: parsedLibraries,
+  library: parsedLibraries[0] || queryParams.library || "",
+  categories: parsedCategories,
+  category: parsedCategories[0] || queryParams.category || "",
   days: queryParams.days || "7",
   layout: queryParams.layout || "vertical",
   showSubtitle: queryParams.showSubtitle === "true",
   showDescription: queryParams.showDescription === "true",
   showQr: queryParams.showQr === "true",
+  showDateTime: queryParams.showDateTime !== "false",
+  showLocation: queryParams.showLocation !== "false",
+  showTitle: queryParams.showTitle !== "false",
   slideDuration: parseInt(queryParams.slideDuration) || 10,
 };
 
@@ -37,8 +68,44 @@ if (apiKey) {
 // Fetch events based on config
 async function fetchEvents() {
   try {
+    const params = new URLSearchParams();
+    if (config.kommune) params.set("kommune", config.kommune);
+    if (config.days !== undefined && config.days !== null) {
+      params.set("days", config.days);
+    }
+
+    if (config.libraries.length > 0) {
+      const normalizedLibraries = config.libraries
+        .map((library) => library.toLowerCase().trim())
+        .filter((library) => library.length > 0);
+      const libraryList = normalizedLibraries.join(",");
+      params.set("libraries", libraryList);
+      // Retain backward compatibility with earlier API versions.
+      params.set("branches", libraryList);
+      if (normalizedLibraries.length > 0) {
+        params.set("library", normalizedLibraries[0]);
+      }
+    } else if (config.library) {
+      const normalizedLibrary = config.library.toLowerCase().trim();
+      params.set("library", normalizedLibrary);
+      params.set("branches", normalizedLibrary);
+    }
+
+    if (config.categories.length > 0) {
+      const normalizedCategories = config.categories
+        .map((category) => category.toLowerCase().trim())
+        .filter((category) => category.length > 0);
+      if (normalizedCategories.length > 0) {
+        const categoryList = normalizedCategories.join(",");
+        params.set("categories", categoryList);
+        params.set("category", normalizedCategories[0]);
+      }
+    } else if (config.category) {
+      params.set("category", config.category.toLowerCase().trim());
+    }
+
     const response = await fetch(
-      `${baseUrl}/api/ddb/events?kommune=${config.kommune}&branches=${config.library}&days=${config.days}`,
+      `${baseUrl}/api/ddb/events?${params.toString()}`,
       { method: "GET", headers },
     );
 
@@ -62,6 +129,17 @@ function displayEventsInCarousel(events) {
   const carouselInner = document.getElementById("carouselInner");
   carouselInner.innerHTML = "";
 
+  const selectedLibrarySet = new Set(
+    (config.libraries || [])
+      .map((library) => library.toLowerCase().trim())
+      .filter((library) => library.length > 0),
+  );
+  const selectedCategorySet = new Set(
+    (config.categories || [])
+      .map((category) => category.toLowerCase().trim())
+      .filter((category) => category.length > 0),
+  );
+
   if (events.length === 0) {
     carouselInner.innerHTML = `
       <div class="carousel-item active">
@@ -77,48 +155,62 @@ function displayEventsInCarousel(events) {
     const imageUrl = event.image?.url || "https://via.placeholder.com/800x400";
     const title = event.title || "Untitled Event";
     const subtitle = event.subtitle || "";
+    const titleMarkup = config.showTitle
+      ? `<div class="event-title">${title}</div>`
+      : "";
     const description = config.showSubtitle ? subtitle : "";
     const startDate = new Date(event.date_time?.start);
-    const endDate = new Date(event.date_time?.end);
-
     // Format date without year: "1. januar kl. 12:00"
-    const datePartStart = startDate.toLocaleDateString("da-DK", {
-      day: "numeric",
-      month: "long",
-    });
-    const timePartStart = startDate.toLocaleTimeString("da-DK", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const formattedStart = `${datePartStart} kl. ${timePartStart}`;
+    const formattedStart =
+      startDate instanceof Date && !isNaN(startDate)
+        ? startDate.toLocaleDateString("da-DK", {
+            day: "numeric",
+            month: "long",
+          }) +
+          " kl. " +
+          startDate.toLocaleTimeString("da-DK", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "";
 
-    const datePartEnd = endDate.toLocaleDateString("da-DK", {
-      day: "numeric",
-      month: "long",
-    });
-    const timePartEnd = endDate.toLocaleTimeString("da-DK", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const formattedEnd = `${datePartEnd} kl. ${timePartEnd}`;
-    const dateInfo = `${formattedStart}`;
+    const dateInfo = config.showDateTime ? formattedStart : "";
 
-    console.log(event);
+    let branches = "";
+    if (Array.isArray(event.branches) && event.branches.length > 0) {
+      const filteredBranches =
+        selectedLibrarySet.size > 0
+          ? event.branches.filter((branch) =>
+              selectedLibrarySet.has(String(branch).toLowerCase()),
+            )
+          : event.branches;
+      branches = filteredBranches.join(", ");
+    }
 
-    const branches = event.branches?.join(", ") || "";
-    // Prefer a human-friendly location field if present, otherwise fall back to street. Omit zip_code and city.
-    const address = event.address
-      ? event.address.location || event.address.street || ""
-      : "";
     // Show general location (e.g. library/branch) and the specific sub-location if available
     const generalLocation = branches;
     const subLocation = event.address
       ? event.address.location || event.address.street || ""
       : "";
-    const locationDisplay =
-      generalLocation && subLocation
-        ? ` &nbsp;|&nbsp; ${generalLocation}`
-        : generalLocation || subLocation;
+    const locationDisplay = !config.showLocation
+      ? ""
+      : generalLocation && subLocation
+      ? ` &nbsp;|&nbsp; ${generalLocation}`
+      : generalLocation || subLocation;
+    const locationMarkup = locationDisplay
+      ? `<span class="event-location">${locationDisplay}</span>`
+      : "";
+    const categories = Array.isArray(event.categories)
+      ? event.categories
+      : event.categories
+      ? [event.categories]
+      : [];
+    const filteredCategories =
+      selectedCategorySet.size > 0
+        ? categories.filter((category) =>
+            selectedCategorySet.has(String(category).toLowerCase()),
+          )
+        : categories;
     const body = config.showDescription ? event.body : "";
 
     const qrValue = event.url || "";
@@ -133,11 +225,12 @@ function displayEventsInCarousel(events) {
           </div>
           <div class="vertical-layout-bottom">
             <div class="vertical-layout-text">
-              <div class="event-title">${title}</div>
+              ${titleMarkup}
               <div class="event-description">${description}</div>
               <div class="event-meta">
-                <span class="event-date">${dateInfo}</span>
-                <span class="event-location">${locationDisplay}</span>
+                ${dateInfo ? `<span class="event-date">${dateInfo}</span>` : ""}
+                ${locationMarkup}
+               
               </div>
               <div class="event-address"></div>
               <div class="event-body">${body}</div>
@@ -154,11 +247,12 @@ function displayEventsInCarousel(events) {
               <img src="${imageUrl}" alt="${title}">
             </div>
             <div class="col-6 col-info">
-              <div class="event-title">${title}</div>
+              ${titleMarkup}
               <div class="event-description">${description}</div>
               <div class="event-meta">
-                <span class="event-date">${dateInfo}</span>
-                <span class="event-location">${locationDisplay}</span>
+                ${dateInfo ? `<span class="event-date">${dateInfo}</span>` : ""}
+                ${locationMarkup}
+                
               </div>
               ${config.showQr ? `<div class="event-qr"><div id="qrcode-${index}"></div></div>` : ``}
               <div class="event-body">${body}</div>
