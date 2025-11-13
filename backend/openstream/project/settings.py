@@ -313,6 +313,10 @@ LOGGING = {
             "level": "WARNING",  # Change to "ERROR" or "CRITICAL" to reduce more output
             "class": "logging.StreamHandler",
         },
+        "management_command": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+        },
     },
     "loggers": {
         "django": {
@@ -323,6 +327,11 @@ LOGGING = {
         "django.server": {  # Suppresses server startup logs
             "handlers": ["console"],
             "level": "ERROR",
+            "propagate": False,
+        },
+        "django.management.cmd": {
+            "handlers": ["management_command"],
+            "level": "INFO",
             "propagate": False,
         },
     },
