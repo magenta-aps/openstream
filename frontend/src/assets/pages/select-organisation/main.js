@@ -17,6 +17,7 @@ import {
   createUrl,
   fetchUserLanguageFromBackend,
   initSignOutButton,
+  signOut,
 } from "../../utils/utils";
 // Get DOM elements
 const errorMessage = document.getElementById("error-message");
@@ -36,13 +37,7 @@ if (!token) {
 }
 
 // Sign out functionality
-signOutBtn.addEventListener("click", () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("username");
-  localStorage.removeItem("myUserId");
-  window.location.href = "/sign-in";
-});
+signOutBtn.addEventListener("click", signOut);
 
 // Fetch user info
 async function fetchUserInfo() {
