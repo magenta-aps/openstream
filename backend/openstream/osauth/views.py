@@ -7,13 +7,16 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from osauth.models import KeycloakSession
 from osauth.errors import handle_keycloak_error
 from osauth.keycloak import KeycloakClient, KeycloakError
-from osauth.serializers import TokenResponseSerializer
+from osauth.serializers import SignOutResponse, TokenResponseSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -70,9 +73,9 @@ class AuthCodeView(APIView):
         )
 
         # Fetch access- & refresh-token using the authroization code
-        token = None
+        keycloak_token = None
         try:
-            token = kc_client.token_from_code(
+            keycloak_token = kc_client.token_from_code(
                 code,
                 redirect_uri=request.build_absolute_uri(
                     f"/auth/code/?{urlencode({'org': org_realm})}"
@@ -81,12 +84,12 @@ class AuthCodeView(APIView):
         except KeycloakError as e:
             handle_keycloak_error(e)
 
-        if not token:
+        if not keycloak_token:
             logger.error("Token is None after successful fetch from Keycloak")
             raise exceptions.AuthenticationFailed()
 
         # Get, or create, django user
-        keycloak_user_info = kc_client.user_info(token.access_token)
+        keycloak_user_info = kc_client.user_info(keycloak_token.access_token)
         email = keycloak_user_info.email
         username = keycloak_user_info.preferred_username
 
@@ -98,22 +101,39 @@ class AuthCodeView(APIView):
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
+        # Cleanup user keycloak sessions & create a new one
+        KeycloakSession.objects.filter(user=user).delete()
+        db_keycloak_session = KeycloakSession.objects.create(
+            user=user,
+            access_token=keycloak_token.access_token,
+            refresh_token=keycloak_token.refresh_token,
+            id_token=keycloak_token.id_token,
+        )
+
+        # Redirect back to the frontend
         redirect_params = {
             "username": user.username,
             "access": access,
             "refresh": refresh,
         }
-
         redirect_url = f"{settings.FRONTEND_HOST}/{org_realm}/sign-in-callback?{urlencode(redirect_params)}"
         return redirect(redirect_url)
 
 
-class SignOutView(APIView):
+class SignOutAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request: Request):
         org_realm = request.GET.get("org")
         if not org_realm:
             raise exceptions.APIException("Missing org_realm")
 
+        # Fetch auth-session "id_token" from DB
+        db_keycloak_session = KeycloakSession.objects.get(user=request.user)
+        if not db_keycloak_session:
+            raise exceptions.ValidationError("No login session for user")
+
+        # Generate signout redirect URL for user
         kc_client = KeycloakClient(
             host=settings.KEYCLOAK_HOST,
             port=settings.KEYCLOAK_PORT,
@@ -122,6 +142,14 @@ class SignOutView(APIView):
             client_secret=settings.KEYCLOAK_CLIENT_SECRET,
         )
 
-        return redirect(
-            f"{kc_client.url_realm()}/protocol/openid-connect/logout"
+        serializer = SignOutResponse(
+            instance={
+                "redirect_url": kc_client.url_signout(
+                    db_keycloak_session.id_token,
+                    f"{settings.FRONTEND_HOST}/{kc_client.realm}/sign-in",
+                ),
+            },
+            context={"request": request},
         )
+
+        return Response(serializer.data, status=200)

@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from rest_framework import serializers
 
+from osauth.models import KeycloakSession
+
 
 class TokenResponseSerializer(serializers.Serializer):
     token_type = serializers.CharField()
@@ -15,3 +17,7 @@ class TokenResponseSerializer(serializers.Serializer):
     not_before_policy = serializers.IntegerField()
     session_state = serializers.CharField()
     scope = serializers.CharField()
+
+
+class SignOutResponse(serializers.Serializer):
+    redirect_url = serializers.CharField()

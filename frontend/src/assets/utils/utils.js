@@ -124,7 +124,19 @@ export function showToast(message, type = "Info") {
   toast.show();
 }
 
-export function signOut() {
+export async function signOut() {
+  // Fetch signout-tokens
+  const signout_params = new URLSearchParams({ "org": window.ORG_NAME })
+  const signout_api_resp = await fetch(`${BASE_URL}/auth/signout/api?${signout_params.toString()}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+
+  const resp_data = await signout_api_resp.json()
+
+  // Remove local storage
   localStorage.removeItem("accessToken");
   localStorage.removeItem("apiKey");
   localStorage.removeItem("parentOrgID");
@@ -136,11 +148,9 @@ export function signOut() {
   localStorage.removeItem("selectedSubOrgName");
   localStorage.removeItem("username");
 
-  // Redirect to backend signout
-  const params = new URLSearchParams({ "org": window.ORG_NAME })
   const redirectUrl = new URL(
-    `${BASE_URL}/auth/signout/?` + params.toString(),
-    window.location.origin
+    resp_data.redirect_url,
+    window.location.origin,
   );
   window.location.href = redirectUrl.toString();
 }
