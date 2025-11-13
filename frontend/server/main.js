@@ -137,11 +137,11 @@ const start = async () => {
 
         const segments = pathname.split('/').filter(Boolean)
 
-        // Allow /sign-in, /select-organisation, /connect-screen, and /open-screen without org name
+        // Allow /select-organisation, /connect-screen, and /open-screen without org name
         if (segments.length === 1 && !segments[0].includes('.')) {
             const page = segments[0]
-            
-            if (page === 'sign-in' || page === 'select-organisation' || page === 'connect-screen' || page === 'open-screen') {
+
+            if (page === 'select-organisation' || page === 'connect-screen' || page === 'open-screen') {
                 req.pageContext = { orgName: null, page }
                 return next()
             }
@@ -149,6 +149,7 @@ const start = async () => {
             const rawOrgName = page
             const orgName = decodeSegment(rawOrgName)
 
+            // Redirect to organisation sign-in page
             if (orgName) {
                 const queryIndex = req.originalUrl.indexOf('?')
                 const queryString = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : ''
@@ -218,7 +219,7 @@ const start = async () => {
 
     app.listen(PORT, () => {
         console.log(`Server listening at http://localhost:${PORT}`)
-        console.log(`Try accessing: http://localhost:${PORT}/acme-corp/sign-in (serves modified Handlebars template)`) 
+        console.log(`Try accessing: http://localhost:${PORT}/acme-corp/sign-in (serves modified Handlebars template)`)
     })
 }
 
