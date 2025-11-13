@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
 import logging
+from typing import Any, Dict
 from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -13,9 +14,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from osauth.utils import (
+    parse_kc_sso_privilege_list,
+    sync_kc_user_info_sso_privilige_list,
+    sync_kc_user_org_memberships,
+)
 from osauth.models import KeycloakSession
 from osauth.errors import handle_keycloak_error
-from osauth.keycloak import KeycloakClient, KeycloakError
+from osauth.keycloak import (
+    KeycloakClient,
+    KeycloakError,
+    UserInfo,
+    kc_adm_client_from_settings,
+)
 from osauth.serializers import SignOutResponse, TokenResponseSerializer
 
 
@@ -98,6 +109,12 @@ class AuthCodeView(APIView):
             defaults={"email": email},
         )
 
+        # Handle Keycloak SSO PriviligeList if specified
+        if keycloak_user_info.sso_privilege_list:
+            sync_kc_user_info_sso_privilige_list(keycloak_user_info)
+            sync_kc_user_org_memberships(keycloak_user_info, user)
+
+        # Generate django-rest-framework tokens
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
