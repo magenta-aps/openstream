@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+// SPDX-License-Identifier: AGPL-3.0-only
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
