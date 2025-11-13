@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
+from urllib.parse import urlencode
 from uuid import UUID
 from http import HTTPStatus
 from typing import Any, Optional, List
@@ -164,6 +165,14 @@ class KeycloakClient:
 
     def url_realm(self):
         return f"{self.url()}/realms/{self.realm}"
+
+    def url_signout(self, id_token: str, post_logout_redirect_uri: str):
+        params = {
+            "post_logout_redirect_uri": post_logout_redirect_uri,
+            "id_token_hint": id_token,
+        }
+
+        return f"{self.url_realm()}/protocol/openid-connect/logout?{urlencode(params)}"
 
 
 def kc_client_from_settings() -> KeycloakClient:
