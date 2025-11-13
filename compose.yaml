@@ -35,7 +35,6 @@ services:
     volumes:
       - ./backend/openstream/project:/app/project:Z
       - ./backend/openstream/app:/app/app:Z
-      - ./backend/openstream/sso:/app/sso:Z
       - ./backend/openstream/osauth:/app/osauth:Z
       - ./backend/locale:/app/locale:Z
       - ./dev-environment/backend/fixtures:/app/fixtures:Z
@@ -64,7 +63,6 @@ services:
     volumes:
       - ./backend/openstream/project:/app/project:Z
       - ./backend/openstream/app:/app/app:Z
-      - ./backend/openstream/sso:/app/sso:Z
     entrypoint: [ "/usr/local/bin/supercronic", "/crontab" ]
     depends_on:
       - openstream

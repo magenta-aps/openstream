@@ -168,7 +168,6 @@ INSTALLED_APPS = [
     # OpenStream Apps
     "osauth.apps.OSAuthConfig",
     "app.apps.App",
-    "sso.apps.SSOConfig",
 ]
 
 MIDDLEWARE = [

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from osauth.views import AuthCodeView, SignInView, SignOutAPIView
@@ -86,7 +86,6 @@ from app.views import (
     KMDDataAPIView,
     KMDLocationsAPIView,
 )
-from sso.views import sso_login, sso_callback
 
 
 urlpatterns = [
