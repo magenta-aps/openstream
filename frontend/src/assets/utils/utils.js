@@ -135,7 +135,14 @@ export function signOut() {
   localStorage.removeItem("selectedSubOrgID");
   localStorage.removeItem("selectedSubOrgName");
   localStorage.removeItem("username");
-  window.location.href = "/"; // Redirect to root
+
+  // Redirect to backend signout
+  const params = new URLSearchParams({ "org": window.ORG_NAME })
+  const redirectUrl = new URL(
+    `${BASE_URL}/auth/signout/?` + params.toString(),
+    window.location.origin
+  );
+  window.location.href = redirectUrl.toString();
 }
 
 export function initSignOutButton() {
