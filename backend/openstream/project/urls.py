@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from osauth.views import AuthCodeView, SignInView
+from osauth.views import AuthCodeView, SignInView, SignOutView
 
 # DRF API Views
 from app.views import (
@@ -493,5 +493,6 @@ urlpatterns = [
     # Authentication endpoints
     ###############################################################################
     path("auth/signin/", SignInView.as_view(), name="osauth_signin"),
+    path("auth/signout/", SignOutView.as_view(), name="osauth_signout"),
     path("auth/code/", AuthCodeView.as_view(), name="osauth_code"),
 ]

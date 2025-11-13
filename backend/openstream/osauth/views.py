@@ -106,3 +106,22 @@ class AuthCodeView(APIView):
 
         redirect_url = f"{settings.FRONTEND_HOST}/{org_realm}/sign-in-callback?{urlencode(redirect_params)}"
         return redirect(redirect_url)
+
+
+class SignOutView(APIView):
+    def get(self, request: Request):
+        org_realm = request.GET.get("org")
+        if not org_realm:
+            raise exceptions.APIException("Missing org_realm")
+
+        kc_client = KeycloakClient(
+            host=settings.KEYCLOAK_HOST,
+            port=settings.KEYCLOAK_PORT,
+            realm=org_realm,
+            client_id=settings.KEYCLOAK_CLIENT_ID,
+            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
+        )
+
+        return redirect(
+            f"{kc_client.url_realm()}/protocol/openid-connect/logout"
+        )
