@@ -356,6 +356,11 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "noreply@openstream.dk"
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "auth.openstream.dk")
 KEYCLOAK_PORT = os.environ.get("KEYCLOAK_PORT", "")
 
+KEYCLOAK_ADMIN_USERNAME = os.environ.get("KEYCLOAK_ADMIN_USERNAME", "admin")
+KEYCLOAK_ADMIN_PASSWORD = os.environ.get(
+    "KEYCLOAK_ADMIN_PASSWORD", "your_keycloak_admin_password_here"
+)
+
 KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "openstream-customer_name-here")
 KEYCLOAK_CLIENT_ID = os.environ.get(
     "KEYCLOAK_CLIENT_ID", "openstream-customer_name-client_id-here"
@@ -365,3 +370,27 @@ KEYCLOAK_CLIENT_SECRET = os.environ.get(
 )
 
 KEYCLOAK_TIMEOUT = int(os.environ.get("KEYCLOAK_TIMEOUT", "5"))
+
+###############################################################################
+# OpenStream Auth Configurations
+###############################################################################
+
+# Keycloak realm roles, which will be translated into a Organisation Membership
+# NOTE: These memberships cannot have a reference to a organisation_id - which
+#       is why we only use it for "super_admin" for now
+OSAUTH_KC_REALM_ROLES_TO_ORG_MEMBERSHIP = ["super_admin"]
+
+# Keycloak User Attributes which will be translated into a Organisation Membership
+# NOTE: The values of these attrs, are expected to be a comma separated list
+#       of ID's
+OSAUTH_KC_USER_ATTR_ORG_ADMIN = "org_admin"
+OSAUTH_KC_USER_ATTR_SUBORG_ADMIN = "suborg_admin"
+OSAUTH_KC_USER_ATTR_BRANCH_ADMIN = "branch_admin"
+OSAUTH_KC_USER_ATTR_ORG_EMPLOYEE = "employee"
+
+OSAUTH_KC_USER_ATTRS_TO_ORG_MEMBERSHIP = [
+    OSAUTH_KC_USER_ATTR_ORG_ADMIN,
+    OSAUTH_KC_USER_ATTR_SUBORG_ADMIN,
+    OSAUTH_KC_USER_ATTR_BRANCH_ADMIN,
+    OSAUTH_KC_USER_ATTR_ORG_EMPLOYEE,
+]
