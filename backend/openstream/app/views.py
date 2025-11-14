@@ -5267,6 +5267,7 @@ class DDBEventFetchError(Exception):
         super().__init__(message)
         self.status_code = status_code
 
+
 def _normalize_text(value):
     if not isinstance(value, (str, int, float)):
         return ""
@@ -5334,7 +5335,9 @@ def _collect_event_identifiers(event):
 
     title = event.get("title")
     start_time = event.get("date_time", {}).get("start")
-    if isinstance(title, (str, int, float)) and isinstance(start_time, (str, int, float)):
+    if isinstance(title, (str, int, float)) and isinstance(
+        start_time, (str, int, float)
+    ):
         composite = f"{title}|{start_time}"
         text = composite.strip()
         if text:
@@ -5352,7 +5355,17 @@ def _event_matches_search(event, normalized_query):
 
     candidate_values = []
 
-    for key in ("title", "subtitle", "body", "description", "summary", "teaser", "location", "venue_name", "branch"):
+    for key in (
+        "title",
+        "subtitle",
+        "body",
+        "description",
+        "summary",
+        "teaser",
+        "location",
+        "venue_name",
+        "branch",
+    ):
         value = event.get(key)
         if isinstance(value, (str, int, float)):
             candidate_values.append(str(value))
@@ -5521,9 +5534,7 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
                             status=error.status_code,
                         )
                 else:
-                    categories = get_cached_ddb_categories(
-                        kommune_name, events
-                    )
+                    categories = get_cached_ddb_categories(kommune_name, events)
 
                 kommune_data["categories"] = categories
 
@@ -5588,7 +5599,9 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 if not raw_value:
                     continue
                 # Allow comma-separated lists as well as repeated parameters.
-                split_values = [item.strip() for item in raw_value.split(",") if item.strip()]
+                split_values = [
+                    item.strip() for item in raw_value.split(",") if item.strip()
+                ]
                 values.extend(split_values)
             return values
 
@@ -5735,7 +5748,9 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 return bool(candidate_names & normalized_libraries)
 
             filtered_events = [
-                event for event in filtered_events if _event_matches_selected_libraries(event)
+                event
+                for event in filtered_events
+                if _event_matches_selected_libraries(event)
             ]
 
         if normalized_categories:
@@ -5758,7 +5773,9 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 return bool(candidate_categories & normalized_categories)
 
             filtered_events = [
-                event for event in filtered_events if _event_matches_selected_categories(event)
+                event
+                for event in filtered_events
+                if _event_matches_selected_categories(event)
             ]
 
         if normalized_search_query:

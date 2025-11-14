@@ -307,18 +307,20 @@ export const DdbEventsApiSlideType = {
   },
 
   renderSelectedEventsSummary() {
-    const container = document.getElementById("manualSelectedEventsContainer");
     const list = document.getElementById("manualSelectedEventsList");
     const emptyState = document.getElementById("manualSelectedEventsEmpty");
 
-    if (!container || !list || !emptyState) return;
+    if (!list || !emptyState) return;
 
     const mode = this.getSelectionMode();
-    container.classList.toggle("d-none", mode !== "manual");
-
-    if (mode !== "manual") {
-      return;
+    const containerColumn = document.getElementById(
+      "manualSelectedEventsContainer",
+    );
+    if (containerColumn) {
+      containerColumn.classList.toggle("d-none", mode !== "manual");
     }
+
+    if (mode !== "manual") return;
 
     list.innerHTML = "";
 

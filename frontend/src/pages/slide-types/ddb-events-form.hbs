@@ -94,21 +94,29 @@
         <div class="card border border-gray">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">{% trans "Matching events preview" %}</h5>
+                    <h5 class="card-title mb-0">{% trans "Matching events" %}</h5>
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshEventsPreviewBtn">
                         {% trans "Refresh" %}
                     </button>
                 </div>
-                <p class="text-muted small mb-3">{% trans "The list shows all events that match the current filters. Scroll to view more." %}</p>
-                <div id="eventPreviewStatus" class="small text-muted mb-2"></div>
-                <ul id="eventPreviewList" class="list-group list-group-flush small" style="max-height: 320px; overflow-y: auto;"></ul>
-                <div id="manualSelectedEventsContainer" class="mt-3 d-none">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">{% trans "Selected events" %}</h6>
-                        <small class="text-muted">{% trans "These events will be shown on the slide." %}</small>
+                <p class="text-muted small mb-3">{% trans "Review the matching events. In manual mode, tick events to add them to your selection." %}</p>
+                <div class="row g-4">
+                    <div class="col-12 col-xl-7">
+                        <div id="eventPreviewStatus" class="small text-muted mb-2"></div>
+                        <ul id="eventPreviewList" class="list-group list-group-flush small" style="max-height: 320px; overflow-y: auto;"></ul>
                     </div>
-                    <div id="manualSelectedEventsEmpty" class="text-muted small">{% trans "No events selected yet." %}</div>
-                    <ul id="manualSelectedEventsList" class="list-group list-group-flush small"></ul>
+                    <div class="col-12 col-xl-5" id="manualSelectedEventsContainer">
+                        <div class="card h-100 border border-gray">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">{% trans "Selected events" %}</h6>
+                                    <small class="text-muted">{% trans "Displayed on the slide" %}</small>
+                                </div>
+                                <div id="manualSelectedEventsEmpty" class="text-muted small flex-shrink-0">{% trans "No events selected yet." %}</div>
+                                <ul id="manualSelectedEventsList" class="list-group list-group-flush small flex-grow-1 overflow-auto mt-2"></ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
