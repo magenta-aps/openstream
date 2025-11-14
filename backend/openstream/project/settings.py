@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security and General Settings
 ###############################################################################
 
-PRODUCTION = os.environ.get("ENV", "production") == "production"
+PRODUCTION = os.environ.get("DJANGO_ENV", "production") == "production"
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 SLIDETYPE_BASE_API_URL = os.environ.get(
