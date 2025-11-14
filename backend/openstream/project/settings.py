@@ -42,6 +42,10 @@ if os.environ.get("CSRF_TRUSTED_ORIGINS"):
 else:
     CSRF_TRUSTED_ORIGINS = []
 
+# Reverse proxy configurations
+USE_X_FORWARDED_HOST = True if PRODUCTION else False
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if PRODUCTION else None
+
 ################################################################################
 # Media Files and S3-compatible storage (Using Django 4.2+ STORAGES)
 ################################################################################
