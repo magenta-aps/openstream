@@ -31,13 +31,28 @@ const parsedCategories = (() => {
   return fallback ? [fallback.trim()] : [];
 })();
 
+const parsedEventIds = (() => {
+  const source = queryParams.eventIds || queryParams.event_ids;
+  if (!source) return [];
+
+  return source
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+})();
+
+const selectionMode =
+  (queryParams.selectionMode || "").toLowerCase() === "manual"
+    ? "manual"
+    : "automatic";
+
 const config = {
   kommune: queryParams.kommune || "",
   libraries: parsedLibraries,
   library: parsedLibraries[0] || queryParams.library || "",
   categories: parsedCategories,
   category: parsedCategories[0] || queryParams.category || "",
-  days: queryParams.days || "7",
+  days: selectionMode === "manual" ? "0" : queryParams.days || "7",
   layout: queryParams.layout || "vertical",
   showSubtitle: queryParams.showSubtitle === "true",
   showDescription: queryParams.showDescription === "true",
@@ -46,6 +61,8 @@ const config = {
   showLocation: queryParams.showLocation !== "false",
   showTitle: queryParams.showTitle !== "false",
   slideDuration: parseInt(queryParams.slideDuration) || 10,
+  selectionMode,
+  selectedEventIds: parsedEventIds,
 };
 
 document
@@ -68,6 +85,11 @@ if (apiKey) {
 // Fetch events based on config
 async function fetchEvents() {
   try {
+    if (config.selectionMode === "manual" && config.selectedEventIds.length === 0) {
+      displayEventsInCarousel([]);
+      return;
+    }
+
     const params = new URLSearchParams();
     if (config.kommune) params.set("kommune", config.kommune);
     if (config.days !== undefined && config.days !== null) {
@@ -104,6 +126,13 @@ async function fetchEvents() {
       params.set("category", config.category.toLowerCase().trim());
     }
 
+    if (config.selectionMode === "manual") {
+      params.set("selectionMode", "manual");
+      if (config.selectedEventIds.length > 0) {
+        params.set("eventIds", config.selectedEventIds.join(","));
+      }
+    }
+
     const response = await fetch(
       `${baseUrl}/api/ddb/events?${params.toString()}`,
       { method: "GET", headers },
@@ -119,10 +148,78 @@ async function fetchEvents() {
     }
 
     const data = await response.json();
-    displayEventsInCarousel(data);
+    let events = Array.isArray(data) ? [...data] : [];
+
+    if (config.selectionMode === "manual" && config.selectedEventIds.length > 0) {
+      const orderLookup = new Map();
+      config.selectedEventIds.forEach((id, index) => {
+        const normalized = normalizeEventId(id);
+        if (normalized) orderLookup.set(normalized, index);
+      });
+
+      events = events
+        .filter((event) => {
+          const normalizedId = normalizeEventId(getPrimaryEventId(event));
+          return orderLookup.has(normalizedId);
+        })
+        .sort((a, b) => {
+          const aId = normalizeEventId(getPrimaryEventId(a));
+          const bId = normalizeEventId(getPrimaryEventId(b));
+          const aOrder = orderLookup.has(aId) ? orderLookup.get(aId) : Number.MAX_SAFE_INTEGER;
+          const bOrder = orderLookup.has(bId) ? orderLookup.get(bId) : Number.MAX_SAFE_INTEGER;
+          return aOrder - bOrder;
+        });
+    }
+
+    displayEventsInCarousel(events);
   } catch (error) {
     console.error("Error fetching events:", error);
   }
+}
+
+function normalizeEventId(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value).trim();
+  return text ? text.toLowerCase() : "";
+}
+
+function getEventIdCandidates(event) {
+  const candidates = [];
+  if (!event || typeof event !== "object") return candidates;
+
+  const keys = [
+    "id",
+    "event_id",
+    "eventId",
+    "record_id",
+    "recordId",
+    "uuid",
+    "slug",
+  ];
+
+  keys.forEach((key) => {
+    const value = event[key];
+    if (value === null || value === undefined) return;
+    const text = String(value).trim();
+    if (text) candidates.push(text);
+  });
+
+  if (typeof event?.url === "string") {
+    const text = event.url.trim();
+    if (text) candidates.push(text);
+  }
+
+  if (event?.title && event?.date_time?.start) {
+    const text = `${event.title}|${event.date_time.start}`.trim();
+    if (text) candidates.push(text);
+  }
+
+  return candidates;
+}
+
+function getPrimaryEventId(event) {
+  const candidates = getEventIdCandidates(event);
+  return candidates.length > 0 ? candidates[0] : "";
 }
 
 function displayEventsInCarousel(events) {
@@ -141,10 +238,18 @@ function displayEventsInCarousel(events) {
   );
 
   if (events.length === 0) {
+    let emptyMessage = "No events found";
+    if (config.selectionMode === "manual") {
+      emptyMessage =
+        config.selectedEventIds.length === 0
+          ? "No events selected"
+          : "Selected events are not available for the current filters.";
+    }
+
     carouselInner.innerHTML = `
       <div class="carousel-item active">
         <div class="d-flex justify-content-center align-items-center" style="height: 100vh; color:#333;">
-          No events found
+          ${emptyMessage}
         </div>
       </div>`;
     return;

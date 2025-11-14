@@ -43,6 +43,34 @@
 
             <div class="row mb-4 align-items-center">
                 <div class="col-md-2">
+                    <span class="form-label mb-0 d-block">{% trans "Mode:" %}</span>
+                </div>
+                <div class="col-md-10">
+                    <div class="d-flex flex-wrap gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeAutomatic" value="automatic" checked />
+                            <label class="form-check-label" for="ddbModeAutomatic">{% trans "Automatic (by days)" %}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeManual" value="manual" />
+                            <label class="form-check-label" for="ddbModeManual">{% trans "Manual (choose events)" %}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4 align-items-center d-none" id="manualSearchRow">
+                <div class="col-md-2">
+                    <label for="eventSearchInput" class="form-label mb-0">{% trans "Search events:" %}</label>
+                </div>
+                <div class="col-md-10">
+                    <input type="search" id="eventSearchInput" class="form-control border-gray" placeholder='{% trans "Filter events by text" %}' />
+                    <small class="text-muted d-block mt-2">{% trans "Search title, description, or location within the current filters." %}</small>
+                </div>
+            </div>
+
+            <div class="row mb-4 align-items-center" id="automaticModeFields">
+                <div class="col-md-2">
                     <label for="nrOfDaysInput" class="form-label mb-0">{% trans "Number of days:" %}</label>
                 </div>
                 <div class="col-md-10">
@@ -59,97 +87,6 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-6 border-top border-gray pt-2">
-                    <div>
-                        <label for="layoutSelection" class="form-label ">{% trans "Choose layout:" %}</label>
-                    </div>
-                    <div class="row g-4">
-                        <!-- Vertical Option -->
-                        <div class="col-5">
-                            <label class="d-block">
-                                <input id="vertical-option" type="radio" name="layout" class="d-none" value="vertical" />
-                                <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
-                                    <div class="card-body d-flex flex-column p-2">
-                                        <div class="d-flex align-items-center">
-                                            <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
-                                            <p class="fw-bold m-0">{% trans "Vertical: " %}</p>
-                                        </div>
-                                        <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                            <img src="/Hojformat-ikon.png" alt="Vertical layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Horizontal Option -->
-                        <div class="col-7 h-100">
-                            <label class="d-block h-100">
-                                <input id="horizontal-option" type="radio" name="layout" class="d-none" value="horizontal" />
-                                <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
-                                    <div class="card-body d-flex flex-column p-2">
-                                        <div class="d-flex align-items-center">
-                                            <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
-                                            <p class="fw-bold m-0">{% trans "Horizontal: " %}</p>
-                                        </div>
-                                        <div class="flex-grow-1 d-flex align-items-center justify-content-center">
-                                            <img src="/Bredformat-ikon.png" alt="Horizontal layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-6 ps-4 border-top border-gray pt-2">
-                    <label for="selectContent" class="form-label ">{% trans "Choose content:" %}</label>
-                    <div class="d-flex flex-column gap-2 mt-2">
-                        <div class="form-check">
-                            <input class="form-check-input fs-5" type="checkbox" id="title" name="title" value="title" />
-                            <label class="form-check-label " for="title">
-                                {% trans "Title" %}
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input fs-5" type="checkbox" id="subtitle" name="subtitle" value="subtitle" />
-                            <label class="form-check-label " for="subtitle">
-                                {% trans "Subtitle" %}
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input fs-5" type="checkbox" id="dateTime" name="dateTime" value="dateTime" />
-                            <label class="form-check-label " for="dateTime">
-                                {% trans "Date & Time" %}
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input fs-5" type="checkbox" id="description" name="description" />
-                            <label class="form-check-label " for="description">
-                                {% trans "Description" %}
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input fs-5" type="checkbox" id="qrCode" name="qrCode" />
-                            <label class="form-check-label " for="qrCode">
-                                {% trans "QR code" %}
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input fs-5" type="checkbox" id="location" name="location" value="location" />
-                            <label class="form-check-label " for="location">
-                                {% trans "Location" %}
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -165,6 +102,110 @@
                 <p class="text-muted small mb-3">{% trans "The list shows all events that match the current filters. Scroll to view more." %}</p>
                 <div id="eventPreviewStatus" class="small text-muted mb-2"></div>
                 <ul id="eventPreviewList" class="list-group list-group-flush small" style="max-height: 320px; overflow-y: auto;"></ul>
+                <div id="manualSelectedEventsContainer" class="mt-3 d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">{% trans "Selected events" %}</h6>
+                        <small class="text-muted">{% trans "These events will be shown on the slide." %}</small>
+                    </div>
+                    <div id="manualSelectedEventsEmpty" class="text-muted small">{% trans "No events selected yet." %}</div>
+                    <ul id="manualSelectedEventsList" class="list-group list-group-flush small"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <div class="card border border-gray">
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-lg-7">
+                        <label for="layoutSelection" class="form-label ">{% trans "Choose layout:" %}</label>
+                        <div class="row g-4">
+                            <!-- Vertical Option -->
+                            <div class="col-sm-6 col-lg-12 col-xl-6">
+                                <label class="d-block">
+                                    <input id="vertical-option" type="radio" name="layout" class="d-none" value="vertical" />
+                                    <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
+                                        <div class="card-body d-flex flex-column p-2">
+                                            <div class="d-flex align-items-center">
+                                                <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
+                                                <p class="fw-bold m-0">{% trans "Vertical: " %}</p>
+                                            </div>
+                                            <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                                <img src="/Hojformat-ikon.png" alt="Vertical layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Horizontal Option -->
+                            <div class="col-sm-6 col-lg-12 col-xl-6">
+                                <label class="d-block h-100">
+                                    <input id="horizontal-option" type="radio" name="layout" class="d-none" value="horizontal" />
+                                    <div class="card border border-gray h-100" style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
+                                        <div class="card-body d-flex flex-column p-2">
+                                            <div class="d-flex align-items-center">
+                                                <input type="radio" name="layout-visual" class="form-check-input fs-4 me-2" style="pointer-events: none;">
+                                                <p class="fw-bold m-0">{% trans "Horizontal: " %}</p>
+                                            </div>
+                                            <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                                <img src="/Bredformat-ikon.png" alt="Horizontal layout" class="img-fluid" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-5">
+                        <label for="selectContent" class="form-label ">{% trans "Choose content:" %}</label>
+                        <div class="d-flex flex-column gap-2 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="title" name="title" value="title" />
+                                <label class="form-check-label " for="title">
+                                    {% trans "Title" %}
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="subtitle" name="subtitle" value="subtitle" />
+                                <label class="form-check-label " for="subtitle">
+                                    {% trans "Subtitle" %}
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="dateTime" name="dateTime" value="dateTime" />
+                                <label class="form-check-label " for="dateTime">
+                                    {% trans "Date & Time" %}
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="description" name="description" />
+                                <label class="form-check-label " for="description">
+                                    {% trans "Description" %}
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="qrCode" name="qrCode" />
+                                <label class="form-check-label " for="qrCode">
+                                    {% trans "QR code" %}
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="location" name="location" value="location" />
+                                <label class="form-check-label " for="location">
+                                    {% trans "Location" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

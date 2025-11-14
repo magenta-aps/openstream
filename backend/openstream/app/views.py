@@ -5304,6 +5304,84 @@ def _extract_unique_categories(events):
     return sorted(unique_categories.values(), key=lambda value: value.casefold())
 
 
+def _collect_event_identifiers(event):
+    identifiers = []
+    if not isinstance(event, dict):
+        return identifiers
+
+    candidate_keys = (
+        "id",
+        "event_id",
+        "eventId",
+        "record_id",
+        "recordId",
+        "uuid",
+        "slug",
+    )
+
+    for key in candidate_keys:
+        value = event.get(key)
+        if isinstance(value, (str, int, float)):
+            text = str(value).strip()
+            if text:
+                identifiers.append(text)
+
+    url_value = event.get("url")
+    if isinstance(url_value, str):
+        text = url_value.strip()
+        if text:
+            identifiers.append(text)
+
+    title = event.get("title")
+    start_time = event.get("date_time", {}).get("start")
+    if isinstance(title, (str, int, float)) and isinstance(start_time, (str, int, float)):
+        composite = f"{title}|{start_time}"
+        text = composite.strip()
+        if text:
+            identifiers.append(text)
+
+    return identifiers
+
+
+def _event_matches_search(event, normalized_query):
+    if not normalized_query:
+        return True
+
+    if not isinstance(event, dict):
+        return False
+
+    candidate_values = []
+
+    for key in ("title", "subtitle", "body", "description", "summary", "teaser", "location", "venue_name", "branch"):
+        value = event.get(key)
+        if isinstance(value, (str, int, float)):
+            candidate_values.append(str(value))
+
+    address = event.get("address")
+    if isinstance(address, dict):
+        for key in ("location", "street", "city"):
+            value = address.get(key)
+            if isinstance(value, (str, int, float)):
+                candidate_values.append(str(value))
+
+    categories = event.get("categories")
+    if isinstance(categories, list):
+        candidate_values.extend(str(category) for category in categories)
+    elif isinstance(categories, (str, int, float)):
+        candidate_values.append(str(categories))
+
+    tags = event.get("tags")
+    if isinstance(tags, list):
+        candidate_values.extend(str(tag) for tag in tags)
+
+    for value in candidate_values:
+        normalized_value = _normalize_text(value)
+        if normalized_value and normalized_query in normalized_value:
+            return True
+
+    return False
+
+
 def fetch_cached_ddb_events(kommune):
     if kommune not in DDB_EVENT_API_URLS:
         raise DDBEventFetchError(
@@ -5467,7 +5545,18 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        days = int(request.query_params.get("days", 0))
+        days_param = request.query_params.get("days")
+
+        if days_param is None or str(days_param).strip() == "":
+            days = 0
+        else:
+            try:
+                days = int(str(days_param).strip())
+            except (TypeError, ValueError):
+                return Response(
+                    {"error": "'days' parameter must be a positive integer."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         # Validate the 'days' parameter.
         if days < 0:
@@ -5555,6 +5644,19 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        search_query = request.query_params.get("search")
+        normalized_search_query = _normalize_text(search_query) if search_query else ""
+
+        selected_event_ids = _parse_multi_value_param("event_ids")
+        if not selected_event_ids:
+            selected_event_ids = _parse_multi_value_param("eventIds")
+
+        normalized_event_id_set = {
+            _normalize_text(value)
+            for value in selected_event_ids
+            if _normalize_text(value)
+        }
 
         # Filter events based on the 'days' parameter.
         if not valid_events:
@@ -5659,6 +5761,29 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 event for event in filtered_events if _event_matches_selected_categories(event)
             ]
 
+        if normalized_search_query:
+
+            def _event_matches_query(event):
+                return _event_matches_search(event, normalized_search_query)
+
+            filtered_events = [
+                event for event in filtered_events if _event_matches_query(event)
+            ]
+
+        if normalized_event_id_set:
+
+            def _event_matches_selected_ids(event):
+                identifiers = {
+                    _normalize_text(identifier)
+                    for identifier in _collect_event_identifiers(event)
+                    if _normalize_text(identifier)
+                }
+                return bool(identifiers & normalized_event_id_set)
+
+            filtered_events = [
+                event for event in filtered_events if _event_matches_selected_ids(event)
+            ]
+
         # Apply additional filters
         extra_filters = {
             key: value.lower()
@@ -5674,6 +5799,10 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
                 "branches",
                 "categories",
                 "category",
+                "eventIds",
+                "event_ids",
+                "search",
+                "selectionMode",
             ]
         }
         if extra_filters:

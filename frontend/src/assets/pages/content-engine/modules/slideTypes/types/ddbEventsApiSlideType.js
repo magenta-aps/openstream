@@ -25,6 +25,10 @@ export const DdbEventsApiSlideType = {
   previewElements: null,
   previewAbortController: null,
   previewRefreshTimeout: null,
+  manualSelectedEvents: null,
+  manualSearchTerm: "",
+  latestFetchedEvents: null,
+  latestLookupContext: null,
 
   buildAuthHeaders() {
     const headers = {};
@@ -90,6 +94,10 @@ export const DdbEventsApiSlideType = {
       showDescription: config.showDescription || false,
       showQr: config.showQr !== false,
       showLocation: config.showLocation !== false,
+      selectionMode: config.selectionMode === "manual" ? "manual" : "automatic",
+      selectedEventIds: Array.isArray(config.selectedEventIds)
+        ? config.selectedEventIds
+        : [],
     };
   },
 
@@ -98,6 +106,7 @@ export const DdbEventsApiSlideType = {
       const librariesData = await this.fetchLibrariesData();
       this.currentLibrariesData = librariesData;
       const config = this.getDefaultConfig(existingConfig);
+      this.initializeManualSelection(config);
 
       return await SlideTypeUtils.loadFormTemplateWithCallback(
         "/slide-types/ddb-events-form",
@@ -118,7 +127,36 @@ export const DdbEventsApiSlideType = {
     }
   },
 
+  initializeManualSelection(config) {
+    this.manualSelectedEvents = new Map();
+    this.latestFetchedEvents = new Map();
+    this.latestLookupContext = null;
+    this.manualSearchTerm = "";
+
+    if (config && Array.isArray(config.selectedEventIds)) {
+      config.selectedEventIds.forEach((rawId) => {
+        const normalizedId = this.normalizeEventId(rawId);
+        if (!normalizedId) return;
+
+        this.manualSelectedEvents.set(normalizedId, {
+          id: rawId,
+          normalizedId,
+          title: "",
+          subtitle: "",
+          start: "",
+          formattedStart: "",
+          location: "",
+          libraries: [],
+          categories: [],
+          url: "",
+          isPlaceholder: true,
+        });
+      });
+    }
+  },
+
   populateFormData(config) {
+    const selectionMode = config.selectionMode || "automatic";
     this.populateMunicipalityOptions(config.kommune);
     this.updateLibraryOptions(config.kommune, config.libraries);
     this.updateCategoryOptions(config.kommune, config.categories);
@@ -144,6 +182,19 @@ export const DdbEventsApiSlideType = {
     Object.entries(checkboxMapping).forEach(([id, checked]) => {
       this.setElementChecked(`#${id}`, checked);
     });
+
+    // Selection mode controls
+    const modeRadio = document.querySelector(
+      `input[name="ddbEventsMode"][value="${selectionMode}"]`,
+    );
+    if (modeRadio) modeRadio.checked = true;
+
+    // Search input
+    const searchInput = document.getElementById("eventSearchInput");
+    if (searchInput) searchInput.value = this.manualSearchTerm || "";
+
+    this.updateModeVisibility(selectionMode);
+    this.renderSelectedEventsSummary();
   },
 
   populateMunicipalityOptions(selectedMunicipality) {
@@ -185,6 +236,195 @@ export const DdbEventsApiSlideType = {
     const element =
       document.getElementById(selector) || document.querySelector(selector);
     if (element) element.checked = checked;
+  },
+
+  getSelectionMode() {
+    return (
+      document.querySelector('input[name="ddbEventsMode"]:checked')?.value ||
+      "automatic"
+    );
+  },
+
+  updateModeVisibility(mode) {
+    const automaticFields = document.getElementById("automaticModeFields");
+    if (automaticFields) {
+      automaticFields.classList.toggle("d-none", mode === "manual");
+    }
+
+    const daysInput = document.getElementById("nrOfDaysInput");
+    if (daysInput) {
+      daysInput.toggleAttribute("required", mode !== "manual");
+      daysInput.disabled = mode === "manual";
+      if (mode === "manual") {
+        daysInput.dataset.prevValue = daysInput.value;
+        daysInput.value = "";
+      } else if (!daysInput.value && daysInput.dataset.prevValue) {
+        daysInput.value = daysInput.dataset.prevValue;
+        delete daysInput.dataset.prevValue;
+      }
+    }
+
+    const manualSearchRow = document.getElementById("manualSearchRow");
+    if (manualSearchRow) {
+      manualSearchRow.classList.toggle("d-none", mode !== "manual");
+    }
+
+    const manualSelectedContainer = document.getElementById(
+      "manualSelectedEventsContainer",
+    );
+    if (manualSelectedContainer) {
+      manualSelectedContainer.classList.toggle(
+        "d-none",
+        mode !== "manual",
+      );
+    }
+
+    if (mode === "manual") {
+      const searchInput = document.getElementById("eventSearchInput");
+      if (searchInput) {
+        searchInput.value = this.manualSearchTerm || "";
+      }
+    }
+  },
+
+  clearManualSelection() {
+    if (!(this.manualSelectedEvents instanceof Map)) {
+      this.manualSelectedEvents = new Map();
+    } else {
+      this.manualSelectedEvents.clear();
+    }
+
+    const previewCheckboxes = document.querySelectorAll(
+      '#eventPreviewList input[type="checkbox"]',
+    );
+    previewCheckboxes.forEach((checkbox) => {
+      checkbox.checked = false;
+      const listItem = checkbox.closest("li");
+      if (listItem) listItem.classList.remove("active");
+    });
+
+    this.renderSelectedEventsSummary();
+  },
+
+  renderSelectedEventsSummary() {
+    const container = document.getElementById("manualSelectedEventsContainer");
+    const list = document.getElementById("manualSelectedEventsList");
+    const emptyState = document.getElementById("manualSelectedEventsEmpty");
+
+    if (!container || !list || !emptyState) return;
+
+    const mode = this.getSelectionMode();
+    container.classList.toggle("d-none", mode !== "manual");
+
+    if (mode !== "manual") {
+      return;
+    }
+
+    list.innerHTML = "";
+
+    const selections =
+      this.manualSelectedEvents instanceof Map
+        ? Array.from(this.manualSelectedEvents.values())
+        : [];
+
+    if (!selections.length) {
+      emptyState.classList.remove("d-none");
+      return;
+    }
+
+    emptyState.classList.add("d-none");
+
+    selections.forEach((meta) => {
+      const item = document.createElement("li");
+      item.className =
+        "list-group-item d-flex justify-content-between align-items-start";
+
+      const content = document.createElement("div");
+      content.className = "me-3";
+
+      const title = document.createElement("div");
+      title.className = "fw-bold";
+      title.textContent =
+        meta?.title || meta?.id || gettext("Untitled event");
+      content.appendChild(title);
+
+      const detailParts = [];
+      if (meta?.formattedStart) detailParts.push(meta.formattedStart);
+      if (meta?.location) detailParts.push(meta.location);
+      if (Array.isArray(meta?.libraries) && meta.libraries.length > 0) {
+        detailParts.push(meta.libraries.join(", "));
+      }
+
+      if (detailParts.length > 0) {
+        const details = document.createElement("div");
+        details.className = "small text-muted";
+        details.textContent = detailParts.join(" | ");
+        content.appendChild(details);
+      }
+
+      if (meta?.isPlaceholder) {
+        const placeholder = document.createElement("div");
+        placeholder.className = "small text-muted";
+        placeholder.textContent = gettext(
+          "Details will load once events are fetched.",
+        );
+        content.appendChild(placeholder);
+      }
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "btn btn-sm btn-outline-secondary";
+      removeButton.textContent = gettext("Remove");
+      removeButton.setAttribute("data-action", "remove-event");
+      removeButton.setAttribute("data-event-id", meta?.normalizedId || "");
+
+      item.appendChild(content);
+      item.appendChild(removeButton);
+      list.appendChild(item);
+    });
+  },
+
+  updateManualSelection({
+    normalizedId,
+    rawId,
+    eventData,
+    isSelected,
+    context,
+  }) {
+    if (!normalizedId) return;
+
+    if (!(this.manualSelectedEvents instanceof Map)) {
+      this.manualSelectedEvents = new Map();
+    }
+
+    if (isSelected) {
+      const effectiveRawId = rawId || this.getEventPrimaryId(eventData);
+      if (!effectiveRawId) return;
+
+      const meta = eventData
+        ? this.buildEventMeta(eventData, effectiveRawId, context)
+        : {
+            id: effectiveRawId,
+            normalizedId,
+            title: effectiveRawId,
+            subtitle: "",
+            start: "",
+            formattedStart: "",
+            location: "",
+            libraries: [],
+            categories: [],
+            url: "",
+            isPlaceholder: true,
+          };
+
+      meta.id = effectiveRawId;
+      meta.normalizedId = normalizedId;
+      this.manualSelectedEvents.set(normalizedId, meta);
+    } else {
+      this.manualSelectedEvents.delete(normalizedId);
+    }
+
+    this.renderSelectedEventsSummary();
   },
 
   updateLibraryOptions(selectedMunicipality, selectedLibraries = []) {
@@ -349,8 +589,9 @@ export const DdbEventsApiSlideType = {
     const categoryContainer = document.getElementById(
       "categoryCheckboxContainer",
     );
+    const previewList = document.getElementById("eventPreviewList");
 
-    if (!kommuneSelect || !libraryContainer || !categoryContainer) {
+    if (!kommuneSelect || !libraryContainer || !categoryContainer || !previewList) {
       setTimeout(() => this.setupFormEventListeners(), 100);
       return;
     }
@@ -363,6 +604,14 @@ export const DdbEventsApiSlideType = {
       function (event) {
         this.updateLibraryOptions(event.target.value, []);
         this.updateCategoryOptions(event.target.value, []);
+
+        if (this.getSelectionMode() === "manual") {
+          this.clearManualSelection();
+          this.manualSearchTerm = "";
+          const searchInput = document.getElementById("eventSearchInput");
+          if (searchInput) searchInput.value = "";
+        }
+
         this.schedulePreviewRefresh(100);
       },
       this,
@@ -401,6 +650,33 @@ export const DdbEventsApiSlideType = {
     );
     if (categoryListener) this.eventListenerCleanup.push(categoryListener);
 
+    const automaticModeListener = SlideTypeUtils.setupEventListener(
+      "ddbModeAutomatic",
+      "change",
+      function (event) {
+        if (!event?.target?.checked) return;
+        this.updateModeVisibility("automatic");
+        this.renderSelectedEventsSummary();
+        this.schedulePreviewRefresh(0);
+      },
+      this,
+    );
+    if (automaticModeListener)
+      this.eventListenerCleanup.push(automaticModeListener);
+
+    const manualModeListener = SlideTypeUtils.setupEventListener(
+      "ddbModeManual",
+      "change",
+      function (event) {
+        if (!event?.target?.checked) return;
+        this.updateModeVisibility("manual");
+        this.renderSelectedEventsSummary();
+        this.schedulePreviewRefresh(0);
+      },
+      this,
+    );
+    if (manualModeListener) this.eventListenerCleanup.push(manualModeListener);
+
     const daysListener = SlideTypeUtils.setupEventListener(
       "nrOfDaysInput",
       "input",
@@ -410,6 +686,18 @@ export const DdbEventsApiSlideType = {
       this,
     );
     if (daysListener) this.eventListenerCleanup.push(daysListener);
+
+    const searchListener = SlideTypeUtils.setupEventListener(
+      "eventSearchInput",
+      "input",
+      function (event) {
+        if (this.getSelectionMode() !== "manual") return;
+        this.manualSearchTerm = event?.target?.value || "";
+        this.schedulePreviewRefresh(300);
+      },
+      this,
+    );
+    if (searchListener) this.eventListenerCleanup.push(searchListener);
 
     const refreshPreviewListener = SlideTypeUtils.setupEventListener(
       "refreshEventsPreviewBtn",
@@ -421,6 +709,92 @@ export const DdbEventsApiSlideType = {
     );
     if (refreshPreviewListener)
       this.eventListenerCleanup.push(refreshPreviewListener);
+
+    const previewSelectionListener = SlideTypeUtils.setupEventListener(
+      "eventPreviewList",
+      "change",
+      function (event) {
+        if (this.getSelectionMode() !== "manual") return;
+        const target = event?.target;
+        if (
+          !(target instanceof HTMLInputElement) ||
+          target.type !== "checkbox"
+        ) {
+          return;
+        }
+
+        const rawId = target.value;
+        const normalizedId =
+          target.dataset.normalizedId || this.normalizeEventId(rawId);
+        if (!normalizedId) return;
+
+        const eventInfo = this.latestFetchedEvents?.get(normalizedId);
+        const context = this.latestLookupContext || {
+          libraryLookup: this.getLibraryLookup(
+            document.getElementById("kommuneSelect")?.value,
+          ),
+          categoryLookup: this.getCategoryLookup(
+            document.getElementById("kommuneSelect")?.value,
+          ),
+        };
+
+        this.updateManualSelection({
+          normalizedId,
+          rawId: rawId || eventInfo?.id || "",
+          eventData: eventInfo?.event,
+          isSelected: target.checked,
+          context,
+        });
+
+        const listItem = target.closest("li");
+        if (listItem) {
+          listItem.classList.toggle("active", target.checked);
+        }
+      },
+      this,
+    );
+    if (previewSelectionListener)
+      this.eventListenerCleanup.push(previewSelectionListener);
+
+    const selectedListListener = SlideTypeUtils.setupEventListener(
+      "manualSelectedEventsList",
+      "click",
+      function (event) {
+        const target = event?.target;
+        if (!target || target.getAttribute("data-action") !== "remove-event")
+          return;
+
+        const normalizedId = target.getAttribute("data-event-id");
+        if (!normalizedId) return;
+
+        this.updateManualSelection({
+          normalizedId,
+          rawId: this.manualSelectedEvents?.get(normalizedId)?.id || "",
+          eventData: null,
+          isSelected: false,
+          context: this.latestLookupContext || {
+            libraryLookup: this.getLibraryLookup(
+              document.getElementById("kommuneSelect")?.value,
+            ),
+            categoryLookup: this.getCategoryLookup(
+              document.getElementById("kommuneSelect")?.value,
+            ),
+          },
+        });
+
+        const checkbox = document.querySelector(
+          `#eventPreviewList input[type="checkbox"][data-normalized-id="${normalizedId}"]`,
+        );
+        if (checkbox) {
+          checkbox.checked = false;
+          const listItem = checkbox.closest("li");
+          if (listItem) listItem.classList.remove("active");
+        }
+      },
+      this,
+    );
+    if (selectedListListener)
+      this.eventListenerCleanup.push(selectedListListener);
 
     // Handle layout selection changes
     const layoutRadios = document.querySelectorAll('input[name="layout"]');
@@ -489,6 +863,17 @@ export const DdbEventsApiSlideType = {
 
     this.previewElements = null;
     this.currentLibrariesData = null;
+
+    if (this.manualSelectedEvents instanceof Map) {
+      this.manualSelectedEvents.clear();
+    }
+    this.manualSelectedEvents = null;
+    this.manualSearchTerm = "";
+    if (this.latestFetchedEvents instanceof Map) {
+      this.latestFetchedEvents.clear();
+    }
+    this.latestFetchedEvents = null;
+    this.latestLookupContext = null;
   },
 
   schedulePreviewRefresh(delay = 250) {
@@ -553,6 +938,7 @@ export const DdbEventsApiSlideType = {
 
     const config = this.extractFormData();
     const kommune = (config.kommune || "").trim();
+    const selectionMode = config.selectionMode || this.getSelectionMode();
     const libraries = Array.isArray(config.libraries)
   ? config.libraries
       .map((library) => String(library).toLowerCase().trim())
@@ -581,11 +967,15 @@ export const DdbEventsApiSlideType = {
     const params = new URLSearchParams();
     params.set("kommune", kommune);
 
-    const days = parseInt(config.days, 10);
-    if (!Number.isNaN(days) && days >= 0) {
-      params.set("days", String(days));
-    } else {
+    if (selectionMode === "manual") {
       params.set("days", "0");
+    } else {
+      const days = parseInt(config.days, 10);
+      if (!Number.isNaN(days) && days >= 0) {
+        params.set("days", String(days));
+      } else {
+        params.set("days", "0");
+      }
     }
 
     const joinedLibraries = libraries.join(",");
@@ -597,6 +987,13 @@ export const DdbEventsApiSlideType = {
       const joinedCategories = categories.join(",");
       params.set("categories", joinedCategories);
       params.set("category", categories[0]);
+    }
+
+    if (selectionMode === "manual" && this.manualSearchTerm) {
+      const trimmedSearch = this.manualSearchTerm.trim();
+      if (trimmedSearch) {
+        params.set("search", trimmedSearch);
+      }
     }
 
     if (this.previewAbortController) {
@@ -625,6 +1022,7 @@ export const DdbEventsApiSlideType = {
         kommune,
         selectedLibraries: libraries,
         selectedCategories: categories,
+        selectionMode,
       });
     } catch (error) {
       if (error?.name === "AbortError") {
@@ -639,19 +1037,40 @@ export const DdbEventsApiSlideType = {
     }
   },
 
-  renderPreviewEvents(events, { kommune, selectedLibraries, selectedCategories }) {
+  renderPreviewEvents(
+    events,
+    { kommune, selectedLibraries, selectedCategories, selectionMode } = {},
+  ) {
     const elements = this.ensurePreviewElements();
     if (!elements) return;
 
     const { status, list } = elements;
     list.innerHTML = "";
 
+    const mode = selectionMode === "manual" ? "manual" : "automatic";
+
     if (!Array.isArray(events) || events.length === 0) {
-      status.textContent = gettext("No events match the current filters.");
+      status.textContent =
+        mode === "manual"
+          ? gettext(
+              "No events match the current filters. Adjust the filters or search to find events to select.",
+            )
+          : gettext("No events match the current filters.");
+
+      if (mode === "manual") {
+        if (this.latestFetchedEvents instanceof Map) {
+          this.latestFetchedEvents.clear();
+        }
+        this.renderSelectedEventsSummary();
+      }
       return;
     }
 
-    status.textContent = `${gettext("Events matching current filters:")} ${events.length}`;
+    const baseStatus = `${gettext("Events matching current filters:")} ${events.length}`;
+    status.textContent =
+      mode === "manual"
+        ? `${baseStatus}. ${gettext("Tick the events to include in the slide.")}`
+        : baseStatus;
 
     const selectedLibrarySet = new Set(
       (selectedLibraries || []).map((library) =>
@@ -666,13 +1085,65 @@ export const DdbEventsApiSlideType = {
     const libraryLookup = this.getLibraryLookup(kommune);
     const categoryLookup = this.getCategoryLookup(kommune);
 
-    events.forEach((event) => {
+    this.latestLookupContext = {
+      kommune,
+      libraryLookup,
+      categoryLookup,
+    };
+
+    if (this.latestFetchedEvents instanceof Map) {
+      this.latestFetchedEvents.clear();
+    } else {
+      this.latestFetchedEvents = new Map();
+    }
+
+    events.forEach((event, index) => {
       const item = document.createElement("li");
       item.className = "list-group-item py-2";
 
+      const rawId = this.getEventPrimaryId(event);
+      const normalizedId = this.normalizeEventId(rawId);
+
+      let contentTarget = item;
+
+      if (mode === "manual") {
+        item.classList.add("d-flex", "align-items-start", "gap-2");
+        const checkboxWrapper = document.createElement("div");
+        checkboxWrapper.className = "form-check mt-1 me-2";
+
+        const checkboxId = `manual-event-${index}`;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "form-check-input";
+        checkbox.id = checkboxId;
+        checkbox.value = rawId || "";
+        if (normalizedId) {
+          checkbox.dataset.normalizedId = normalizedId;
+        } else {
+          checkbox.disabled = true;
+        }
+
+        const isSelected =
+          normalizedId &&
+          this.manualSelectedEvents instanceof Map &&
+          this.manualSelectedEvents.has(normalizedId);
+
+        checkbox.checked = Boolean(isSelected);
+        checkboxWrapper.appendChild(checkbox);
+        item.appendChild(checkboxWrapper);
+
+        contentTarget = document.createElement("div");
+        contentTarget.className = "flex-grow-1";
+        item.appendChild(contentTarget);
+
+        if (isSelected) {
+          item.classList.add("active");
+        }
+      }
+
       const title = document.createElement("strong");
       title.textContent = event?.title || gettext("Untitled event");
-      item.appendChild(title);
+      contentTarget.appendChild(title);
 
       const metaParts = [];
       const startDate = this.formatDateTime(event?.date_time?.start);
@@ -711,18 +1182,51 @@ export const DdbEventsApiSlideType = {
         const meta = document.createElement("div");
         meta.className = "small text-muted";
         meta.textContent = metaParts.join(" | ");
-        item.appendChild(meta);
+        contentTarget.appendChild(meta);
       }
 
       if (event?.subtitle) {
         const subtitle = document.createElement("div");
         subtitle.className = "small text-muted";
         subtitle.textContent = event.subtitle;
-        item.appendChild(subtitle);
+        contentTarget.appendChild(subtitle);
+      }
+
+      if (mode === "manual" && !normalizedId) {
+        const warning = document.createElement("div");
+        warning.className = "small text-muted";
+        warning.textContent = gettext(
+          "This event cannot be selected because it is missing an identifier.",
+        );
+        contentTarget.appendChild(warning);
+      }
+
+      if (normalizedId) {
+        this.latestFetchedEvents.set(normalizedId, {
+          id: rawId,
+          event,
+        });
+
+        if (
+          mode === "manual" &&
+          this.manualSelectedEvents instanceof Map &&
+          this.manualSelectedEvents.has(normalizedId)
+        ) {
+          const meta = this.buildEventMeta(
+            event,
+            rawId,
+            this.latestLookupContext,
+          );
+          this.manualSelectedEvents.set(normalizedId, meta);
+        }
       }
 
       list.appendChild(item);
     });
+
+    if (mode === "manual") {
+      this.renderSelectedEventsSummary();
+    }
   },
 
   getLibraryLookup(kommune) {
@@ -827,6 +1331,95 @@ export const DdbEventsApiSlideType = {
     return `${datePart} kl. ${timePart}`;
   },
 
+  normalizeEventId(value) {
+    if (value === null || value === undefined) return "";
+    const text = String(value).trim();
+    return text ? text.toLowerCase() : "";
+  },
+
+  getEventIdCandidates(event) {
+    const candidates = [];
+    if (!event || typeof event !== "object") return candidates;
+
+    const keys = [
+      "id",
+      "event_id",
+      "eventId",
+      "record_id",
+      "recordId",
+      "uuid",
+      "slug",
+    ];
+
+    keys.forEach((key) => {
+      const value = event[key];
+      if (value === null || value === undefined) return;
+      const text = String(value).trim();
+      if (text) candidates.push(text);
+    });
+
+    if (typeof event?.url === "string") {
+      const text = event.url.trim();
+      if (text) candidates.push(text);
+    }
+
+    const title = event?.title;
+    const start = event?.date_time?.start;
+    if (title && start) {
+      const text = `${title}|${start}`.trim();
+      if (text) candidates.push(text);
+    }
+
+    return candidates;
+  },
+
+  getEventPrimaryId(event) {
+    const candidates = this.getEventIdCandidates(event);
+    return candidates.length > 0 ? candidates[0] : "";
+  },
+
+  buildEventMeta(event, rawId, context = {}) {
+    const normalizedId = this.normalizeEventId(rawId);
+    const libraryLookup = context.libraryLookup || new Map();
+    const categoryLookup = context.categoryLookup || new Map();
+
+    const libraryMatches = this.getEventLibraryMatches(
+      event,
+      new Set(),
+      libraryLookup,
+    );
+
+    const fallbackLocation =
+      event?.address?.location ||
+      event?.address?.street ||
+      event?.location ||
+      event?.venue_name ||
+      event?.branch ||
+      "";
+
+    const categories = this.getEventCategoryMatches(
+      event,
+      new Set(),
+      categoryLookup,
+    );
+
+    return {
+      id: rawId,
+      normalizedId,
+      title: event?.title || "",
+      subtitle: event?.subtitle || "",
+      start: event?.date_time?.start || "",
+      formattedStart: this.formatDateTime(event?.date_time?.start),
+      location: libraryMatches.length > 0
+        ? libraryMatches.join(", ")
+        : fallbackLocation,
+      libraries: libraryMatches,
+      categories,
+      url: event?.url || "",
+      isPlaceholder: false,
+    };
+  },
+
   async generateSlide(config) {
     const libraries = Array.isArray(config.libraries)
       ? config.libraries
@@ -839,9 +1432,17 @@ export const DdbEventsApiSlideType = {
       ? [config.category]
       : [];
 
+    const selectionMode = config.selectionMode === "manual" ? "manual" : "automatic";
+    const selectedEventIds = Array.isArray(config.selectedEventIds)
+      ? config.selectedEventIds.filter((id) => typeof id === "string" && id.trim().length > 0)
+      : [];
+
     const params = {
       kommune: config.kommune || "",
-      days: config.days || "7",
+      days:
+        selectionMode === "manual"
+          ? "0"
+          : config.days || "7",
       slideDuration: config.slideDuration || "",
       layout: config.layout || "vertical",
       showTitle: config.showTitle === false ? "false" : "true",
@@ -850,6 +1451,7 @@ export const DdbEventsApiSlideType = {
       showQr: config.showQr === false ? "false" : "true",
       showDateTime: config.showDateTime === false ? "false" : "true",
       showLocation: config.showLocation === false ? "false" : "true",
+      selectionMode,
     };
 
     if (libraries.length > 0) {
@@ -866,6 +1468,10 @@ export const DdbEventsApiSlideType = {
       params.category = config.category;
     }
 
+    if (selectionMode === "manual" && selectedEventIds.length > 0) {
+      params.eventIds = selectedEventIds.join(",");
+    }
+
     return SlideTypeUtils.generateSlideUrl(
       "/slide-types/ddb-events",
       params,
@@ -880,6 +1486,8 @@ export const DdbEventsApiSlideType = {
     const getSelectedRadio = (name) =>
       document.querySelector(`input[name="${name}"]:checked`)?.value ||
       "vertical";
+
+    const selectionMode = this.getSelectionMode();
 
     const selectedLibraries = Array.from(
       document.querySelectorAll(
@@ -899,13 +1507,23 @@ export const DdbEventsApiSlideType = {
       .map((value) => String(value).toLowerCase().trim())
       .filter((value) => value.length > 0);
 
+    const selectedEventIds =
+      this.manualSelectedEvents instanceof Map
+        ? Array.from(this.manualSelectedEvents.values())
+            .map((meta) => meta?.id)
+            .filter((id) => typeof id === "string" && id.trim().length > 0)
+        : [];
+
     return {
       kommune: getElementValue("kommuneSelect"),
       libraries: selectedLibraries,
       library: selectedLibraries[0] || "",
       categories: selectedCategories,
       category: selectedCategories[0] || "",
-      days: getElementValue("nrOfDaysInput"),
+      days:
+        selectionMode === "manual"
+          ? "0"
+          : getElementValue("nrOfDaysInput"),
       slideDuration: getElementValue("slideDurationInput"),
       layout: getSelectedRadio("layout"),
       showTitle: getElementChecked("title"),
@@ -914,24 +1532,32 @@ export const DdbEventsApiSlideType = {
       showDescription: getElementChecked("description"),
       showQr: getElementChecked("qrCode"),
       showLocation: getElementChecked("location"),
+      selectionMode,
+      selectedEventIds,
     };
   },
 
   validateSlide() {
     const data = this.extractFormData();
 
-    return SlideTypeUtils.validateRequired(
-      {
-        municipality: data.kommune,
-        libraries: data.libraries.join(","),
-        days: data.days,
-      },
-      {
-        municipality: "municipality",
-        libraries: "library",
-        days: "number of days",
-      },
-    );
+    const requiredFields = {
+      municipality: data.kommune,
+      libraries: data.libraries.join(","),
+    };
+    const labels = {
+      municipality: "municipality",
+      libraries: "library",
+    };
+
+    if (data.selectionMode === "manual") {
+      requiredFields.events = data.selectedEventIds.join(",");
+      labels.events = "event";
+    } else {
+      requiredFields.days = data.days;
+      labels.days = "number of days";
+    }
+
+    return SlideTypeUtils.validateRequired(requiredFields, labels);
   },
 
   generateSlideData() {
