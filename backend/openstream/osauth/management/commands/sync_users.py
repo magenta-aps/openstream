@@ -25,20 +25,25 @@ logger = getLogger("django.management.cmd")
 
 
 def get_user_sync_password_reset_mail_template(
-    user: UserRepresentation, temporary_password: str
+    realm: str, user: UserRepresentation, temporary_password: str
 ):
+    os_url = f"{settings.FRONTEND_HOST}/{realm}/sign-in"
     return textwrap.dedent(
         f"""\
         Hello {user.username},
 
-        Your user at OpenStream has successfully been migrated to the new authentication system at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        Your user account at OpenStream has been successfully migrated to the new
+        authentication system on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.
 
-        Since we can't migrate passwords due to security, we now ask you to reset your password in the new system.
+        For security reasons, we were unable to migrate your previous password.
+        A new temporary password has therefore been generated for your account.
+        You will be prompted to change it the first time you sign in.
 
-        We have generated a temporary password you can log in with, but you will be asked to change it immediately.
-
-        Your temporary password is:
+        Your new temporary password is:
         {temporary_password}
+
+        To update your password, please sign in at:
+        {os_url}
 
         Best regards,
         OpenStream Team
@@ -63,6 +68,9 @@ class Command(BaseCommand):
         )
 
     def add_arguments(self, parser):
+        # TODO: SPecify realm through arg
+        # parser.add_argument("realm", nargs=1, type=str)
+
         parser.add_argument(
             "--verbose",
             action="store_true",
@@ -90,36 +98,6 @@ class Command(BaseCommand):
             type=str,
             default=self.temp_password,
             help=f"Number of users to process per batch (default: {self.batch_size}).",
-        )
-
-    def signin_keycloak_admin(self) -> TokenResponse:
-        return self.kc_adm.auth(
-            username=settings.KEYCLOAK_ADMIN_USERNAME,
-            password=settings.KEYCLOAK_ADMIN_PASSWORD,
-        )
-
-    def get_keycloak_users(self):
-        kc_token = self.signin_keycloak_admin()
-        kc_users_count = self.kc_adm.count_realm_users(
-            kc_token, settings.KEYCLOAK_REALM
-        )
-
-        logger.info(f"  - Total: {kc_users_count}")
-
-        kc_users = self.kc_adm.list_realm_users(kc_token, settings.KEYCLOAK_REALM)
-
-    def send_password_reset_mail(self, user: UserRepresentation):
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [user.email]
-
-        send_mail(
-            subject="Reset password - OpenStream User migration",
-            message=get_user_sync_password_reset_mail_template(
-                user, "magenta-testtest"
-            ),
-            from_email=from_email,
-            recipient_list=recipient_list,
-            fail_silently=False,
         )
 
     def get_django_users(
@@ -265,6 +243,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("Sync Users Management Command")
         logger.info("-----------------------------")
+
+        self.realm = (
+            settings.KEYCLOAK_REALM
+        )  # TODO: use this: `options["realm"]` when possible
         self.verbose = options["verbose"]
         self.dry_run = options["dry_run"]
         self.batch_size = options["batch_size"]
@@ -277,13 +259,9 @@ class Command(BaseCommand):
             password=settings.KEYCLOAK_ADMIN_PASSWORD,
         )
 
-        kc_users_total = self.kc_adm.count_realm_users(
-            kc_token, settings.KEYCLOAK_REALM
-        )
+        kc_users_total = self.kc_adm.count_realm_users(kc_token, self.realm)
         logger.info(f"Total Keycloak-users: {kc_users_total}")
-        kc_users = self.kc_adm.list_realm_users(
-            kc_token, settings.KEYCLOAK_REALM, kc_users_total
-        )
+        kc_users = self.kc_adm.list_realm_users(kc_token, self.realm, kc_users_total)
 
         # Get local users
         django_users_total = User.objects.count()
@@ -318,7 +296,7 @@ class Command(BaseCommand):
                 try:
                     self.kc_adm.set_realm_user_password(
                         kc_token,
-                        settings.KEYCLOAK_REALM,
+                        self.realm,
                         kc_user.id,
                         self.temp_password,
                     )
@@ -339,7 +317,7 @@ class Command(BaseCommand):
 
             try:
                 self.kc_adm.set_realm_user_password(
-                    kc_token, settings.KEYCLOAK_REALM, kc_user.id, temp_pass
+                    kc_token, self.realm, kc_user.id, temp_pass
                 )
             except KeycloakError:
                 logger.exception("Error sending password-reset mail")
