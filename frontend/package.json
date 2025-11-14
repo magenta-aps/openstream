@@ -29,7 +29,6 @@
     "stylelint": "^16.24.0",
     "stylelint-config-standard-scss": "^16.0.0",
     "stylelint-scss": "^6.12.1",
-    "vite": "^7.1.2",
     "vituum": "^1.2.0"
   },
   "dependencies": {
@@ -65,6 +64,7 @@
     "tui-color-picker": "^2.2.8",
     "tui-image-editor": "^3.15.3",
     "vanilla-infinite-marquee": "^1.0.13",
-    "vanilla-marquee": "^1.1.2"
+    "vanilla-marquee": "^1.1.2",
+    "vite": "^7.1.2"
   }
 }
