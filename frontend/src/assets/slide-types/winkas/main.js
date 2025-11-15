@@ -200,11 +200,20 @@ function displayBookingsInCarousel(locationBookings) {
 
   bookingBody.style.height = "100%";
 
-  new InfiniteMarquee({
+
+  console.log("booking body height", bookingBody.clientHeight)
+  console.log("list height", list.clientHeight)
+  const headerHeight = document.getElementById("header").clientHeight;
+
+  console.log("header height", headerHeight)
+
+
+  if (list.clientHeight > (bookingBody.clientHeight - headerHeight)) {
+     new InfiniteMarquee({
     element: "#booking-body",
     speed: pxPrSec,
     direction: "top",
-    duplicateCount: 10,
+    duplicate: 0,
     on: {
       beforeInit: () => {
         console.log("Not Yet Initialized");
@@ -215,6 +224,10 @@ function displayBookingsInCarousel(locationBookings) {
       },
     },
   });
+  }
+  else {
+    console.log("should not scroll")
+  }
 }
 
 // Parse WinKAS timestamp formats into JS Date objects.
