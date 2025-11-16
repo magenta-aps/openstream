@@ -245,7 +245,7 @@ export const DdbEventsApiSlideType = {
     );
   },
 
-  updateModeVisibility(mode) {
+ updateModeVisibility(mode) {
     const automaticFields = document.getElementById("automaticModeFields");
     if (automaticFields) {
       automaticFields.classList.toggle("d-none", mode === "manual");
@@ -279,12 +279,35 @@ export const DdbEventsApiSlideType = {
       );
     }
 
+    // --- MODIFICATION START ---
+    // Show the event preview list, status, and refresh button only in manual mode
+    const previewList = document.getElementById("eventPreviewList");
+    if (previewList) {
+      previewList.classList.toggle("d-none", mode !== "manual");
+    }
+
+    const previewStatus = document.getElementById("eventPreviewStatus");
+    if (previewStatus) {
+      previewStatus.classList.toggle("d-none", mode !== "manual");
+    }
+
+    const refreshButton = document.getElementById("refreshEventsPreviewBtn");
+    if (refreshButton) {
+      refreshButton.classList.toggle("d-none", mode !== "manual");
+    }
+
     if (mode === "manual") {
+      document.getElementById("events-preview").classList.remove("d-none");
       const searchInput = document.getElementById("eventSearchInput");
       if (searchInput) {
         searchInput.value = this.manualSearchTerm || "";
       }
     }
+
+    else {
+      document.getElementById("events-preview").classList.add("d-none");
+    }
+
   },
 
   clearManualSelection() {
