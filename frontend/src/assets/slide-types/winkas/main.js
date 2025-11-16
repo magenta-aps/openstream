@@ -209,6 +209,32 @@ function displayBookingsInCarousel(locationBookings) {
 
 
   if (list.clientHeight > (bookingBody.clientHeight - headerHeight)) {
+    
+    // START: Added empty booking as requested
+    // Add one empty booking entry to the end of the list if the marquee is running.
+    // This creates a visual spacer when the list loops.
+    const emptyBooking = document.createElement("div");
+    emptyBooking.className = "booking-entry empty-booking-spacer"; // Use base class + new class
+    
+    // Add minimal structure to mimic a real booking's height/padding
+    // using non-breaking spaces to ensure elements have height.
+    emptyBooking.innerHTML = `
+      <div class="booking-details">
+        <div class="time-column">
+          <div class="start-time">&nbsp;</div>
+          <div class="time-divider" style="visibility: hidden;"></div>
+          <div class="end-time">&nbsp;</div>
+        </div>
+        <div class="booking-info">
+          <div class="booking-title">&nbsp;</div>
+          <div class="booking-location">&nbsp;</div>
+          <div class="booking-organizer">&nbsp;</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(emptyBooking);
+    // END: Added empty booking
+
      new InfiniteMarquee({
     element: "#booking-body",
     speed: pxPrSec,
