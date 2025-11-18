@@ -160,6 +160,8 @@ export const DdbEventsApiSlideType = {
     this.populateMunicipalityOptions(config.kommune);
     this.updateLibraryOptions(config.kommune, config.libraries);
     this.updateCategoryOptions(config.kommune, config.categories);
+    this.syncLibrarySelectAllState();
+    this.syncCategorySelectAllState();
 
     // Set form values
     this.setElementValue("nrOfDaysInput", config.days);
@@ -291,10 +293,6 @@ export const DdbEventsApiSlideType = {
       previewStatus.classList.toggle("d-none", mode !== "manual");
     }
 
-    const refreshButton = document.getElementById("refreshEventsPreviewBtn");
-    if (refreshButton) {
-      refreshButton.classList.toggle("d-none", mode !== "manual");
-    }
 
     if (mode === "manual") {
       document.getElementById("events-preview").classList.remove("d-none");
@@ -456,8 +454,16 @@ export const DdbEventsApiSlideType = {
     const container = document.getElementById("libraryCheckboxContainer");
     const placeholder = document.getElementById("libraryCheckboxPlaceholder");
     const grid = document.getElementById("libraryCheckboxGrid");
+    const selectAllId = "librarySelectAll";
 
-    if (!container || !placeholder || !grid) return;
+    if (!container || !placeholder || !grid) {
+      this.setSelectAllControlState(selectAllId, {
+        checked: false,
+        indeterminate: false,
+        disabled: true,
+      });
+      return;
+    }
 
     const setPlaceholder = (message) => {
       placeholder.textContent = message;
@@ -465,6 +471,12 @@ export const DdbEventsApiSlideType = {
     };
 
     grid.innerHTML = "";
+
+    this.setSelectAllControlState(selectAllId, {
+      checked: false,
+      indeterminate: false,
+      disabled: true,
+    });
 
     const normalizedSelections = Array.isArray(selectedLibraries)
       ? selectedLibraries.map((library) =>
@@ -494,6 +506,12 @@ export const DdbEventsApiSlideType = {
     }
 
     setPlaceholder("");
+
+    this.setSelectAllControlState(selectAllId, {
+      checked: false,
+      indeterminate: false,
+      disabled: false,
+    });
 
     libraries.forEach((libraryName, index) => {
       if (typeof libraryName !== "string") return;
@@ -527,14 +545,24 @@ export const DdbEventsApiSlideType = {
       column.appendChild(wrapper);
       grid.appendChild(column);
     });
+
+    this.syncLibrarySelectAllState();
   },
 
   updateCategoryOptions(selectedMunicipality, selectedCategories = []) {
     const container = document.getElementById("categoryCheckboxContainer");
     const placeholder = document.getElementById("categoryCheckboxPlaceholder");
     const grid = document.getElementById("categoryCheckboxGrid");
+    const selectAllId = "categorySelectAll";
 
-    if (!container || !placeholder || !grid) return;
+    if (!container || !placeholder || !grid) {
+      this.setSelectAllControlState(selectAllId, {
+        checked: false,
+        indeterminate: false,
+        disabled: true,
+      });
+      return;
+    }
 
     const setPlaceholder = (message) => {
       placeholder.textContent = message;
@@ -542,6 +570,12 @@ export const DdbEventsApiSlideType = {
     };
 
     grid.innerHTML = "";
+
+    this.setSelectAllControlState(selectAllId, {
+      checked: false,
+      indeterminate: false,
+      disabled: true,
+    });
 
     const normalizedSelections = Array.isArray(selectedCategories)
       ? selectedCategories.map((category) =>
@@ -571,6 +605,12 @@ export const DdbEventsApiSlideType = {
     }
 
     setPlaceholder("");
+
+    this.setSelectAllControlState(selectAllId, {
+      checked: false,
+      indeterminate: false,
+      disabled: false,
+    });
 
     categories.forEach((categoryName, index) => {
       if (typeof categoryName !== "string") return;
@@ -603,6 +643,89 @@ export const DdbEventsApiSlideType = {
       wrapper.appendChild(label);
       column.appendChild(wrapper);
       grid.appendChild(column);
+    });
+
+    this.syncCategorySelectAllState();
+  },
+
+  setSelectAllControlState(selectAllId, options = {}) {
+    const control = document.getElementById(selectAllId);
+    const wrapper = document.getElementById(`${selectAllId}Wrapper`);
+
+    const {
+      checked = false,
+      indeterminate = false,
+      disabled = false,
+    } = options || {};
+
+    if (control) {
+      control.checked = Boolean(checked);
+      control.indeterminate = Boolean(indeterminate);
+      control.disabled = Boolean(disabled);
+      if (!indeterminate) {
+        control.indeterminate = false;
+      }
+    }
+
+    if (wrapper) {
+      wrapper.classList.toggle("d-none", Boolean(disabled));
+    }
+  },
+
+  syncSelectAllState({ selectAllId, checkboxSelector }) {
+    const checkboxes = Array.from(
+      document.querySelectorAll(checkboxSelector),
+    ).filter((checkbox) => checkbox instanceof HTMLInputElement);
+
+    const hasOptions = checkboxes.length > 0;
+    if (!hasOptions) {
+      this.setSelectAllControlState(selectAllId, {
+        checked: false,
+        indeterminate: false,
+        disabled: true,
+      });
+      return;
+    }
+
+    const checkedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+    const allChecked = checkedCount === checkboxes.length;
+    const noneChecked = checkedCount === 0;
+
+    this.setSelectAllControlState(selectAllId, {
+      checked: allChecked,
+      indeterminate: !allChecked && !noneChecked,
+      disabled: false,
+    });
+  },
+
+  syncLibrarySelectAllState() {
+    this.syncSelectAllState({
+      selectAllId: "librarySelectAll",
+      checkboxSelector: '#libraryCheckboxGrid input[type="checkbox"]',
+    });
+  },
+
+  syncCategorySelectAllState() {
+    this.syncSelectAllState({
+      selectAllId: "categorySelectAll",
+      checkboxSelector: '#categoryCheckboxGrid input[type="checkbox"]',
+    });
+  },
+
+  applySelectAll({ selectAllId, checkboxSelector, checked }) {
+    const checkboxes = Array.from(
+      document.querySelectorAll(checkboxSelector),
+    ).filter((checkbox) => checkbox instanceof HTMLInputElement);
+
+    const desiredState = Boolean(checked);
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = desiredState;
+    });
+
+    this.setSelectAllControlState(selectAllId, {
+      checked: checkboxes.length > 0 ? desiredState : false,
+      indeterminate: false,
+      disabled: checkboxes.length === 0,
     });
   },
 
@@ -652,6 +775,8 @@ export const DdbEventsApiSlideType = {
           event.target instanceof HTMLInputElement &&
           event.target.type === "checkbox"
         ) {
+          if (event.target.dataset.selectAll === "true") return;
+          this.syncLibrarySelectAllState();
           this.schedulePreviewRefresh(100);
         }
       },
@@ -668,12 +793,52 @@ export const DdbEventsApiSlideType = {
           event.target instanceof HTMLInputElement &&
           event.target.type === "checkbox"
         ) {
+          if (event.target.dataset.selectAll === "true") return;
+          this.syncCategorySelectAllState();
           this.schedulePreviewRefresh(100);
         }
       },
       this,
     );
     if (categoryListener) this.eventListenerCleanup.push(categoryListener);
+
+    const librarySelectAllListener = SlideTypeUtils.setupEventListener(
+      "librarySelectAll",
+      "change",
+      function (event) {
+        const target = event?.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        this.applySelectAll({
+          selectAllId: "librarySelectAll",
+          checkboxSelector: '#libraryCheckboxGrid input[type="checkbox"]',
+          checked: target.checked,
+        });
+        this.syncLibrarySelectAllState();
+        this.schedulePreviewRefresh(0);
+      },
+      this,
+    );
+    if (librarySelectAllListener)
+      this.eventListenerCleanup.push(librarySelectAllListener);
+
+    const categorySelectAllListener = SlideTypeUtils.setupEventListener(
+      "categorySelectAll",
+      "change",
+      function (event) {
+        const target = event?.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        this.applySelectAll({
+          selectAllId: "categorySelectAll",
+          checkboxSelector: '#categoryCheckboxGrid input[type="checkbox"]',
+          checked: target.checked,
+        });
+        this.syncCategorySelectAllState();
+        this.schedulePreviewRefresh(0);
+      },
+      this,
+    );
+    if (categorySelectAllListener)
+      this.eventListenerCleanup.push(categorySelectAllListener);
 
     const automaticModeListener = SlideTypeUtils.setupEventListener(
       "ddbModeAutomatic",
@@ -724,16 +889,6 @@ export const DdbEventsApiSlideType = {
     );
     if (searchListener) this.eventListenerCleanup.push(searchListener);
 
-    const refreshPreviewListener = SlideTypeUtils.setupEventListener(
-      "refreshEventsPreviewBtn",
-      "click",
-      function () {
-        this.refreshEventPreview();
-      },
-      this,
-    );
-    if (refreshPreviewListener)
-      this.eventListenerCleanup.push(refreshPreviewListener);
 
     const previewSelectionListener = SlideTypeUtils.setupEventListener(
       "eventPreviewList",
@@ -1519,6 +1674,7 @@ export const DdbEventsApiSlideType = {
         "#libraryCheckboxContainer input[type=\"checkbox\"]:checked",
       ),
     )
+      .filter((input) => input.dataset.selectAll !== "true")
       .map((input) => input.value)
       .map((value) => String(value).toLowerCase().trim())
       .filter((value) => value.length > 0);
@@ -1528,6 +1684,7 @@ export const DdbEventsApiSlideType = {
         "#categoryCheckboxContainer input[type=\"checkbox\"]:checked",
       ),
     )
+      .filter((input) => input.dataset.selectAll !== "true")
       .map((input) => input.value)
       .map((value) => String(value).toLowerCase().trim())
       .filter((value) => value.length > 0);

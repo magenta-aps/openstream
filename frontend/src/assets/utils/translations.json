@@ -3856,6 +3856,15 @@
   },
   "Persistent": {
     "da": "Vedvarende"
+  },
+  "Automatically fetch events. Set days to limit how far ahead to fetch.": {
+    "da": "Hent begivenheder automatisk. Indstil dage for at begrænse, hvor langt fremad der skal hentes."
+  },
+  "Manually choose which events to show.": {
+    "da": "Vælg manuelt hvilke begivenheder der skal vises."
+  },
+  "Events:": {
+    "da": "Begivenheder:"
   }
 }
 
