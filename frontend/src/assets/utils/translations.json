@@ -1712,8 +1712,44 @@
   "Choose a library:": {
     "da": "Vælg et bibliotek:"
   },
+  "Choose libraries:": {
+    "da": "Vælg biblioteker:"
+  },
+  "Select a municipality to load libraries.": {
+    "da": "Vælg en kommune for at hente biblioteker."
+  },
+  "Select one or more libraries to include in the slide.": {
+    "da": "Vælg et eller flere biblioteker, der skal med på sliden."
+  },
   "Select library": {
     "da": "Vælg et bibliotek"
+  },
+  "Filter by categories:": {
+    "da": "Filtrér efter kategorier:"
+  },
+  "Select a municipality to load categories.": {
+    "da": "Vælg en kommune for at hente kategorier."
+  },
+  "Select one or more categories, or leave blank to include all.": {
+    "da": "Vælg en eller flere kategorier, eller lad feltet være tomt for at inkludere alle."
+  },
+  "Mode:": {
+    "da": "Tilstand:"
+  },
+  "Automatic (by days)": {
+    "da": "Automatisk (efter dage)"
+  },
+  "Manual (choose events)": {
+    "da": "Manuel (vælg begivenheder)"
+  },
+  "Search events:": {
+    "da": "Søg begivenheder:"
+  },
+  "Filter events by text": {
+    "da": "Filtrér begivenheder efter tekst"
+  },
+  "Search title, description, or location within the current filters.": {
+    "da": "Søg i titel, beskrivelse eller lokation inden for de valgte filtre."
   },
   "Number of days:": {
     "da": "Antal dage:"
@@ -1726,6 +1762,24 @@
   },
   "Select municipality": {
     "da": "Vælg en kommune"
+  },
+  "Matching events": {
+    "da": "Matchende begivenheder"
+  },
+  "Refresh": {
+    "da": "Opdater"
+  },
+  "Review the matching events. In manual mode, tick events to add them to your selection.": {
+    "da": "Gennemse de matchende begivenheder. I manuel tilstand kan du markere begivenheder for at tilføje dem til dit udvalg."
+  },
+  "Selected events": {
+    "da": "Valgte begivenheder"
+  },
+  "Displayed on the slide": {
+    "da": "Vises på slidet"
+  },
+  "No events selected yet.": {
+    "da": "Ingen begivenheder valgt endnu."
   },
   "Choose layout:": {
     "da": "Vælg et layout:"
@@ -3784,5 +3838,24 @@
   },
   "Select Group First": {
     "da": "Vælg Gruppe Først"
+  },
+  "Events matching current filters:": {
+    "da": "Begivenheder der matcher de nuværende filtre:"
+  },
+  "Tick the events to include in the slide.": {
+    "da": "Markér de begivenheder, der skal inkluderes i slidet."
+  },
+  "type": {
+    "da": "type"
+  },
+  "Move/Resize": {
+    "da": "Flyt/Ændr Størrelse"
+  },
+  "Unlocked": {
+    "da": "Låst op"
+  },
+  "Persistent": {
+    "da": "Vedvarende"
   }
 }
+
