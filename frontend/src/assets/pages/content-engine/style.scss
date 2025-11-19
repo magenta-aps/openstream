@@ -827,6 +827,14 @@ span {
   box-shadow: 0 1px 0 rgba($black, 0.03) inset;
 }
 
+
+#eventPreviewList .list-group-item.active {
+background: $secondary-accent-lighter;
+color: black;
+border: $black;
+
+}
+
 #slide-elements-list .list-group-item .fw-bold {
   font-size: 0.9rem;
   color: $darkest-gray;
