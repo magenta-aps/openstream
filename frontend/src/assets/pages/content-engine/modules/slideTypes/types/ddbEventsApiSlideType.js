@@ -1568,11 +1568,7 @@ export const DdbEventsApiSlideType = {
       return;
     }
 
-    const baseStatus = `${gettext("Events matching current filters:")} ${events.length}`;
-    status.textContent =
-      mode === "manual"
-        ? `${baseStatus}. ${gettext("Tick the events to include in the slide.")}`
-        : baseStatus;
+    status.textContent = `${events.length} ${gettext("results")}`;
 
     const selectedLibrarySet = new Set(
       (selectedLibraries || []).map((library) =>

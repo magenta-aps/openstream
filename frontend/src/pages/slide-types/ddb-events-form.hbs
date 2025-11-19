@@ -3,136 +3,114 @@
     {{#> base/containers/html-container title="DDB Events Configuration Form" }}
     <div>
         <div class="card-body">
-            <div class="row mb-4 align-items-center">
-                <div class="col-md-2">
-                    <label for="kommuneSelect" class="form-label mb-0">{% trans "Choose a municipality:" %}</label>
-                </div>
-                <div class="col-md-10">
-                    <select required id="kommuneSelect" class="form-select border-gray">
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                </div>
+            <div class="mb-4">
+                <label for="kommuneSelect" class="form-label mb-1">{% trans "Choose a municipality:" %}</label>
+                <select required id="kommuneSelect" class="form-select border-gray">
+                    <!-- Options will be populated dynamically -->
+                </select>
             </div>
-            <hr>
-            <div id="librarySelectAllWrapper" class="d-flex justify-content-end align-items-center mb-2 d-none">
-                <div class="form-check m-0">
-                    <input class="form-check-input" type="checkbox" id="librarySelectAll" data-select-all="true" />
-                    <label class="form-check-label small" for="librarySelectAll">{% trans "Select all" %}</label>
-                </div>
-            </div>
-            <div class="row mb-4 align-items-start">
-                <div class="col-md-2">
-                    <span class="form-label mb-0 d-block">{% trans "Choose libraries:" %}</span>
-                </div>
-                <div class="col-md-10">
-                    <div id="libraryCheckboxContainer" class="border border-gray rounded px-3 pb-1 bg-light">
 
-                        <div id="libraryCheckboxPlaceholder" class="text-muted small">
-                            {% trans "Select a municipality to load libraries." %}
-                        </div>
-                        <div id="libraryCheckboxGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 mt-2"></div>
-                    </div>
-                    <small class="text-muted d-block mt-2">
-                        {% trans "Select one or more libraries to include in the slide." %}</small>
-                </div>
-            </div>
-            <hr>
-            <div id="categorySelectAllWrapper" class="d-flex justify-content-end align-items-center mb-2 d-none">
-                <div class="form-check m-0">
-                    <input class="form-check-input" type="checkbox" id="categorySelectAll" data-select-all="true" />
-                    <label class="form-check-label small" for="categorySelectAll">{% trans "Select all" %}</label>
-                </div>
-            </div>
-            <div class="row mb-4 align-items-start">
-                <div class="col-md-2">
-                    <span class="form-label mb-0 d-block">{% trans "Filter by categories:" %}</span>
-                </div>
-                <div class="col-md-10">
-
-                    <div id="categoryCheckboxContainer" class="border border-gray rounded px-3 pb-1 bg-light">
-
-                        <div id="categoryCheckboxPlaceholder" class="text-muted small">
-                            {% trans "Select a municipality to load categories." %}</div>
-                        <div id="categoryCheckboxGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 mt-2">
-                        </div>
-                    </div>
-                    <small class="text-muted d-block mt-2">
-                        {% trans "Select one or more categories, or leave blank to include all." %}</small>
-                </div>
-            </div>
-            <hr>
-            <div class="row mb-4 align-items-start">
-                <div class="col-md-2">
-                    <span class="form-label mb-0 d-block">{% trans "Filter by price:" %}</span>
-                </div>
-                <div class="col-md-10">
-                    <div class="d-flex flex-wrap gap-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showFreeEvents" name="showFreeEvents" checked />
-                            <label class="form-check-label" for="showFreeEvents">
-                                {% trans "Show free events" %}
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showPaidEvents" name="showPaidEvents" checked />
-                            <label class="form-check-label" for="showPaidEvents">
-                                {% trans "Show paid events" %}
-                            </label>
-                        </div>
-                    </div>
-                    <small class="text-muted d-block mt-2">
-                        {% trans "Select which types of events to include based on pricing." %}</small>
-                </div>
-            </div>
-            <hr>
-            <div class="row mb-4 align-items-center">
-                <div class="col-md-2">
-                    <span class="form-label mb-0 d-block">{% trans "Events:" %}</span>
-                </div>
-                <div class="col-md-10">
-                    <div class="d-flex flex-wrap gap-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeAutomatic"
-                                value="automatic" checked />
-                            <label class="form-check-label" for="ddbModeAutomatic">
-                                {% trans "Automatically fetch events. Set days to limit how far ahead to fetch."
-                                %}</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeManual"
-                                value="manual" />
-                            <label class="form-check-label" for="ddbModeManual">
-                                {% trans "Manually choose which events to show." %}</label>
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="form-label mb-0">{% trans "Choose libraries:" %}</span>
+                    <div id="librarySelectAllWrapper" class="d-flex justify-content-end align-items-center d-none">
+                        <div class="form-check m-0">
+                            <input class="form-check-input" type="checkbox" id="librarySelectAll" data-select-all="true" />
+                            <label class="form-check-label small" for="librarySelectAll">{% trans "Select all" %}</label>
                         </div>
                     </div>
                 </div>
+                <div id="libraryCheckboxContainer" class="border border-gray rounded px-3 pb-1 bg-light">
+
+                    <div id="libraryCheckboxPlaceholder" class="text-muted small">
+                        {% trans "Select a municipality to load libraries." %}
+                    </div>
+                    <div id="libraryCheckboxGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 mt-2"></div>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    {% trans "Select one or more libraries to include in the slide." %}</small>
             </div>
 
-            <div class="row mb-4 align-items-center" id="automaticModeFields">
-                <div class="col-md-2">
-                    <label for="nrOfDaysInput" class="form-label mb-0">{% trans "Number of days:" %}</label>
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="form-label mb-0">{% trans "Filter by categories:" %}</span>
+                    <div id="categorySelectAllWrapper" class="d-flex justify-content-end align-items-center d-none">
+                        <div class="form-check m-0">
+                            <input class="form-check-input" type="checkbox" id="categorySelectAll" data-select-all="true" />
+                            <label class="form-check-label small" for="categorySelectAll">{% trans "Select all" %}</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-10">
-                    <input required type="number" id="nrOfDaysInput" class="form-control border-gray" min="0"
-                        placeholder='{% trans "Enter number of days" %}' />
+
+                <div id="categoryCheckboxContainer" class="border border-gray rounded px-3 pb-1 bg-light">
+
+                    <div id="categoryCheckboxPlaceholder" class="text-muted small">
+                        {% trans "Select a municipality to load categories." %}</div>
+                    <div id="categoryCheckboxGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 mt-2">
+                    </div>
                 </div>
+                <small class="text-muted d-block mt-2">
+                    {% trans "Select one or more categories, or leave blank to include all." %}</small>
+            </div>
+
+            <div class="mb-4">
+                <span class="form-label mb-2 d-block">{% trans "Filter by price:" %}</span>
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showFreeEvents" name="showFreeEvents" checked />
+                        <label class="form-check-label" for="showFreeEvents">
+                            {% trans "Show free events" %}
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showPaidEvents" name="showPaidEvents" checked />
+                        <label class="form-check-label" for="showPaidEvents">
+                            {% trans "Show paid events" %}
+                        </label>
+                    </div>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    {% trans "Select which types of events to include based on pricing." %}</small>
+            </div>
+
+            <div class="mb-2">
+                <span class="form-label mb-2 d-block">{% trans "Events:" %}</span>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeAutomatic"
+                            value="automatic" checked />
+                        <label class="form-check-label" for="ddbModeAutomatic">
+                            {% trans "Fetch events automatically"%}</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeManual"
+                            value="manual" />
+                        <label class="form-check-label" for="ddbModeManual">
+                            {% trans "Fetch events maunally" %}</label>
+                    </div>
+            </div>
+
+            <div class="ms-3 mb-4" id="automaticModeFields">
+                <label for="nrOfDaysInput" class="form-label mb-1">{% trans "Number of days:" %}</label>
+                <input required type="number" id="nrOfDaysInput" class="form-control border-gray" min="0"
+                    placeholder='{% trans "Enter number of days" %}' />
             </div>
         </div>
     </div>
-    <div class="mt-4 mb-2" id="events-preview">
+    <div class="mt-2 mb-2 ms-3" id="events-preview">
         <div class="card border border-gray bg-light">
             <div class="card-body bg-light">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">{% trans "Matching events" %}</h5>
-                    <input type="search" id="eventSearchInput" class="form-control border-gray w-50"
-                        placeholder='🔎 {% trans "Search" %} ...' />
-                </div>
-                <p class="text-muted small mb-3">
+           
+                <p class=" mb-3">
                     {% trans "Review the matching events. In manual mode, tick events to add them to your selection." %}
                 </p>
                 <div class="row g-4">
                     <div class="col-12 col-xl-7">
-                        <div id="eventPreviewStatus" class="small text-muted mb-2"></div>
+                             <div class="d-flex justify-content-between align-items-center mb-2">
+                    <input type="search" id="eventSearchInput" class="form-control border-gray w-100"
+                        placeholder='🔍 {% trans "Search for event" %}' />
+                </div>
+                        <div id="eventPreviewStatus" class="small mb-2"></div>
                         <ul id="eventPreviewList" class="list-group list-group-flush small"
                             style="max-height: 320px; overflow-y: auto;"></ul>
                     </div>
@@ -156,13 +134,13 @@
         </div>
     </div>
 
-    <hr>
+    
     <div class="mt-4 mb-4">
+        <label for="layoutSelection" class="form-label ">{% trans "Choose layout and content:" %}</label>
         <div class="card border border-gray bg-light">
             <div class="card-body">
                 <div class="row g-4">
                     <div class="col-12 col-lg-7">
-                        <label for="layoutSelection" class="form-label ">{% trans "Choose layout:" %}</label>
                         <div class="row g-4">
                             <!-- Vertical Option -->
                             <div class="col-sm-6 col-lg-12 col-xl-6">
@@ -275,17 +253,13 @@
         </div>
     </div>
 
-    <hr>
+    
 
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-2">
-            <label for="slideDurationInput" class="form-label mb-0">
-                {% trans "Slide Duration (in seconds):" %}
-            </label>
-        </div>
-        <div class="col-md-10">
-            <input required type="number" id="slideDurationInput" class="form-control border-gray" min="0" value="10" />
-        </div>
+    <div class="mb-4">
+        <label for="slideDurationInput" class="form-label mb-1">
+            {% trans "Slide Duration (in seconds):" %}
+        </label>
+        <input required type="number" id="slideDurationInput" class="form-control border-gray" min="0" value="10" />
     </div>
 
 

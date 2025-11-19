@@ -3877,6 +3877,24 @@
   },
   "Filter by price:": {
     "da": "Filtrer efter pris:"
+  },
+  "Fetch events automatically": {
+    "da": "Hent begivenheder automatisk"
+  },
+  "Fetch events maunally": {
+    "da": "Hent begivenheder manuelt"
+  },
+  "Search for event": {
+    "da": "Søg efter begivenhed"
+  },
+  "results": {
+    "da": "resultater"
+  },
+  "Choose layout and content:": {
+    "da": "Vælg layout og indhold:"
+  },
+  "Price": {
+    "da": "Pris"
   }
 }
 
