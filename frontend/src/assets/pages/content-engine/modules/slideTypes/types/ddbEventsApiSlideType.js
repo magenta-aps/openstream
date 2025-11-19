@@ -357,7 +357,14 @@ export const DdbEventsApiSlideType = {
 
     emptyState.classList.add("d-none");
 
-    selections.forEach((meta) => {
+    // Sort selections by date (start time)
+    const sortedSelections = selections.sort((a, b) => {
+      const dateA = a?.start ? new Date(a.start) : new Date(0);
+      const dateB = b?.start ? new Date(b.start) : new Date(0);
+      return dateA - dateB;
+    });
+
+    sortedSelections.forEach((meta) => {
       const item = document.createElement("li");
       item.className =
         "list-group-item d-flex justify-content-between align-items-start";
@@ -1692,6 +1699,12 @@ export const DdbEventsApiSlideType = {
     const selectedEventIds =
       this.manualSelectedEvents instanceof Map
         ? Array.from(this.manualSelectedEvents.values())
+            // Sort by date first
+            .sort((a, b) => {
+              const dateA = a?.start ? new Date(a.start) : new Date(0);
+              const dateB = b?.start ? new Date(b.start) : new Date(0);
+              return dateA - dateB;
+            })
             .map((meta) => meta?.id)
             .filter((id) => typeof id === "string" && id.trim().length > 0)
         : [];
