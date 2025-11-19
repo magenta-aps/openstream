@@ -848,7 +848,6 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       background: #696969;
       cursor: se-resize;
       user-select: none;
-      z-index: 9999;
       pointer-events: auto;
     `;
 
@@ -858,6 +857,26 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
         container.offsetLeft + container.offsetWidth - 15 + "px";
       resizerHandle.style.top =
         container.offsetTop + container.offsetHeight - 15 + "px";
+
+      let elementZIndex = 0;
+      try {
+        const computedStyle = window.getComputedStyle(container);
+        const parsed = parseInt(computedStyle.zIndex, 10);
+        if (!isNaN(parsed)) {
+          elementZIndex = parsed;
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      if (elementZIndex === 0) {
+        const inline = parseInt(container.style.zIndex ?? "", 10);
+        if (!isNaN(inline)) {
+          elementZIndex = inline;
+        }
+      }
+
+      resizerHandle.style.zIndex = String(elementZIndex + 2);
     };
 
     // Insert resizer as sibling, not child, so it won't be clipped by border-radius
@@ -877,5 +896,19 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       attributeFilter: ["style", "class"],
     });
     container._resizerObserver = resizerObserver;
+  }
+
+  // Ensure the selected element stays highlighted after re-rendering
+  const isEditorPreview = Boolean(
+    gridContainer && gridContainer.closest(".preview-slide"),
+  );
+
+  if (
+    isEditorPreview &&
+    store.selectedElementData &&
+    store.selectedElementData.id === el.id &&
+    store.selectedElement !== container
+  ) {
+    selectElement(container, el);
   }
 }

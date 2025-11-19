@@ -94,6 +94,16 @@ export const DdbEventsApiSlideType = {
       showDescription: config.showDescription || false,
       showQr: config.showQr !== false,
       showLocation: config.showLocation !== false,
+      showPrice:
+        config.showPrice === true || config.showPrice === "true",
+      showFreeEvents:
+        config.showFreeEvents === false || config.showFreeEvents === "false"
+          ? false
+          : true,
+      showPaidEvents:
+        config.showPaidEvents === false || config.showPaidEvents === "false"
+          ? false
+          : true,
       selectionMode: config.selectionMode === "manual" ? "manual" : "automatic",
       selectedEventIds: Array.isArray(config.selectedEventIds)
         ? config.selectedEventIds
@@ -179,6 +189,9 @@ export const DdbEventsApiSlideType = {
       description: config.showDescription,
       qrCode: config.showQr,
       location: config.showLocation,
+      price: config.showPrice,
+      showFreeEvents: config.showFreeEvents,
+      showPaidEvents: config.showPaidEvents,
     };
 
     Object.entries(checkboxMapping).forEach(([id, checked]) => {
@@ -197,6 +210,7 @@ export const DdbEventsApiSlideType = {
 
     this.updateModeVisibility(selectionMode);
     this.renderSelectedEventsSummary();
+    this.refreshLibraryCheckboxStates();
   },
 
   populateMunicipalityOptions(selectedMunicipality) {
@@ -247,23 +261,16 @@ export const DdbEventsApiSlideType = {
     );
   },
 
- updateModeVisibility(mode) {
+  updateModeVisibility(mode) {
     const automaticFields = document.getElementById("automaticModeFields");
     if (automaticFields) {
-      automaticFields.classList.toggle("d-none", mode === "manual");
+      automaticFields.classList.toggle("d-none", mode !== "automatic");
     }
 
     const daysInput = document.getElementById("nrOfDaysInput");
     if (daysInput) {
-      daysInput.toggleAttribute("required", mode !== "manual");
       daysInput.disabled = mode === "manual";
-      if (mode === "manual") {
-        daysInput.dataset.prevValue = daysInput.value;
-        daysInput.value = "";
-      } else if (!daysInput.value && daysInput.dataset.prevValue) {
-        daysInput.value = daysInput.dataset.prevValue;
-        delete daysInput.dataset.prevValue;
-      }
+      daysInput.required = mode !== "manual";
     }
 
     const manualSearchRow = document.getElementById("manualSearchRow");
@@ -275,17 +282,12 @@ export const DdbEventsApiSlideType = {
       "manualSelectedEventsContainer",
     );
     if (manualSelectedContainer) {
-      manualSelectedContainer.classList.toggle(
-        "d-none",
-        mode !== "manual",
-      );
+      manualSelectedContainer.classList.toggle("d-none", mode !== "manual");
     }
 
-    // --- MODIFICATION START ---
-    // Show the event preview list, status, and refresh button only in manual mode
-    const previewList = document.getElementById("eventPreviewList");
-    if (previewList) {
-      previewList.classList.toggle("d-none", mode !== "manual");
+    const previewWrapper = document.getElementById("events-preview");
+    if (previewWrapper) {
+      previewWrapper.classList.toggle("d-none", mode !== "manual");
     }
 
     const previewStatus = document.getElementById("eventPreviewStatus");
@@ -293,19 +295,172 @@ export const DdbEventsApiSlideType = {
       previewStatus.classList.toggle("d-none", mode !== "manual");
     }
 
+    const previewList = document.getElementById("eventPreviewList");
+    const previewListColumn = previewList?.closest(".col-12");
+    if (previewListColumn) {
+      previewListColumn.classList.toggle("d-none", mode !== "manual");
+    }
 
     if (mode === "manual") {
-      document.getElementById("events-preview").classList.remove("d-none");
       const searchInput = document.getElementById("eventSearchInput");
       if (searchInput) {
         searchInput.value = this.manualSearchTerm || "";
       }
     }
+  },
 
-    else {
-      document.getElementById("events-preview").classList.add("d-none");
+  normalizePriceValue(value) {
+    if (value === null || value === undefined) return null;
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : null;
     }
 
+    let str = String(value).trim();
+    if (!str) return null;
+
+    const lower = str.toLowerCase();
+    const freeKeywords = [
+      "gratis",
+      "free",
+      "fri entre",
+      "fri entr\u00e9",
+      "fri adgang",
+    ];
+
+    if (freeKeywords.some((keyword) => lower.includes(keyword))) {
+      return 0;
+    }
+
+    str = lower.replace(/[\u00a0\s]+/g, "").replace(/[^0-9.,-]/g, "");
+    if (!str) return null;
+
+    const commaCount = (str.match(/,/g) || []).length;
+    const dotCount = (str.match(/\./g) || []).length;
+
+    if (commaCount > 0 && dotCount > 0) {
+      if (str.lastIndexOf(",") > str.lastIndexOf(".")) {
+        str = str.replace(/\./g, "");
+      } else {
+        str = str.replace(/,/g, "");
+      }
+    }
+
+    if (commaCount === 1 && dotCount === 0) {
+      str = str.replace(/,/g, ".");
+    } else if (commaCount > 1 && dotCount === 0) {
+      str = str.replace(/,/g, "");
+    }
+
+    if (dotCount > 1 && commaCount === 0) {
+      str = str.replace(/\./g, "");
+    }
+
+    const parsed = Number(str);
+    return Number.isFinite(parsed) ? parsed : null;
+  },
+
+  isEventFree(event) {
+    if (!event || !Array.isArray(event.ticket_categories)) return true;
+
+    return event.ticket_categories.every((category) => {
+      const price = this.normalizePriceValue(category?.price?.value);
+      return price === null || price === 0;
+    });
+  },
+
+  getEventPrice(event) {
+    if (
+      !event ||
+      !Array.isArray(event.ticket_categories) ||
+      event.ticket_categories.length === 0
+    ) {
+      return gettext("Free");
+    }
+
+    const prices = event.ticket_categories
+      .map((category) => this.normalizePriceValue(category?.price?.value))
+      .filter((price) => price !== null);
+
+    if (prices.length === 0 || prices.every((price) => price === 0)) {
+      return gettext("Free");
+    }
+
+    const minPrice = Math.min(...prices);
+    const currency = event.ticket_categories[0]?.price?.currency || "DKK";
+    const formattedPrice = Number.isFinite(minPrice)
+      ? minPrice.toLocaleString("da-DK", {
+          minimumFractionDigits: minPrice % 1 === 0 ? 0 : 2,
+          maximumFractionDigits: 2,
+        })
+      : gettext("Free");
+
+    return `${formattedPrice} ${String(currency).toLowerCase()}`;
+  },
+
+  libraryHasSelectedEvents(libraryName) {
+    if (
+      !libraryName ||
+      !(this.manualSelectedEvents instanceof Map) ||
+      this.manualSelectedEvents.size === 0
+    ) {
+      return false;
+    }
+
+    const normalizedLibraryName = libraryName.toLowerCase().trim();
+    for (const meta of this.manualSelectedEvents.values()) {
+      if (!Array.isArray(meta?.libraries)) continue;
+      const libraries = meta.libraries.map((lib) => lib.toLowerCase().trim());
+      if (libraries.includes(normalizedLibraryName)) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  refreshLibraryCheckboxStates() {
+    const container = document.getElementById("libraryCheckboxContainer");
+    if (!container) return;
+
+    const checkboxes = container.querySelectorAll(
+      'input[type="checkbox"]:not([data-select-all="true"])',
+    );
+
+    checkboxes.forEach((checkbox) => {
+      const libraryName = checkbox.dataset.label;
+      if (!libraryName) return;
+
+      const hasSelectedEvents = this.libraryHasSelectedEvents(libraryName);
+      const isChecked = checkbox.checked;
+      const shouldDisable = hasSelectedEvents && isChecked;
+
+      checkbox.disabled = shouldDisable;
+      checkbox.title = shouldDisable
+        ? gettext("Cannot deselect - library contains selected events")
+        : "";
+
+      const label = container.querySelector(`label[for="${checkbox.id}"]`);
+      if (!label) return;
+
+      label.className = label.className.replace(/\s*text-muted\s*/g, " ");
+      if (shouldDisable) {
+        label.className = `${label.className.trim()} text-muted`.trim();
+      } else {
+        label.className = label.className.trim();
+      }
+
+      const existingHelpText = label.querySelector("small.text-muted");
+      if (shouldDisable) {
+        if (!existingHelpText) {
+          const helpText = document.createElement("small");
+          helpText.className = "d-block text-muted";
+          helpText.textContent = gettext("Has selected events");
+          label.appendChild(helpText);
+        }
+      } else if (existingHelpText) {
+        existingHelpText.remove();
+      }
+    });
   },
 
   clearManualSelection() {
@@ -325,6 +480,7 @@ export const DdbEventsApiSlideType = {
     });
 
     this.renderSelectedEventsSummary();
+    this.refreshLibraryCheckboxStates();
   },
 
   renderSelectedEventsSummary() {
@@ -384,6 +540,9 @@ export const DdbEventsApiSlideType = {
       if (Array.isArray(meta?.libraries) && meta.libraries.length > 0) {
         detailParts.push(meta.libraries.join(", "));
       }
+      if (meta?.price) {
+        detailParts.push(meta.price);
+      }
 
       if (detailParts.length > 0) {
         const details = document.createElement("div");
@@ -412,6 +571,8 @@ export const DdbEventsApiSlideType = {
       item.appendChild(removeButton);
       list.appendChild(item);
     });
+
+    this.refreshLibraryCheckboxStates();
   },
 
   updateManualSelection({
@@ -444,6 +605,7 @@ export const DdbEventsApiSlideType = {
             libraries: [],
             categories: [],
             url: "",
+            price: "",
             isPlaceholder: true,
           };
 
@@ -455,6 +617,7 @@ export const DdbEventsApiSlideType = {
     }
 
     this.renderSelectedEventsSummary();
+    this.refreshLibraryCheckboxStates();
   },
 
   updateLibraryOptions(selectedMunicipality, selectedLibraries = []) {
@@ -539,10 +702,24 @@ export const DdbEventsApiSlideType = {
       input.dataset.label = libraryName;
       input.checked = normalizedSelections.includes(normalizedValue);
 
+      const hasSelectedEvents = this.libraryHasSelectedEvents(libraryName);
+      const shouldDisable = hasSelectedEvents && input.checked;
+      input.disabled = shouldDisable;
+      input.title = shouldDisable
+        ? gettext("Cannot deselect - library contains selected events")
+        : "";
+
       const label = document.createElement("label");
-      label.className = "form-check-label";
+      label.className = `form-check-label${shouldDisable ? " text-muted" : ""}`;
       label.setAttribute("for", checkboxId);
       label.textContent = libraryName;
+
+      if (shouldDisable) {
+        const helpText = document.createElement("small");
+        helpText.className = "d-block text-muted";
+        helpText.textContent = gettext("Has selected events");
+        label.appendChild(helpText);
+      }
 
       const wrapper = document.createElement("div");
       wrapper.className = "form-check";
@@ -554,6 +731,7 @@ export const DdbEventsApiSlideType = {
     });
 
     this.syncLibrarySelectAllState();
+    this.refreshLibraryCheckboxStates();
   },
 
   updateCategoryOptions(selectedMunicipality, selectedCategories = []) {
@@ -726,7 +904,14 @@ export const DdbEventsApiSlideType = {
 
     const desiredState = Boolean(checked);
     checkboxes.forEach((checkbox) => {
-      checkbox.checked = desiredState;
+      if (checkbox.disabled && !desiredState) {
+        return;
+      }
+
+      if (checkbox.checked !== desiredState) {
+        checkbox.checked = desiredState;
+        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+      }
     });
 
     this.setSelectAllControlState(selectAllId, {
@@ -773,9 +958,9 @@ export const DdbEventsApiSlideType = {
     );
     if (kommuneListener) this.eventListenerCleanup.push(kommuneListener);
 
-    const libraryListener = SlideTypeUtils.setupEventListener(
+    const libraryClickListener = SlideTypeUtils.setupEventListener(
       "libraryCheckboxContainer",
-      "change",
+      "click",
       function (event) {
         if (
           event?.target &&
@@ -783,13 +968,42 @@ export const DdbEventsApiSlideType = {
           event.target.type === "checkbox"
         ) {
           if (event.target.dataset.selectAll === "true") return;
+
+          if (event.target.disabled && event.target.checked) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+          }
+
+          window.setTimeout(() => {
+            this.syncLibrarySelectAllState();
+            this.schedulePreviewRefresh(100);
+          }, 0);
+        }
+      },
+      this,
+    );
+    if (libraryClickListener)
+      this.eventListenerCleanup.push(libraryClickListener);
+
+    const libraryChangeListener = SlideTypeUtils.setupEventListener(
+      "libraryCheckboxContainer",
+      "change",
+      function (event) {
+        if (
+          event?.target &&
+          event.target instanceof HTMLInputElement &&
+          event.target.type === "checkbox" &&
+          event.target.dataset.selectAll !== "true"
+        ) {
           this.syncLibrarySelectAllState();
           this.schedulePreviewRefresh(100);
         }
       },
       this,
     );
-    if (libraryListener) this.eventListenerCleanup.push(libraryListener);
+    if (libraryChangeListener)
+      this.eventListenerCleanup.push(libraryChangeListener);
 
     const categoryListener = SlideTypeUtils.setupEventListener(
       "categoryCheckboxContainer",
@@ -895,6 +1109,28 @@ export const DdbEventsApiSlideType = {
       this,
     );
     if (searchListener) this.eventListenerCleanup.push(searchListener);
+
+    const showFreeEventsListener = SlideTypeUtils.setupEventListener(
+      "showFreeEvents",
+      "change",
+      function () {
+        this.schedulePreviewRefresh(100);
+      },
+      this,
+    );
+    if (showFreeEventsListener)
+      this.eventListenerCleanup.push(showFreeEventsListener);
+
+    const showPaidEventsListener = SlideTypeUtils.setupEventListener(
+      "showPaidEvents",
+      "change",
+      function () {
+        this.schedulePreviewRefresh(100);
+      },
+      this,
+    );
+    if (showPaidEventsListener)
+      this.eventListenerCleanup.push(showPaidEventsListener);
 
 
     const previewSelectionListener = SlideTypeUtils.setupEventListener(
@@ -1190,21 +1426,100 @@ export const DdbEventsApiSlideType = {
 
     this.renderPreviewLoading();
 
-    try {
-      const response = await fetch(
-        `${BASE_URL}/api/ddb/events?${params.toString()}`,
+    const selectedEventsPromise = (() => {
+      if (
+        selectionMode !== "manual" ||
+        !(this.manualSelectedEvents instanceof Map) ||
+        this.manualSelectedEvents.size === 0
+      ) {
+        return null;
+      }
+
+      const selectedEventIds = Array.from(this.manualSelectedEvents.values())
+        .map((meta) => meta?.id)
+        .filter((id) => typeof id === "string" && id.trim().length > 0);
+
+      if (selectedEventIds.length === 0) return null;
+
+      const selectedParams = new URLSearchParams();
+      selectedParams.set("kommune", kommune);
+      selectedParams.set("libraries", libraries.join(","));
+      selectedParams.set("eventIds", selectedEventIds.join(","));
+      selectedParams.set("selectionMode", "manual");
+
+      return fetch(
+        `${BASE_URL}/api/ddb/events?${selectedParams.toString()}`,
         {
           method: "GET",
           headers: this.buildAuthHeaders(),
           signal: this.previewAbortController.signal,
         },
       );
+    })();
 
-      if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`);
+    try {
+      const requests = [
+        fetch(`${BASE_URL}/api/ddb/events?${params.toString()}`, {
+          method: "GET",
+          headers: this.buildAuthHeaders(),
+          signal: this.previewAbortController.signal,
+        }),
+      ];
+
+      if (selectedEventsPromise) {
+        requests.push(selectedEventsPromise);
       }
 
-      const events = await response.json();
+      const [mainResponse, selectedResponse] = await Promise.all(requests);
+
+      if (!mainResponse.ok) {
+        throw new Error(`${mainResponse.status} ${mainResponse.statusText}`);
+      }
+
+      let events = await mainResponse.json();
+      if (!Array.isArray(events)) events = [];
+
+      if (selectedResponse && selectedResponse.ok) {
+        const selectedEvents = await selectedResponse.json();
+        if (Array.isArray(selectedEvents) && selectedEvents.length > 0) {
+          const existingIds = new Set(
+            events.map((event) => this.normalizeEventId(this.getEventPrimaryId(event))),
+          );
+
+          selectedEvents.forEach((event) => {
+            const normalizedId = this.normalizeEventId(
+              this.getEventPrimaryId(event),
+            );
+            if (!existingIds.has(normalizedId)) {
+              events.push(event);
+            }
+          });
+        }
+      }
+
+      const formData = this.extractFormData();
+      const selectedIdSet =
+        this.manualSelectedEvents instanceof Map
+          ? new Set(this.manualSelectedEvents.keys())
+          : new Set();
+
+      if (!formData.showFreeEvents || !formData.showPaidEvents) {
+        events = events.filter((event) => {
+          const normalizedId = this.normalizeEventId(
+            this.getEventPrimaryId(event),
+          );
+          if (selectedIdSet.has(normalizedId)) {
+            return true;
+          }
+
+          const isFree = this.isEventFree(event);
+          return (
+            (formData.showFreeEvents && isFree) ||
+            (formData.showPaidEvents && !isFree)
+          );
+        });
+      }
+
       this.renderPreviewEvents(events, {
         kommune,
         selectedLibraries: libraries,
@@ -1363,6 +1678,11 @@ export const DdbEventsApiSlideType = {
         metaParts.push(
           `${gettext("Categories")}: ${categoryMatches.join(", ")}`,
         );
+      }
+
+      const eventPrice = this.getEventPrice(event);
+      if (eventPrice) {
+        metaParts.push(eventPrice);
       }
 
       if (metaParts.length > 0) {
@@ -1603,6 +1923,7 @@ export const DdbEventsApiSlideType = {
       libraries: libraryMatches,
       categories,
       url: event?.url || "",
+      price: this.getEventPrice(event),
       isPlaceholder: false,
     };
   },
@@ -1638,6 +1959,15 @@ export const DdbEventsApiSlideType = {
       showQr: config.showQr === false ? "false" : "true",
       showDateTime: config.showDateTime === false ? "false" : "true",
       showLocation: config.showLocation === false ? "false" : "true",
+      showPrice: config.showPrice ? "true" : "false",
+      showFreeEvents:
+        config.showFreeEvents === false || config.showFreeEvents === "false"
+          ? "false"
+          : "true",
+      showPaidEvents:
+        config.showPaidEvents === false || config.showPaidEvents === "false"
+          ? "false"
+          : "true",
       selectionMode,
     };
 
@@ -1727,6 +2057,9 @@ export const DdbEventsApiSlideType = {
       showDescription: getElementChecked("description"),
       showQr: getElementChecked("qrCode"),
       showLocation: getElementChecked("location"),
+      showPrice: getElementChecked("price"),
+      showFreeEvents: getElementChecked("showFreeEvents"),
+      showPaidEvents: getElementChecked("showPaidEvents"),
       selectionMode,
       selectedEventIds,
     };

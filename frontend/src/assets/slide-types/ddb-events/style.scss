@@ -172,6 +172,15 @@ body {
   color: $darkest-gray;
 }
 
+.event-meta .event-price {
+  font-size: 2.5rem;
+  color: $primary;
+  font-weight: bold;
+  background-color: rgba($primary, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
 .event-body {
   margin-top: 1.5rem;
   font-size: 1rem;

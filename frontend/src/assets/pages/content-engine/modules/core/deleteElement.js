@@ -4,6 +4,10 @@ import { store } from "./slideStore.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { isElementLocked } from "../element_formatting/lockElement.js";
 import { queryParams } from "../../../../utils/utils.js";
+import {
+  hideResizeHandles,
+  removeGradientWrapper,
+} from "./elementSelector.js";
 
 let deleteLock = false;
 
@@ -30,6 +34,7 @@ export function initDeleteElement() {
       }, 300);
 
       if (store.currentSlideIndex > -1) {
+        const elementNode = store.selectedElement;
         const elementToDelete = store.selectedElementData;
 
         // Check if the element is locked - if so, prevent deletion
@@ -57,8 +62,27 @@ export function initDeleteElement() {
           ].elements.filter((el) => el.id !== elementToDelete.id);
         }
 
-        store.selectedElement.remove();
-        document.querySelector(".gradient-border-wrapper")?.remove();
+        if (elementNode) {
+          removeGradientWrapper(elementNode);
+
+          if (elementNode._resizerObserver) {
+            elementNode._resizerObserver.disconnect();
+            delete elementNode._resizerObserver;
+          }
+
+          if (elementNode._resizeHandle) {
+            elementNode._resizeHandle.remove();
+            delete elementNode._resizeHandle;
+          }
+
+          if (elementNode._updateResizerPosition) {
+            delete elementNode._updateResizerPosition;
+          }
+
+          elementNode.remove();
+        }
+
+        hideResizeHandles();
 
         store.selectedElement = null;
         store.selectedElementData = null;

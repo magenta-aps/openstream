@@ -23,27 +23,6 @@ function getElementDefaults() {
   const defaultFont = getDefaultFont();
 
   return {
-    textbox: {
-      type: "textbox",
-      text: `<span><span 
-               data-font-size-key="12"
-               data-font-family="${defaultFont}"
-               style="font-size: 1.5rem; font-family: '${defaultFont}'; line-height: 1.2;"
-             >
-             Double click to edit text
-             </span>
-             </span>`,
-      border: false,
-      backgroundColor: "transparent",
-      fontFamily: defaultFont,
-      fontSize: "12",
-      lineHeight: "1.2",
-      textColor: "#000000",
-      fontWeight: "normal",
-      textDecoration: "none",
-      textAlign: "left",
-    },
-
     "tiptap-textbox": {
       type: "tiptap-textbox",
       tiptapContent: `<p>${gettext("Double click to edit text")}</p>`,
@@ -335,8 +314,7 @@ export function replaceElementWithType(sourceElement, targetType) {
  */
 export function getAvailableElementTypes() {
   return [
-    { type: "textbox", name: "Textbox", icon: "text_fields" },
-    { type: "tiptap-textbox", name: "Tiptap Textbox", icon: "draw" },
+    { type: "tiptap-textbox", name: "Textbox", icon: "text_fields" },
     { type: "image", name: "Image", icon: "image" },
     { type: "video", name: "Video", icon: "videocam" },
     { type: "table", name: "Table", icon: "table" },
@@ -355,8 +333,7 @@ export function getAvailableElementTypes() {
  */
 export function getAllElementTypes() {
   return [
-    { type: "textbox", name: "Textbox", icon: "text_fields" },
-    { type: "tiptap-textbox", name: "Tiptap Textbox", icon: "draw" },
+    { type: "tiptap-textbox", name: "Textbox", icon: "text_fields" },
     { type: "image", name: "Image", icon: "image" },
     { type: "video", name: "Video", icon: "videocam" },
     { type: "table", name: "Table", icon: "table" },

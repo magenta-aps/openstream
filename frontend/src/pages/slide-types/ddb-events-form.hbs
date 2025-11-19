@@ -61,6 +61,30 @@
                 </div>
             </div>
             <hr>
+            <div class="row mb-4 align-items-start">
+                <div class="col-md-2">
+                    <span class="form-label mb-0 d-block">{% trans "Filter by price:" %}</span>
+                </div>
+                <div class="col-md-10">
+                    <div class="d-flex flex-wrap gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showFreeEvents" name="showFreeEvents" checked />
+                            <label class="form-check-label" for="showFreeEvents">
+                                {% trans "Show free events" %}
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showPaidEvents" name="showPaidEvents" checked />
+                            <label class="form-check-label" for="showPaidEvents">
+                                {% trans "Show paid events" %}
+                            </label>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        {% trans "Select which types of events to include based on pricing." %}</small>
+                </div>
+            </div>
+            <hr>
             <div class="row mb-4 align-items-center">
                 <div class="col-md-2">
                     <span class="form-label mb-0 d-block">{% trans "Events:" %}</span>
@@ -234,6 +258,14 @@
                                     value="location" />
                                 <label class="form-check-label " for="location">
                                     {% trans "Location" %}
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input fs-5" type="checkbox" id="price" name="price"
+                                    value="price" />
+                                <label class="form-check-label " for="price">
+                                    {% trans "Price" %}
                                 </label>
                             </div>
                         </div>

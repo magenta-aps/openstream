@@ -3865,6 +3865,18 @@
   },
   "Events:": {
     "da": "Begivenheder:"
+  },
+  "Show free events": {
+    "da": "Vis gratis begivenheder"
+  },
+  "Show paid events": {
+    "da": "Vis betalte begivenheder"
+  },
+  "Select which types of events to include based on pricing.": {
+    "da": "Vælg hvilke typer begivenheder der skal inkluderes baseret på pris."
+  },
+  "Filter by price:": {
+    "da": "Filtrer efter pris:"
   }
 }
 

@@ -60,6 +60,9 @@ const config = {
   showDateTime: queryParams.showDateTime !== "false",
   showLocation: queryParams.showLocation !== "false",
   showTitle: queryParams.showTitle !== "false",
+  showPrice: queryParams.showPrice === "true",
+  showFreeEvents: queryParams.showFreeEvents !== "false",
+  showPaidEvents: queryParams.showPaidEvents !== "false",
   slideDuration: parseInt(queryParams.slideDuration) || 10,
   selectionMode,
   selectedEventIds: parsedEventIds,
@@ -113,17 +116,21 @@ async function fetchEvents() {
       params.set("branches", normalizedLibrary);
     }
 
-    if (config.categories.length > 0) {
-      const normalizedCategories = config.categories
-        .map((category) => category.toLowerCase().trim())
-        .filter((category) => category.length > 0);
-      if (normalizedCategories.length > 0) {
-        const categoryList = normalizedCategories.join(",");
-        params.set("categories", categoryList);
-        params.set("category", normalizedCategories[0]);
+    // In automatic mode, apply category filtering
+    // In manual mode, don't filter by categories - show all selected events
+    if (config.selectionMode !== "manual") {
+      if (config.categories.length > 0) {
+        const normalizedCategories = config.categories
+          .map((category) => category.toLowerCase().trim())
+          .filter((category) => category.length > 0);
+        if (normalizedCategories.length > 0) {
+          const categoryList = normalizedCategories.join(",");
+          params.set("categories", categoryList);
+          params.set("category", normalizedCategories[0]);
+        }
+      } else if (config.category) {
+        params.set("category", config.category.toLowerCase().trim());
       }
-    } else if (config.category) {
-      params.set("category", config.category.toLowerCase().trim());
     }
 
     if (config.selectionMode === "manual") {
@@ -149,6 +156,15 @@ async function fetchEvents() {
 
     const data = await response.json();
     let events = Array.isArray(data) ? [...data] : [];
+
+    // In automatic mode, filter events by price if needed
+    // In manual mode, show all selected events regardless of price filters
+    if (config.selectionMode !== "manual" && (!config.showFreeEvents || !config.showPaidEvents)) {
+      events = events.filter(event => {
+        const isFree = isEventFree(event);
+        return (config.showFreeEvents && isFree) || (config.showPaidEvents && !isFree);
+      });
+    }
 
     if (config.selectionMode === "manual" && config.selectedEventIds.length > 0) {
       const orderLookup = new Map();
@@ -181,6 +197,92 @@ function normalizeEventId(value) {
   if (value === null || value === undefined) return "";
   const text = String(value).trim();
   return text ? text.toLowerCase() : "";
+}
+
+function normalizePriceValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  let str = String(value).trim();
+  if (!str) return null;
+
+  const lower = str.toLowerCase();
+  const freeKeywords = [
+    "gratis",
+    "free",
+    "fri entre",
+    "fri entr\u00e9",
+    "fri adgang",
+  ];
+
+  if (freeKeywords.some((keyword) => lower.includes(keyword))) {
+    return 0;
+  }
+
+  str = lower.replace(/[\u00a0\s]+/g, "").replace(/[^0-9.,-]/g, "");
+  if (!str) return null;
+
+  const commaCount = (str.match(/,/g) || []).length;
+  const dotCount = (str.match(/\./g) || []).length;
+
+  if (commaCount > 0 && dotCount > 0) {
+    if (str.lastIndexOf(",") > str.lastIndexOf(".")) {
+      str = str.replace(/\./g, "");
+    } else {
+      str = str.replace(/,/g, "");
+    }
+  }
+
+  if (commaCount === 1 && dotCount === 0) {
+    str = str.replace(/,/g, ".");
+  } else if (commaCount > 1 && dotCount === 0) {
+    str = str.replace(/,/g, "");
+  }
+
+  if (dotCount > 1 && commaCount === 0) {
+    str = str.replace(/\./g, "");
+  }
+
+  const parsed = Number(str);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isEventFree(event) {
+  if (!event || !Array.isArray(event.ticket_categories)) return true;
+  
+  // Check if all ticket categories have price value of 0
+  return event.ticket_categories.every((category) => {
+    const price = normalizePriceValue(category?.price?.value);
+    return price === null || price === 0;
+  });
+}
+
+function getEventPrice(event) {
+  if (!event || !Array.isArray(event.ticket_categories) || event.ticket_categories.length === 0) {
+    return "Free";
+  }
+  
+  // Get the minimum price from all ticket categories
+  const prices = event.ticket_categories
+    .map((category) => normalizePriceValue(category?.price?.value))
+    .filter((price) => price !== null);
+  
+  if (prices.length === 0 || prices.every((price) => price === 0)) {
+    return "Free";
+  }
+  
+  const minPrice = Math.min(...prices);
+  const currency = event.ticket_categories[0]?.price?.currency || "DKK";
+  const formattedPrice = Number.isFinite(minPrice)
+    ? minPrice.toLocaleString("da-DK", {
+        minimumFractionDigits: minPrice % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2,
+      })
+    : "0";
+
+  return `${formattedPrice} ${currency}`;
 }
 
 function getEventIdCandidates(event) {
@@ -335,7 +437,7 @@ function displayEventsInCarousel(events) {
               <div class="event-meta">
                 ${dateInfo ? `<span class="event-date">${dateInfo}</span>` : ""}
                 ${locationMarkup}
-               
+                ${config.showPrice ? `<span class="event-price">${getEventPrice(event)}</span>` : ""}
               </div>
               <div class="event-address"></div>
               <div class="event-body">${body}</div>
@@ -357,7 +459,7 @@ function displayEventsInCarousel(events) {
               <div class="event-meta">
                 ${dateInfo ? `<span class="event-date">${dateInfo}</span>` : ""}
                 ${locationMarkup}
-                
+                ${config.showPrice ? `<span class="event-price">${getEventPrice(event)}</span>` : ""}
               </div>
               ${config.showQr ? `<div class="event-qr"><div id="qrcode-${index}"></div></div>` : ``}
               <div class="event-body">${body}</div>

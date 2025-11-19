@@ -33,3 +33,47 @@ export const store = {
   // Resolver for slideshow exit when info box is not used
   resolveSlideshowExit: null,
 };
+
+let _selectedElement = null;
+
+Object.defineProperty(store, "selectedElement", {
+  get() {
+    return _selectedElement;
+  },
+  set(value) {
+    if (value === null && _selectedElement) {
+      const element = _selectedElement;
+
+      if (element._gradientWrapper) {
+        element._gradientWrapper.remove();
+        delete element._gradientWrapper;
+      }
+
+      if (element._gradientWrapperObserver) {
+        element._gradientWrapperObserver.disconnect();
+        delete element._gradientWrapperObserver;
+      }
+
+      if (element._gradientWrapperParentObserver) {
+        element._gradientWrapperParentObserver.disconnect();
+        delete element._gradientWrapperParentObserver;
+      }
+
+      if (element._gradientWrapperDragHandler) {
+        element.removeEventListener(
+          "drag",
+          element._gradientWrapperDragHandler,
+        );
+        element.removeEventListener(
+          "dragend",
+          element._gradientWrapperDragHandler,
+        );
+        delete element._gradientWrapperDragHandler;
+      }
+    }
+
+    _selectedElement = value;
+  },
+  enumerable: true,
+  configurable: true,
+});
