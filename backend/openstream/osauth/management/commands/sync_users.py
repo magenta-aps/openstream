@@ -221,7 +221,7 @@ class Command(BaseCommand):
             render_to_string(
                 "email/password_reset_email.txt",
                 context=mail_template_vars,
-            ),
+            ).strip(),
             settings.DEFAULT_FROM_EMAIL,
             [kc_user.email],
         )
@@ -229,7 +229,7 @@ class Command(BaseCommand):
             render_to_string(
                 "email/password_reset_email.html",
                 context=mail_template_vars,
-            ),
+            ).strip(),
             "text/html",
         )
         return email
