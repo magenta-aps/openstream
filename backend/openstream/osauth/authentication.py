@@ -23,7 +23,6 @@ class OSAuthRequired(BaseAuthentication):
             port=settings.KEYCLOAK_PORT,
             realm=settings.KEYCLOAK_REALM,
             client_id=settings.KEYCLOAK_CLIENT_ID,
-            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
         )
 
     def authenticate(self, request):

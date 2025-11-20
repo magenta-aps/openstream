@@ -123,11 +123,8 @@ class KeycloakBaseClient:
 
 
 class KeycloakClient(KeycloakBaseClient):
-    def __init__(
-        self, host: str, port: str, realm: str, client_id: str, client_secret: str
-    ):
+    def __init__(self, host: str, port: str, realm: str, client_id: str):
         super().__init__(host=host, port=port, realm=realm, client_id=client_id)
-        self.client_secret = client_secret
 
     def authenticate(self, username: str, password: str) -> TokenResponse:
         resp = requests.post(
@@ -139,7 +136,6 @@ class KeycloakClient(KeycloakBaseClient):
                 "grant_type": "password",
                 "scope": "openid",
                 "client_id": self.client_id,
-                "client_secret": self.client_secret,
                 "username": username,
                 "password": password,
             },
@@ -159,7 +155,6 @@ class KeycloakClient(KeycloakBaseClient):
             data={
                 "grant_type": "refresh_token",
                 "client_id": self.client_id,
-                "client_secret": self.client_secret,
                 "refresh_token": refresh_token,
             },
         )
@@ -412,7 +407,6 @@ def kc_client_from_settings() -> KeycloakClient:
         port=settings.KEYCLOAK_PORT,
         realm=settings.KEYCLOAK_REALM,
         client_id=settings.KEYCLOAK_CLIENT_ID,
-        client_secret=settings.KEYCLOAK_CLIENT_SECRET,
     )
 
 

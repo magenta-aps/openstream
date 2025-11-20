@@ -46,7 +46,6 @@ class SignInView(APIView):
             port=settings.KEYCLOAK_PORT,
             realm=org_realm,
             client_id=settings.KEYCLOAK_CLIENT_ID,
-            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
         )
 
         params = {
@@ -80,7 +79,6 @@ class AuthCodeView(APIView):
             port=settings.KEYCLOAK_PORT,
             realm=org_realm,
             client_id=settings.KEYCLOAK_CLIENT_ID,
-            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
         )
 
         # Fetch access- & refresh-token using the authroization code
@@ -156,7 +154,6 @@ class SignOutAPIView(APIView):
             port=settings.KEYCLOAK_PORT,
             realm=org_realm,
             client_id=settings.KEYCLOAK_CLIENT_ID,
-            client_secret=settings.KEYCLOAK_CLIENT_SECRET,
         )
 
         serializer = SignOutResponse(
