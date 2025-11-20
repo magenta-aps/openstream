@@ -9,8 +9,9 @@ import textwrap
 from typing import List, Set
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.core.management import BaseCommand
+from django.template.loader import render_to_string
 
 from app.models import OrganisationMembership
 from osauth.keycloak import (
@@ -24,33 +25,6 @@ from osauth.keycloak import (
 logger = getLogger("django.management.cmd")
 
 
-def get_user_sync_password_reset_mail_template(
-    realm: str, user: UserRepresentation, temporary_password: str
-):
-    os_url = f"{settings.FRONTEND_HOST}/{realm}/sign-in"
-    return textwrap.dedent(
-        f"""\
-        Hello {user.username},
-
-        Your user account at OpenStream has been successfully migrated to the new
-        authentication system on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.
-
-        For security reasons, we were unable to migrate your previous password.
-        A new temporary password has therefore been generated for your account.
-        You will be prompted to change it the first time you sign in.
-
-        Your new temporary password is:
-        {temporary_password}
-
-        To update your password, please sign in at:
-        {os_url}
-
-        Best regards,
-        OpenStream Team
-    """
-    )
-
-
 class Command(BaseCommand):
     verbose = False
     dry_run = False
@@ -58,19 +32,11 @@ class Command(BaseCommand):
     compare_field = "username"
     temp_password = ""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.kc_client = kc_client_from_settings()
-        self.kc_adm = KeycloakAdminClient(
-            host=settings.KEYCLOAK_HOST,
-            port=settings.KEYCLOAK_PORT,
-            client_id="admin-cli",
-        )
-
     def add_arguments(self, parser):
-        # TODO: SPecify realm through arg
-        # parser.add_argument("realm", nargs=1, type=str)
+        # Required arguments
+        parser.add_argument("realm", type=str)
 
+        # Optional arguments
         parser.add_argument(
             "--verbose",
             action="store_true",
@@ -190,47 +156,47 @@ class Command(BaseCommand):
             ) = self.get_django_user_org_memberships(user.id)
 
             # Create the user in Keycloak
+            new_kc_user = UserRepresentation(
+                username=user.username,
+                email=user.email,
+                # NOTE: `emailVerified=True` since we will send a password-reset mail
+                emailVerified=True,
+                enabled=True,
+                attributes={
+                    settings.OSAUTH_KC_USER_ATTR_ORG_ADMIN: [
+                        ",".join(str(om) for om in org_admin_memberships)
+                    ],
+                    settings.OSAUTH_KC_USER_ATTR_SUBORG_ADMIN: [
+                        ",".join(str(om) for om in subOrg_admin_memberships)
+                    ],
+                    settings.OSAUTH_KC_USER_ATTR_BRANCH_ADMIN: [
+                        ",".join(str(om) for om in branch_admin_memberships)
+                    ],
+                    settings.OSAUTH_KC_USER_ATTR_ORG_EMPLOYEE: [
+                        ",".join(str(om) for om in employee_memberships)
+                    ],
+                },
+            )
+
+            if self.dry_run:
+                kc_users_created.append(new_kc_user)
+                continue
+
             try:
-                new_kc_user = UserRepresentation(
-                    username=user.username,
-                    email=user.email,
-                    # NOTE: `emailVerified=True` since we will send a password-reset mail
-                    emailVerified=True,
-                    enabled=True,
-                    attributes={
-                        settings.OSAUTH_KC_USER_ATTR_ORG_ADMIN: [
-                            ",".join(str(om) for om in org_admin_memberships)
-                        ],
-                        settings.OSAUTH_KC_USER_ATTR_SUBORG_ADMIN: [
-                            ",".join(str(om) for om in subOrg_admin_memberships)
-                        ],
-                        settings.OSAUTH_KC_USER_ATTR_BRANCH_ADMIN: [
-                            ",".join(str(om) for om in branch_admin_memberships)
-                        ],
-                        settings.OSAUTH_KC_USER_ATTR_ORG_EMPLOYEE: [
-                            ",".join(str(om) for om in employee_memberships)
-                        ],
-                    },
-                )
-
-                if self.dry_run:
-                    continue
-
                 new_kc_user.id = self.kc_adm.create_realm_user(
-                    token, settings.KEYCLOAK_REALM, new_kc_user
+                    token, self.realm, new_kc_user
                 )
-
                 kc_users_created.append(new_kc_user)
 
                 # Check if we need to assign "super_admin" priviliges
                 if super_admin_membership:
                     kc_role_super_admin = self.kc_adm.get_realm_role(
-                        token, settings.KEYCLOAK_REALM, "super_admin"
+                        token, self.realm, "super_admin"
                     )
 
                     self.kc_adm.add_realm_role_to_user(
                         token,
-                        settings.KEYCLOAK_REALM,
+                        self.realm,
                         new_kc_user.id,
                         kc_role_super_admin,
                     )
@@ -240,18 +206,51 @@ class Command(BaseCommand):
 
         return kc_users_created, kc_users_created_failed
 
+    def get_password_reset_email(
+        self, kc_user: UserRepresentation, temporary_password: str
+    ):
+        mail_template_vars = {
+            "user_username": kc_user.username,
+            "reset_datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "temporary_password": temporary_password,
+            "os_url": f"{settings.FRONTEND_HOST}/{self.realm}/sign-in",
+        }
+
+        email = EmailMultiAlternatives(
+            "OpenStream authentication migration - Password Reset",
+            render_to_string(
+                "email/password_reset_email.txt",
+                context=mail_template_vars,
+            ),
+            settings.DEFAULT_FROM_EMAIL,
+            [kc_user.email],
+        )
+        email.attach_alternative(
+            render_to_string(
+                "email/password_reset_email.html",
+                context=mail_template_vars,
+            ),
+            "text/html",
+        )
+        return email
+
     def handle(self, *args, **options):
         logger.info("Sync Users Management Command")
         logger.info("-----------------------------")
-
-        self.realm = (
-            settings.KEYCLOAK_REALM
-        )  # TODO: use this: `options["realm"]` when possible
+        self.realm = options["realm"]
         self.verbose = options["verbose"]
         self.dry_run = options["dry_run"]
         self.batch_size = options["batch_size"]
         self.compare_field = options["compare_field"]
         self.temp_password = options["temp_password"]
+
+        # Configure keycloak clients
+        self.kc_client = kc_client_from_settings()
+        self.kc_adm = KeycloakAdminClient(
+            host=settings.KEYCLOAK_HOST,
+            port=settings.KEYCLOAK_PORT,
+            client_id="admin-cli",
+        )
 
         # Get Keycloak users
         kc_token = self.kc_adm.auth(
@@ -280,7 +279,7 @@ class Command(BaseCommand):
         kc_users_updated_fails = []
 
         # Handle password reset for new users
-        password_resets_sent: List[str] = []
+        password_resets_performed: List[str] = []
         password_resets_fails: List[str] = []
         password_resets_total = len(kc_users_created)
 
@@ -294,13 +293,14 @@ class Command(BaseCommand):
         for kc_user in kc_users_created:
             if self.temp_password:
                 try:
-                    self.kc_adm.set_realm_user_password(
-                        kc_token,
-                        self.realm,
-                        kc_user.id,
-                        self.temp_password,
-                    )
-                    password_resets_sent.append(kc_user.id)
+                    if not self.dry_run:
+                        self.kc_adm.set_realm_user_password(
+                            kc_token,
+                            self.realm,
+                            kc_user.id,
+                            self.temp_password,
+                        )
+                    password_resets_performed.append(kc_user.id)
                 except KeycloakError:
                     logger.exception("Error sending password-reset mail")
                     password_resets_fails.append(kc_user.id)
@@ -316,28 +316,28 @@ class Command(BaseCommand):
             temp_pass = secrets.token_urlsafe(8)
 
             try:
-                self.kc_adm.set_realm_user_password(
-                    kc_token, self.realm, kc_user.id, temp_pass
-                )
+                if not self.dry_run:
+                    self.kc_adm.set_realm_user_password(
+                        kc_token, self.realm, kc_user.id, temp_pass
+                    )
             except KeycloakError:
                 logger.exception("Error sending password-reset mail")
                 password_resets_fails.append(kc_user.id)
                 continue
 
             # Send mail with temp password
-            send_mail_dict = {
-                "subject": "OpenStream authentication migration - Password Reset",
-                "message": get_user_sync_password_reset_mail_template(
-                    kc_user, temp_pass
-                ),
-                "from_email": settings.DEFAULT_FROM_EMAIL,
-                "recipient_list": [kc_user.email],
-            }
+            email = self.get_password_reset_email(kc_user, temp_pass)
 
             try:
                 if not self.dry_run:
-                    send_mail(**send_mail_dict)
-                password_resets_sent.append(kc_user.id)
+                    email.send()
+                else:
+                    if self.verbose:
+                        logger.info("\nThe following email would have been sent:")
+                        logger.info("-----------------------------------------")
+                        logger.info("> " + "\n> ".join(email.body.splitlines()))
+
+                password_resets_performed.append(kc_user.id)
             except Exception:
                 logger.exception("Error sending password-reset mail")
                 password_resets_fails.append(kc_user.id)
@@ -352,5 +352,5 @@ class Command(BaseCommand):
             f"  - Updated users: {len(kc_users_updated)} / {len(django_users_to_update)}"
         )
         logger.info(
-            f"  - Password resets: {len(password_resets_sent)} / {password_resets_total}"
+            f"  - Password resets: {len(password_resets_performed)} / {password_resets_total}"
         )
