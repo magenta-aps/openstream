@@ -4,6 +4,7 @@ import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 import QRCode from "qrcode";
+import { gettext } from "../../utils/locales";
 
 // Parse config from query parameters
 const parsedLibraries = (() => {
@@ -261,7 +262,7 @@ function isEventFree(event) {
 
 function getEventPrice(event) {
   if (!event || !Array.isArray(event.ticket_categories) || event.ticket_categories.length === 0) {
-    return "Free";
+    return gettext("Free");
   }
   
   // Get the minimum price from all ticket categories
@@ -270,7 +271,7 @@ function getEventPrice(event) {
     .filter((price) => price !== null);
   
   if (prices.length === 0 || prices.every((price) => price === 0)) {
-    return "Free";
+    return gettext("Free");
   }
   
   const minPrice = Math.min(...prices);

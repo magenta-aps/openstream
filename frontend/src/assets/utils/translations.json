@@ -3904,6 +3904,12 @@
   },
   "The list to the left shows events based on your filters. Select events to add them to your preview.": {
     "da": "Listen til venstre viser begivenheder baseret på dine filtre. Marker begivenheder for at tilføje dem til visningen."
-  }
+  },
+  "Has selected events": {
+    "da": "Har valgte begivenheder"
+  },
+  "Free": {
+    "da": "Gratis"
+  } 
 }
 
