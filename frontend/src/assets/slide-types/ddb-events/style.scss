@@ -151,7 +151,6 @@ body {
 .event-location,
 .event-address,
 .event-tags {
-  margin-bottom: 0.5rem;
   font-size: 2.5rem;
 }
 
@@ -177,7 +176,7 @@ body {
   color: $primary;
   font-weight: bold;
   background-color: rgba($primary, 0.1);
-  padding: 0.25rem 0.5rem;
+  padding: 0 0.5rem;
   border-radius: 0.25rem;
 }
 
