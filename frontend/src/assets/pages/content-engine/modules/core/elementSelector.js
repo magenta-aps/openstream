@@ -34,6 +34,30 @@ import {
 import { gettext } from "../../../../utils/locales.js";
 import { showToast } from "../../../../utils/utils.js";
 // Helper function to create a temporary wrapper element with gradient border
+function getNumericZIndex(element) {
+  if (!element) return 0;
+  let computedZ = 0;
+
+  try {
+    const computedStyle = window.getComputedStyle(element);
+    const parsed = parseInt(computedStyle.zIndex, 10);
+    if (!isNaN(parsed)) {
+      computedZ = parsed;
+    }
+  } catch (err) {
+    // Ignore getComputedStyle errors (element might be detached temporarily)
+  }
+
+  if (computedZ === 0) {
+    const inline = parseInt(element.style?.zIndex ?? "", 10);
+    if (!isNaN(inline)) {
+      computedZ = inline;
+    }
+  }
+
+  return Number.isFinite(computedZ) ? computedZ : 0;
+}
+
 function createGradientWrapper(element) {
   // Remove any existing wrapper first
   removeGradientWrapper(element);
@@ -43,9 +67,8 @@ function createGradientWrapper(element) {
   wrapper.style.cssText = `
     position: absolute;
     pointer-events: none;
-    outline: 3px dashed yellow; box-shadow: 
+    outline: 3px dashed yellow;
     border-radius: inherit;
-    z-index: 1000;
   `;
 
   // Position the wrapper to match the element exactly
@@ -79,6 +102,24 @@ function createGradientWrapper(element) {
   // Store observer reference for cleanup
   element._gradientWrapperObserver = observer;
 
+  // Watch for element removal to avoid leaving orphaned wrappers behind
+  if (element.parentNode) {
+    const parentObserver = new MutationObserver((mutations, obs) => {
+      for (const mutation of mutations) {
+        for (const removedNode of mutation.removedNodes) {
+          if (removedNode === element) {
+            removeGradientWrapper(element);
+            obs.disconnect();
+            return;
+          }
+        }
+      }
+    });
+
+    parentObserver.observe(element.parentNode, { childList: true });
+    element._gradientWrapperParentObserver = parentObserver;
+  }
+
   // Also listen for drag events if the element is draggable
   const dragHandler = () => {
     requestAnimationFrame(() => updateWrapperPosition(element, wrapper));
@@ -101,6 +142,9 @@ function updateWrapperPosition(element, wrapper) {
   wrapper.style.top = element.offsetTop - 3 + "px";
   wrapper.style.width = element.offsetWidth + 6 + "px";
   wrapper.style.height = element.offsetHeight + 6 + "px";
+
+  const elementZIndex = getNumericZIndex(element);
+  wrapper.style.zIndex = String(elementZIndex + 1);
 }
 
 // Helper function to remove the temporary wrapper element
@@ -114,6 +158,11 @@ export function removeGradientWrapper(element) {
   if (element && element._gradientWrapperObserver) {
     element._gradientWrapperObserver.disconnect();
     delete element._gradientWrapperObserver;
+  }
+
+  if (element && element._gradientWrapperParentObserver) {
+    element._gradientWrapperParentObserver.disconnect();
+    delete element._gradientWrapperParentObserver;
   }
 
   // Clean up drag event listeners
@@ -248,8 +297,8 @@ export function selectElement(el, dataObj) {
       el._updateResizerPosition();
     }
 
-    // Hide resize handle for locked elements in non-template editor mode
-    if (queryParams.mode !== "template_editor" && isElementLocked(dataObj)) {
+    // Hide resize handle for locked elements across editor modes
+    if (isElementLocked(dataObj)) {
       resizer.style.display = "none";
     } else {
       resizer.style.display = "block";

@@ -38,17 +38,21 @@ function toggleElementLock() {
 
   const isLocked = store.selectedElementData.isLocked;
   store.selectedElementData.isLocked = !isLocked;
+  const nowLocked = store.selectedElementData.isLocked;
 
   // Update visual feedback
   const lockButton = document.getElementById("lock-element-btn");
-  updateLockButtonState(lockButton, !isLocked);
+  updateLockButtonState(lockButton, nowLocked);
 
   // Update element class for styling (keep for hover effect)
   if (store.selectedElement) {
-    if (!isLocked) {
-      store.selectedElement.classList.add("is-locked");
-    } else {
-      store.selectedElement.classList.remove("is-locked");
+    store.selectedElement.classList.toggle("is-locked", nowLocked);
+
+    const resizer =
+      store.selectedElement._resizeHandle ||
+      store.selectedElement.querySelector(".resize-handle");
+    if (resizer) {
+      resizer.style.display = nowLocked ? "none" : "block";
     }
   }
 }

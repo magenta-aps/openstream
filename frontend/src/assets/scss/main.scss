@@ -23,7 +23,7 @@ body {
   border-radius: 0.375rem !important;
 }
 
-.form-check-input:checked {
+.form-check-input:checked, .form-check-input:indeterminate {
   background-color: $secondary !important;
 }
 

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "../core/slideStore.js";
+import { gettext } from "../../../../utils/locales.js";
 /**
  * Grid configuration constants for the content engine
  * This is the single source of truth for grid dimensions
@@ -151,7 +152,13 @@ export const GridUtils = {
    * @returns {string} Formatted grid information for status bar
    */
   formatGridInfoCompact(x, y, width, height) {
+
+    let type = store.selectedElementData.type;
+    if (type === "tiptap-textbox") {
+      type = "Textbox";
+    }
+
     const percentages = this.getGridPercentages(width, height);
-    return `Type: ${store.selectedElementData.type.charAt(0).toUpperCase() + store.selectedElementData.type.slice(1)} • Move/Resize: ${store.selectedElementData.isLocked ? "Locked" : "Unlocked"} • ${store.selectedElementData.isPersistent ? "Persistent • " : ""}   Position: (${x + 1}, ${y + 1}) • Size: ${width} × ${height}`;
+    return `${gettext("Type")}: ${gettext(type).toLowerCase()} • ${gettext("Move/Resize")}: ${store.selectedElementData.isLocked ? gettext("Locked") : gettext("Unlocked")} • ${store.selectedElementData.isPersistent ? gettext("Persistent") + " • " : ""}   ${gettext("Position")}: (${x + 1}, ${y + 1}) • ${gettext("Size")}: ${width} × ${height}`;
   },
 };
