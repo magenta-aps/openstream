@@ -114,6 +114,8 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
     const fetchedTemplates = await resp.json();
 
     store.slides.length = 0;
+    store.currentSlideIndex = -1;
+    store.lastSlideIndex = null;
 
     if (fetchedTemplates && fetchedTemplates.length > 0) {
       fetchedTemplates.forEach((template) => {
