@@ -486,10 +486,28 @@ export const DdbEventsApiSlideType = {
   renderSelectedEventsSummary() {
     const list = document.getElementById("manualSelectedEventsList");
     const emptyState = document.getElementById("manualSelectedEventsEmpty");
+    const heading = document.getElementById("selected-events-text");
 
     if (!list || !emptyState) return;
 
+    const selections =
+      this.manualSelectedEvents instanceof Map
+        ? Array.from(this.manualSelectedEvents.values())
+        : [];
     const mode = this.getSelectionMode();
+
+    if (heading) {
+      if (mode === "manual") {
+        const countLabel =
+          selections.length === 1
+            ? gettext("selected event")
+            : gettext("selected events");
+        heading.textContent = `${selections.length} ${countLabel}`;
+      } else {
+        heading.textContent = gettext("Selected events");
+      }
+    }
+
     const containerColumn = document.getElementById(
       "manualSelectedEventsContainer",
     );
@@ -500,11 +518,6 @@ export const DdbEventsApiSlideType = {
     if (mode !== "manual") return;
 
     list.innerHTML = "";
-
-    const selections =
-      this.manualSelectedEvents instanceof Map
-        ? Array.from(this.manualSelectedEvents.values())
-        : [];
 
     if (!selections.length) {
       emptyState.classList.remove("d-none");

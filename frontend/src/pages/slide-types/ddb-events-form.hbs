@@ -75,6 +75,7 @@
 
             <div class="mb-2">
                 <span class="form-label mb-2 d-block">{% trans "Events:" %}</span>
+                <div class="d-flex gap-3">
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="ddbEventsMode" id="ddbModeAutomatic"
                             value="automatic" checked />
@@ -87,6 +88,7 @@
                             value="manual" />
                         <label class="form-check-label" for="ddbModeManual">
                             {% trans "Fetch events maunally" %}</label>
+                    </div>
                     </div>
             </div>
 
@@ -102,13 +104,15 @@
             <div class="card-body bg-light">
            
                 <p class=" mb-3">
-                    {% trans "Review the matching events. In manual mode, tick events to add them to your selection." %}
+                    {% trans "The list to the left shows events based on your filters. Select events to add them to your preview." %}
                 </p>
                 <div class="row g-4">
                     <div class="col-12 col-xl-7">
                              <div class="d-flex justify-content-between align-items-center mb-2">
-                    <input type="search" id="eventSearchInput" class="form-control border-gray w-100"
-                        placeholder='🔍 {% trans "Search for event" %}' />
+                        <span class="material-symbols-outlined" style="z-index: 2">search</span>        
+                    <input type="search" id="eventSearchInput" style="padding-left: 2.3rem; position: relative; left: -2rem;" class="form-control border-gray w-100"
+                        placeholder='{% trans "Search for event" %}' />
+                        
                 </div>
                         <div id="eventPreviewStatus" class="small mb-2"></div>
                         <ul id="eventPreviewList" class="list-group list-group-flush small"
@@ -118,7 +122,7 @@
                         <div class="card h-100 border border-gray">
                             <div class="card-body d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0">{% trans "Selected events" %}</h6>
+                                    <h6 id="selected-events-text" class="mb-0">{% trans "Selected events" %}</h6>
                                     <small class="text-muted">{% trans "Displayed on the slide" %}</small>
                                 </div>
                                 <div id="manualSelectedEventsEmpty" class="text-muted small flex-shrink-0">
@@ -147,7 +151,7 @@
                                 <label class="d-block">
                                     <input id="vertical-option" type="radio" name="layout" class="d-none"
                                         value="vertical" />
-                                    <div class="card border border-gray h-100"
+                                    <div class="card border border-gray"
                                         style="cursor: pointer; aspect-ratio: 1/1; max-width: 300px;">
                                         <div class="card-body d-flex flex-column p-2">
                                             <div class="d-flex align-items-center">
