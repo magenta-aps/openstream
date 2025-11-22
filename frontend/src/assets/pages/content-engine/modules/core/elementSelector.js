@@ -290,19 +290,21 @@ export function selectElement(el, dataObj) {
   updateLockButtonForSelectedElement();
 
   // Show resizer, etc...
-  const resizer = el._resizeHandle || el.querySelector(".resize-handle");
-  if (resizer) {
-    // Update position before showing
+  const resizeHandles = Array.isArray(el._resizeHandles)
+    ? el._resizeHandles
+    : el._resizeHandle
+      ? [el._resizeHandle]
+      : Array.from(el.querySelectorAll(".resize-handle"));
+
+  if (resizeHandles.length) {
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
     }
 
-    // Hide resize handle for locked elements across editor modes
-    if (isElementLocked(dataObj)) {
-      resizer.style.display = "none";
-    } else {
-      resizer.style.display = "block";
-    }
+    const shouldShowHandles = !isElementLocked(dataObj);
+    resizeHandles.forEach((handle) => {
+      handle.style.display = shouldShowHandles ? "block" : "none";
+    });
   }
 
   // ### Initialize values for the general element formatting
