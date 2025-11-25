@@ -110,23 +110,43 @@ Siden "Håndter skærme" er opdelt i et sidepanel til venstre og en kalender til
 Efter en skærm er blevet registreret, skal den tilknyttes en gruppe for at vise indhold.
 
 ### 4.4.1 Sidepanel: grupper og skærme
-- **Grupper**: Tryk på **Add Display Group** for at oprette en ny skærmgruppe. I dialogen vælger du navn, billedformat (aspect ratio) og standardindhold. Når du klikker på en gruppe i listen, åbnes de tilknyttede modalvinduer til at omdøbe, ændre format eller justere standardindhold.
-- **Skærme**: Vælg **Register Screen** for at åbne registreringsdialogen og kopiere enten registrerings-URL eller API-nøgle til eksterne værktøjer som OS2BorgerPC.
+#### 4.4.1.1 Tilføj skærmgruppe
+Tryk på **Tilføj skærmgruppe** for at oprette en ny skærmgruppe. I dialogen vælger du navn, billedformat (aspect ratio) og standardindhold. Når du klikker på en gruppe i listen, åbnes de tilknyttede modalvinduer til at omdøbe, ændre format eller justere standardindhold.
+
+![Tilføj Gruppe](/docs/docs_images/da/add_group_btn.png)
+![Tilføj Gruppe](/docs/docs_images/da/add_group.png)
+
+#### 4.4.1.2 Registrer skærm
+Vælg **Registrer Skærm** for at åbne registreringsdialogen og kopiere enten registrerings-URL eller API-nøgle til eksterne værktøjer som OS2BorgerPC.
+
+![Tilføj Gruppe](/docs/docs_images/da/register_screen.png)
+
+![Add Screen](/docs/docs_images/da/screen_registration_dialog.png)
 
 Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af den venstre sidemenu i "Inaktive Skærme". For at give skærmen noget indhold skal den bare trækkes op i en skærmgruppe som har indhold tilknyttet.
+
+![Inactive Screens](/docs/docs_images/da/inactive_screen.png)
 
 
 ### 4.4.2 Standardindhold for grupper
 - Hver gruppe har standardindhold, som afspilles når der ikke er planlagte afvigelser. Vælg mellem enkelt slideshows/interaktivt indhold eller en samlet slideshow-playlist.
-- Redigér standardindholdet via **Edit Group** eller **Edit Display**-modalerne afhængigt af om du ændrer gruppens opsætning eller et specifikt display i gruppen. Sørg for, at indholdets billedformat matcher gruppens format.
+- Redigér standardindholdet for en gruppe ved at klikke på blyantsikonet ved siden af gruppen.
+
+![Inactive Screens](/docs/docs_images/da/edit_group.png)
 
 ### 4.4.3 Planlæg indhold i kalenderen
 - Kalenderen fylder hovedområdet og viser alle planlagte afspilninger for de valgte grupper.
-- Brug **Add Scheduled Content** til engangsbegivenheder på bestemte datoer og tidspunkter. Vælg om indholdet skal erstatte standardindholdet eller afspilles i kombination.
-- Brug **Add Recurring Scheduled Content** til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Eksisterende begivenheder kan redigeres eller slettes via de tilsvarende edit-modalvinduer. Recurring content kan tilføjes i kombinations tilstand eller overskrivningstilstand.
+- Brug **Tilføj planlagt indhold** eller træk musen hen over kalenderen til engangsbegivenheder på bestemte datoer og tidspunkter.Vælg om indholdet skal erstatte standardindholdet eller afspilles i kombination.
+![Scheduled Content](/docs/docs_images/da/add_scheduled_content_btn.png)
+![Scheduled Content](/docs/docs_images/da/add_scheduled_content_modal.png)
 
-Det er muligt at kombinere flere ting i kalenderen på samme tid.
+- Brug **Tilføj tilbagevendene indhold** til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Eksisterende begivenheder kan redigeres eller slettes via de tilsvarende edit-modalvinduer. Recurring content kan tilføjes i kombinations tilstand eller overskrivningstilstand.
+- Det er muligt at kombinere flere ting i kalenderen på samme tid.
+
+![Recurring Content](/docs/docs_images/da/recurring_content.png)
+![Recurring Content](/docs/docs_images/da/recurring_content_modal.png)
+
 
 ### 4.4.4 Vedligeholdelse af skærme
-Vælg samme billedformat på skærmen og i gruppen, ellers blokerer programmet for handlingen.
+- Vælg samme billedformat på skærmen og i gruppen, ellers blokerer programmet for handlingen.
 - Hvis et display skal skifte billedformat, fjern det fra sin nuværende gruppe og tilføj den til tilbage til "Inaktive Skærme". Når skærmen er inaktiv kan du ændre dens størrelsesforhold.
