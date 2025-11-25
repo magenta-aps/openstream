@@ -23,10 +23,11 @@ Som **medarbejder** viser overblikket de afdelinger, du er tilknyttet. For at ti
 
 ## 3.2 Underorganisationsadministrator
 
-Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation. Dine administrative rettigheder omfatter:
+Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation samt muligheden for at oprette underorganisatoins skabeloner. Dine administrative rettigheder omfatter:
 * Oprettelse af nye afdelinger.
 * Ændring af afdelingers navne.
 * Sletning af eksisterende afdelinger.
+* Oprettelse af underorganisations skabeloner
 
 ![Visning for en underorganisationsadministrator](/docs/docs_images/da/suborg_admin_da_select_sub_org.png)
 
@@ -94,60 +95,42 @@ Efter at have trykket på knappen, vil du se en ny navigationsmenu med mulighede
 * Skabeloner
 * Mediefiler
 
-Som standard lander du på siden for "Farveskema".
+Som standard lander du på siden "Skrifttyper og farver".
 
-#### 3.3.2.1 Farveskema
 
-På siden Farveskema administrerer du organisationens farver, som bruges i skabeloner, slideshows og interaktive sider. For at tilføje en farve skal du klikke på **Tilføj Farve**; der åbnes en dialog, hvor du vælger farven og giver den et navn. Når du har navngivet farven, klikker du på **Gem** — den bliver derefter tilgængelig i hele organisationen.
+#### 3.3.2.1 Skrifttyper og farver
 
-Farvevælgeren er browserbaseret, så udseende og funktionalitet kan variere:
+Siden **Skrifttyper og farver** lader dig administrere organisationens fælles skrifttyper og farveskema. Indholdet er opdelt i to sektioner: et til skrifttyper og et til farver. 
 
-* I Firefox vises først en række standardfarver. Du kan vælge en af dem eller vælge "Custom" / "Brugerdefineret" for at indtaste en hex-kode eller vælge farven manuelt.
-![Tilføj farve](/docs/docs_images/da/color_scheme_da.png)
-![Tilføj farve](/docs/docs_images/da/add_color_da.png)
-![Tilføj farve](/docs/docs_images/da/select_color_da.png)
+![Manage Colors and Fonts](/docs/docs_images/da/manage_fonts_and_colors.png)
 
-* I Google Chrome er farvevælgeren lidt anderledes. Her kan du vælge farven visuelt med musen eller indtaste værdier i RGB. Ved at klikke på "RGB" kan du skifte mellem forskellige inputformater og til sidst skifte til HEX.
-![Tilføj farve](/docs/docs_images/da/select_color_chrome.png)
-![Tilføj farve](/docs/docs_images/da/chrome_color_picker_hex.png)
+Sektionen **Brugerdefinerede Skrifttyper** viser alle uploadede skrifttyper. Tryk på **Tilføj Font** for at uploade en ny skrifttype med tilhørende filer og visningsnavn. Eksisterende skrifttyper kan omarrangeres via træk-og-slip, hvilket ændrer hvilken rækkefølge de bliver vist i inden i editoren. Skrifttyper kan redigeres eller slettes via handlingsknapperne.
 
-Efter at have valgt og gemt en farve, vil den være tilgængelig, når skabeloner, slideshows og sider oprettes eller redigeres.
+Under **Tekstboks værktøjslinjeindstillinger** bestemmer du, hvilke formateringsknapper brugerne ser i teksteditoren. Slå for eksempel fed, kursiv, understregning eller vægtvalg til og fra, så værktøjslinjen matcher organisationens skrifttyper. 
+Hvis jeres organisation bruger fonts med hardcodede indstillinger såsom kursiv eller fed tekst, bør fed tekst og kursiv slås fra. 
+Hvis man bruger en moderne variabel font, ala dem man kan downloade hos google fonts, bør man slå "Vis rulleliste for skriftykkelse" til. Hvis man ikke bruger en variabel font, er denne ikke nødvendig. 
 
-For at redigere en farve og ændre dens navn eller farve, tryk på blyantsikonet ved siden af farven i tabellen.
+Kortet **Brugerdefinerede Farver** håndteres organisationens farver. Klik på **Tilføj Farve** tilføje en ny farve. Farver kan enten defineres ved direkte at indtaste en HEX kode, eller man kan bruge browserens farvevælger.
 
-![Rediger farve](/docs/docs_images/da/edit_color_da.png)
+Tabellen med de eksiterende farver giver en oversigt over organisatoins farver, samt en drag-and-drop funktion til at ændre rækkefølgen af farverne. Rækkefølger i tabellen afgør hvilken rækkefølge farver bliver vist i editoren.
 
-Efter at have trykket på knappen, vil samme dialogboks komme frem som når man opretter farver, men i stedet ændrer du dataen for en eksisterende farve.
+Alle skrifttyper og farver, du konfigurerer her, bliver tilgængelige i organisationens indholdsredigering.
 
-For at slette en farve, tryk på skraldespandsikonet og følg instruktionerne.
+Undgå helst at navngive skrifttyper med tal og specialtegn. De vil oftest virke men tegn som ! eller : kan godt forvirre browseren, og fortolke skrifttypen som en CSS regel ved en fejl.
 
-**OBS!** Vær opmærksom på, at hvis du sletter en farve, som bliver brugt, så vil farven ikke længere være tilgængelig i de slideshows, skabeloner eller interaktive sider, som bruger farven.
-
-#### 3.3.2.2 Skrifttyper
-
-Det næste menupunkt i globale indstillinger er Skriftyper. Her kan man indsætte hvilke skriftyper der skal være tilgænglige for organisationen når der bliver oprettet indhold.
-For at tilføje en skrifttype, tryk på "Tilføj Skrifttype" knappen. Herefter vil en modalboks komme frem. I denne modalboks kan du angive et navn for skrifttypen, og uploade en understøttet skrifttype fil (WOFF2, WOFF, TTF, OTF). Efter skrifttypen er tilføjet, vil den nu være tilgængelig når indhold bliver oprettet (slideshows / interaktive sider / skabeloner).
-
-For at redigere skrifttyper, tryk på blyantsikonet ved siden af skrifttypen. Den samme dialog boks vil blive vist som når man tilføjer skrifttyper, bortset fra her redigerer du en eksisterende.
-
-For at slette en skrifttype, tryk på skraldespands ikonet. OBS! Hvis du sletter en skrifttype som bliver brugt, vil skrifttype ikke længere være tilgænglig, og en standard skrifttype vil blive vist i stedet.
-
-![Skrifttyper](/docs/docs_images/da/manage_fonts_da.png)
-
-![Skrifttyper](/docs/docs_images/da/add_font_da.png)
-
-#### 3.3.2.3 Administrer kategorier og tags
+#### 3.3.2.2 Administrer kategorier og tags
 
 På denne side kan organisationsadministratorer opsætte de tilgængelige kategorier og tags i systemet. Tags bruges eksempelvis i slideshows og uploadede billeder. Brugere i systemet kan kun vælge tags eller kategorier, der er defineret her. Hver ting har én kategori, men kan have flere tags.
 
-For at tilføje en kategori, tryk på "+ Tilføj Kategori". Indtast navnet på kategorien og tryk på Gem. Det samme gælder for tags. Du kan søge i dine eksisterende tags eller kategorier i søgefeltet. For at redigere et tag eller en kategori, tryk på blyantsikonet, og en dialogboks vil åbne, hvor du kan indtaste det nye navn. For at slette en kategori eller et tag, tryk på skraldespandsikonet.
+For at tilføje en kategori, tryk på "+ Tilføj Kategori". Indtast navnet på kategorien og tryk på Gem. Det samme gælder for tags. Du kan søge i dine eksisterende tags eller kategorier i søgefeltet. For at redigere et tag eller en kategori, tryk på 'Rediger', og en dialogboks vil åbne, hvor du kan indtaste det nye navn. For at slette en kategori eller et tag, tryk på 'Slet'.
 
 
 ![Kategorier og tags](/docs/docs_images/da/manage_tags_and_cats_da.png)e underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
 
-#### 3.3.2.4 Skabeloner
+#### 3.3.2.3 Skabeloner
 
-På skabelons siden kan organisationsadministratorer opsætte de tilgængelige skabeloner for organisationen. Skabelons editoren har alle de samme features den normalle editor til at redigere slideshows og interaktivt indhold, så derfor vil dokumentationen for at oprette skabeloner i stedet være skrevet under afsnittet [Opret Indhold](#opret_indhold)
+På skabelons siden kan organisationsadministratorer opsætte de tilgængelige skabeloner for organisationen. Disse skabeloner er dem som underorganisations skabeloner bliver bygget ud fra.
+Slideshows bliver så til sidst bygget udfra underorganisations skabelonerne. Skabelons editoren har næsten alle de samme features den normalle editor til at redigere slideshows og interaktivt indhold, så derfor vil dokumentationen for at oprette skabeloner i stedet være skrevet under afsnittet [Opret Indhold](#opret_indhold). 
 
 
 ![Templates](/docs/docs_images/da/templates_da.png)
