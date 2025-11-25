@@ -99,5 +99,34 @@ Redigeringssektion
 
 ## 4.4 Håndter skærme
 
+![Håndter Skærme](/docs/docs_images/da/manage_displays.png)
+
+Siden "Håndter skærme" er opdelt i et sidepanel til venstre og en kalender til højre. Sidepanelet bruges til at oprette og vedligeholde skærmgrupper og skærme, mens kalenderen viser planlagt indhold for de grupper du markerer.
+
+**Begreber**
+- En *gruppe* samler ét eller flere displays, der skal vise det samme indhold og deler samme billedformat. Du styrer standardindhold, planlagte afspilninger og metadata på gruppeniveau.
+
+- En *skærm* (display) er den fysiske klient, som registreres i OpenStream. Skærmen bliver tilknyttet med et bestemt størrelesforhold, og det er brugerens ansvar at indsætte det rigtigt størrelsesforhold i OpenStream når skærmen bliver registreret.
+Efter en skærm er blevet registreret, skal den tilknyttes en gruppe for at vise indhold.
+
+### 4.4.1 Sidepanel: grupper og skærme
+- **Grupper**: Tryk på **Add Display Group** for at oprette en ny skærmgruppe. I dialogen vælger du navn, billedformat (aspect ratio) og standardindhold. Når du klikker på en gruppe i listen, åbnes de tilknyttede modalvinduer til at omdøbe, ændre format eller justere standardindhold.
+- **Skærme**: Vælg **Register Screen** for at åbne registreringsdialogen og kopiere enten registrerings-URL eller API-nøgle til eksterne værktøjer som OS2BorgerPC.
+
+Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af den venstre sidemenu i "Inaktive Skærme". For at give skærmen noget indhold skal den bare trækkes op i en skærmgruppe som har indhold tilknyttet.
 
 
+### 4.4.2 Standardindhold for grupper
+- Hver gruppe har standardindhold, som afspilles når der ikke er planlagte afvigelser. Vælg mellem enkelt slideshows/interaktivt indhold eller en samlet slideshow-playlist.
+- Redigér standardindholdet via **Edit Group** eller **Edit Display**-modalerne afhængigt af om du ændrer gruppens opsætning eller et specifikt display i gruppen. Sørg for, at indholdets billedformat matcher gruppens format.
+
+### 4.4.3 Planlæg indhold i kalenderen
+- Kalenderen fylder hovedområdet og viser alle planlagte afspilninger for de valgte grupper.
+- Brug **Add Scheduled Content** til engangsbegivenheder på bestemte datoer og tidspunkter. Vælg om indholdet skal erstatte standardindholdet eller afspilles i kombination.
+- Brug **Add Recurring Scheduled Content** til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Eksisterende begivenheder kan redigeres eller slettes via de tilsvarende edit-modalvinduer. Recurring content kan tilføjes i kombinations tilstand eller overskrivningstilstand.
+
+Det er muligt at kombinere flere ting i kalenderen på samme tid.
+
+### 4.4.4 Vedligeholdelse af skærme
+Vælg samme billedformat på skærmen og i gruppen, ellers blokerer programmet for handlingen.
+- Hvis et display skal skifte billedformat, fjern det fra sin nuværende gruppe og tilføj den til tilbage til "Inaktive Skærme". Når skærmen er inaktiv kan du ændre dens størrelsesforhold.
