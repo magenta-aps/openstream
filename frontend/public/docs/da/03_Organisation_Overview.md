@@ -16,7 +16,7 @@ Som **medarbejder** vises overblikket over de afdelinger, du er tilknyttet. For 
 
 ## 3.2 Underorganisationsadministrator
 
-Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation samt muligheden for at oprette underorganisatoins skabeloner. Dine administrative rettigheder omfatter:
+Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation samt muligheden for at oprette underorganisations skabeloner. Dine administrative rettigheder omfatter:
 * Oprettelse af nye afdelinger.
 * Ændring af afdelingers navne.
 * Sletning af eksisterende afdelinger.
@@ -96,10 +96,10 @@ Siden **Skrifttyper og farver** lader dig administrere organisationens fælles s
 
 ![Manage Colors and Fonts](/docs/docs_images/da/manage_fonts_and_colors.png)
 
-Sektionen **Brugerdefinerede Skrifttyper** viser alle uploadede skrifttyper. Tryk på **Tilføj Font** for at uploade en ny skrifttype med tilhørende filer og visningsnavn. Eksisterende skrifttyper kan omarrangeres via træk-og-slip, hvilket ændrer hvilken rækkefølge de bliver vist i inden i editoren. Skrifttyper kan redigeres eller slettes via handlingsknapperne.
+Sektionen **Brugerdefinerede Skrifttyper** viser alle uploadede skrifttyper. Tryk på **Tilføj Skrifttype** for at uploade en ny skrifttype med tilhørende filer og visningsnavn. Eksisterende skrifttyper kan omarrangeres via træk-og-slip, hvilket ændrer hvilken rækkefølge de bliver vist i inden i editoren. Skrifttyper kan redigeres eller slettes via handlingsknapperne.
 
 Under **Tekstboks værktøjslinjeindstillinger** bestemmer du, hvilke formateringsknapper brugerne ser i teksteditoren. Slå for eksempel fed, kursiv, understregning eller vægtvalg til og fra, så værktøjslinjen matcher organisationens skrifttyper. 
-Hvis jeres organisation bruger fonts med hardcodede indstillinger såsom kursiv eller fed tekst, bør fed tekst og kursiv slås fra. 
+Hvis jeres organisation bruger skrifttyper med prædefinerede indstillinger såsom kursiv eller fed tekst, bør fed tekst og kursiv slås fra. 
 Hvis man bruger en moderne variabel font, ala dem man kan downloade hos google fonts, bør man slå "Vis rulleliste for skriftykkelse" til. Hvis man ikke bruger en variabel font, er denne ikke nødvendig. 
 
 I **Brugerdefinerede Farver** sektionen håndteres organisationens farver. Klik på **Tilføj Farve** tilføje en ny farve. Farver kan enten defineres ved direkte at indtaste en HEX kode, eller man kan bruge browserens farvevælger.

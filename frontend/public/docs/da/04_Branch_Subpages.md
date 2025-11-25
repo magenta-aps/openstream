@@ -12,7 +12,7 @@ Efter at have valgt en afdeling, vil navigations menuen ændre sig. Nu vil navig
 ![Afdelings Navigationsmenu](/docs/docs_images/da/branch_navbar_da.png)
 
 ## 4.1 Dashboard
-Denne første side der bliver vist efter man har åbnet en afdeling, er dashboardet. På denne side, kan man se de senest redigerede indhold og afspilningslister, og åbne dem hurtigt uden at skulle gå ind Indholds siden og finde det frem manuelt. Samt er der en oversigt over hvilket indhold bliver afspillet på skærmene lige nu, og hvad der er planlagt som det næste.
+Denne første side der bliver vist efter man har åbnet en afdeling, er dashboardet. På denne side, kan man se de senest redigerede indhold og afspilningslister, og åbne dem hurtigt uden at skulle tilgå indholds siden og finde det frem manuelt. Samt er der en oversigt over hvilket indhold bliver afspillet på skærmene lige nu, og hvad der er planlagt som det næste.
 
 
 ![Afdelings Navigationsmenu](/docs/docs_images/da/dashboard_da.png)
@@ -23,7 +23,7 @@ Denne side viser en oversigt over oprettet indhold og giver mulighed for at opre
 
 ### 4.2.1 Find eksisterende indhold
 
-Du kan søge efter indhold via navn, tags eller kategori. I venstre sidepanel kan du filtrere på kategorier og tags. Tabellens kolonner kan sorteres ved at klikke på overskrifterne "Navn", "Tilstand", "Kategori" eller "Tags" — klik igen vender sorteringen.
+Du kan søge efter indhold via navn, tags eller kategori. I venstre sidepanel kan du filtrere på kategorier og tags. 
 
 ![Find Eksisterende Indhold](/docs/docs_images/da/find_existing_content_da.png)
 
@@ -104,14 +104,14 @@ Redigeringssektion
 Siden "Håndter skærme" er opdelt i et sidepanel til venstre og en kalender til højre. Sidepanelet bruges til at oprette og vedligeholde skærmgrupper og skærme, mens kalenderen viser planlagt indhold for de grupper du markerer.
 
 **Begreber**
-- En *gruppe* samler ét eller flere displays, der skal vise det samme indhold og deler samme billedformat. Du styrer standardindhold, planlagte afspilninger og metadata på gruppeniveau.
+- En *gruppe* samler én eller flere skærme, der skal vise det samme indhold og deler samme billedformat. Du styrer standardindhold, planlagte afspilninger og metadata på gruppeniveau.
 
-- En *skærm* (display) er den fysiske klient, som registreres i OpenStream. Skærmen bliver tilknyttet med et bestemt størrelesforhold, og det er brugerens ansvar at indsætte det rigtigt størrelsesforhold i OpenStream når skærmen bliver registreret.
-Efter en skærm er blevet registreret, skal den tilknyttes en gruppe for at vise indhold.
+- En *skærm* er den fysiske klient, som registreres i OpenStream. Skærmen bliver tilknyttet med et bestemt størrelesforhold, og det er brugerens ansvar at indsætte det rigtige størrelsesforhold i OpenStream når skærmen bliver registreret.
+- Efter en skærm er blevet registreret, skal den tilknyttes en gruppe for at vise indhold.
 
 ### 4.4.1 Sidepanel: grupper og skærme
 #### 4.4.1.1 Tilføj skærmgruppe
-Tryk på **Tilføj skærmgruppe** for at oprette en ny skærmgruppe. I dialogen vælger du navn, billedformat (aspect ratio) og standardindhold. Når du klikker på en gruppe i listen, åbnes de tilknyttede modalvinduer til at omdøbe, ændre format eller justere standardindhold.
+Tryk på **Tilføj skærmgruppe** for at oprette en ny skærmgruppe. I dialogen vælger du navn, billedformat (aspect ratio) og standardindhold. Når du klikker på blyantsknappen i listen af skærme, åbnes en dialogboks hvor det er muligt at omdøbe, ændre format eller justere standardindhold.
 
 ![Tilføj Gruppe](/docs/docs_images/da/add_group_btn.png)
 ![Tilføj Gruppe](/docs/docs_images/da/add_group.png)
@@ -140,7 +140,7 @@ Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af d
 ![Scheduled Content](/docs/docs_images/da/add_scheduled_content_btn.png)
 ![Scheduled Content](/docs/docs_images/da/add_scheduled_content_modal.png)
 
-- Brug **Tilføj tilbagevendene indhold** til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Eksisterende begivenheder kan redigeres eller slettes via de tilsvarende edit-modalvinduer. Recurring content kan tilføjes i kombinations tilstand eller overskrivningstilstand.
+- Brug **Tilføj tilbagevendene indhold** til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Eksisterende begivenheder kan redigeres eller slettes via de tilsvarende ved at trykke på dem i kalenderen. Tilbagevendene kan tilføjes i kombinations tilstand eller overskrivningstilstand.
 - Det er muligt at kombinere flere ting i kalenderen på samme tid.
 
 ![Recurring Content](/docs/docs_images/da/recurring_content.png)
