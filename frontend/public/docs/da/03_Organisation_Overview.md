@@ -4,18 +4,11 @@ Efter login bliver du sendt til organisationsoverblik-siden.
 
 Denne side giver et samlet overblik over alle tilknyttede underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
 
-Som **organisationsadministrator** har du adgang til yderligere funktioner:
-* **Tilføj Underorganisation**: Opret nye underorganisationer.
-* **Administrer Brugere**: Håndter oprettelse og administration af brugere i hele organisationen.
-* **Globale Indstillinger**: Konfigurer indstillinger, der gælder for hele organisationen.
-
-Både **organisations-** og **underorganisationsadministratorer** kan desuden oprette, omdøbe og slette afdelinger inden for deres respektive områder.
-
 ---
 
 ## 3.1 Medarbejdervisning
 
-Som **medarbejder** viser overblikket de afdelinger, du er tilknyttet. For at tilgå en specifik afdeling skal du blot klikke på **Vælg**.
+Som **medarbejder** vises overblikket over de afdelinger, du er tilknyttet. For at tilgå en specifik afdeling skal du blot klikke på **Vælg**.
 
 ![Visning for en medarbejder med adgang til to afdelinger](/docs/docs_images/da/employee_da_select_sub_org.png)
 
@@ -78,7 +71,7 @@ I dette panel kan du udføre følgende handlinger:
 Som organisationsadministrator kan du tilgå siden "Globale indstillinger" for at konfigurere organisationens fælles udseende og ressourcer. Her kan du:
 
 * Angive standardfarver og skrifttyper, der anvendes ved oprettelse af indhold.
-* Oprette og vedligeholde skabeloner, som afdelinger kan bruge.
+* Oprette og vedligeholde skabeloner, som underorganisationer kan bruge.
 * Administrere globale mediefiler, fx logoer.
 
 Ændringerne gælder på tværs af underorganisationer og afdelinger.
@@ -89,9 +82,8 @@ For at tilgå globale indstillinger, tryk på knappen "Globale Indstillinger".
 
 Efter at have trykket på knappen, vil du se en ny navigationsmenu med mulighederne:
 
-* Farveskema
-* Skrifttyper
 * Kategorier og tags
+* Skrifttyper og farver
 * Skabeloner
 * Mediefiler
 
@@ -110,7 +102,7 @@ Under **Tekstboks værktøjslinjeindstillinger** bestemmer du, hvilke formaterin
 Hvis jeres organisation bruger fonts med hardcodede indstillinger såsom kursiv eller fed tekst, bør fed tekst og kursiv slås fra. 
 Hvis man bruger en moderne variabel font, ala dem man kan downloade hos google fonts, bør man slå "Vis rulleliste for skriftykkelse" til. Hvis man ikke bruger en variabel font, er denne ikke nødvendig. 
 
-Kortet **Brugerdefinerede Farver** håndteres organisationens farver. Klik på **Tilføj Farve** tilføje en ny farve. Farver kan enten defineres ved direkte at indtaste en HEX kode, eller man kan bruge browserens farvevælger.
+I **Brugerdefinerede Farver** sektionen håndteres organisationens farver. Klik på **Tilføj Farve** tilføje en ny farve. Farver kan enten defineres ved direkte at indtaste en HEX kode, eller man kan bruge browserens farvevælger.
 
 Tabellen med de eksiterende farver giver en oversigt over organisatoins farver, samt en drag-and-drop funktion til at ændre rækkefølgen af farverne. Rækkefølger i tabellen afgør hvilken rækkefølge farver bliver vist i editoren.
 
@@ -125,7 +117,7 @@ På denne side kan organisationsadministratorer opsætte de tilgængelige katego
 For at tilføje en kategori, tryk på "+ Tilføj Kategori". Indtast navnet på kategorien og tryk på Gem. Det samme gælder for tags. Du kan søge i dine eksisterende tags eller kategorier i søgefeltet. For at redigere et tag eller en kategori, tryk på 'Rediger', og en dialogboks vil åbne, hvor du kan indtaste det nye navn. For at slette en kategori eller et tag, tryk på 'Slet'.
 
 
-![Kategorier og tags](/docs/docs_images/da/manage_tags_and_cats_da.png)e underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
+![Kategorier og tags](/docs/docs_images/da/manage_tags_and_cats_da.png)
 
 #### 3.3.2.3 Skabeloner
 

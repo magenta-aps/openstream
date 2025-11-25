@@ -1,4 +1,6 @@
 # 4. Afdelingsundersider
+Hvis du kun har tilknyttet én afdeling, vil du automatisk blive sendt herhen når du logger ind. Hvis du har adgang til flere afdelinger, så kan du se hvordan du vælger afdeling her: [Medarbejdervisning](#03_Organisation_Overview#31-medarbejdervisning). 
+
 
 Efter at have valgt en afdeling, vil navigations menuen ændre sig. Nu vil navigations menuen vise en knap hvor der står hvilken afdeling du har valgt. Denne knap kan trykkes på for at skifte afdeling. Udover det, så vil der stå følgende menupunkter:
 
@@ -35,7 +37,7 @@ For at ændre metadata (f.eks. navn, kategori eller tags) klik på blyant-ikonet
 
 #### 4.2.2.2 Åbn indhold
 
-Klik på "Åbn" under handlinger for at åbne indholdet i editoren.
+Klik på "Åbn" under handlinger for at åbne indholdet i editoren. Editoren bliver forklaret i afsnittet [Opret Indhold](#opret-indhold)
 
 #### 4.2.2.3 Dupliker indhold
 
@@ -56,11 +58,11 @@ Efter klik åbnes en dialog med flere indstillinger.
 
 ![Tilføj indhold](/docs/docs_images/da/add_content_modal_da.png)
 
-##### 4.2.3.1 Navngiv indhold
+##### Navngiv indhold
 
 Indtast navnet i tekstfeltet "Navn".
 
-##### 4.2.3.2 Vælg tilstand
+##### Vælg tilstand
 
 Vælg mellem to tilstande: "Slideshow" og "Interaktiv". Tilstanden vælges i en dropdown og kan ikke ændres efter oprettelse.
 
@@ -70,11 +72,11 @@ I denne tilstand bygger du et slideshow med slides, hvor du indsætter indhold, 
 Interaktiv
 I denne tilstand opretter du interaktive sider, fx til touchskærme. Elementer kan konfigureres som knapper, der navigerer mellem sider. Se afsnittet om interaktivt indhold for detaljer.
 
-##### 4.2.3.3 Aspect ratio
+##### Aspect ratio
 
-Vælg det format, indholdet skal vises i (fx 16:9 til bredformat eller 9:16 til højformat).
+Vælg det format, indholdet skal vises i (fx 16:9 til bredformat eller 9:16 til højformat). Indhold skal oprettes med henblik på hvilket størrelsesforhold den skærm(e) som skal vise indholdet er.
 
-##### 4.2.3.4 Gem
+##### Gem
 
 Klik på "Opret indhold" når du er færdig. Efter oprettelsen får du mulighed for enten at gå direkte til editoren eller blive på oversigtssiden.
 
@@ -95,7 +97,7 @@ Redigeringssektion
 - Rækkefølge kan ændres ved hjælp af træk-og-slip i tabellen — du kan dermed justere positionen af hvert slideshow i playlisten.
 
 
-
+## 4.4 Håndter skærme
 
 
 
