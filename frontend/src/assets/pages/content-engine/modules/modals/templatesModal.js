@@ -41,9 +41,14 @@ const templateAspectRatioGroup = document.querySelector(
 
 const templateAspectRatioOptionMap = new Map();
 
-document.getElementById("saveAsTemplateForm").addEventListener("submit", (e) => {
+
+const saveAsTemplateForm = document.getElementById("saveAsTemplateForm");
+
+if (saveAsTemplateForm){
+saveAsTemplateForm.addEventListener("submit", (e) => {
   e.preventDefault();
 });
+}
 
 function getTemplateAspectRatiosForOrientation(orientation) {
   if (orientation === ORIENTATION.LANDSCAPE) {
