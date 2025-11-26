@@ -52,6 +52,15 @@ body.player-mode .slide-list {
   display: none !important;
 }
 
+/* Hide editor selection chrome while previewing but keep selection state intact */
+body.player-mode .slide-element {
+  outline: none !important;
+}
+
+body.player-mode .gradient-border-wrapper {
+  display: none !important;
+}
+
 /* Make the slide canvas occupy the full viewport in player mode */
 body.player-mode .slide-canvas {
   position: fixed !important;
