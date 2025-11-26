@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
 import logging
-from typing import Any, Dict
 from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
+from app.models import Organisation
 from rest_framework import exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -15,17 +15,13 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from osauth.utils import (
-    parse_kc_sso_privilege_list,
-    sync_kc_user_info_sso_privilige_list,
-    sync_kc_user_org_memberships,
+    sync_keycloak_sso_org_memberships,
 )
 from osauth.models import KeycloakSession
 from osauth.errors import handle_keycloak_error
 from osauth.keycloak import (
     KeycloakClient,
     KeycloakError,
-    UserInfo,
-    kc_adm_client_from_settings,
 )
 from osauth.serializers import SignOutResponse, TokenResponseSerializer
 
@@ -33,6 +29,13 @@ from osauth.serializers import SignOutResponse, TokenResponseSerializer
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+
+def _get_org_helper(request: Request):
+    org_realm = request.GET.get("org")
+    if not org_realm:
+        raise exceptions.APIException("Missing org_realm")
+    return get_object_or_404(Organisation, uri_name=org_realm)
 
 
 class SignInView(APIView):
@@ -66,28 +69,25 @@ class AuthCodeView(APIView):
     serializer_class = TokenResponseSerializer
 
     def get(self, request: Request):
+        org = _get_org_helper(request)
         code = request.GET.get("code")
         if not code:
             raise exceptions.APIException("Missing SSO authorization code")
 
-        org_realm = request.GET.get("org")
-        if not org_realm:
-            raise exceptions.APIException("Missing org_realm")
-
+        # Fetch access- & refresh-token using the authroization code
         kc_client = KeycloakClient(
             host=settings.KEYCLOAK_HOST,
             port=settings.KEYCLOAK_PORT,
-            realm=org_realm,
+            realm=org.uri_name,
             client_id=settings.KEYCLOAK_CLIENT_ID,
         )
 
-        # Fetch access- & refresh-token using the authroization code
         keycloak_token = None
         try:
             keycloak_token = kc_client.token_from_code(
                 code,
                 redirect_uri=request.build_absolute_uri(
-                    f"/auth/code/?{urlencode({'org': org_realm})}"
+                    f"/auth/code/?{urlencode({'org': org.uri_name})}"
                 ),
             )
         except KeycloakError as e:
@@ -99,18 +99,26 @@ class AuthCodeView(APIView):
 
         # Get, or create, django user
         keycloak_user_info = kc_client.user_info(keycloak_token.access_token)
-        email = keycloak_user_info.email
-        username = keycloak_user_info.preferred_username
-
-        user, created = User.objects.get_or_create(
-            username=username,
-            defaults={"email": email},
+        user, user_was_created = User.objects.get_or_create(
+            username=keycloak_user_info.preferred_username,
+            defaults={
+                "email": keycloak_user_info.email,
+                "first_name": (
+                    keycloak_user_info.given_name
+                    if keycloak_user_info.given_name
+                    else ""
+                ),
+                "last_name": (
+                    keycloak_user_info.family_name
+                    if keycloak_user_info.family_name
+                    else ""
+                ),
+            },
         )
 
-        # Handle Keycloak SSO PriviligeList if specified
+        # Handle Keycloak SSO OrganisationMemberships, if specified
         if keycloak_user_info.sso_privilege_list:
-            sync_kc_user_info_sso_privilige_list(keycloak_user_info)
-            sync_kc_user_org_memberships(keycloak_user_info, user)
+            sync_keycloak_sso_org_memberships(org, keycloak_user_info)
 
         # Generate django-rest-framework tokens
         refresh = RefreshToken.for_user(user)
@@ -131,7 +139,7 @@ class AuthCodeView(APIView):
             "access": access,
             "refresh": refresh,
         }
-        redirect_url = f"{settings.FRONTEND_HOST}/{org_realm}/sign-in-callback?{urlencode(redirect_params)}"
+        redirect_url = f"{settings.FRONTEND_HOST}/{org.uri_name}/sign-in-callback?{urlencode(redirect_params)}"
         return redirect(redirect_url)
 
 
@@ -139,9 +147,7 @@ class SignOutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request):
-        org_realm = request.GET.get("org")
-        if not org_realm:
-            raise exceptions.APIException("Missing org_realm")
+        org = _get_org_helper(request)
 
         # Fetch auth-session "id_token" from DB
         db_keycloak_session = KeycloakSession.objects.get(user=request.user)
@@ -152,7 +158,7 @@ class SignOutAPIView(APIView):
         kc_client = KeycloakClient(
             host=settings.KEYCLOAK_HOST,
             port=settings.KEYCLOAK_PORT,
-            realm=org_realm,
+            realm=org.uri_name,
             client_id=settings.KEYCLOAK_CLIENT_ID,
         )
 

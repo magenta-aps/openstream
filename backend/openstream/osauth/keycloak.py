@@ -353,6 +353,20 @@ class KeycloakAdminClient(KeycloakBaseClient):
 
         return resp.json()
 
+    def remove_realm_role_from_user(
+        self, token: TokenResponse, realm: str, user_id: str, role_name: str
+    ):
+        resp = requests.delete(
+            f"{self.url()}/admin/realms/{realm}/users/{user_id}/role-mappings/realm",
+            headers={"Authorization": f"Bearer {token.access_token}"},
+            json=[role_name],
+        )
+
+        if resp.status_code != 204:
+            raise KeycloakError(
+                resp.status_code, data=resp.json() if resp.content else None
+            )
+
     def set_realm_user_password(
         self,
         token: TokenResponse,
@@ -401,11 +415,11 @@ class KeycloakAdminClient(KeycloakBaseClient):
             )
 
 
-def kc_client_from_settings() -> KeycloakClient:
+def kc_client_from_settings(realm: str) -> KeycloakClient:
     return KeycloakClient(
         host=settings.KEYCLOAK_HOST,
         port=settings.KEYCLOAK_PORT,
-        realm=settings.KEYCLOAK_REALM,
+        realm=realm,
         client_id=settings.KEYCLOAK_CLIENT_ID,
     )
 

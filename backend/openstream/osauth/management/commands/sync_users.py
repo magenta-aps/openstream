@@ -1,19 +1,18 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-from datetime import datetime
 import math
-from logging import getLogger
 import secrets
-import textwrap
-from typing import List, Set
+from datetime import datetime
+from logging import getLogger
+from typing import List
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.core.management import BaseCommand
 from django.template.loader import render_to_string
 
-from app.models import OrganisationMembership
+from app.models import Organisation
 from osauth.keycloak import (
     KeycloakAdminClient,
     KeycloakError,
@@ -66,6 +65,9 @@ class Command(BaseCommand):
             help=f"Number of users to process per batch (default: {self.batch_size}).",
         )
 
+    def get_organisation_from_realm(self, realm: str):
+        return Organisation.objects.get(uri_name=realm)
+
     def get_django_users(
         self, kc_users: List[UserRepresentation], django_users_total: int
     ):
@@ -112,34 +114,6 @@ class Command(BaseCommand):
 
         return users_to_create, users_to_update
 
-    def get_django_user_org_memberships(
-        self, user: User
-    ) -> tuple[bool, Set[int], Set[int], Set[int], Set[int]]:
-        user_memberships = OrganisationMembership.objects.filter(user=user)
-        return (
-            user_memberships.filter(role="super_admin").count() > 0,
-            set(
-                user_memberships.filter(role="org_admin").values_list(
-                    "organisation_id", flat=True
-                )
-            ),
-            set(
-                user_memberships.filter(role="suborg_admin").values_list(
-                    "suborganisation_id", flat=True
-                )
-            ),
-            set(
-                user_memberships.filter(role="branch_admin").values_list(
-                    "branch_id", flat=True
-                )
-            ),
-            set(
-                user_memberships.filter(role="employee").values_list(
-                    "organisation_id", flat=True
-                )
-            ),
-        )
-
     def create_django_users_in_keycloak(
         self, token: TokenResponse, django_users: List[User]
     ) -> tuple[List[UserRepresentation], List[UserRepresentation]]:
@@ -147,35 +121,12 @@ class Command(BaseCommand):
         kc_users_created_failed: List[UserRepresentation] = []
 
         for user in django_users:
-            (
-                super_admin_membership,
-                org_admin_memberships,
-                subOrg_admin_memberships,
-                branch_admin_memberships,
-                employee_memberships,
-            ) = self.get_django_user_org_memberships(user.id)
-
-            # Create the user in Keycloak
             new_kc_user = UserRepresentation(
                 username=user.username,
                 email=user.email,
                 # NOTE: `emailVerified=True` since we will send a password-reset mail
                 emailVerified=True,
                 enabled=True,
-                attributes={
-                    settings.OSAUTH_KC_USER_ATTR_ORG_ADMIN: [
-                        ",".join(str(om) for om in org_admin_memberships)
-                    ],
-                    settings.OSAUTH_KC_USER_ATTR_SUBORG_ADMIN: [
-                        ",".join(str(om) for om in subOrg_admin_memberships)
-                    ],
-                    settings.OSAUTH_KC_USER_ATTR_BRANCH_ADMIN: [
-                        ",".join(str(om) for om in branch_admin_memberships)
-                    ],
-                    settings.OSAUTH_KC_USER_ATTR_ORG_EMPLOYEE: [
-                        ",".join(str(om) for om in employee_memberships)
-                    ],
-                },
             )
 
             if self.dry_run:
@@ -187,19 +138,6 @@ class Command(BaseCommand):
                     token, self.realm, new_kc_user
                 )
                 kc_users_created.append(new_kc_user)
-
-                # Check if we need to assign "super_admin" priviliges
-                if super_admin_membership:
-                    kc_role_super_admin = self.kc_adm.get_realm_role(
-                        token, self.realm, "super_admin"
-                    )
-
-                    self.kc_adm.add_realm_role_to_user(
-                        token,
-                        self.realm,
-                        new_kc_user.id,
-                        kc_role_super_admin,
-                    )
             except KeycloakError:
                 logger.exception("Failed to create keycloak user")
                 kc_users_created_failed.append(user)
@@ -244,8 +182,15 @@ class Command(BaseCommand):
         self.compare_field = options["compare_field"]
         self.temp_password = options["temp_password"]
 
+        if self.temp_password:
+            logger.warning(
+                "\nTEMP_PASSWORD is active - "
+                "Temporary password set directly instead of generating a random "
+                "password and sending by email."
+            )
+
         # Configure keycloak clients
-        self.kc_client = kc_client_from_settings()
+        self.kc_client = kc_client_from_settings(self.realm)
         self.kc_adm = KeycloakAdminClient(
             host=settings.KEYCLOAK_HOST,
             port=settings.KEYCLOAK_PORT,
@@ -259,12 +204,12 @@ class Command(BaseCommand):
         )
 
         kc_users_total = self.kc_adm.count_realm_users(kc_token, self.realm)
-        logger.info(f"Total Keycloak-users: {kc_users_total}")
+        logger.info(f"Keycloak-users count: {kc_users_total}")
         kc_users = self.kc_adm.list_realm_users(kc_token, self.realm, kc_users_total)
 
         # Get local users
         django_users_total = User.objects.count()
-        logger.info(f"Total Django-users: {django_users_total}")
+        logger.info(f"Django-users count: {django_users_total}")
         django_users_to_create, django_users_to_update = self.get_django_users(
             kc_users, django_users_total
         )
@@ -274,22 +219,10 @@ class Command(BaseCommand):
             self.create_django_users_in_keycloak(kc_token, django_users_to_create)
         )
 
-        # TODO: Perform updates
-        kc_users_updated = []
-        kc_users_updated_fails = []
-
         # Handle password reset for new users
         password_resets_performed: List[str] = []
         password_resets_fails: List[str] = []
         password_resets_total = len(kc_users_created)
-
-        if self.temp_password:
-            logger.warning(
-                "\nTEMP_PASSWORD is active - "
-                "Temporary password set directly instead of generating a random "
-                "password and sending by email."
-            )
-
         for kc_user in kc_users_created:
             if self.temp_password:
                 try:
@@ -326,9 +259,9 @@ class Command(BaseCommand):
                 continue
 
             # Send mail with temp password
-            email = self.get_password_reset_email(kc_user, temp_pass)
-
             try:
+                email = self.get_password_reset_email(kc_user, temp_pass)
+
                 if not self.dry_run:
                     email.send()
                 else:
@@ -345,12 +278,17 @@ class Command(BaseCommand):
         # Final report
         logger.info("\nReport:")
         logger.info("-----------------------------")
-        logger.info(
-            f"  - Created users: {len(kc_users_created)} / {len(django_users_to_create)}"
-        )
-        logger.info(
-            f"  - Updated users: {len(kc_users_updated)} / {len(django_users_to_update)}"
-        )
-        logger.info(
-            f"  - Password resets: {len(password_resets_performed)} / {password_resets_total}"
-        )
+        if not self.dry_run:
+            logger.info(
+                f"  - Created users: {len(kc_users_created)} / {len(django_users_to_create)}"
+            )
+            logger.info(
+                f"  - Password resets: {len(password_resets_performed)} / {password_resets_total}"
+            )
+        else:
+            logger.info(
+                f"  - Users to be created: {len(kc_users_created)} / {len(django_users_to_create)}"
+            )
+            logger.info(
+                f"  - Password reset emails to be sent: {len(password_resets_performed)} / {password_resets_total}"
+            )

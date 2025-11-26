@@ -8,22 +8,13 @@ from rest_framework.authentication import BaseAuthentication, get_authorization_
 
 from osauth.errors import handle_keycloak_error
 from osauth.keycloak import KeycloakClient, KeycloakError
-from osauth.utils import kc_user_info_2_local_user
+from osauth.utils import kc_user_info_2_local_user, sync_keycloak_sso_org_memberships
 
 logger = logging.getLogger(__name__)
 
 
 class OSAuthRequired(BaseAuthentication):
     token_type = "Bearer"
-
-    def __init__(self):
-        super().__init__()
-        self.client = KeycloakClient(
-            host=settings.KEYCLOAK_HOST,
-            port=settings.KEYCLOAK_PORT,
-            realm=settings.KEYCLOAK_REALM,
-            client_id=settings.KEYCLOAK_CLIENT_ID,
-        )
 
     def authenticate(self, request):
         auth = get_authorization_header(request).split()
@@ -45,14 +36,33 @@ class OSAuthRequired(BaseAuthentication):
             )
             raise exceptions.AuthenticationFailed(msg)
 
-        return self.authenticate_credentials(token)
+        keycloak_realm = "ltk"
+        return self.authenticate_credentials(keycloak_realm, token)
 
-    def authenticate_credentials(self, token):
+    def authenticate_credentials(self, realm: str, token: str):
+        kc_client = KeycloakClient(
+            host=settings.KEYCLOAK_HOST,
+            port=settings.KEYCLOAK_PORT,
+            realm=realm,
+            client_id=settings.KEYCLOAK_CLIENT_ID,
+        )
+
+        keycloak_user = None
         try:
-            keycloak_user = self.client.user_info(token)
-            return (kc_user_info_2_local_user(keycloak_user), None)
+            keycloak_user = kc_client.user_info(token)
         except KeycloakError as e:
             handle_keycloak_error(e)
+
+        if not keycloak_user:
+            msg = _("Unable to fetch Keycloak UserInfo.")
+            raise exceptions.AuthenticationFailed(msg)
+
+        local_user, was_created = kc_user_info_2_local_user(keycloak_user)
+
+        if local_user:
+            sync_keycloak_sso_org_memberships()
+
+        return (local_user, None)
 
     def authenticate_header(self, request):
         return self.token_type
