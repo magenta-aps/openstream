@@ -433,11 +433,7 @@ export function selectElement(el, dataObj) {
     const elementToolbarName = document.querySelector(
       ".dynamic-content-toolbar .element-toolbar-name",
     );
-    if (elementToolbarName) {
-      elementToolbarName.innerText = store.selectedElementData.integrationName
-        ? store.selectedElementData.integrationName
-        : gettext("Dynamic Content");
-    }
+
   } else if (dataObj.type === "embed-website") {
     setupMuteButtons();
     const changeWebsiteInput = document.getElementById("change-website-input");
