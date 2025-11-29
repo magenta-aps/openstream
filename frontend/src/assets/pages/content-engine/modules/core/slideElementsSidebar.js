@@ -24,9 +24,6 @@ const POPOVER_MIN_WIDTH = 200;
 const POLL_INTERVAL_MS = 600;
 const NO_ELEMENTS_HTML = `<div class="text-muted small">No elements</div>`;
 
-// Sidebar collapse state key
-const SIDEBAR_COLLAPSED_KEY = "os_slide_elements_sidebar_collapsed";
-
 let globalExpandState = false; // Track global expand/collapse state
 
 function safePushCurrentSlideState() {
@@ -253,22 +250,6 @@ function createRenderState(container, openPopovers) {
     showLinkSelect: isInteractiveEditMode(),
     rerender: renderSlideElementsSidebar,
   };
-}
-
-function isSidebarCollapsed() {
-  try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
-  } catch (err) {
-    return false;
-  }
-}
-
-function setSidebarCollapsed(collapsed) {
-  try {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? "1" : "0");
-  } catch (err) {
-    // ignore
-  }
 }
 
 function applySidebarCollapsedState(container, collapsed) {
@@ -1773,7 +1754,6 @@ function attachSidebarToggleHandler() {
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     const collapsed = sidebar.classList.toggle("collapsed");
-    setSidebarCollapsed(collapsed);
     const container = document.getElementById("slide-elements-list");
     if (container) applySidebarCollapsedState(container, collapsed);
   });
@@ -1849,10 +1829,14 @@ function startSidebarPolling() {
 }
 
 export function initSlideElementsSidebar() {
-  // Apply persisted collapsed state before initial render
-  const collapsed = isSidebarCollapsed();
   const container = document.getElementById("slide-elements-list");
-  if (container) applySidebarCollapsedState(container, collapsed);
+  if (container) {
+    const sidebar =
+      container.closest(".slide-right-sidebar") ||
+      document.querySelector(".slide-right-sidebar");
+    const collapsed = sidebar?.classList.contains("collapsed") || false;
+    applySidebarCollapsedState(container, collapsed);
+  }
 
   renderSlideElementsSidebar();
   attachSidebarToggleHandler();

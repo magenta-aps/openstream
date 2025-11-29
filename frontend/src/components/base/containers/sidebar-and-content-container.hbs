@@ -8,14 +8,16 @@
             {{> base/buttons/go-back-btn id="goBackBtn" href="/manage-content" title="Go Back" }}
             {{/if}}
         <div class="w-100 d-flex justify-content-end">
-            {{#if showCollapseLeftSidebarBtn}}
+           
+    </div>
+    </div>
+
+<div class="d-flex justify-content-between">
+    {{> base/text/page-title id=pageTitleId title=pageTitle }}
+     {{#if showCollapseLeftSidebarBtn}}
         <span id="collapse-left-sidebar-btn" class="material-symbols-outlined">chevron_left</span>
             {{/if}}
-    </div>
-    </div>
-
-    {{> base/text/page-title id=pageTitleId title=pageTitle }}
-
+</div>
 
 <div id="sidebar-content">
     {{> sidebarContent }}
