@@ -857,7 +857,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   gridContainer.appendChild(container);
 
   if (resizeHandles.length && container.parentNode) {
-    const HANDLE_SIZE = 15;
+    const HANDLE_SIZE = 23;
     const HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
 
     const ensureHandlesInDom = () => {
