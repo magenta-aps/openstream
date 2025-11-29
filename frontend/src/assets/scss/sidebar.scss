@@ -7,3 +7,16 @@
   background-color: $secondary-accent;
   border-right: 1px solid $dark-gray;
 }
+
+#sidebar.collapsed {
+    flex: 0 0 30px !important;
+}
+
+#sidebar.collapsed #collapse-left-sidebar-btn {
+  position: relative;
+  right: -12px;
+}
+
+#collapse-left-sidebar-btn {
+  cursor: pointer;
+}

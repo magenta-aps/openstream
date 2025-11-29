@@ -15,6 +15,7 @@ import {
   makeActiveInNav,
   initSignOutButton,
   initOrgQueryParams,
+  initCollapseLeftSidebarBtn,
 } from "../../utils/utils.js";
 import { getCurrentAspectRatio } from "./modules/core/addSlide.js";
 import { initAddSlide } from "./modules/core/addSlide.js";
@@ -132,6 +133,7 @@ const initCommonEditorFeatures = () => {
   initHtmlElement();
   initTableElement();
   initListElement();
+  initCollapseLeftSidebarBtn();
   // Only initialize activation modal if the modal element exists
   if (document.getElementById("slideActivationModal")) {
     initActivationModal();

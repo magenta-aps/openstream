@@ -1,16 +1,27 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-<div class="d-flex h-100">
-    {{#> base/sidebar/sidebar}}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    <div class="d-flex h-100">
+        {{#> base/sidebar/sidebar}}
 
-    {{#if showGoBackButton}}
-    {{> base/buttons/go-back-btn id="goBackBtn" href="/manage-content" title="Go Back" }}    
-{{/if}}
+        <div class="d-flex w-100 justify-content-between">
+            {{#if showGoBackButton}}
+            {{> base/buttons/go-back-btn id="goBackBtn" href="/manage-content" title="Go Back" }}
+            {{/if}}
+        <div class="w-100 d-flex justify-content-end">
+            {{#if showCollapseLeftSidebarBtn}}
+        <span id="collapse-left-sidebar-btn" class="material-symbols-outlined">chevron_left</span>
+            {{/if}}
+    </div>
+    </div>
 
     {{> base/text/page-title id=pageTitleId title=pageTitle }}
+
+
+<div id="sidebar-content">
     {{> sidebarContent }}
-{{/base/sidebar/sidebar}}
+    </div>
+    {{/base/sidebar/sidebar}}
     <div class="flex-grow-1 bg-secondary-accent-light overflow-y-auto" id="right-content-container">
         {{> mainContent }}
     </div>
-</div>
+    </div>
