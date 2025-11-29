@@ -240,7 +240,7 @@ body {
 .top-options-container {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .top-option {
@@ -2023,7 +2023,7 @@ border: $black;
 #slide-background-options,
 #undo-redo-text,
 #last-changed-text,
-#add-elements-text,
+.content-engine-info-text,
 #slideshow-mode-text {
   color: $darker-gray;
   font-size: 0.75rem;

@@ -148,18 +148,8 @@ const disableAspectRatioControls = () => {
   const aspectRatioContainer = document.getElementById(
     "aspect-ratio-container",
   );
-  const aspectRatioButton = aspectRatioContainer
-    ? aspectRatioContainer.querySelector("button")
-    : null;
-  if (aspectRatioButton) {
-    aspectRatioButton.remove();
-  }
-
-  const aspectRatioSeparator = document.getElementById(
-    "aspect-ratio-separator",
-  );
-  if (aspectRatioSeparator) {
-    aspectRatioSeparator.remove();
+  if (aspectRatioContainer) {
+    aspectRatioContainer.classList.add("d-none");
   }
 };
 
@@ -192,6 +182,9 @@ if (queryParams.mode === "edit") {
 if (queryParams.mode === "template_editor") {
   makeActiveInNav("/manage-templates?mode=template_editor");
   const navbar = document.getElementById("navbar");
+
+  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+
   if (navbar) {
     navbar.style.display = "block";
   }
@@ -261,10 +254,9 @@ if (queryParams.mode === "template_editor") {
 
 if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
-  document.getElementById("slideshow-mode-text").innerText = gettext(
-    "Suborganisation Templates",
-  );
   disableAspectRatioControls();
+  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+  document.getElementById("top-menu-first-vr").classList.add("d-none");
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";

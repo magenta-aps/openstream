@@ -2,52 +2,50 @@
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 <div class="top-panel w-100">
     <div class="top-panel-options bg-white">
-        <div class="top-options-container general-settings px-4 py-2 d-flex">
+        <div class="top-options-container general-settings px-4 d-flex">
             <div id="settings-and-play-btn-container">
-                <span id="slideshow-mode-text" class="small"></span>
+                <span class="small content-engine-info-text">{% trans "Play content" %}</span>
                 <div class="d-flex align-items-center gap-3">
                     <button data-bs-toggle="tooltip" data-bs-title='{% trans " Play Slideshow" %}' id="playBtn"
                         class="btn btn-primary btn-sm d-flex align-items-center">
                         <i class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">play_arrow</i>
                     </button>
                 </div>
-            </div>
-            <div class="vr" id="aspect-ratio-separator"></div>
-            <div id="aspect-ratio-container" class="d-flex align-items-center">
-                <div>
-                    <span id="aspect-ratio-label">{% trans "Aspect Ratio" %}</span>
-                    <div class="d-flex align-items-center gap-3">
-                        <button type="button" class="btn btn-tertiary btn-sm d-flex align-items-center gap-2"
+            </div>        
+            
+            <div id="aspect-ratio-container">
+                        <span class="small content-engine-info-text mb-2">{% trans "Aspect ratio" %}</span>
+                        <button type="button" class="btn btn-tertiary btn-sm d-flex align-items-center gap-2 my-0 py-0 mt-1"
                             data-bs-toggle="modal" data-bs-target="#resolutionModal">
                             <i data-bs-toggle="tooltip" data-bs-title='{% trans "Change Preview Aspect Ratio" %}' class="material-symbols-outlined">aspect_ratio</i>
                             <span id="aspect-ratio-value"></span>
                         </button>
                     </div>
-                </div>
-            </div>
-            <div class="vr"></div>
+            <div class="vr my-2" id="top-menu-first-vr"></div>
             <div id="last-changed-container">
+                <span class="small content-engine-info-text">{% trans "Last autosave" %}</span>
                 <div class="autosave-info">
-                    <span class="text-muted small d-flex align-items-center">
+                    <span class="text-muted small d-flex align-items-center mt-1">
                         <i class="material-symbols-outlined text-secondary">sync</i>
                     </span>
                 </div>
             </div>
-            <div class="vr"></div>
+            <div class="vr my-2"></div>
             <div id="undo-redo-container">
-                <div class="d-flex">
-                    <button type="button" class="btn btn-sm d-flex align-items-center" data-bs-toggle="tooltip" data-bs-title='{% trans " Undo" %}' id="undoBtn">
+                <span class="small content-engine-info-text">{% trans "Undo/Redo" %}</span>
+                <div class="d-flex mt-1">
+                    <button type="button" class="btn btn-sm d-flex align-items-center py-0" data-bs-toggle="tooltip" data-bs-title='{% trans " Undo" %}' id="undoBtn">
                         <i class="material-symbols-outlined">undo</i>
                     </button>
-                    <button type="button" class="btn btn-sm d-flex align-items-center" data-bs-toggle="tooltip" data-bs-title='{% trans " Redo" %}' id="redoBtn">
+                    <button type="button" class="btn btn-sm d-flex align-items-center py-0" data-bs-toggle="tooltip" data-bs-title='{% trans " Redo" %}' id="redoBtn">
                         <i class="material-symbols-outlined">redo</i>
                     </button>
                 </div>
             </div>
-            <div class="vr"></div>
-            <div id="add-elements-container" class="d-flex align-items-center">
+            <div class="vr my-2"></div>
+            <div id="add-elements-container" class="d-flex align-items-center mb-2">
                 <div>
-                    <span id="add-elements-text" class="small">{% trans "Add Elements" %}</span>
+                    <span class="small content-engine-info-text">{% trans "Add Elements" %}</span>
                     <div class="d-flex align-items-center gap-3">
                         <button class="btn btn-secondary btn-sm d-flex align-items-center" data-bs-toggle="tooltip" data-bs-title='{% trans " Add Image" %}' data-type="image">
                             <i class="material-symbols-outlined">image</i>
