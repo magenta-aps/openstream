@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
-import { selectElement } from "./elementSelector.js";
+import { selectElement, deselectElement } from "./elementSelector.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { updateSlideElement } from "./renderSlide.js";
 import { queryParams } from "../../../../utils/utils.js";
@@ -1329,13 +1329,18 @@ function setupDeleteButton({ button, elData, state, popover }) {
     document.querySelector(".gradient-border-wrapper")?.remove();
 
     if (store.selectedElementData?.id === elData.id) {
-      store.selectedElement = null;
-      store.selectedElementData = null;
-      document.querySelectorAll(".element-type-toolbar").forEach((toolbar) => {
-        if (toolbar.classList.contains("d-flex")) {
-          toolbar.classList.replace("d-flex", "d-none");
-        }
-      });
+      try {
+        deselectElement();
+      } catch (err) {
+        // Fallback cleanup if deselectElement isn't available for any reason
+        store.selectedElement = null;
+        store.selectedElementData = null;
+        document.querySelectorAll(".element-type-toolbar").forEach((toolbar) => {
+          if (toolbar.classList.contains("d-flex")) {
+            toolbar.classList.replace("d-flex", "d-none");
+          }
+        });
+      }
     }
 
     hidePopover(popover, state);
