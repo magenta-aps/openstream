@@ -445,6 +445,7 @@ export function initSlideshowPlayerMode() {
   // Emulated size becomes full window
   store.emulatedWidth = window.innerWidth;
   store.emulatedHeight = window.innerHeight;
+  document.querySelector(".preview-container").style.background = "unset";
   _startSlideshowPlayer();
 }
 
@@ -503,7 +504,11 @@ async function _startSlideshowPlayer() {
 
       const data = await response.json();
 
+        
+
       if (data.items && data.items.length > 0) {
+        store.emulatedWidth = data.items[0].slideshow.previewWidth;
+        store.emulatedHeight = data.items[0].slideshow.previewHeight;
         store.slideshowMode = data.items[0].slideshow.mode;
       } else if (data.slideshow_data) {
         store.slideshowMode = data.slideshow_data.mode;
