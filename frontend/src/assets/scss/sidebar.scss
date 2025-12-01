@@ -13,10 +13,17 @@
 }
 
 #sidebar.collapsed #collapse-left-sidebar-btn {
-  position: relative;
-  right: 10px;
+  left: 8px;
 }
 
 #collapse-left-sidebar-btn {
   cursor: pointer;
+  position: absolute;
+  left: 16.5rem;
+  background: $darkest-gray;
+  color: $white;
+  top: 50vh;
+  z-index: 99;
+  opacity: 0.8;
 }
+
