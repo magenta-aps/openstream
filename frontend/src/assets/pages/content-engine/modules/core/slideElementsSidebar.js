@@ -228,6 +228,7 @@ function getElementTypeIcon(type) {
     "dynamic-element": "dynamic_feed",
     "embed-website": "language",
     shape: "interests",
+    mask: "comedy_mask",
     "html-element": "code",
     table: "table",
     list: "format_list_bulleted",

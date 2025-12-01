@@ -15,7 +15,7 @@ import * as bootstrap from "bootstrap";
  * Each key corresponds to a shape name, and the value is a function that returns
  * the inner SVG element string when provided with the common attributes.
  */
-const shapeMap = {
+export const shapeMap = {
   circle: (attrs) => `<circle cx="50" cy="50" r="50" ${attrs}/>`,
   square: (attrs) => `<rect x="0" y="0" width="100" height="100" ${attrs}/>`,
   triangle: (attrs) => `<polygon points="50,5 95,95 5,95" ${attrs}/>`,
@@ -44,6 +44,10 @@ const shapeMap = {
   ellipse: (attrs) => `<ellipse cx="50" cy="50" rx="50" ry="30" ${attrs}/>`,
   parallelogram: (attrs) =>
     `<polygon points="20,0 100,0 80,100 0,100" ${attrs}/>`,
+  "straight-parallelogram": (attrs) =>
+    `<polygon points="0,0 100,0 80,100 0,100" ${attrs}/>`,
+  "straight-parallelogram-inverse": (attrs) =>
+    `<polygon points="20,0 100,0 100,100 0,100" ${attrs}/>`,
   trapezoid: (attrs) => `<polygon points="20,0 80,0 100,100 0,100" ${attrs}/>`,
   semicircle: (attrs) =>
     `<path d="M0,50 A50,50 0 0,1 100,50 L100,100 L0,100 Z" ${attrs}/>`,
@@ -69,7 +73,7 @@ const shapeMap = {
  *
  * When the stroke becomes thicker, the shape is wrapped in a transform that translates and scales it so that the stroke does not overflow.
  */
-function getShapeSVG(
+export function getShapeSVG(
   shape,
   fill,
   stroke,

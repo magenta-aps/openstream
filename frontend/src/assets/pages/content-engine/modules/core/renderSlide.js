@@ -25,6 +25,7 @@ import { _renderIframe } from "../elements/iframeElement.js";
 import { _renderImage } from "../elements/imageElement.js";
 import { _renderQRCode } from "../elements/qrcodeElement.js";
 import { _renderShape } from "../elements/shapeElement.js";
+import { _renderMask } from "../elements/maskElement.js";
 import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
 import { _renderList } from "../elements/listElement.js";
@@ -840,6 +841,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderVideo(el, container);
   } else if (el.type === "shape") {
     _renderShape(el, container);
+  } else if (el.type === "mask") {
+    _renderMask(el, container);
   } else if (el.type === "box") {
     _renderBox(el, container);
   } else if (el.type === "html") {

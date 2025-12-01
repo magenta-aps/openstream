@@ -2342,3 +2342,54 @@ border: $black;
   display: flex;
   flex-direction: column;
 }
+
+.mask-toolbar-summary {
+  min-width: 8rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mask-element {
+  width: 100%;
+  height: 100%;
+}
+
+.mask-element__content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.mask-element__media {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.mask-element__video {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mask-element__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  text-align: center;
+  padding: 0 1rem;
+}

@@ -15,6 +15,7 @@ import {
   finalizeAllTiptapEditors,
 } from "../elements/tiptapTextbox.js";
 import { setupQRCodeToolbar } from "../elements/qrcodeElement.js";
+import { setupMaskToolbar } from "../elements/maskElement.js";
 
 // Helper function to safely access toolbar-general
 function setToolbarGeneralVisibility(visibility) {
@@ -530,6 +531,15 @@ export function selectElement(el, dataObj) {
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";
     createGradientWrapper(el);
+  } else if (dataObj.type === "mask") {
+    hideElementToolbars();
+    document
+      .querySelector(".mask-element-toolbar")
+      ?.classList.replace("d-none", "d-flex");
+    setToolbarGeneralVisibility("visible");
+    el.style.outline = "3px dashed blue";
+    createGradientWrapper(el);
+    setupMaskToolbar();
   } else if (dataObj.type === "box") {
     // Box: simple generic element, show box toolbar
     hideElementToolbars();

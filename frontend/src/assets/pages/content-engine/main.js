@@ -54,6 +54,7 @@ import { initHtmlElement } from "./modules/elements/htmlElement.js";
 import { addIframe, initIframe } from "./modules/elements/iframeElement.js";
 import { initImageElement } from "./modules/elements/imageElement.js";
 import { initShape } from "./modules/elements/shapeElement.js";
+import { initMaskElement } from "./modules/elements/maskElement.js";
 import { initBoxElement } from "./modules/elements/boxElement.js";
 import { initTableElement } from "./modules/elements/tableElement.js";
 import { initListElement } from "./modules/elements/listElement.js";
@@ -129,6 +130,7 @@ const initCommonEditorFeatures = () => {
   initMediaAlignment();
   initMuteButtons();
   initShape();
+  initMaskElement();
   initBoxElement();
   initHtmlElement();
   initTableElement();

@@ -104,6 +104,19 @@ function getElementDefaults() {
       alignment: { h: "center", v: "middle" },
     },
 
+    mask: {
+      type: "mask",
+      backgroundColor: "transparent",
+      maskSourceId: null,
+      maskFit: "contain",
+      contentType: "color",
+      contentColor: "#ffffff",
+      contentMediaId: null,
+      contentFit: "cover",
+      contentPosition: "center center",
+      contentMuted: true,
+    },
+
     box: {
       type: "box",
       backgroundColor: "#000000",
@@ -320,6 +333,7 @@ export function getAvailableElementTypes() {
     { type: "table", name: "Table", icon: "table" },
     { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
+    { type: "mask", name: "Mask", icon: "comedy_mask" },
     { type: "box", name: "Box", icon: "crop_din" },
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
@@ -339,6 +353,7 @@ export function getAllElementTypes() {
     { type: "table", name: "Table", icon: "table" },
     { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
+    { type: "mask", name: "Mask", icon: "comedy_mask" },
     { type: "box", name: "Box", icon: "crop_din" },
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },

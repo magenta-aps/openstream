@@ -1,0 +1,32 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+
+{{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="mask-element-toolbar" title="comedy_mask" }}
+    <div class="d-flex align-items-center mx-2">
+        <span class="fw-semibold small text-uppercase">{% trans "Mask" %}</span>
+        {{> base/content-engine/element-type-toolbars/buttons/change-btn id="mask-source-menu-btn" text='Select'}}
+    </div>
+
+    <div class="vr m-2" aria-hidden="true"></div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mx-2">
+        <span class="fw-semibold small text-uppercase">{% trans "Mask Fit" %}</span>
+        {{> base/form/radio name="maskFit" id="mask-fit-contain" value="contain" text="Contain" autocomplete="off" ariaLabel="Mask fit contain" }}
+        {{> base/form/radio name="maskFit" id="mask-fit-stretch" value="stretch" text="Stretch" autocomplete="off" ariaLabel="Mask fit stretch" }}
+    </div>
+
+    <div class="vr m-2" aria-hidden="true"></div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mx-2">
+        <span class="fw-semibold small text-uppercase">{% trans "Content" %}</span>
+        {{> base/content-engine/element-type-toolbars/buttons/change-btn id="mask-content-menu-btn" text='Select' }}
+    </div>
+
+    <div class="vr m-2" aria-hidden="true"></div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mx-2">
+        <span class="fw-semibold small text-uppercase">{% trans "Content Fit" %}</span>
+        {{> base/form/radio name="maskContentFit" id="mask-content-fit-cover" value="cover" text="Cover" autocomplete="off" ariaLabel="Mask content cover" }}
+        {{> base/form/radio name="maskContentFit" id="mask-content-fit-fill" value="fill" text="Fill" autocomplete="off" ariaLabel="Mask content fill" }}
+    </div>
+{{/base/content-engine/element-type-toolbars/containers/element-type-toolbars-container}}
