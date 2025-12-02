@@ -118,7 +118,7 @@ class AuthCodeView(APIView):
 
         # Handle Keycloak SSO OrganisationMemberships, if specified
         if keycloak_user_info.sso_privilege_list:
-            sync_keycloak_sso_org_memberships(org, keycloak_user_info)
+            sync_keycloak_sso_org_memberships(org, user, keycloak_user_info)
 
         # Generate django-rest-framework tokens
         refresh = RefreshToken.for_user(user)
