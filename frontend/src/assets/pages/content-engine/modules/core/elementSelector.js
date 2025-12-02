@@ -11,8 +11,8 @@ import {
 import { setupImageSizeMode } from "../elements/imageElement.js";
 import { setupTableToolbar } from "../elements/tableElement.js";
 import {
+  finalizeEditorForElement,
   updateTiptapToolbarState,
-  finalizeAllTiptapEditors,
 } from "../elements/tiptapTextbox.js";
 import { setupQRCodeToolbar } from "../elements/qrcodeElement.js";
 import { setupMaskToolbar } from "../elements/maskElement.js";
@@ -228,6 +228,24 @@ if (linkDropdown) {
 }
 
 export function selectElement(el, dataObj) {
+  const previousSelectedElement = store.selectedElement;
+  const previousSelectedData = store.selectedElementData;
+  const hadTiptapSelected = previousSelectedData?.type === "tiptap-textbox";
+  const selection = window.getSelection();
+  const hasActiveTextSelection =
+    !!selection && !selection.isCollapsed && selection.toString().length > 0;
+  const isReselectingSameTiptap =
+    hadTiptapSelected && previousSelectedData?.id === dataObj?.id;
+  const shouldSkipTiptapFinalize =
+    hadTiptapSelected &&
+    hasActiveTextSelection &&
+    isReselectingSameTiptap &&
+    previousSelectedElement === el;
+
+  if (hadTiptapSelected && !shouldSkipTiptapFinalize) {
+    finalizeEditorForElement(previousSelectedData.id);
+  }
+
   // Respect selection-block flag to make elements unselectable even from sidebar/canvas
   if (dataObj && dataObj.isSelectionBlocked) {
     try {
@@ -251,14 +269,19 @@ export function selectElement(el, dataObj) {
     '[contenteditable="true"]',
   );
   activeEditableElements.forEach((editableEl) => {
+    if (
+      shouldSkipTiptapFinalize &&
+      previousSelectedElement &&
+      previousSelectedElement.contains(editableEl)
+    ) {
+      return;
+    }
     // Only exit edit mode if the new element being selected is not the same as or within the editable element
     if (!editableEl.contains(el) && editableEl !== el) {
       editableEl.blur();
       editableEl.contentEditable = false;
     }
   });
-
-  finalizeAllTiptapEditors();
 
   hideResizeHandles();
   // Make these globally accessible

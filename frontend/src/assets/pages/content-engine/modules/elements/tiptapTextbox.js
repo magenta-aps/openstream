@@ -357,7 +357,7 @@ function getTiptapExtensions(elementData) {
       gapcursor: false,
       hardBreak: true,
       heading: false,
-      undoRedo: false,
+      undoRedo: true,
       horizontalRule: false,
       listItem: false,
       listKeymap: false,
@@ -1069,33 +1069,6 @@ function createEditorForElement(elementData, wrapper, container) {
     elementData.text = html;
   });
 
-  editor.on("blur", ({ event }) => {
-    if (!editor.isEditable) {
-      return;
-    }
-
-    const related = event?.relatedTarget || null;
-    setTimeout(() => {
-      const active = document.activeElement;
-      const stayedInsideEditor = active?.closest?.(
-        `.tiptap-text-content[data-element-id="${elementData.id}"]`,
-      );
-      if (stayedInsideEditor) {
-        return;
-      }
-
-      if (
-        related?.closest?.(".tiptap-toolbar") ||
-        active?.closest?.(".tiptap-toolbar") ||
-        active?.closest?.(".toolbar-general")
-      ) {
-        return;
-      }
-
-      finalizeEditorForElement(elementData.id);
-    }, 0);
-  });
-
   const handleEscape = (event) => {
     if (event.key !== "Escape") return;
     if (!editor.isEditable) return;
@@ -1132,7 +1105,7 @@ function enterEditMode(elementData) {
   editor.chain().focus("end").run();
 }
 
-function finalizeEditorForElement(elementId) {
+export function finalizeEditorForElement(elementId) {
   const editor = tiptapEditors.get(elementId);
   if (!editor || !editor.isEditable) return;
 
@@ -1259,10 +1232,4 @@ export function _renderTiptapTextbox(el, container, isInteractivePlayback) {
       }
     });
   }
-}
-
-export function finalizeAllTiptapEditors() {
-  Array.from(tiptapEditors.keys()).forEach((id) => {
-    finalizeEditorForElement(id);
-  });
 }
