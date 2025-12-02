@@ -211,6 +211,7 @@ class BranchURLCollectionItem(models.Model):
 ROLE_CHOICES = (
     ("super_admin", "Super Admin"),
     ("org_admin", "Organisation Admin"),
+    ("org_user", "Organisation User"),
     ("suborg_admin", "Suborganisation Admin"),
     ("branch_admin", "Branch Admin"),
     ("employee", "Employee"),
