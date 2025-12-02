@@ -65,14 +65,33 @@ export function initDeleteElement() {
         if (elementNode) {
           removeGradientWrapper(elementNode);
 
-          if (elementNode._resizerObserver) {
-            elementNode._resizerObserver.disconnect();
-            delete elementNode._resizerObserver;
-          }
+          if (typeof elementNode._cleanupResizeHandles === "function") {
+            elementNode._cleanupResizeHandles();
+            delete elementNode._cleanupResizeHandles;
+          } else {
+            if (elementNode._resizerObserver) {
+              elementNode._resizerObserver.disconnect();
+              delete elementNode._resizerObserver;
+            }
 
-          if (elementNode._resizeHandle) {
-            elementNode._resizeHandle.remove();
-            delete elementNode._resizeHandle;
+            if (Array.isArray(elementNode._resizeHandles)) {
+              elementNode._resizeHandles.forEach((handle) => {
+                if (handle?.parentNode) {
+                  handle.parentNode.removeChild(handle);
+                }
+              });
+              delete elementNode._resizeHandles;
+            }
+
+            if (elementNode._resizeHandle) {
+              if (
+                !elementNode._resizeHandles ||
+                !elementNode._resizeHandles.includes(elementNode._resizeHandle)
+              ) {
+                elementNode._resizeHandle.remove();
+              }
+              delete elementNode._resizeHandle;
+            }
           }
 
           if (elementNode._updateResizerPosition) {

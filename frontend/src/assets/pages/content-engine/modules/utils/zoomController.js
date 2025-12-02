@@ -269,21 +269,12 @@ export function updateAllSlidesZoom() {
     return;
   }
 
-  // Get current zoom state from status bar
-  const statusBar = document.querySelector(".content-engine-status-bar");
-  if (!statusBar) return;
+  const { mode, level } = getCurrentZoom();
 
-  const zoomButton = statusBar.querySelector(".zoom-mode-btn:first-child");
-  const fitButton = statusBar.querySelector(".zoom-mode-btn:last-child");
-  const isFitMode =
-    fitButton && fitButton.style.background.includes("rgb(52, 152, 219)");
-
-  if (isFitMode) {
+  if (mode === "fit") {
     enableFitToWindowMode();
   } else {
-    const slider = statusBar.querySelector('input[type="range"]');
-    const zoomLevel = slider ? parseInt(slider.value) : 100;
-    enableZoomMode(zoomLevel);
+    enableZoomMode(level);
   }
 }
 
@@ -291,19 +282,6 @@ export function updateAllSlidesZoom() {
  * Get current zoom info
  */
 export function getCurrentZoomInfo() {
-  const statusBar = document.querySelector(".content-engine-status-bar");
-  if (!statusBar) return { mode: "fit", level: 100 };
-
-  const zoomButton = statusBar.querySelector(".zoom-mode-btn:first-child");
-  const fitButton = statusBar.querySelector(".zoom-mode-btn:last-child");
-  const isFitMode =
-    fitButton && fitButton.style.background.includes("rgb(52, 152, 219)");
-
-  if (isFitMode) {
-    return { mode: "fit", level: 100 };
-  } else {
-    const slider = statusBar.querySelector('input[type="range"]');
-    const zoomLevel = slider ? parseInt(slider.value) : 100;
-    return { mode: "zoom", level: zoomLevel };
-  }
+  const zoomState = getCurrentZoom();
+  return zoomState || { mode: "fit", level: 100 };
 }

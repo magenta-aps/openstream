@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
-import { selectElement } from "./elementSelector.js";
+import { selectElement, deselectElement } from "./elementSelector.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { updateSlideElement } from "./renderSlide.js";
 import { queryParams } from "../../../../utils/utils.js";
@@ -23,9 +23,6 @@ const POPOVER_PREFERRED_WIDTH = 320;
 const POPOVER_MIN_WIDTH = 200;
 const POLL_INTERVAL_MS = 600;
 const NO_ELEMENTS_HTML = `<div class="text-muted small">No elements</div>`;
-
-// Sidebar collapse state key
-const SIDEBAR_COLLAPSED_KEY = "os_slide_elements_sidebar_collapsed";
 
 let globalExpandState = false; // Track global expand/collapse state
 
@@ -231,6 +228,7 @@ function getElementTypeIcon(type) {
     "dynamic-element": "dynamic_feed",
     "embed-website": "language",
     shape: "interests",
+    mask: "comedy_mask",
     "html-element": "code",
     table: "table",
     list: "format_list_bulleted",
@@ -253,22 +251,6 @@ function createRenderState(container, openPopovers) {
     showLinkSelect: isInteractiveEditMode(),
     rerender: renderSlideElementsSidebar,
   };
-}
-
-function isSidebarCollapsed() {
-  try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
-  } catch (err) {
-    return false;
-  }
-}
-
-function setSidebarCollapsed(collapsed) {
-  try {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? "1" : "0");
-  } catch (err) {
-    // ignore
-  }
 }
 
 function applySidebarCollapsedState(container, collapsed) {
@@ -1348,13 +1330,18 @@ function setupDeleteButton({ button, elData, state, popover }) {
     document.querySelector(".gradient-border-wrapper")?.remove();
 
     if (store.selectedElementData?.id === elData.id) {
-      store.selectedElement = null;
-      store.selectedElementData = null;
-      document.querySelectorAll(".element-type-toolbar").forEach((toolbar) => {
-        if (toolbar.classList.contains("d-flex")) {
-          toolbar.classList.replace("d-flex", "d-none");
-        }
-      });
+      try {
+        deselectElement();
+      } catch (err) {
+        // Fallback cleanup if deselectElement isn't available for any reason
+        store.selectedElement = null;
+        store.selectedElementData = null;
+        document.querySelectorAll(".element-type-toolbar").forEach((toolbar) => {
+          if (toolbar.classList.contains("d-flex")) {
+            toolbar.classList.replace("d-flex", "d-none");
+          }
+        });
+      }
     }
 
     hidePopover(popover, state);
@@ -1773,7 +1760,6 @@ function attachSidebarToggleHandler() {
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     const collapsed = sidebar.classList.toggle("collapsed");
-    setSidebarCollapsed(collapsed);
     const container = document.getElementById("slide-elements-list");
     if (container) applySidebarCollapsedState(container, collapsed);
   });
@@ -1849,10 +1835,14 @@ function startSidebarPolling() {
 }
 
 export function initSlideElementsSidebar() {
-  // Apply persisted collapsed state before initial render
-  const collapsed = isSidebarCollapsed();
   const container = document.getElementById("slide-elements-list");
-  if (container) applySidebarCollapsedState(container, collapsed);
+  if (container) {
+    const sidebar =
+      container.closest(".slide-right-sidebar") ||
+      document.querySelector(".slide-right-sidebar");
+    const collapsed = sidebar?.classList.contains("collapsed") || false;
+    applySidebarCollapsedState(container, collapsed);
+  }
 
   renderSlideElementsSidebar();
   attachSidebarToggleHandler();

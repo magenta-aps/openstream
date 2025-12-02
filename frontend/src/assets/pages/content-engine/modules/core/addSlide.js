@@ -389,9 +389,10 @@ export function initAddSlide() {
       sortAndRenderTemplates();
     });
 
-  document
-    .getElementById("unifiedSlideModal")
-    .addEventListener("shown.bs.modal", async () => {
+  const unifiedSlideModalEl = document.getElementById("unifiedSlideModal");
+
+  if (unifiedSlideModalEl) {
+    unifiedSlideModalEl.addEventListener("shown.bs.modal", async () => {
       await fetchUnifiedTemplates();
       const tableBody = document.querySelector("#unifiedTemplateTable tbody");
       if (tableBody && tableBody.children.length > 0) {
@@ -401,6 +402,18 @@ export function initAddSlide() {
         loadUnifiedTemplatePreview(filteredTemplates[0]);
       }
     });
+
+    unifiedSlideModalEl.addEventListener("hidden.bs.modal", () => {
+      const activePreviewContainer =
+        document.querySelector(".preview-column .preview-container") ||
+        document.querySelector(".slide-canvas .preview-container");
+
+      if (activePreviewContainer) {
+        // Restore editor scaling after preview modal alters store.currentScale.
+        scaleSlide(activePreviewContainer);
+      }
+    });
+  }
 
   document
     .getElementById("unifiedSaveSlideBtn")

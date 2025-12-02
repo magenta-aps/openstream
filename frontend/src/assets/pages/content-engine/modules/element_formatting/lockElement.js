@@ -48,12 +48,16 @@ function toggleElementLock() {
   if (store.selectedElement) {
     store.selectedElement.classList.toggle("is-locked", nowLocked);
 
-    const resizer =
-      store.selectedElement._resizeHandle ||
-      store.selectedElement.querySelector(".resize-handle");
-    if (resizer) {
-      resizer.style.display = nowLocked ? "none" : "block";
-    }
+    const resizeHandles = Array.isArray(store.selectedElement._resizeHandles)
+      ? store.selectedElement._resizeHandles
+      : store.selectedElement._resizeHandle
+        ? [store.selectedElement._resizeHandle]
+        : Array.from(
+            store.selectedElement.querySelectorAll(".resize-handle"),
+          );
+    resizeHandles.forEach((handle) => {
+      handle.style.display = nowLocked ? "none" : "block";
+    });
   }
 }
 

@@ -25,6 +25,7 @@ import { _renderIframe } from "../elements/iframeElement.js";
 import { _renderImage } from "../elements/imageElement.js";
 import { _renderQRCode } from "../elements/qrcodeElement.js";
 import { _renderShape } from "../elements/shapeElement.js";
+import { _renderMask } from "../elements/maskElement.js";
 import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
 import { _renderList } from "../elements/listElement.js";
@@ -209,7 +210,6 @@ export function loadSlide(
       // If gridContainer doesn't exist, create it
       gridContainer = document.createElement("div");
       gridContainer.className = "grid-container";
-      gridContainer.style.overflow = "hidden";
       zoomWrapper.appendChild(gridContainer); // Append early
     }
 
@@ -247,7 +247,6 @@ export function loadSlide(
     // If it's the same slide, no completeReload, but grid is missing (shouldn't happen often)
     gridContainer = document.createElement("div");
     gridContainer.className = "grid-container";
-    gridContainer.style.overflow = "hidden";
     zoomWrapper.appendChild(gridContainer); // Append early
 
     // ALWAYS set grid dimensions after finding/creating
@@ -733,9 +732,28 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     container.style.visibility = "visible";
   }
 
-  const resizer = document.createElement("div");
-  resizer.classList.add("resize-handle");
-  container.appendChild(resizer);
+  const resizeHandleConfigs = [
+    { direction: "nw", cursor: "nwse-resize" },
+    { direction: "n", cursor: "ns-resize" },
+    { direction: "ne", cursor: "nesw-resize" },
+    { direction: "e", cursor: "ew-resize" },
+    { direction: "se", cursor: "nwse-resize" },
+    { direction: "s", cursor: "ns-resize" },
+    { direction: "sw", cursor: "nesw-resize" },
+    { direction: "w", cursor: "ew-resize" },
+  ];
+
+  const resizeHandles = resizeHandleConfigs.map((config) => {
+    const handle = document.createElement("div");
+    handle.classList.add("resize-handle", `resize-handle--${config.direction}`);
+    handle.dataset.resizeDirection = config.direction;
+    return handle;
+  });
+
+  container._resizeHandles = resizeHandles;
+  container._resizeHandle = resizeHandles.find((handle) => {
+    return handle.dataset.resizeDirection === "se";
+  }) || resizeHandles[0];
 
   if (
     queryParams.mode === "edit" ||
@@ -823,6 +841,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderVideo(el, container);
   } else if (el.type === "shape") {
     _renderShape(el, container);
+  } else if (el.type === "mask") {
+    _renderMask(el, container);
   } else if (el.type === "box") {
     _renderBox(el, container);
   } else if (el.type === "html") {
@@ -839,29 +859,29 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
   gridContainer.appendChild(container);
 
-  // Now that container is in the DOM, set up the resize handle as a sibling
-  // to avoid it being clipped by border-radius
-  const resizerHandle = container.querySelector(".resize-handle");
-  if (resizerHandle && container.parentNode) {
-    // Remove from container and re-add as sibling
-    resizerHandle.remove();
-    resizerHandle.style.cssText = `
-      display: none;
-      position: absolute;
-      width: 15px;
-      height: 15px;
-      background: #696969;
-      cursor: se-resize;
-      user-select: none;
-      pointer-events: auto;
-    `;
+  if (resizeHandles.length && container.parentNode) {
+    const HANDLE_SIZE = 23;
+    const HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
 
-    // Position the resizer at the bottom-right corner of the container
+    const ensureHandlesInDom = () => {
+      resizeHandles.forEach((handle) => {
+        if (!handle.isConnected) {
+          container.parentNode.appendChild(handle);
+        }
+      });
+    };
+
     const updateResizerPosition = () => {
-      resizerHandle.style.left =
-        container.offsetLeft + container.offsetWidth - 15 + "px";
-      resizerHandle.style.top =
-        container.offsetTop + container.offsetHeight - 15 + "px";
+      if (!container.parentNode) return;
+
+      const baseLeft = container.offsetLeft;
+      const baseTop = container.offsetTop;
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      const parentWidth = container.parentNode.offsetWidth;
+      const parentHeight = container.parentNode.offsetHeight;
+      const maxLeft = Math.max(parentWidth - HANDLE_SIZE, 0);
+      const maxTop = Math.max(parentHeight - HANDLE_SIZE, 0);
 
       let elementZIndex = 0;
       try {
@@ -881,18 +901,70 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
         }
       }
 
-      resizerHandle.style.zIndex = String(elementZIndex + 2);
+      resizeHandles.forEach((handle) => {
+        const direction = handle.dataset.resizeDirection || "se";
+
+        let handleLeft = baseLeft + width - HANDLE_SIZE;
+        let handleTop = baseTop + height - HANDLE_SIZE;
+
+        switch (direction) {
+          case "nw":
+            handleLeft = baseLeft - HALF_HANDLE_SIZE;
+            handleTop = baseTop - HALF_HANDLE_SIZE;
+            break;
+          case "n":
+            handleLeft = baseLeft + width / 2 - HALF_HANDLE_SIZE;
+            handleTop = baseTop - HALF_HANDLE_SIZE;
+            break;
+          case "ne":
+            handleLeft = baseLeft + width - HALF_HANDLE_SIZE;
+            handleTop = baseTop - HALF_HANDLE_SIZE;
+            break;
+          case "e":
+            handleLeft = baseLeft + width - HALF_HANDLE_SIZE;
+            handleTop = baseTop + height / 2 - HALF_HANDLE_SIZE;
+            break;
+          case "se":
+            handleLeft = baseLeft + width - HALF_HANDLE_SIZE;
+            handleTop = baseTop + height - HALF_HANDLE_SIZE;
+            break;
+          case "s":
+            handleLeft = baseLeft + width / 2 - HALF_HANDLE_SIZE;
+            handleTop = baseTop + height - HALF_HANDLE_SIZE;
+            break;
+          case "sw":
+            handleLeft = baseLeft - HALF_HANDLE_SIZE;
+            handleTop = baseTop + height - HALF_HANDLE_SIZE;
+            break;
+          case "w":
+            handleLeft = baseLeft - HALF_HANDLE_SIZE;
+            handleTop = baseTop + height / 2 - HALF_HANDLE_SIZE;
+            break;
+          default:
+            break;
+        }
+
+        handleLeft = Math.min(Math.max(handleLeft, 0), maxLeft);
+        handleTop = Math.min(Math.max(handleTop, 0), maxTop);
+
+        handle.style.left = Math.round(handleLeft) + "px";
+        handle.style.top = Math.round(handleTop) + "px";
+        handle.style.zIndex = String(elementZIndex + 2);
+      });
     };
 
-    // Insert resizer as sibling, not child, so it won't be clipped by border-radius
-    container.parentNode.insertBefore(resizerHandle, container.nextSibling);
+    ensureHandlesInDom();
     updateResizerPosition();
 
-    // Store reference and update function on container
-    container._resizeHandle = resizerHandle;
-    container._updateResizerPosition = updateResizerPosition;
+    container._updateResizerPosition = () => {
+      ensureHandlesInDom();
+      updateResizerPosition();
+    };
 
-    // Add mutation observer to track position/size changes
+    if (container._resizerObserver) {
+      container._resizerObserver.disconnect();
+    }
+
     const resizerObserver = new MutationObserver(() => {
       updateResizerPosition();
     });
@@ -901,6 +973,20 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       attributeFilter: ["style", "class"],
     });
     container._resizerObserver = resizerObserver;
+
+    container._cleanupResizeHandles = () => {
+      if (container._resizerObserver) {
+        container._resizerObserver.disconnect();
+        delete container._resizerObserver;
+      }
+      resizeHandles.forEach((handle) => {
+        if (handle.parentNode) {
+          handle.parentNode.removeChild(handle);
+        }
+      });
+      delete container._resizeHandles;
+      delete container._resizeHandle;
+    };
   }
 
   // Ensure the selected element stays highlighted after re-rendering

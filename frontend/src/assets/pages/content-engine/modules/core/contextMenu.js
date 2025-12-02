@@ -3,7 +3,7 @@
 import { store } from "./slideStore.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { loadSlide } from "./renderSlide.js";
-import { selectElement } from "./elementSelector.js";
+import { selectElement, deselectElement } from "./elementSelector.js";
 import { showToast, queryParams } from "../../../../utils/utils.js";
 import {
   replaceElementWithType,
@@ -338,11 +338,22 @@ function createElementContextMenu(e, element, dataObj) {
           elementToRemove.remove();
         }
 
-        store.selectedElement = null;
-        store.selectedElementData = null;
-        document
-          .querySelectorAll(".element-type-toolbar")
-          .forEach((toolbar) => toolbar.classList.replace("d-flex", "d-none"));
+        try {
+          deselectElement();
+        } catch (err) {
+          // fallback cleanup if deselectElement fails for some reason
+          store.selectedElement = null;
+          store.selectedElementData = null;
+          document
+            .querySelectorAll(".element-type-toolbar")
+            .forEach((toolbar) => toolbar.classList.replace("d-flex", "d-none"));
+          document.querySelectorAll(".gradient-border-wrapper").forEach((n) =>
+            n.remove(),
+          );
+          document.querySelectorAll(".resize-handle").forEach((h) => {
+            h.style.display = "none";
+          });
+        }
 
         const elementBgColorBtn = document.querySelector(
           '#selected-element-toolbar button[title="Background Color"]',

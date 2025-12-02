@@ -914,3 +914,37 @@ export function initOrgQueryParams() {
     true,
   );
 }
+
+export function initCollapseLeftSidebarBtn() {
+  const collapseBtn = document.getElementById("collapse-left-sidebar-btn");
+  const sidebar = document.getElementById("sidebar");
+  const pageTitle = document.querySelector(".page-title");
+  const sidebarContent = document.getElementById("sidebar-content");
+  const goBackBtn = document.getElementById("goBackBtn");
+
+  if (collapseBtn && sidebar ) {
+    collapseBtn.addEventListener("click", () => {
+      if (sidebar) {
+        sidebar?.classList.toggle("collapsed")
+      }
+      
+      if (pageTitle) {
+        pageTitle?.classList.toggle("d-none");
+      }
+      
+      if (sidebarContent) {
+        sidebarContent?.classList.toggle("d-none");
+      }
+      
+      if (goBackBtn) {
+        goBackBtn?.classList.toggle("d-none");
+      }
+
+      if (collapseBtn.innerHTML.includes("chevron_left")) {
+        collapseBtn.innerHTML = `<span class="material-symbols-outlined">chevron_right</span>`;
+      } else {
+        collapseBtn.innerHTML = `<span class="material-symbols-outlined">chevron_left</span>`;
+      }
+    });
+  }
+}

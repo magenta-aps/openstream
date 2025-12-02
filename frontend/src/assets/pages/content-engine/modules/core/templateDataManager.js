@@ -415,8 +415,6 @@ export async function initTemplateEditor() {
   if (slideshowNameEl)
     slideshowNameEl.textContent = gettext("Manage Templates");
 
-  const modeTextEl = document.getElementById("slideshow-mode-text");
-  if (modeTextEl) modeTextEl.innerText = gettext("Manage Templates");
 
   const addSlideButton = document.getElementById("add-slide-button");
   if (addSlideButton) addSlideButton.style.display = "none";

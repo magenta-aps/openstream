@@ -240,7 +240,7 @@ body {
 .top-options-container {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .top-option {
@@ -1304,17 +1304,36 @@ border: $black;
 
 .resize-handle {
   display: none;
-
-  /* Hide by default */
-  width: 15px;
-  height: 15px;
-  background: $darker-gray;
+  width: 23px;
+  height: 23px;
+  background: $white;
+  border: 2px solid $neutral-blue;
   position: absolute;
-  right: 0;
-  bottom: 0;
-  cursor: se-resize;
   user-select: none;
+  pointer-events: auto;
+  box-shadow: 0 0 3px rgba($black, 0.35);
   z-index: 9999;
+  border-radius: 50%;
+}
+
+.resize-handle--n,
+.resize-handle--s {
+  cursor: ns-resize;
+}
+
+.resize-handle--e,
+.resize-handle--w {
+  cursor: ew-resize;
+}
+
+.resize-handle--ne,
+.resize-handle--sw {
+  cursor: nesw-resize;
+}
+
+.resize-handle--nw,
+.resize-handle--se {
+  cursor: nwse-resize;
 }
 
 .image-box {
@@ -2004,7 +2023,7 @@ border: $black;
 #slide-background-options,
 #undo-redo-text,
 #last-changed-text,
-#add-elements-text,
+.content-engine-info-text,
 #slideshow-mode-text {
   color: $darker-gray;
   font-size: 0.75rem;
@@ -2322,4 +2341,55 @@ border: $black;
 #right-content-container {
   display: flex;
   flex-direction: column;
+}
+
+.mask-toolbar-summary {
+  min-width: 8rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mask-element {
+  width: 100%;
+  height: 100%;
+}
+
+.mask-element__content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.mask-element__media {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.mask-element__video {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mask-element__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  text-align: center;
+  padding: 0 1rem;
 }

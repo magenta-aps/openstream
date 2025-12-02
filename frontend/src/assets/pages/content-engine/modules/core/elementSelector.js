@@ -15,6 +15,7 @@ import {
   finalizeAllTiptapEditors,
 } from "../elements/tiptapTextbox.js";
 import { setupQRCodeToolbar } from "../elements/qrcodeElement.js";
+import { setupMaskToolbar } from "../elements/maskElement.js";
 
 // Helper function to safely access toolbar-general
 function setToolbarGeneralVisibility(visibility) {
@@ -290,19 +291,21 @@ export function selectElement(el, dataObj) {
   updateLockButtonForSelectedElement();
 
   // Show resizer, etc...
-  const resizer = el._resizeHandle || el.querySelector(".resize-handle");
-  if (resizer) {
-    // Update position before showing
+  const resizeHandles = Array.isArray(el._resizeHandles)
+    ? el._resizeHandles
+    : el._resizeHandle
+      ? [el._resizeHandle]
+      : Array.from(el.querySelectorAll(".resize-handle"));
+
+  if (resizeHandles.length) {
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
     }
 
-    // Hide resize handle for locked elements across editor modes
-    if (isElementLocked(dataObj)) {
-      resizer.style.display = "none";
-    } else {
-      resizer.style.display = "block";
-    }
+    const shouldShowHandles = !isElementLocked(dataObj);
+    resizeHandles.forEach((handle) => {
+      handle.style.display = shouldShowHandles ? "block" : "none";
+    });
   }
 
   // ### Initialize values for the general element formatting
@@ -431,11 +434,7 @@ export function selectElement(el, dataObj) {
     const elementToolbarName = document.querySelector(
       ".dynamic-content-toolbar .element-toolbar-name",
     );
-    if (elementToolbarName) {
-      elementToolbarName.innerText = store.selectedElementData.integrationName
-        ? store.selectedElementData.integrationName
-        : gettext("Dynamic Content");
-    }
+
   } else if (dataObj.type === "embed-website") {
     setupMuteButtons();
     const changeWebsiteInput = document.getElementById("change-website-input");
@@ -532,6 +531,15 @@ export function selectElement(el, dataObj) {
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";
     createGradientWrapper(el);
+  } else if (dataObj.type === "mask") {
+    hideElementToolbars();
+    document
+      .querySelector(".mask-element-toolbar")
+      ?.classList.replace("d-none", "d-flex");
+    setToolbarGeneralVisibility("visible");
+    el.style.outline = "3px dashed blue";
+    createGradientWrapper(el);
+    setupMaskToolbar();
   } else if (dataObj.type === "box") {
     // Box: simple generic element, show box toolbar
     hideElementToolbars();

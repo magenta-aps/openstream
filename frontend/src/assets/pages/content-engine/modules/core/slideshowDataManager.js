@@ -38,15 +38,7 @@ export async function fetchSlideshow(slideshowId) {
       data.name,
     );
 
-    if (store.slideshowMode === "interactive") {
-      document.getElementById("slideshow-mode-text").innerText =
-        gettext("Interactive Mode");
-    }
 
-    if (store.slideshowMode === "slideshow") {
-      document.getElementById("slideshow-mode-text").innerText =
-        gettext("Slideshow Mode");
-    }
 
     // Set preview dimensions if they exist in the data (regardless of slides)
     if (data.previewHeight && data.previewWidth) {

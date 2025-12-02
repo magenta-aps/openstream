@@ -45,14 +45,14 @@ function createStatusBar() {
     // automatically fills available width and sits below the preview.
     statusBar.style.cssText = `
       height: 32px;
-      background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);
-      border-top: 1px solid #34495e;
+      background: linear-gradient(90deg, var(--bs-light-gray) 0%, var(--bs-gray) 100%);
+      border-top: 1px solid var(--bs-darker-gray);
       display: flex;
       align-items: center;
       padding: 0 16px;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       font-size: 12px;
-      color: #ecf0f1;
+      color: var(--bs-darkest-gray);
       box-sizing: border-box;
       z-index: 10;
       opacity: 0;
@@ -79,7 +79,7 @@ function createStatusBar() {
       display: flex;
       align-items: center;
       gap: 6px;
-      color: white;
+      color: var(--bs-darkest-gray);
       font-weight: 500;
       min-width: 0;
     `;
@@ -186,7 +186,6 @@ export function updateGridInfo(info) {
     gridText.innerHTML = createInteractiveGridInfo(info);
   }
 }
-
 /**
  * Create interactive HTML for grid information with clickable position and size values
  * @param {string} info - The original grid information text
@@ -261,7 +260,7 @@ function createZoomControls(rightSection) {
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #ecf0f1;
+    color: var(--bs-darkest-gray);
     font-size: 11px;
     user-select: none;
   `;
@@ -273,7 +272,7 @@ function createZoomControls(rightSection) {
     display: none;
     align-items: center;
     gap: 6px;
-    color: #ecf0f1;
+    color: var(--bs-darkest-gray);
     font-size: 11px;
     min-width: 120px;
   `;
@@ -286,7 +285,7 @@ function createZoomControls(rightSection) {
   zoomSlider.style.cssText = `
     width: 70px;
     height: 4px;
-    background: #34495e;
+    background: var(--bs-dark-gray);
     outline: none;
     border-radius: 2px;
     cursor: pointer;
@@ -298,11 +297,9 @@ function createZoomControls(rightSection) {
     min-width: 35px;
     text-align: center;
     font-weight: 500;
-    color: #ecf0f1;
-    background: #34495e;
+    color: var(--bs-darkest-gray);
     padding: 2px 6px;
     border-radius: 3px;
-    border: 1px solid #2c3e50;
   `;
 
   // Zoom mode toggle buttons
@@ -312,10 +309,10 @@ function createZoomControls(rightSection) {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: #2c3e50;
+    background: var(--bs-gray);
     border-radius: 6px;
     padding: 1px;
-    border: 1px solid #34495e;
+    
   `;
 
   const zoomButton = document.createElement("button");
@@ -324,7 +321,7 @@ function createZoomControls(rightSection) {
   zoomButton.style.cssText = `
     background: transparent;
     border: none;
-    color: #bdc3c7;
+    color: var(--bs-darker-gray);
     padding: 5px 10px;
     border-radius: 4px;
     font-size: 11px;
@@ -337,16 +334,16 @@ function createZoomControls(rightSection) {
   fitButton.className = "zoom-mode-btn active";
   fitButton.textContent = "Fit";
   fitButton.style.cssText = `
-    background: #3498db;
+    background: var(--bs-light-gray);
     border: none;
-    color: white;
+    color: var(--bs-darkest-gray);
     padding: 5px 10px;
     border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(54,56,57,0.2);
   `;
 
   // Event handlers
@@ -360,22 +357,22 @@ function createZoomControls(rightSection) {
 
       // Update button styles
       fitButton.style.cssText = `
-        background: #3498db;
+        background: var(--bs-light-gray);
         border: none;
-        color: white;
+        color: var(--bs-darkest-gray);
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 11px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 1px 3px rgba(54,56,57,0.2);
       `;
 
       zoomButton.style.cssText = `
         background: transparent;
         border: none;
-        color: #bdc3c7;
+        color: var(--bs-darker-gray);
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 11px;
@@ -399,22 +396,22 @@ function createZoomControls(rightSection) {
 
       // Update button styles
       zoomButton.style.cssText = `
-        background: #3498db;
+        background: var(--bs-light-gray);
         border: none;
-        color: white;
+        color: var(--bs-darkest-gray);
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 11px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 1px 3px rgba(54,56,57,0.2);
       `;
 
       fitButton.style.cssText = `
         background: transparent;
         border: none;
-        color: #bdc3c7;
+        color: var(--bs-darker-gray);
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 11px;
@@ -500,23 +497,23 @@ export function setZoom(mode, level = 100) {
     if (mode === "fit") {
       if (fitBtn) {
         fitBtn.style.cssText = `
-          background: #3498db;
+          background: var(--bs-light-gray);
           border: none;
-          color: white;
+          color: var(--bs-darkest-gray);
           padding: 5px 10px;
           border-radius: 4px;
           font-size: 11px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          box-shadow: 0 1px 3px rgba(54,56,57,0.2);
         `;
       }
       if (zoomBtn) {
         zoomBtn.style.cssText = `
           background: transparent;
           border: none;
-          color: #bdc3c7;
+          color: var(--bs-darker-gray);
           padding: 5px 10px;
           border-radius: 4px;
           font-size: 11px;
@@ -531,23 +528,23 @@ export function setZoom(mode, level = 100) {
     } else {
       if (zoomBtn) {
         zoomBtn.style.cssText = `
-          background: #3498db;
+          background: var(--bs-light-gray);
           border: none;
-          color: white;
+          color: var(--bs-darkest-gray);
           padding: 5px 10px;
           border-radius: 4px;
           font-size: 11px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          box-shadow: 0 1px 3px rgba(54,56,57,0.2);
         `;
       }
       if (fitBtn) {
         fitBtn.style.cssText = `
           background: transparent;
           border: none;
-          color: #bdc3c7;
+          color: var(--bs-darker-gray);
           padding: 5px 10px;
           border-radius: 4px;
           font-size: 11px;
@@ -593,7 +590,7 @@ function addInteractiveStyles() {
   style.id = styleId;
   style.textContent = `
     .grid-info-text .editable-value {
-      color: #3498db !important;
+      color: var(--bs-darkest-gray) !important;
       cursor: pointer;
       padding: 1px 3px;
       border-radius: 2px;
@@ -605,21 +602,21 @@ function addInteractiveStyles() {
     }
     
     .grid-info-text .editable-value:hover {
-      background-color: rgba(52, 152, 219, 0.2);
-      border-color: #3498db;
+      background-color: rgba(54, 56, 57, 0.15);
+      border-color: var(--bs-darker-gray);
     }
     
     .grid-info-text .editable-value.editing {
-      background-color: #ffffff;
-      color: #2c3e50 !important;
-      border-color: #3498db;
+      background-color: var(--bs-white);
+      color: var(--bs-darkest-gray) !important;
+      border-color: var(--bs-darker-gray);
       outline: none;
     }
     
     .grid-info-text .editable-input {
-      background: #ffffff;
-      color: #2c3e50;
-      border: 1px solid #3498db;
+      background: var(--bs-white);
+      color: var(--bs-darkest-gray);
+      border: 1px solid var(--bs-darker-gray);
       border-radius: 2px;
       padding: 1px 3px;
       font-size: 12px;
@@ -631,17 +628,17 @@ function addInteractiveStyles() {
     }
     
     .grid-info-text .editable-input:invalid,
-    .grid-info-text .editable-input[style*="border-color: rgb(231, 76, 60)"] {
-      border-color: #e74c3c !important;
-      background-color: #ffebee !important;
-      box-shadow: 0 0 3px rgba(231, 76, 60, 0.3);
+    .grid-info-text .editable-input[style*="var(--bs-error-red)"] {
+      border-color: var(--bs-error-red) !important;
+      background-color: var(--bs-error-red-light) !important;
+      box-shadow: 0 0 3px rgba(179, 0, 33, 0.3);
     }
     
     .grid-info-text .editable-input:valid,
-    .grid-info-text .editable-input[style*="border-color: rgb(52, 152, 219)"] {
-      border-color: #3498db !important;
-      background-color: #ffffff !important;
-      box-shadow: 0 0 3px rgba(52, 152, 219, 0.3);
+    .grid-info-text .editable-input[style*="var(--bs-darker-gray)"] {
+      border-color: var(--bs-darker-gray) !important;
+      background-color: var(--bs-white) !important;
+      box-shadow: 0 0 3px rgba(114, 120, 123, 0.3);
     }
   `;
 
@@ -817,12 +814,12 @@ function validateInputValue(input) {
 
   // Visual feedback
   if (isValid) {
-    input.style.borderColor = "#3498db";
-    input.style.backgroundColor = "#ffffff";
+    input.style.borderColor = "var(--bs-darker-gray)";
+    input.style.backgroundColor = "var(--bs-white)";
     input.title = "";
   } else {
-    input.style.borderColor = "#e74c3c";
-    input.style.backgroundColor = "#ffebee";
+    input.style.borderColor = "var(--bs-error-red)";
+    input.style.backgroundColor = "var(--bs-error-red-light)";
     input.title = errorMessage;
   }
 

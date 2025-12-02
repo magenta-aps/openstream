@@ -15,6 +15,7 @@ import {
   makeActiveInNav,
   initSignOutButton,
   initOrgQueryParams,
+  initCollapseLeftSidebarBtn,
 } from "../../utils/utils.js";
 import { getCurrentAspectRatio } from "./modules/core/addSlide.js";
 import { initAddSlide } from "./modules/core/addSlide.js";
@@ -53,6 +54,7 @@ import { initHtmlElement } from "./modules/elements/htmlElement.js";
 import { addIframe, initIframe } from "./modules/elements/iframeElement.js";
 import { initImageElement } from "./modules/elements/imageElement.js";
 import { initShape } from "./modules/elements/shapeElement.js";
+import { initMaskElement } from "./modules/elements/maskElement.js";
 import { initBoxElement } from "./modules/elements/boxElement.js";
 import { initTableElement } from "./modules/elements/tableElement.js";
 import { initListElement } from "./modules/elements/listElement.js";
@@ -128,10 +130,12 @@ const initCommonEditorFeatures = () => {
   initMediaAlignment();
   initMuteButtons();
   initShape();
+  initMaskElement();
   initBoxElement();
   initHtmlElement();
   initTableElement();
   initListElement();
+  initCollapseLeftSidebarBtn();
   // Only initialize activation modal if the modal element exists
   if (document.getElementById("slideActivationModal")) {
     initActivationModal();
@@ -146,18 +150,8 @@ const disableAspectRatioControls = () => {
   const aspectRatioContainer = document.getElementById(
     "aspect-ratio-container",
   );
-  const aspectRatioButton = aspectRatioContainer
-    ? aspectRatioContainer.querySelector("button")
-    : null;
-  if (aspectRatioButton) {
-    aspectRatioButton.remove();
-  }
-
-  const aspectRatioSeparator = document.getElementById(
-    "aspect-ratio-separator",
-  );
-  if (aspectRatioSeparator) {
-    aspectRatioSeparator.remove();
+  if (aspectRatioContainer) {
+    aspectRatioContainer.classList.add("d-none");
   }
 };
 
@@ -190,6 +184,9 @@ if (queryParams.mode === "edit") {
 if (queryParams.mode === "template_editor") {
   makeActiveInNav("/manage-templates?mode=template_editor");
   const navbar = document.getElementById("navbar");
+
+  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+
   if (navbar) {
     navbar.style.display = "block";
   }
@@ -259,10 +256,9 @@ if (queryParams.mode === "template_editor") {
 
 if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
-  document.getElementById("slideshow-mode-text").innerText = gettext(
-    "Suborganisation Templates",
-  );
   disableAspectRatioControls();
+  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+  document.getElementById("top-menu-first-vr").classList.add("d-none");
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";

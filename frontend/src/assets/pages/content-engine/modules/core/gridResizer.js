@@ -123,14 +123,61 @@ export function makeDraggable(el, dataObj) {
 }
 
 export function makeResizable(el, dataObj) {
-  const resizer = el._resizeHandle || el.querySelector(".resize-handle");
-  if (!resizer) return;
+  const handles = Array.isArray(el._resizeHandles)
+    ? el._resizeHandles
+    : el._resizeHandle
+      ? [el._resizeHandle]
+      : Array.from(el.querySelectorAll(".resize-handle"));
+
+  if (!handles.length) return;
 
   let animationFrameId = null;
-  let startX, startY, startWidth, startHeight;
+  let startX,
+    startY,
+    startWidth,
+    startHeight,
+    startColStart,
+    startRowStart,
+    startRight,
+    startBottom,
+    activeDirection;
   let hasResized = false;
 
-  function initResize(e) {
+  const parseSpan = (value) => {
+    if (!value) return NaN;
+    const parsed = parseInt(String(value).replace("span", "").trim(), 10);
+    return Number.isFinite(parsed) ? parsed : NaN;
+  };
+
+  const getCurrentColStart = () => {
+    const parsed = parseInt(el.style.gridColumnStart, 10);
+    if (Number.isFinite(parsed)) return parsed;
+    if (typeof dataObj.gridX === "number") return dataObj.gridX + 1;
+    return 1;
+  };
+
+  const getCurrentRowStart = () => {
+    const parsed = parseInt(el.style.gridRowStart, 10);
+    if (Number.isFinite(parsed)) return parsed;
+    if (typeof dataObj.gridY === "number") return dataObj.gridY + 1;
+    return 1;
+  };
+
+  const getCurrentWidth = () => {
+    const parsed = parseSpan(el.style.gridColumnEnd);
+    if (Number.isFinite(parsed)) return parsed;
+    if (typeof dataObj.gridWidth === "number") return dataObj.gridWidth;
+    return 1;
+  };
+
+  const getCurrentHeight = () => {
+    const parsed = parseSpan(el.style.gridRowEnd);
+    if (Number.isFinite(parsed)) return parsed;
+    if (typeof dataObj.gridHeight === "number") return dataObj.gridHeight;
+    return 1;
+  };
+
+  function initResize(e, direction) {
     // Prevent resizing if element is locked
     if (isElementLocked(dataObj)) {
       e.preventDefault();
@@ -141,14 +188,13 @@ export function makeResizable(el, dataObj) {
     e.preventDefault();
     startX = e.clientX;
     startY = e.clientY;
-    startWidth =
-      parseInt(el.style.gridColumnEnd.replace("span", "").trim()) ||
-      dataObj.gridWidth ||
-      1;
-    startHeight =
-      parseInt(el.style.gridRowEnd.replace("span", "").trim()) ||
-      dataObj.gridHeight ||
-      1;
+    startWidth = getCurrentWidth();
+    startHeight = getCurrentHeight();
+    startColStart = getCurrentColStart();
+    startRowStart = getCurrentRowStart();
+    startRight = startColStart + startWidth - 1;
+    startBottom = startRowStart + startHeight - 1;
+    activeDirection = direction || "se";
     hasResized = false;
     document.addEventListener("mousemove", resizeElement);
     document.addEventListener("mouseup", stopResize);
@@ -159,7 +205,6 @@ export function makeResizable(el, dataObj) {
       cancelAnimationFrame(animationFrameId);
     }
     animationFrameId = requestAnimationFrame(() => {
-      // Calculate cell dimensions fresh each time to ensure current scale is used
       const originalCellWidth = GridUtils.getCellWidth(store.emulatedWidth);
       const originalCellHeight = GridUtils.getCellHeight(store.emulatedHeight);
       const effectiveCellWidth = originalCellWidth * store.currentScale;
@@ -167,39 +212,102 @@ export function makeResizable(el, dataObj) {
 
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
-      let newWidth = startWidth + Math.floor(deltaX / effectiveCellWidth);
-      let newHeight = startHeight + Math.floor(deltaY / effectiveCellHeight);
+      const deltaCols = Math.trunc(deltaX / effectiveCellWidth);
+      const deltaRows = Math.trunc(deltaY / effectiveCellHeight);
 
-      if (
-        !hasResized &&
-        (newWidth !== startWidth || newHeight !== startHeight)
-      ) {
+      let newColStart = startColStart;
+      let newRowStart = startRowStart;
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+
+      if (activeDirection.includes("e")) {
+        newWidth = startWidth + deltaCols;
+        if (newWidth < 1) {
+          newWidth = 1;
+        }
+        if (newColStart + newWidth - 1 > GRID_CONFIG.COLUMNS) {
+          newWidth = GRID_CONFIG.COLUMNS - newColStart + 1;
+        }
+      }
+
+      if (activeDirection.includes("s")) {
+        newHeight = startHeight + deltaRows;
+        if (newHeight < 1) {
+          newHeight = 1;
+        }
+        if (newRowStart + newHeight - 1 > GRID_CONFIG.ROWS) {
+          newHeight = GRID_CONFIG.ROWS - newRowStart + 1;
+        }
+      }
+
+      if (activeDirection.includes("w")) {
+        newColStart = startColStart + deltaCols;
+        if (newColStart < 1) {
+          newColStart = 1;
+        }
+        if (newColStart >= startRight) {
+          newColStart = startRight;
+        }
+        newWidth = startRight - newColStart + 1;
+      }
+
+      if (activeDirection.includes("n")) {
+        newRowStart = startRowStart + deltaRows;
+        if (newRowStart < 1) {
+          newRowStart = 1;
+        }
+        if (newRowStart >= startBottom) {
+          newRowStart = startBottom;
+        }
+        newHeight = startBottom - newRowStart + 1;
+      }
+
+      newWidth = Math.max(1, Math.min(newWidth, GRID_CONFIG.COLUMNS));
+      newHeight = Math.max(1, Math.min(newHeight, GRID_CONFIG.ROWS));
+
+      if (newColStart + newWidth - 1 > GRID_CONFIG.COLUMNS) {
+        newColStart = GRID_CONFIG.COLUMNS - newWidth + 1;
+      }
+      if (newRowStart + newHeight - 1 > GRID_CONFIG.ROWS) {
+        newRowStart = GRID_CONFIG.ROWS - newHeight + 1;
+      }
+
+      const currentCol = getCurrentColStart();
+      const currentRow = getCurrentRowStart();
+      const currentWidth = getCurrentWidth();
+      const currentHeight = getCurrentHeight();
+
+      const didChange =
+        newColStart !== currentCol ||
+        newRowStart !== currentRow ||
+        newWidth !== currentWidth ||
+        newHeight !== currentHeight;
+
+      if (!hasResized && didChange) {
         pushCurrentSlideState();
         hasResized = true;
       }
 
-      newWidth = Math.max(1, newWidth);
-      newHeight = Math.max(1, newHeight);
-      const currentCol = parseInt(el.style.gridColumnStart);
-      const currentRow = parseInt(el.style.gridRowStart);
-      newWidth = Math.min(newWidth, GRID_CONFIG.COLUMNS - currentCol + 1);
-      newHeight = Math.min(newHeight, GRID_CONFIG.ROWS - currentRow + 1);
+      if (!didChange) {
+        return;
+      }
 
-      // Update element styles
+      el.style.gridColumnStart = newColStart;
       el.style.gridColumnEnd = `span ${newWidth}`;
+      el.style.gridRowStart = newRowStart;
       el.style.gridRowEnd = `span ${newHeight}`;
+      dataObj.gridX = newColStart - 1;
+      dataObj.gridY = newRowStart - 1;
       dataObj.gridWidth = newWidth;
       dataObj.gridHeight = newHeight;
 
-      // Update resize handle position
       if (el._updateResizerPosition) {
         el._updateResizerPosition();
       }
 
-      // Show grid info in status bar
       const info = GridUtils.formatGridInfoCompact(
-        currentCol - 1, // Convert to 0-based
-        currentRow - 1, // Convert to 0-based
+        newColStart - 1,
+        newRowStart - 1,
         newWidth,
         newHeight,
       );
@@ -212,14 +320,17 @@ export function makeResizable(el, dataObj) {
     document.removeEventListener("mousemove", resizeElement);
     document.removeEventListener("mouseup", stopResize);
 
-    // Final position update for resize handle
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
     }
 
-    // Clear grid info from status bar
     clearGridInfo();
   }
 
-  resizer.addEventListener("mousedown", initResize);
+  handles.forEach((handle) => {
+    const direction = handle.dataset?.resizeDirection || "se";
+    handle.addEventListener("mousedown", (event) => {
+      initResize(event, direction);
+    });
+  });
 }
