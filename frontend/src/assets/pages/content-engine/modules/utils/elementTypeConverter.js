@@ -160,6 +160,20 @@ function getElementDefaults() {
       borderWidth: 2,
       borderStyle: "dashed",
     },
+
+    qrcode: {
+      type: "qrcode",
+      content: "https://example.com",
+      backgroundColor: "transparent",
+      qrOptions: {
+        width: 300,
+        margin: 0,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      },
+    },
   };
 }
 
@@ -338,6 +352,7 @@ export function getAvailableElementTypes() {
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
     { type: "dynamic-element", name: "Dynamic Content", icon: "dynamic_feed" },
+    { type: "qrcode", name: "QR Code", icon: "qr_code" },
     // Note: placeholder is not included here as it should only be available for creation, not conversion
   ];
 }
@@ -358,6 +373,7 @@ export function getAllElementTypes() {
     { type: "html", name: "HTML Element", icon: "code" },
     { type: "embed-website", name: "Embed Website", icon: "language" },
     { type: "dynamic-element", name: "Dynamic Content", icon: "dynamic_feed" },
+    { type: "qrcode", name: "QR Code", icon: "qr_code" },
     { type: "placeholder", name: "Placeholder", icon: "crop_free" },
   ];
 }
@@ -611,6 +627,8 @@ export function getPostConversionMessage(elementType) {
       return "Right-click the element to edit the HTML, CSS, and JavaScript code.";
     case "dynamic-element":
       return "The dynamic content selection modal will open automatically to configure this element.";
+    case "qrcode":
+      return "Use the QR code toolbar to edit the URL and colors.";
     default:
       return null;
   }
