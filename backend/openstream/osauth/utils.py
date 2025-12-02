@@ -21,23 +21,6 @@ def kc_user_info_2_local_user(kc_user: UserInfo) -> User:
     )
 
 
-def get_openstream_role_db_vars(role: str) -> tuple[str, str]:
-    if role not in settings.OSAUTH_KC_USER_ATTRS_TO_ORG_MEMBERSHIP:
-        raise Exception(f"invalid openstream role: {role}")
-
-    match (role):
-        case settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN:
-            return "organisation_id", "org_admin"
-        case settings.OSAUTH_ORG_MEMBERSHIP_SUBORG_ADMIN:
-            return "suborganisation_id", "suborg_admin"
-        case settings.OSAUTH_ORG_MEMBERSHIP_BRANCH_ADMIN:
-            return "branch_id", "branch_admin"
-        case settings.OSAUTH_ORG_MEMBERSHIP_EMPLOYEE:
-            return "branch_id", "employee"
-
-    raise NotImplementedError(f'OpenStream role "{role}" not implemented')
-
-
 def sync_keycloak_sso_org_memberships(
     organisation: Organisation, user: User, user_info: UserInfo
 ):
