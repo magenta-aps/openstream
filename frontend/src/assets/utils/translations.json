@@ -3910,6 +3910,45 @@
   },
   "Free": {
     "da": "Gratis"
-  } 
+  },
+  "Mask": {
+    "da": "Maske"
+  },
+  "Mask Fit": {
+    "da": "Masketilpasning"
+  },
+  "Content Fit": {
+    "da": "Indholdstilpasning"
+  },
+  "Cover": {
+    "da": "Dæk"
+  },
+  "Select image": {
+    "da": "Vælg billede"
+  },
+  "Shapes": {
+    "da": "Former"
+  },
+  "Use image": {
+    "da": "Brug billede"
+  },
+  "Use video": {
+    "da": "Brug video"
+  },
+  "Pick color": {
+    "da": "Vælg farve"
+  },
+  "Please select a mask element first!": {
+    "da": "Vælg først et maskeelement!"
+  },
+  "Select mask image or shape": {
+    "da": "Vælg maskebillede eller form"
+  },
+  "straight-parallelogram": {
+    "da": "lige parallelogram"
+  },
+  "straight-parallelogram-inverse": {
+    "da": "omvendt lige parallelogram"
+  }
 }
 
