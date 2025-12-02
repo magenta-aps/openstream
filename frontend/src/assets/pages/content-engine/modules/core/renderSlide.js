@@ -445,6 +445,7 @@ export function initSlideshowPlayerMode() {
   store.emulatedWidth = window.innerWidth;
   store.emulatedHeight = window.innerHeight;
   document.querySelector(".preview-container").style.background = "unset";
+  document.querySelector(".slide-right-sidebar").classList.add("d-none")
   _startSlideshowPlayer();
 }
 
