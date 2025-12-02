@@ -778,6 +778,7 @@ async function submitMediaUpdate(event) {
     }
     // Refresh the list modal with the stored callback and filters
     displayMediaModal(1, currentOnSelectCallback, currentInitialFilters);
+    clearSelectedFilesState();
   } catch (error) {
     console.error("Failed to submit media");
     showToast(error.message, "Error");
@@ -822,6 +823,7 @@ async function submitMultipleMediaUpload(formFile, body) {
       bsSubmitModal.hide();
     }
     displayMediaModal(1, currentOnSelectCallback, currentInitialFilters);
+    clearSelectedFilesState();
     if (formFile) {
       formFile.value = "";
     }
@@ -840,6 +842,27 @@ function toggleMediaUploadDisabled(disabled) {
 }
 
 // ================ Selected Files Display ================
+
+function clearSelectedFilesState() {
+  selectedFilesArray = [];
+
+  const selectedFilesContainer = document.getElementById(
+    "selectedFilesContainer",
+  );
+  const selectedFilesList = document.getElementById("selectedFilesList");
+  if (selectedFilesContainer) {
+    selectedFilesContainer.classList.add("d-none");
+  }
+  if (selectedFilesList) {
+    selectedFilesList.innerHTML = "";
+  }
+
+  if (!fileInput) return;
+  fileInput.value = "";
+  const emptyTransfer = new DataTransfer();
+  fileInput.files = emptyTransfer.files;
+  syncFileTitleAndInput();
+}
 
 function displaySelectedFiles() {
   const selectedFilesContainer = document.getElementById(
@@ -1118,6 +1141,10 @@ function initEventListeners() {
         createOrUpdateMediaClicked();
       });
     }
+
+    submitMediaModalEl?.addEventListener("hidden.bs.modal", () => {
+      clearSelectedFilesState();
+    });
 
     submitMediaForm?.addEventListener("submit", (e) => {
       e.preventDefault();
