@@ -504,6 +504,12 @@ function disposeEditorForElement(elementId, preserveContent = true) {
   tiptapEditors.delete(elementId);
 }
 
+export function disposeAllTiptapEditors(preserveContent = true) {
+  Array.from(tiptapEditors.keys()).forEach((id) => {
+    disposeEditorForElement(id, preserveContent);
+  });
+}
+
 function isDefaultElementContent(elementData) {
   if (!elementData) return false;
   const rawContent = elementData.tiptapContent || elementData.text;

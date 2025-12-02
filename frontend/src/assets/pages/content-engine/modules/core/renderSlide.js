@@ -585,7 +585,8 @@ async function _startSlideshowPlayer() {
         }
       });
 
-      store.slides = allSlides;
+      store.slides.length = 0;
+      store.slides.push(...allSlides);
     } catch (err) {
       console.error("Fetch error:", err);
     }

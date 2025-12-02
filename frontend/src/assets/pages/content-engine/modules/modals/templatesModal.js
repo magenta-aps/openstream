@@ -105,6 +105,66 @@ function createTemplateAspectRatioOption(container, ratio) {
   templateAspectRatioOptionMap.set(ratio.value, { option, wrapper, ratio });
 }
 
+function applyTemplateMetadataLocally(
+  templateId,
+  metadataUpdate = {},
+  serverData = null,
+) {
+  if (!templateId || !Array.isArray(store.slides)) return;
+
+  const templateIndex = store.slides.findIndex(
+    (slide) => slide.templateId === templateId,
+  );
+  if (templateIndex === -1) {
+    return;
+  }
+
+  const targetSlide = store.slides[templateIndex];
+  const previousAspect = targetSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
+
+  const resolvedName = serverData?.name || metadataUpdate.name;
+  if (resolvedName) {
+    targetSlide.name = resolvedName;
+    targetSlide.templateOriginalName = resolvedName;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(metadataUpdate, "category_id")) {
+    targetSlide.categoryId = metadataUpdate.category_id;
+  }
+
+  if (Array.isArray(metadataUpdate.tag_ids)) {
+    targetSlide.tagIds = metadataUpdate.tag_ids;
+  }
+
+  const nextAspect =
+    serverData?.aspect_ratio ||
+    metadataUpdate.aspect_ratio ||
+    previousAspect ||
+    DEFAULT_ASPECT_RATIO;
+  targetSlide.aspect_ratio = nextAspect;
+
+  if (typeof serverData?.previewWidth === "number") {
+    targetSlide.previewWidth = serverData.previewWidth;
+  }
+  if (typeof serverData?.previewHeight === "number") {
+    targetSlide.previewHeight = serverData.previewHeight;
+  }
+
+  updateSlideSelector();
+
+  if (templateIndex === store.currentSlideIndex && targetSlide) {
+    if (nextAspect !== previousAspect) {
+      const resolution = getResolutionForAspectRatio(nextAspect);
+      if (resolution) {
+        store.emulatedWidth = resolution.width;
+        store.emulatedHeight = resolution.height;
+        scaleAllSlides();
+      }
+    }
+    loadSlide(targetSlide);
+  }
+}
+
 function ensureTemplateAspectRatioOption(value) {
   if (!value || templateAspectRatioOptionMap.has(value)) {
     return;
@@ -571,23 +631,21 @@ if (confirmBtn) {
           );
           return;
         }
-        showToast(gettext("Template details updated successfully."), "Success");
-        // Refresh the templates list to show changes
-        if (queryParams.mode === "template_editor") {
-          await fetchAllOrgTemplatesAndPopulateStore(store.editingTemplateId);
-        } else if (queryParams.mode === "suborg_templates") {
-          // For suborg templates, we need to import and use the suborg-specific refresh function
-          const { fetchAllSuborgTemplatesAndPopulateStore } = await import(
-            "../core/suborgTemplateDataManager.js"
-          );
-          const suborgId = queryParams.suborg_id;
-          if (suborgId) {
-            await fetchAllSuborgTemplatesAndPopulateStore(
-              suborgId,
-              store.editingTemplateId,
-            );
-          }
+        let updatedTemplateFromServer = null;
+        try {
+          updatedTemplateFromServer = await resp.json();
+        } catch {
+          // Ignore empty/invalid JSON bodies (some PATCH endpoints return 204)
         }
+
+        applyTemplateMetadataLocally(
+          store.editingTemplateId,
+          payload,
+          updatedTemplateFromServer,
+        );
+
+        showToast(gettext("Template details updated successfully."), "Success");
+
         if (bsModalInstance) bsModalInstance.hide();
       } catch (err) {
         console.error("Error updating template metadata:", err);

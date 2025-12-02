@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
 import { loadSlide, scaleAllSlides } from "./renderSlide.js";
-import { saveSlideshow, showSavingStatus } from "./slideshowDataManager.js";
 import { queryParams } from "../../../../utils/utils.js";
 import { fetchUnifiedTemplates, getCurrentAspectRatio } from "./addSlide.js";
 import { updateAllSlidesZoom } from "../utils/zoomController.js";
@@ -253,12 +252,6 @@ export async function updateResolution(selectedResolution) {
         modalInstance.hide();
       }
     }
-
-    if (queryParams.mode !== "template_editor") {
-      await saveSlideshow(queryParams.id);
-    }
-
-    showSavingStatus();
 
     if (widthChanged || heightChanged) {
       await fetchUnifiedTemplates();
