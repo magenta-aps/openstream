@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
 import logging
+from typing import List
 from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
-from app.models import Organisation
+from app.models import Organisation, OrganisationMembership
 from rest_framework import exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -15,7 +16,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from osauth.utils import (
-    sync_keycloak_sso_org_memberships,
+    configure_keycloak_session,
+    parse_kc_sso_privilege_list,
+    sync_keycloak_privilege_list_org_memberships,
+    sync_keycloak_realm_roles_org_memberships,
 )
 from osauth.models import KeycloakSession
 from osauth.errors import handle_keycloak_error
@@ -97,48 +101,70 @@ class AuthCodeView(APIView):
             logger.error("Token is None after successful fetch from Keycloak")
             raise exceptions.AuthenticationFailed()
 
-        # Get, or create, django user
+        # Get KC user
         keycloak_user_info = kc_client.user_info(keycloak_token.access_token)
-        user, user_was_created = User.objects.get_or_create(
-            username=keycloak_user_info.preferred_username,
-            defaults={
-                "email": keycloak_user_info.email,
-                "first_name": (
+        kc_user_privilege_list = (
+            parse_kc_sso_privilege_list(keycloak_user_info.sso_privilege_list)
+            if keycloak_user_info.sso_privilege_list
+            else None
+        )
+
+        # Get local django user - if it exists
+        django_user = User.objects.filter(
+            username=keycloak_user_info.preferred_username
+        ).first()
+
+        # Verify first time login / new user - make sure they have access to OpenStream
+        keycloak_realm_roles_org_memberships = [
+            settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN,
+            settings.OSAUTH_ORG_MEMBERSHIP_ORG_USER,
+        ]
+
+        kc_user_has_access = any(
+            x in keycloak_user_info.realm_access.roles
+            for x in keycloak_realm_roles_org_memberships
+        ) or any(
+            x in kc_user_privilege_list for x in keycloak_realm_roles_org_memberships
+        )
+
+        if not django_user and not kc_user_has_access:
+            raise exceptions.PermissionDenied("You don't have access to OpenStream")
+
+        # Create the local django user if missing
+        if not django_user:
+            django_user = User.objects.create(
+                username=keycloak_user_info.preferred_username,
+                email=keycloak_user_info.email,
+                first_name=(
                     keycloak_user_info.given_name
                     if keycloak_user_info.given_name
                     else ""
                 ),
-                "last_name": (
+                last_name=(
                     keycloak_user_info.family_name
                     if keycloak_user_info.family_name
                     else ""
                 ),
-            },
+            )
+
+        # Sync Keycloak roles OrganisationMemberships
+        new_org_memberships, existing_org_memberships = (
+            sync_keycloak_privilege_list_org_memberships(
+                org, django_user, kc_user_privilege_list
+            )
+            if kc_user_privilege_list
+            else sync_keycloak_realm_roles_org_memberships(
+                org,
+                django_user,
+                [
+                    settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN,
+                    settings.OSAUTH_ORG_MEMBERSHIP_ORG_USER,
+                ],
+            )
         )
 
-        # Handle Keycloak SSO OrganisationMemberships, if specified
-        if keycloak_user_info.sso_privilege_list:
-            sync_keycloak_sso_org_memberships(org, user, keycloak_user_info)
-
-        # Generate django-rest-framework tokens
-        refresh = RefreshToken.for_user(user)
-        access = str(refresh.access_token)
-
-        # Cleanup user keycloak sessions & create a new one
-        KeycloakSession.objects.filter(user=user).delete()
-        db_keycloak_session = KeycloakSession.objects.create(
-            user=user,
-            access_token=keycloak_token.access_token,
-            refresh_token=keycloak_token.refresh_token,
-            id_token=keycloak_token.id_token,
-        )
-
-        # Redirect back to the frontend
-        redirect_params = {
-            "username": user.username,
-            "access": access,
-            "refresh": refresh,
-        }
+        # Store the keycloak session in the DB and redirect the client
+        redirect_params = configure_keycloak_session(django_user, keycloak_token)
         redirect_url = f"{settings.FRONTEND_HOST}/{org.uri_name}/sign-in-callback?{urlencode(redirect_params)}"
         return redirect(redirect_url)
 
