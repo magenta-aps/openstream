@@ -1,72 +1,32 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
-    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-    {{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="tiptap-toolbar
-" title="text_fields" }}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/content-engine/element-type-toolbars/containers/element-type-toolbars-container class="tiptap-toolbar" title="text_fields" }}
     <div class="me-3 d-flex">
-        {{#> base/form/dropdown id="" class="tiptap-font-family-select mx-1 form-select form-select-sm bg-transparent
-        border-light-gray" }}
+        {{#> base/form/dropdown id="" class="tiptap-font-family-select ms-1 me-3 form-select form-select-sm bg-transparent border-light-gray" }}
         <!-- Populated by JS -->
     {{/base/form/dropdown}}
         <div class="tiptap-font-size-controls d-flex align-items-center">
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapFontSizeDecreaseBtn"
             class="m-0 p-0" icon="remove" tooltip="{% trans 'Decrease Font Size' %}"}}
-            {{#> base/form/dropdown id="" class="tiptap-font-size-select form-select form-select-sm bg-transparent border-darker-gray" }}
-            {{> base/form/dropdown-option value="1" text="10"}}
-            {{> base/form/dropdown-option value="2" text="11"}}
-            {{> base/form/dropdown-option value="3" text="12"}}
-            {{> base/form/dropdown-option value="4" text="14"}}
-            {{> base/form/dropdown-option value="5" text="16"}}
-            {{> base/form/dropdown-option value="6" text="18"}}
-            {{> base/form/dropdown-option value="7" text="20"}}
-            {{> base/form/dropdown-option value="8" text="24"}}
-            {{> base/form/dropdown-option value="9" text="28"}}
-            {{> base/form/dropdown-option value="10" text="32"}}
-            {{> base/form/dropdown-option value="11" text="36"}}
-            {{> base/form/dropdown-option value="12" text="40" selected=true}}
-            {{> base/form/dropdown-option value="13" text="44"}}
-            {{> base/form/dropdown-option value="14" text="48"}}
-            {{> base/form/dropdown-option value="15" text="52"}}
-            {{> base/form/dropdown-option value="16" text="56"}}
-            {{> base/form/dropdown-option value="17" text="60"}}
-            {{> base/form/dropdown-option value="18" text="64"}}
-            {{> base/form/dropdown-option value="19" text="68"}}
-            {{> base/form/dropdown-option value="20" text="72"}}
-            {{> base/form/dropdown-option value="21" text="80"}}
-            {{> base/form/dropdown-option value="22" text="88"}}
-            {{> base/form/dropdown-option value="23" text="96"}}
-            {{> base/form/dropdown-option value="24" text="104"}}
-            {{> base/form/dropdown-option value="25" text="112"}}
-            {{> base/form/dropdown-option value="26" text="120"}}
-            {{> base/form/dropdown-option value="27" text="128"}}
-            {{> base/form/dropdown-option value="28" text="144"}}
-            {{> base/form/dropdown-option value="29" text="160"}}
-            {{> base/form/dropdown-option value="30" text="176"}}
-            {{> base/form/dropdown-option value="31" text="192"}}
-            {{> base/form/dropdown-option value="32" text="208"}}
-            {{> base/form/dropdown-option value="33" text="224"}}
-            {{> base/form/dropdown-option value="34" text="240"}}
-            {{> base/form/dropdown-option value="35" text="256"}}
-            {{> base/form/dropdown-option value="36" text="272"}}
-            {{> base/form/dropdown-option value="37" text="288"}}
-            {{> base/form/dropdown-option value="38" text="304"}}
-            {{> base/form/dropdown-option value="39" text="320"}}
-            {{> base/form/dropdown-option value="40" text="336"}}
-            {{> base/form/dropdown-option value="41" text="352"}}
-            {{> base/form/dropdown-option value="42" text="368"}}
-            {{> base/form/dropdown-option value="43" text="384"}}
-            {{> base/form/dropdown-option value="44" text="400"}}
-            {{> base/form/dropdown-option value="45" text="416"}}
-            {{> base/form/dropdown-option value="46" text="432"}}
-            {{> base/form/dropdown-option value="47" text="448"}}
-            {{> base/form/dropdown-option value="48" text="464"}}
-            {{> base/form/dropdown-option value="49" text="480"}}
-            {{> base/form/dropdown-option value="50" text="496"}}
-            {{> base/form/dropdown-option value="51" text="512"}}
-    {{/base/form/dropdown}}
+            
+            <div class="dropdown mx-1">
+                <div class="d-flex align-items-center border border-darker-gray rounded bg-transparent" style="width: 85px;">
+                    <input type="number" class="tiptap-font-size-input form-control form-control-sm border-0 bg-transparent text-center p-0" 
+                        style="width: 100%; -moz-appearance: textfield;" 
+                        value="40">
+                    <button class="btn btn-sm border-0 p-0 pe-1 text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="line-height: 0;" data-bs-popper-config='{"strategy":"fixed"}'>
+                        <span class="material-symbols-outlined" style="font-size: 20px;">arrow_drop_down</span>
+                    </button>
+                    <ul class="dropdown-menu tiptap-font-size-dropdown-menu shadow" style="max-height: 500px; overflow-y: auto; min-width: 85px; width: 85px;">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </div>
+
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapFontSizeIncreaseBtn"
-            class="m-0 p-0" icon="add" tooltip="{% trans 'Increase Font Size' %}"}}
+            class="me-3 p-0" icon="add" tooltip="{% trans 'Increase Font Size' %}"}}
         </div>
-        <div class="d-flex" id="tiptapBasicFormattingGroup" data-toolbar-feature-group="basic-formatting">
+        <div class="d-flex me-3" id="tiptapBasicFormattingGroup" data-toolbar-feature-group="basic-formatting">
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapBoldBtn" icon="format_bold"
             tooltip="{% trans 'Make Text Bold' %}" dataAttrs='data-feature="bold"'}}
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapItalicBtn"
@@ -74,13 +34,11 @@
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapUnderlineBtn"
             icon="format_underlined" tooltip="{% trans 'Underline Text' %}" dataAttrs='data-feature="underline"'}}
         </div>
-        <div class="vr mx-3 my-1" id="tiptapBasicFormattingSeparator"></div>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center me-3">
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapTextColorBtn"
             class="tiptap-text-color-picker" icon="format_color_text" tooltip="{% trans 'Change Text Color' %}"}}
         </div>
-        <div class="vr mx-3 my-1"></div>
-        <div class="d-flex">
+        <div class="d-flex me-3">
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextLeftBtn"
             icon="format_align_left" tooltip="{% trans 'Align Text Left' %}"}}
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextCenterBtn"
@@ -88,7 +46,14 @@
             {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTextRightBtn"
             icon="format_align_right" tooltip="{% trans 'Align Text Right' %}"}}
         </div>
-        <div class="vr mx-3 my-1"></div>
+        <div class="d-flex me-3">
+            {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignTopBtn"
+            icon="vertical_align_top" tooltip="{% trans 'Align Top' %}"}}
+            {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignMiddleBtn"
+            icon="vertical_align_center" tooltip="{% trans 'Align Middle' %}"}}
+            {{> base/content-engine/element-type-toolbars/buttons/text-editor-btn id="tiptapAlignBottomBtn"
+            icon="vertical_align_bottom" tooltip="{% trans 'Align Bottom' %}"}}
+        </div>
         <div class="d-flex align-items-center">
             <span class="align-self-center material-symbols-outlined" role="img"
                 aria-label="{% trans 'Line Height' %}" title="{% trans 'Line Height' %}">format_line_spacing</span>

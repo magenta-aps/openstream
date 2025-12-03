@@ -1570,6 +1570,10 @@ border: $black;
   white-space: pre-wrap;
 }
 
+.dropdown-menu.tiptap-font-size-dropdown-menu.shadow.show {
+ left: -3.4rem !important;
+}
+
 .slide-element *::-webkit-scrollbar {
   display: none;
 
