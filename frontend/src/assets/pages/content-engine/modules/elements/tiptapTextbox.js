@@ -557,6 +557,13 @@ function applyContainerStyles(elementData, wrapper) {
   } else {
     wrapper.style.justifyContent = "flex-start";
   }
+
+  const editorDom = wrapper.querySelector(".ProseMirror");
+  if (editorDom) {
+    editorDom.style.display = "flex";
+    editorDom.style.flexDirection = "column";
+    editorDom.style.justifyContent = wrapper.style.justifyContent;
+  }
 }
 
 function updateColorButton(color) {
