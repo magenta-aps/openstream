@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
+import { definePersistedProperty } from "./persistedStateObserver.js";
+
 export const store = {
   slides: [],
   lastSlidesStr: JSON.stringify([]),
@@ -33,6 +35,10 @@ export const store = {
   // Resolver for slideshow exit when info box is not used
   resolveSlideshowExit: null,
 };
+
+definePersistedProperty(store, "slides");
+definePersistedProperty(store, "emulatedWidth");
+definePersistedProperty(store, "emulatedHeight");
 
 let _selectedElement = null;
 

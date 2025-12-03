@@ -10,6 +10,10 @@ import {
   selectedSubOrgID,
 } from "../../../../utils/utils.js";
 import { showSavingStatus } from "./slideshowDataManager.js"; // Assuming this can be reused
+import {
+  subscribeToPersistedStateChanges,
+  suspendPersistedStateNotifications,
+} from "./persistedStateObserver.js";
 import { updateResolution } from "./virutalPreviewResolution.js";
 import { updateAllSlidesZoom } from "../utils/zoomController.js";
 import { getCurrentAspectRatio } from "./addSlide.js";
@@ -20,7 +24,13 @@ import {
   getResolutionForAspectRatio,
 } from "../../../../utils/availableAspectRatios.js";
 
+const TEMPLATE_AUTOSAVE_DEBOUNCE_MS = 1200;
 let templateAutosaveTimer = null;
+let templateAutosaveUnsubscribe = null;
+let templatePendingSnapshot = null;
+let templateLastSavedSnapshot = null;
+let templateDirtySinceLastSave = false;
+let templateSaveInFlight = false;
 
 let lastStoredSingleSlideStr = null;
 
@@ -112,117 +122,124 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
       );
     }
     const fetchedTemplates = await resp.json();
+    const resumePersistedNotifications = suspendPersistedStateNotifications();
+    try {
+      store.slides.length = 0;
+      store.currentSlideIndex = -1;
+      store.lastSlideIndex = null;
 
-    store.slides.length = 0;
-    store.currentSlideIndex = -1;
-    store.lastSlideIndex = null;
-
-    if (fetchedTemplates && fetchedTemplates.length > 0) {
-      fetchedTemplates.forEach((template) => {
-        if (!template.slideData) {
-          console.warn(
-            `Template ID ${template.id} ('${template.name}') is missing slideData. Skipping.`,
-          );
-          return;
-        }
-        const slideObject = JSON.parse(JSON.stringify(template.slideData));
-
-        slideObject.templateId = template.id;
-        slideObject.templateOriginalName = template.name;
-        slideObject.name = template.name;
-        slideObject.aspect_ratio =
-          template.aspect_ratio || DEFAULT_ASPECT_RATIO;
-
-        slideObject.categoryId =
-          template.category_id ||
-          (template.category ? template.category.id : null);
-        slideObject.tagIds = template.tags
-          ? template.tags.map((tag) => tag.id)
-          : [];
-
-        slideObject.previewWidth = template.previewWidth;
-        slideObject.previewHeight = template.previewHeight;
-
-        if (!slideObject.duration) slideObject.duration = 5;
-        if (!slideObject.elements) slideObject.elements = [];
-        if (!slideObject.undoStack) slideObject.undoStack = [];
-        if (!slideObject.redoStack) slideObject.redoStack = [];
-        if (typeof slideObject.activationEnabled === "undefined")
-          slideObject.activationEnabled = false;
-        if (typeof slideObject.activationDate === "undefined")
-          slideObject.activationDate = null;
-        if (typeof slideObject.deactivationDate === "undefined")
-          slideObject.deactivationDate = null;
-
-        slideObject.elements.forEach((element) => {
-          if (element.id === undefined) {
-            element.id = store.elementIdCounter++;
-          } else if (element.id >= store.elementIdCounter) {
-            store.elementIdCounter = element.id + 1;
+      if (fetchedTemplates && fetchedTemplates.length > 0) {
+        fetchedTemplates.forEach((template) => {
+          if (!template.slideData) {
+            console.warn(
+              `Template ID ${template.id} ('${template.name}') is missing slideData. Skipping.`,
+            );
+            return;
           }
+          const slideObject = JSON.parse(JSON.stringify(template.slideData));
 
-          // Ensure lock state is properly initialized
-          if (typeof element.isLocked === "undefined") {
-            element.isLocked = false;
-          }
+          slideObject.templateId = template.id;
+          slideObject.templateOriginalName = template.name;
+          slideObject.name = template.name;
+          slideObject.aspect_ratio =
+            template.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
-          if (element.type === "html" && element.content) {
-            try {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(element.content, "text/html");
-              element.html = doc.body.innerHTML.trim();
-              const styleEl = doc.querySelector("style");
-              element.css = styleEl ? styleEl.textContent : "";
-              const scriptEl = doc.querySelector("script");
-              element.js = scriptEl ? scriptEl.textContent : "";
-            } catch (e) {
-              console.error(
-                "Failed to parse HTML element content for template's slide",
-                e,
-              );
-              element.html = element.html || "";
-              element.css = element.css || "";
-              element.js = element.js || "";
+          slideObject.categoryId =
+            template.category_id ||
+            (template.category ? template.category.id : null);
+          slideObject.tagIds = template.tags
+            ? template.tags.map((tag) => tag.id)
+            : [];
+
+          slideObject.previewWidth = template.previewWidth;
+          slideObject.previewHeight = template.previewHeight;
+
+          if (!slideObject.duration) slideObject.duration = 5;
+          if (!slideObject.elements) slideObject.elements = [];
+          if (!slideObject.undoStack) slideObject.undoStack = [];
+          if (!slideObject.redoStack) slideObject.redoStack = [];
+          if (typeof slideObject.activationEnabled === "undefined")
+            slideObject.activationEnabled = false;
+          if (typeof slideObject.activationDate === "undefined")
+            slideObject.activationDate = null;
+          if (typeof slideObject.deactivationDate === "undefined")
+            slideObject.deactivationDate = null;
+
+          slideObject.elements.forEach((element) => {
+            if (element.id === undefined) {
+              element.id = store.elementIdCounter++;
+            } else if (element.id >= store.elementIdCounter) {
+              store.elementIdCounter = element.id + 1;
             }
-          }
+
+            // Ensure lock state is properly initialized
+            if (typeof element.isLocked === "undefined") {
+              element.isLocked = false;
+            }
+
+            if (element.type === "html" && element.content) {
+              try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(
+                  element.content,
+                  "text/html",
+                );
+                element.html = doc.body.innerHTML.trim();
+                const styleEl = doc.querySelector("style");
+                element.css = styleEl ? styleEl.textContent : "";
+                const scriptEl = doc.querySelector("script");
+                element.js = scriptEl ? scriptEl.textContent : "";
+              } catch (e) {
+                console.error(
+                  "Failed to parse HTML element content for template's slide",
+                  e,
+                );
+                element.html = element.html || "";
+                element.css = element.css || "";
+                element.js = element.js || "";
+              }
+            }
+          });
+
+          store.slides.push(slideObject);
         });
-
-        store.slides.push(slideObject);
-      });
-    }
-
-    // Try to preserve the selection of the specified template
-    let targetSlideIndex = 0;
-    if (templateIdToPreserve && store.slides.length > 0) {
-      const foundIndex = store.slides.findIndex(
-        (slide) => slide.templateId === templateIdToPreserve,
-      );
-      if (foundIndex !== -1) {
-        targetSlideIndex = foundIndex;
-      }
-    }
-
-    store.currentSlideIndex = store.slides.length > 0 ? targetSlideIndex : -1;
-    updateSlideSelector();
-
-    if (store.currentSlideIndex !== -1) {
-      const currentTemplateSlide = store.slides[store.currentSlideIndex];
-
-      // Set resolution based on template's aspect ratio
-      const aspectRatio =
-        currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
-      setResolutionFromAspectRatio(aspectRatio);
-
-      // Fallback to previewWidth/Height if needed
-      if (!store.emulatedWidth || !store.emulatedHeight) {
-        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
       }
 
-      loadSlide(currentTemplateSlide);
-      scaleAllSlides();
-      initTemplateAutoSave();
-      lastStoredSingleSlideStr = JSON.stringify(currentTemplateSlide);
+      // Try to preserve the selection of the specified template
+      let targetSlideIndex = 0;
+      if (templateIdToPreserve && store.slides.length > 0) {
+        const foundIndex = store.slides.findIndex(
+          (slide) => slide.templateId === templateIdToPreserve,
+        );
+        if (foundIndex !== -1) {
+          targetSlideIndex = foundIndex;
+        }
+      }
+
+      store.currentSlideIndex = store.slides.length > 0 ? targetSlideIndex : -1;
+      updateSlideSelector();
+
+      if (store.currentSlideIndex !== -1) {
+        const currentTemplateSlide = store.slides[store.currentSlideIndex];
+
+        // Set resolution based on template's aspect ratio
+        const aspectRatio =
+          currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
+        setResolutionFromAspectRatio(aspectRatio);
+
+        // Fallback to previewWidth/Height if needed
+        if (!store.emulatedWidth || !store.emulatedHeight) {
+          store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
+          store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+        }
+
+        loadSlide(currentTemplateSlide);
+        scaleAllSlides();
+        initTemplateAutoSave();
+        lastStoredSingleSlideStr = JSON.stringify(currentTemplateSlide);
+      }
+    } finally {
+      resumePersistedNotifications();
     }
     return true;
   } catch (err) {
@@ -345,67 +362,118 @@ export async function saveCurrentTemplateData() {
 }
 
 export function initTemplateAutoSave() {
-  console.log("initTemplateAutoSave called", {
-    editorMode: store.editorMode,
-    currentSlideIndex: store.currentSlideIndex,
-    hasSlide: !!store.slides[store.currentSlideIndex],
-  });
+  stopTemplateAutoSave();
 
-  if (templateAutosaveTimer) {
-    clearInterval(templateAutosaveTimer);
-  }
-  if (
-    store.currentSlideIndex === -1 ||
-    (store.editorMode !== "template_editor" &&
-      store.editorMode !== "suborg_templates") ||
-    !store.slides[store.currentSlideIndex]
-  ) {
-    console.warn("Auto-save not initialized - conditions not met");
+  if (!canTemplateAutoSave()) {
+    console.warn("Template auto-save not initialized - conditions not met");
     lastStoredSingleSlideStr = null;
+    showSavingStatus("idle");
     return;
   }
 
-  console.log("Auto-save initialized successfully for template mode");
-  lastStoredSingleSlideStr = JSON.stringify(
-    store.slides[store.currentSlideIndex],
-  );
+  templateLastSavedSnapshot = captureCurrentTemplateSnapshot();
+  templatePendingSnapshot = templateLastSavedSnapshot;
+  templateDirtySinceLastSave = false;
+  lastStoredSingleSlideStr = templateLastSavedSnapshot;
+  showSavingStatus("idle");
 
-  templateAutosaveTimer = setInterval(() => {
-    if (
-      store.currentSlideIndex === -1 ||
-      !store.slides[store.currentSlideIndex]
-    ) {
-      clearInterval(templateAutosaveTimer);
+  templateAutosaveUnsubscribe = subscribeToPersistedStateChanges(() => {
+    if (!canTemplateAutoSave()) {
       return;
     }
-    const currentSlideObject = store.slides[store.currentSlideIndex];
-    const currentStateStr = JSON.stringify(currentSlideObject);
+    scheduleTemplateAutoSave();
+  });
+}
 
-    if (currentStateStr !== lastStoredSingleSlideStr) {
-      console.log("Template changed - auto-saving...", {
-        templateId: currentSlideObject.templateId,
-        isSuborgTemplate: currentSlideObject.isSuborgTemplate,
-      });
-      saveCurrentTemplateData()
-        .then(() => {
-          console.log("Auto-save successful");
-          showSavingStatus();
-        })
-        .catch((err) => {
-          if (err !== "No template selected" && err !== "Missing templateId") {
-            console.error("Template auto-save failed:", err);
-            showToast(
-              gettext("Template auto-save error: ") + err.message,
-              "Error",
-            );
-          } else if (err === "Missing templateId") {
-            console.warn(
-              "Template auto-save attempt failed due to missing templateId.",
-            );
-          }
-        });
+function canTemplateAutoSave() {
+  return (
+    store.currentSlideIndex !== -1 &&
+    (store.editorMode === "template_editor" ||
+      store.editorMode === "suborg_templates") &&
+    !!store.slides[store.currentSlideIndex]
+  );
+}
+
+function captureCurrentTemplateSnapshot() {
+  if (!canTemplateAutoSave()) {
+    return null;
+  }
+  return JSON.stringify(store.slides[store.currentSlideIndex]);
+}
+
+function scheduleTemplateAutoSave() {
+  const snapshot = captureCurrentTemplateSnapshot();
+  if (!snapshot) {
+    templateDirtySinceLastSave = false;
+    return;
+  }
+
+  templatePendingSnapshot = snapshot;
+  templateDirtySinceLastSave =
+    templatePendingSnapshot !== templateLastSavedSnapshot;
+
+  if (!templateDirtySinceLastSave) {
+    return;
+  }
+
+  showSavingStatus("pending");
+
+  if (templateSaveInFlight) {
+    return;
+  }
+
+  if (templateAutosaveTimer) {
+    clearTimeout(templateAutosaveTimer);
+  }
+
+  templateAutosaveTimer = window.setTimeout(() => {
+    runTemplateAutoSave();
+  }, TEMPLATE_AUTOSAVE_DEBOUNCE_MS);
+}
+
+async function runTemplateAutoSave() {
+  if (!templateDirtySinceLastSave || !canTemplateAutoSave()) {
+    return;
+  }
+
+  if (templateAutosaveTimer) {
+    clearTimeout(templateAutosaveTimer);
+    templateAutosaveTimer = null;
+  }
+
+  templateSaveInFlight = true;
+  const snapshotToPersist = templatePendingSnapshot;
+  showSavingStatus("saving");
+
+  try {
+    await saveCurrentTemplateData();
+    templateLastSavedSnapshot = snapshotToPersist;
+    lastStoredSingleSlideStr = snapshotToPersist;
+    templateDirtySinceLastSave =
+      templatePendingSnapshot !== templateLastSavedSnapshot;
+    showSavingStatus("success", { timestamp: new Date() });
+  } catch (err) {
+    templateDirtySinceLastSave = true;
+    console.error("Template auto-save failed:", err);
+    showSavingStatus("error", { message: err.message });
+  } finally {
+    templateSaveInFlight = false;
+    if (templateDirtySinceLastSave) {
+      scheduleTemplateAutoSave();
     }
-  }, 500);
+  }
+}
+
+function stopTemplateAutoSave() {
+  if (templateAutosaveTimer) {
+    clearTimeout(templateAutosaveTimer);
+    templateAutosaveTimer = null;
+  }
+  if (templateAutosaveUnsubscribe) {
+    templateAutosaveUnsubscribe();
+    templateAutosaveUnsubscribe = null;
+  }
+  templateSaveInFlight = false;
 }
 
 export async function initTemplateEditor() {
@@ -428,10 +496,10 @@ export async function initTemplateEditor() {
 }
 
 export function clearTemplateAutoSave() {
-  if (templateAutosaveTimer) {
-    clearInterval(templateAutosaveTimer);
-    templateAutosaveTimer = null;
-  }
+  stopTemplateAutoSave();
+  templatePendingSnapshot = null;
+  templateLastSavedSnapshot = null;
+  templateDirtySinceLastSave = false;
   lastStoredSingleSlideStr = null;
 }
 

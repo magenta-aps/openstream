@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
 import { loadSlide } from "./renderSlide.js";
+import { disposeAllTiptapEditors } from "../elements/tiptapTextbox.js";
 
 export function pushCurrentSlideState() {
   if (store.currentSlideIndex < 0) return;
@@ -22,6 +23,8 @@ export function doUndo() {
   if (!slide.undoStack || slide.undoStack.length === 0) return;
   if (!slide.redoStack) slide.redoStack = [];
 
+  disposeAllTiptapEditors(false);
+
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
   slide.redoStack.push(currentSnapshot);
 
@@ -39,6 +42,8 @@ export function doRedo() {
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.redoStack || slide.redoStack.length === 0) return;
   if (!slide.undoStack) slide.undoStack = [];
+
+  disposeAllTiptapEditors(false);
 
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
   slide.undoStack.push(currentSnapshot);
