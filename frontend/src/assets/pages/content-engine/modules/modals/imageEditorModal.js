@@ -1,5 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
+import "tui-image-editor/dist/tui-image-editor.css";
+import "tui-color-picker/dist/tui-color-picker.css";
+import ImageEditor from "tui-image-editor";
 import * as bootstrap from "bootstrap";
 import { BASE_URL } from "../../../../utils/constants.js";
 import {
@@ -21,21 +24,6 @@ let loadingTextEl = null;
 let editorInstance = null;
 let currentElementContext = null;
 let currentDocumentMeta = null;
-let cdnLoadPromise = null;
-
-// CDN URLs for tui-image-editor and its dependencies (following official example)
-const CDN_RESOURCES = {
-  css: [
-    "https://uicdn.toast.com/tui-color-picker/v2.2.6/tui-color-picker.css",
-    "https://uicdn.toast.com/tui-image-editor/latest/tui-image-editor.css",
-  ],
-  js: [
-    "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.4.0/fabric.min.js",
-    "https://uicdn.toast.com/tui.code-snippet/v1.5.0/tui-code-snippet.min.js",
-    "https://uicdn.toast.com/tui-color-picker/v2.2.6/tui-color-picker.min.js",
-    "https://uicdn.toast.com/tui-image-editor/latest/tui-image-editor.min.js",
-  ],
-};
 
 export function initImageEditorModal() {
   modalEl = document.getElementById("imageEditorModal");
@@ -93,7 +81,7 @@ export async function openImageEditorForElement(elementContext) {
     // when using loadImageFromURL with remote images (known issue #942)
     const base64Image = await fetchImageAsBase64(imageUrl);
 
-    await ensureEditorInstance(base64Image, imageName);
+    createEditorInstance(base64Image, imageName);
 
     editorInstance.clearUndoStack();
     editorInstance.ui?.resizeEditor();
@@ -136,76 +124,7 @@ async function handleSaveEditedImage() {
   }
 }
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    // Check if already loaded
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = false; // Load in order
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
-    document.head.appendChild(script);
-  });
-}
-
-function loadStylesheet(href) {
-  return new Promise((resolve, reject) => {
-    // Check if already loaded
-    if (document.querySelector(`link[href="${href}"]`)) {
-      resolve();
-      return;
-    }
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.type = "text/css";
-    link.href = href;
-    link.onload = resolve;
-    link.onerror = () => reject(new Error(`Failed to load stylesheet: ${href}`));
-    document.head.appendChild(link);
-  });
-}
-
-async function loadCDNResources() {
-  if (cdnLoadPromise) {
-    return cdnLoadPromise;
-  }
-
-  cdnLoadPromise = (async () => {
-    // Load CSS files in parallel
-    await Promise.all(CDN_RESOURCES.css.map(loadStylesheet));
-
-    // Temporarily disable AMD/define to prevent conflicts with RequireJS
-    // The CDN scripts try to register as AMD modules which causes conflicts
-    const originalDefine = window.define;
-    const originalRequire = window.require;
-    window.define = undefined;
-    window.require = undefined;
-
-    try {
-      // Load JS files sequentially (order matters for dependencies)
-      for (const src of CDN_RESOURCES.js) {
-        await loadScript(src);
-      }
-    } finally {
-      // Restore AMD/define after loading
-      window.define = originalDefine;
-      window.require = originalRequire;
-    }
-
-    // Verify tui.ImageEditor is available
-    if (!window.tui?.ImageEditor) {
-      throw new Error("tui.ImageEditor not available after loading CDN resources");
-    }
-  })();
-
-  return cdnLoadPromise;
-}
-
-async function ensureEditorInstance(base64Image, imageName) {
+function createEditorInstance(base64Image, imageName) {
   // Destroy existing instance if any - we need to recreate with new image
   if (editorInstance) {
     editorInstance.destroy();
@@ -219,12 +138,9 @@ async function ensureEditorInstance(base64Image, imageName) {
   // Clear the container
   editorRoot.innerHTML = "";
 
-  await loadCDNResources();
-
-  // Use the global tui.ImageEditor from CDN
   // Load the image via loadImage option instead of loadImageFromURL
   // This fixes the menu buttons not working (GitHub issue #942)
-  editorInstance = new window.tui.ImageEditor(editorRoot, {
+  editorInstance = new ImageEditor(editorRoot, {
     includeUI: {
       loadImage: {
         path: base64Image,
@@ -237,7 +153,6 @@ async function ensureEditorInstance(base64Image, imageName) {
         "draw",
         "shape",
         "icon",
-        "text",
         "mask",
         "filter",
       ],
@@ -247,6 +162,11 @@ async function ensureEditorInstance(base64Image, imageName) {
         height: "100%",
       },
       menuBarPosition: "bottom",
+      // Hide the Load and Download buttons in the header
+      theme: {
+        "loadButton.display": "none",
+        "downloadButton.display": "none",
+      },
     },
     cssMaxWidth: 1200,
     cssMaxHeight: 900,

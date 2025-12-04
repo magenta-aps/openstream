@@ -404,17 +404,18 @@ body {
 
 /* Modal styles for the embedded image editor */
 #imageEditorModal .modal-dialog {
-  max-width: 100%;
-  margin: 0;
+  max-width: 85vw;
+  width: 85vw;
+  margin: 7.5vh auto;
 }
 
 #imageEditorModal .modal-content {
-  min-height: 100vh;
-  border-radius: 0;
+  height: 85vh !important;
 }
 
 #imageEditorModal .image-editor-body {
   min-height: 0;
+  flex: 1;
   display: flex;
   padding: 1rem;
 }
@@ -422,7 +423,7 @@ body {
 .image-editor-viewport {
   position: relative;
   flex: 1;
-  min-height: calc(100vh - 10rem);
+  min-height: 0;
   background-color: $black;
   border-radius: 0.75rem;
   overflow: visible;
@@ -431,9 +432,13 @@ body {
 .image-editor-root {
   width: 100%;
   height: 100%;
-  min-height: 70vh;
   border-radius: inherit;
   overflow: hidden;
+
+  // Hide the tui-image-editor logo
+  .tui-image-editor-header-logo {
+    display: none !important;
+  }
 }
 
 .image-editor-loading {
