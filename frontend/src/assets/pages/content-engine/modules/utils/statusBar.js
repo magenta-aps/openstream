@@ -19,7 +19,8 @@ let statusBarContent = null;
 let gridSizeBadge = null;
 let unsubscribeGridChange = null;
 let snapControlsContainer = null;
-let snapAmountInput = null;
+let snapAmountSelect = null;
+let snapAmountManualInput = null;
 let snapAmountPrefix = null;
 let snapAmountSuffix = null;
 let snapModeButtons = null;
@@ -188,6 +189,7 @@ function ensureGridSizeSubscription() {
   }
   unsubscribeGridChange = onGridDimensionsChange(({ columns, rows }) => {
     updateGridSizeDisplay(columns, rows);
+    updateSnapAmountOptions(columns, rows);
   });
 }
 
@@ -284,17 +286,19 @@ function createSnapControls(rightSection) {
     font-variant-numeric: tabular-nums;
   `;
 
-  snapAmountInput = document.createElement("input");
-  snapAmountInput.type = "number";
-  snapAmountInput.min = "1";
-  snapAmountInput.step = "1";
-  snapAmountInput.style.cssText = `
-    width: 48px;
+  snapAmountSelect = document.createElement("select");
+  snapAmountSelect.className = "snap-amount-select";
+  snapAmountSelect.style.cssText = `
     border: none;
     outline: none;
     font-size: 11px;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    background: transparent;
+    appearance: none;
+    padding: 2px 16px 2px 6px;
+    min-width: 64px;
+    cursor: pointer;
   `;
 
   snapAmountSuffix = document.createElement("span");
@@ -304,18 +308,40 @@ function createSnapControls(rightSection) {
   `;
 
   snapAmountGroup.appendChild(snapAmountPrefix);
-  snapAmountGroup.appendChild(snapAmountInput);
-  snapAmountGroup.appendChild(snapAmountSuffix);
+  snapAmountGroup.appendChild(snapAmountSelect);
 
-  snapAmountInput.addEventListener("change", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountInput.value);
-    snapAmountInput.value = sanitized.toString();
+  snapAmountManualInput = document.createElement("input");
+  snapAmountManualInput.type = "number";
+  snapAmountManualInput.min = "1";
+  snapAmountManualInput.step = "1";
+  snapAmountManualInput.style.cssText = `
+    width: 48px;
+    border: none;
+    outline: none;
+    font-size: 11px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    background: transparent;
+    display: none;
+  `;
+
+  snapAmountManualInput.addEventListener("change", () => {
+    const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
+    snapAmountManualInput.value = sanitized.toString();
     setSnapSettings({ amount: sanitized });
   });
 
-  snapAmountInput.addEventListener("blur", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountInput.value);
-    snapAmountInput.value = sanitized.toString();
+  snapAmountManualInput.addEventListener("blur", () => {
+    const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
+    snapAmountManualInput.value = sanitized.toString();
+  });
+
+  snapAmountGroup.appendChild(snapAmountManualInput);
+  snapAmountGroup.appendChild(snapAmountSuffix);
+
+  snapAmountSelect.addEventListener("change", () => {
+    const sanitized = sanitizeSnapAmount(snapAmountSelect.value);
+    setSnapSettings({ amount: sanitized });
   });
 
   snapControlsContainer.appendChild(snapLabel);
@@ -323,7 +349,105 @@ function createSnapControls(rightSection) {
   snapControlsContainer.appendChild(snapAmountGroup);
 
   rightSection.appendChild(snapControlsContainer);
+  updateSnapAmountOptions();
   updateSnapControlsUI();
+}
+
+function updateSnapAmountOptions(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+  settings = getCurrentSnapSettings(),
+) {
+  const isDivision = settings.unit === "division";
+
+  if (snapAmountSelect) {
+    snapAmountSelect.style.display = isDivision ? "none" : "";
+  }
+  if (snapAmountManualInput) {
+    snapAmountManualInput.style.display = isDivision ? "inline-block" : "none";
+  }
+
+  if (isDivision) {
+    if (snapAmountManualInput) {
+      snapAmountManualInput.value = settings.amount.toString();
+    }
+    return;
+  }
+
+  if (!snapAmountSelect) {
+    return;
+  }
+
+  let optionValues = getCommonDivisors(columns, rows);
+
+  if (!optionValues.length) {
+    optionValues = [1];
+  }
+
+  const fragment = document.createDocumentFragment();
+  optionValues.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value.toString();
+    option.textContent = value.toString();
+    fragment.appendChild(option);
+  });
+
+  snapAmountSelect.innerHTML = "";
+  snapAmountSelect.appendChild(fragment);
+
+  if (!optionValues.includes(settings.amount)) {
+    const fallback = optionValues[0];
+    if (settings.amount !== fallback) {
+      setSnapSettings({ amount: fallback });
+    }
+    return;
+  }
+
+  snapAmountSelect.value = settings.amount.toString();
+}
+
+function normalizeSnapAmount(
+  unit,
+  amount,
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+) {
+  if (unit === "cells") {
+    const divisors = getCommonDivisors(columns, rows);
+    if (!divisors.length) {
+      return 1;
+    }
+    return divisors.includes(amount) ? amount : divisors[0];
+  }
+  return amount;
+}
+
+function getCommonDivisors(columns, rows) {
+  const safeColumns = Math.max(1, Math.round(Number(columns)) || 1);
+  const safeRows = Math.max(1, Math.round(Number(rows)) || 1);
+  const gcd = greatestCommonDivisor(safeColumns, safeRows);
+  const divisors = new Set();
+
+  const limit = Math.floor(Math.sqrt(gcd));
+  for (let i = 1; i <= limit; i += 1) {
+    if (gcd % i === 0) {
+      divisors.add(i);
+      divisors.add(gcd / i);
+    }
+  }
+
+  return Array.from(divisors).sort((a, b) => a - b);
+}
+
+function greatestCommonDivisor(a, b) {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    const temp = y;
+    y = x % y;
+    x = temp;
+  }
+  return x || 1;
 }
 
 function sanitizeSnapAmount(value) {
@@ -345,20 +469,21 @@ function getCurrentSnapSettings() {
   };
 }
 
-function setSnapSettings(partial) {
+function setSnapSettings(partial = {}) {
   const current = getCurrentSnapSettings();
   const next = {
     ...current,
     ...partial,
   };
 
-  if (Object.prototype.hasOwnProperty.call(partial, "amount")) {
-    next.amount = sanitizeSnapAmount(partial.amount);
-  } else {
-    next.amount = current.amount;
-  }
+  const rawAmount = Object.prototype.hasOwnProperty.call(partial, "amount")
+    ? partial.amount
+    : current.amount;
+
+  next.amount = normalizeSnapAmount(next.unit, sanitizeSnapAmount(rawAmount));
 
   store.dragSnapSettings = next;
+  updateSnapAmountOptions(GRID_CONFIG.COLUMNS, GRID_CONFIG.ROWS, next);
   updateSnapControlsUI();
 }
 
@@ -367,10 +492,14 @@ function updateSnapControlsUI() {
     return;
   }
   const settings = getCurrentSnapSettings();
-  if (snapAmountInput) {
-    snapAmountInput.value = settings.amount.toString();
-  }
   const isDivision = settings.unit === "division";
+
+  if (snapAmountSelect && !isDivision) {
+    snapAmountSelect.value = settings.amount.toString();
+  }
+  if (snapAmountManualInput && isDivision) {
+    snapAmountManualInput.value = settings.amount.toString();
+  }
 
   if (snapModeButtons) {
     Object.entries(snapModeButtons).forEach(([unit, button]) => {
