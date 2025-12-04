@@ -13,6 +13,7 @@ import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
 import { getNewZIndex } from "../utils/domUtils.js";
 import { displayMediaModal } from "../modals/mediaModal.js";
+import { openImageEditorForElement } from "../modals/imageEditorModal.js";
 import { GridUtils } from "../config/gridConfig.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
@@ -94,6 +95,17 @@ function initImageEventListeners() {
         },
         gettext("Image"),
       );
+    } else {
+      showToast(gettext("Please select an image element first!"), "Info");
+    }
+  });
+
+  document.getElementById("open-image-editor")?.addEventListener("click", () => {
+    if (
+      window.selectedElementForUpdate &&
+      window.selectedElementForUpdate.element.type === "image"
+    ) {
+      openImageEditorForElement(window.selectedElementForUpdate);
     } else {
       showToast(gettext("Please select an image element first!"), "Info");
     }

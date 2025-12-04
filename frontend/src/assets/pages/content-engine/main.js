@@ -67,6 +67,7 @@ import {
   initActivationModal,
   openActivationModal,
 } from "./modules/modals/activationModal.js";
+import { initImageEditorModal } from "./modules/modals/imageEditorModal.js";
 import {
   initMediaAlignment,
   initMuteButtons,
@@ -109,6 +110,7 @@ const initCommonEditorFeatures = () => {
   initDeleteElement();
   initDeselectElement();
   initImageElement();
+  initImageEditorModal();
   initVideoElement();
   initEmbedWebsite();
   initSelectedElementBackgroundColor();

@@ -2105,6 +2105,25 @@ class DocumentListView(APIView):
 class DocumentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request, document_id):
+        """Return metadata for a single document that belongs to the caller's organisation."""
+        try:
+            branch = get_branch_from_request(request)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=403)
+
+        organisation = branch.suborganisation.organisation
+        doc = get_object_or_404(
+            Document,
+            id=document_id,
+            branch__suborganisation__organisation=organisation,
+        )
+
+        serializer = DocumentSerializer(
+            doc, context={"request": request, "branch": branch}
+        )
+        return Response(serializer.data, status=200)
+
     def post(self, request):
         """
         Upload a new document to a branch.

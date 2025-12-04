@@ -201,7 +201,7 @@ urlpatterns = [
     path("api/documents/", DocumentAPIView.as_view(), name="document-api"),
     path("api/documents/list/", DocumentListView.as_view(), name="document-api"),
     path(
-        "api/documents/<int:document_id>",
+        "api/documents/<int:document_id>/",
         DocumentAPIView.as_view(),
         name="document-api",
     ),
