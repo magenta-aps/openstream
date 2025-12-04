@@ -765,8 +765,12 @@ function renderSlideshowsTable(slideshows) {
     const row = slideshowsTableBody.insertRow();
 
     const nameCell = row.insertCell();
+    const legacyBadge = ss.isLegacy
+      ? `<span class='legacy-grid-badge badge bg-warning text-dark ms-2'>${gettext("Legacy grid")}</span>`
+      : "";
     nameCell.innerHTML = `
       <span>${autoHyphenate(ss.name)}</span>
+      ${legacyBadge}
       <i class="material-symbols-outlined ms-1"
          style="cursor:pointer;" title="${gettext("Edit Name")}">
         edit
@@ -851,6 +855,7 @@ async function duplicateSlideshow(id) {
 
     delete slideshowData.branch;
     delete slideshowData.created_by;
+    delete slideshowData.isLegacy;
 
     await genericFetch(
       `${BASE_URL}/api/manage_content/?branch_id=${selectedBranchID}`,

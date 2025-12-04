@@ -5,12 +5,24 @@
  */
 
 import { queryParams, showToast } from "../../../../utils/utils.js";
-import { GridUtils, GRID_CONFIG } from "../config/gridConfig.js";
+import { gettext } from "../../../../utils/locales.js";
+import {
+  GridUtils,
+  GRID_CONFIG,
+  onGridDimensionsChange,
+} from "../config/gridConfig.js";
 import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
 
 let statusBar = null;
 let statusBarContent = null;
+let gridSizeBadge = null;
+let unsubscribeGridChange = null;
+let snapControlsContainer = null;
+let snapAmountInput = null;
+let snapAmountPrefix = null;
+let snapAmountSuffix = null;
+let snapModeButtons = null;
 
 // Zoom state
 let currentZoomMode = "fit"; // 'fit' or 'zoom'
@@ -100,7 +112,21 @@ function createStatusBar() {
       text-overflow: ellipsis;
     `;
 
+    gridSizeBadge = document.createElement("span");
+    gridSizeBadge.className = "grid-size-badge";
+    gridSizeBadge.style.cssText = `
+      background-color: var(--bs-light-gray);
+      color: var(--bs-darkest-gray);
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-variant-numeric: tabular-nums;
+    `;
+    updateGridSizeDisplay();
+    ensureGridSizeSubscription();
+
     gridInfoSection.appendChild(gridIcon);
+    gridInfoSection.appendChild(gridSizeBadge);
     gridInfoSection.appendChild(gridText);
     statusBarContent.appendChild(gridInfoSection);
 
@@ -119,7 +145,8 @@ function createStatusBar() {
       gap: 16px;
     `;
 
-    // Create zoom controls
+    // Create controls (snap first, zoom last)
+    createSnapControls(rightSection);
     createZoomControls(rightSection);
 
     statusBar.appendChild(statusBarContent);
@@ -155,6 +182,216 @@ function createStatusBar() {
   return statusBar;
 }
 
+function ensureGridSizeSubscription() {
+  if (unsubscribeGridChange) {
+    return;
+  }
+  unsubscribeGridChange = onGridDimensionsChange(({ columns, rows }) => {
+    updateGridSizeDisplay(columns, rows);
+  });
+}
+
+function updateGridSizeDisplay(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+  if (!gridSizeBadge) {
+    return;
+  }
+  gridSizeBadge.textContent = `${gettext("Grid")}: ${columns} × ${rows}`;
+  gridSizeBadge.title = `${gettext("Grid size")}: ${columns} × ${rows}`;
+}
+
+function createSnapControls(rightSection) {
+  if (
+    queryParams.mode !== "edit" &&
+    queryParams.mode !== "template_editor" &&
+    queryParams.mode !== "suborg_templates"
+  ) {
+    return;
+  }
+
+  snapControlsContainer = document.createElement("div");
+  snapControlsContainer.className = "snap-controls";
+  snapControlsContainer.style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--bs-darkest-gray);
+    background: var(--bs-gray);
+    border-radius: 6px;
+  `;
+
+  const snapLabel = document.createElement("span");
+  snapLabel.textContent = gettext("Snap");
+  snapLabel.style.fontWeight = "600";
+
+  const snapModeToggle = document.createElement("div");
+  snapModeToggle.className = "snap-mode-toggle";
+  snapModeToggle.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    background: var(--bs-light-gray);
+    border: 1px solid var(--bs-darker-gray);
+    overflow: hidden;
+  `;
+
+  const cellsButton = document.createElement("button");
+  cellsButton.type = "button";
+  cellsButton.textContent = gettext("Cells");
+  const divisionButton = document.createElement("button");
+  divisionButton.type = "button";
+  divisionButton.textContent = gettext("Division");
+
+  [cellsButton, divisionButton].forEach((btn) => {
+    btn.style.cssText = `
+      border: none;
+      background: transparent;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--bs-darker-gray);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    `;
+    btn.addEventListener("click", () => {
+      const nextUnit = btn === cellsButton ? "cells" : "division";
+      setSnapSettings({ unit: nextUnit });
+    });
+    snapModeToggle.appendChild(btn);
+  });
+
+  snapModeButtons = {
+    cells: cellsButton,
+    division: divisionButton,
+  };
+
+  const snapAmountGroup = document.createElement("div");
+  snapAmountGroup.className = "snap-amount-group";
+  snapAmountGroup.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--bs-darker-gray);
+    border-radius: 4px;
+    padding: 2px 6px;
+    background: var(--bs-white);
+  `;
+
+  snapAmountPrefix = document.createElement("span");
+  snapAmountPrefix.style.cssText = `
+    font-weight: 600;
+    color: var(--bs-darkest-gray);
+    font-variant-numeric: tabular-nums;
+  `;
+
+  snapAmountInput = document.createElement("input");
+  snapAmountInput.type = "number";
+  snapAmountInput.min = "1";
+  snapAmountInput.step = "1";
+  snapAmountInput.style.cssText = `
+    width: 48px;
+    border: none;
+    outline: none;
+    font-size: 11px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  `;
+
+  snapAmountSuffix = document.createElement("span");
+  snapAmountSuffix.style.cssText = `
+    font-weight: 600;
+    color: var(--bs-darkest-gray);
+  `;
+
+  snapAmountGroup.appendChild(snapAmountPrefix);
+  snapAmountGroup.appendChild(snapAmountInput);
+  snapAmountGroup.appendChild(snapAmountSuffix);
+
+  snapAmountInput.addEventListener("change", () => {
+    const sanitized = sanitizeSnapAmount(snapAmountInput.value);
+    snapAmountInput.value = sanitized.toString();
+    setSnapSettings({ amount: sanitized });
+  });
+
+  snapAmountInput.addEventListener("blur", () => {
+    const sanitized = sanitizeSnapAmount(snapAmountInput.value);
+    snapAmountInput.value = sanitized.toString();
+  });
+
+  snapControlsContainer.appendChild(snapLabel);
+  snapControlsContainer.appendChild(snapModeToggle);
+  snapControlsContainer.appendChild(snapAmountGroup);
+
+  rightSection.appendChild(snapControlsContainer);
+  updateSnapControlsUI();
+}
+
+function sanitizeSnapAmount(value) {
+  const parsed = Math.round(Number(value));
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 1;
+  }
+  return parsed;
+}
+
+function getCurrentSnapSettings() {
+  const defaults = { unit: "cells", amount: 1 };
+  if (!store.dragSnapSettings) {
+    store.dragSnapSettings = { ...defaults };
+  }
+  return {
+    unit: store.dragSnapSettings.unit || defaults.unit,
+    amount: sanitizeSnapAmount(store.dragSnapSettings.amount),
+  };
+}
+
+function setSnapSettings(partial) {
+  const current = getCurrentSnapSettings();
+  const next = {
+    ...current,
+    ...partial,
+  };
+
+  if (Object.prototype.hasOwnProperty.call(partial, "amount")) {
+    next.amount = sanitizeSnapAmount(partial.amount);
+  } else {
+    next.amount = current.amount;
+  }
+
+  store.dragSnapSettings = next;
+  updateSnapControlsUI();
+}
+
+function updateSnapControlsUI() {
+  if (!snapControlsContainer) {
+    return;
+  }
+  const settings = getCurrentSnapSettings();
+  if (snapAmountInput) {
+    snapAmountInput.value = settings.amount.toString();
+  }
+  const isDivision = settings.unit === "division";
+
+  if (snapModeButtons) {
+    Object.entries(snapModeButtons).forEach(([unit, button]) => {
+      const isActive = unit === settings.unit;
+      button.style.background = isActive
+        ? "var(--bs-darkest-gray)"
+        : "transparent";
+      button.style.color = isActive ? "var(--bs-white)" : "var(--bs-darker-gray)";
+    });
+  }
+
+  if (snapAmountPrefix) {
+    snapAmountPrefix.textContent = isDivision ? "1 /" : "";
+  }
+  if (snapAmountSuffix) {
+    snapAmountSuffix.textContent = isDivision
+      ? gettext("of grid")
+      : gettext("cells");
+  }
+}
+
 /**
  * Show the status bar with optional animation
  */
@@ -183,7 +420,12 @@ export function updateGridInfo(info) {
   showStatusBar(); // Make sure it's visible
   const gridText = bar.querySelector(".grid-info-text");
   if (gridText) {
-    gridText.innerHTML = createInteractiveGridInfo(info);
+    const interactiveInfo = createInteractiveGridInfo(info);
+    if (interactiveInfo && interactiveInfo.length) {
+      gridText.innerHTML = `<span class="grid-info-separator">•</span> ${interactiveInfo}`;
+    } else {
+      gridText.textContent = "Ready";
+    }
   }
 }
 /**
@@ -639,6 +881,11 @@ function addInteractiveStyles() {
       border-color: var(--bs-darker-gray) !important;
       background-color: var(--bs-white) !important;
       box-shadow: 0 0 3px rgba(114, 120, 123, 0.3);
+    }
+    .grid-info-text .grid-info-separator {
+      color: var(--bs-darkest-gray);
+      margin: 0 6px 0 2px;
+      font-weight: 600;
     }
   `;
 

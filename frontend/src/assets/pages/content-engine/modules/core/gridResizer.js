@@ -4,7 +4,7 @@ import { store } from "./slideStore.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { queryParams } from "../../../../utils/utils.js";
 import { isElementLocked } from "../element_formatting/lockElement.js";
-import { GRID_CONFIG, GridUtils } from "../config/gridConfig.js";
+import { GRID_CONFIG, GridUtils, getDragSnapSteps } from "../config/gridConfig.js";
 import { updateGridInfo, clearGridInfo } from "../utils/statusBar.js";
 
 export function makeDraggable(el, dataObj) {
@@ -77,14 +77,22 @@ export function makeDraggable(el, dataObj) {
     const currentRowSpan = parseInt(
       el.style.gridRowEnd.replace("span", "").trim(),
     );
-    newCol = Math.max(
-      1,
-      Math.min(newCol, GRID_CONFIG.COLUMNS - currentColSpan + 1),
-    );
-    newRow = Math.max(
-      1,
-      Math.min(newRow, GRID_CONFIG.ROWS - currentRowSpan + 1),
-    );
+    const maxColStart = GRID_CONFIG.COLUMNS - currentColSpan + 1;
+    const maxRowStart = GRID_CONFIG.ROWS - currentRowSpan + 1;
+    newCol = Math.max(1, Math.min(newCol, maxColStart));
+    newRow = Math.max(1, Math.min(newRow, maxRowStart));
+
+    const { x: snapX, y: snapY } = getDragSnapSteps();
+    if (snapX > 1) {
+      const normalizedX = newCol - 1;
+      const snappedX = Math.round(normalizedX / snapX) * snapX;
+      newCol = Math.max(1, Math.min(snappedX + 1, maxColStart));
+    }
+    if (snapY > 1) {
+      const normalizedY = newRow - 1;
+      const snappedY = Math.round(normalizedY / snapY) * snapY;
+      newRow = Math.max(1, Math.min(snappedY + 1, maxRowStart));
+    }
 
     // Update element position
     el.style.gridColumnStart = newCol;
@@ -270,6 +278,56 @@ export function makeResizable(el, dataObj) {
       }
       if (newRowStart + newHeight - 1 > GRID_CONFIG.ROWS) {
         newRowStart = GRID_CONFIG.ROWS - newHeight + 1;
+      }
+
+      const { x: snapX, y: snapY } = getDragSnapSteps();
+      const adjustWidth = snapX > 1 && activeDirection.match(/[ew]/);
+      const adjustHeight = snapY > 1 && activeDirection.match(/[ns]/);
+
+      if (adjustWidth) {
+        const snappedWidth = Math.max(
+          1,
+          Math.round(newWidth / snapX) * snapX,
+        );
+        if (activeDirection.includes("w")) {
+          const rightEdge = newColStart + newWidth - 1;
+          newWidth = Math.min(snappedWidth, GRID_CONFIG.COLUMNS);
+          newColStart = Math.max(1, rightEdge - newWidth + 1);
+          if (newColStart + newWidth - 1 > GRID_CONFIG.COLUMNS) {
+            newWidth = GRID_CONFIG.COLUMNS - newColStart + 1;
+          }
+        } else {
+          newWidth = Math.min(
+            snappedWidth,
+            GRID_CONFIG.COLUMNS - newColStart + 1,
+          );
+          if (newWidth < snapX) {
+            newWidth = snapX;
+          }
+        }
+      }
+
+      if (adjustHeight) {
+        const snappedHeight = Math.max(
+          1,
+          Math.round(newHeight / snapY) * snapY,
+        );
+        if (activeDirection.includes("n")) {
+          const bottomEdge = newRowStart + newHeight - 1;
+          newHeight = Math.min(snappedHeight, GRID_CONFIG.ROWS);
+          newRowStart = Math.max(1, bottomEdge - newHeight + 1);
+          if (newRowStart + newHeight - 1 > GRID_CONFIG.ROWS) {
+            newHeight = GRID_CONFIG.ROWS - newRowStart + 1;
+          }
+        } else {
+          newHeight = Math.min(
+            snappedHeight,
+            GRID_CONFIG.ROWS - newRowStart + 1,
+          );
+          if (newHeight < snapY) {
+            newHeight = snapY;
+          }
+        }
       }
 
       const currentCol = getCurrentColStart();

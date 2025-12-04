@@ -79,6 +79,7 @@ function updateAspectRatioDisplay() {
 }
 let filteredTemplates = [];
 let currentSort = { column: null, order: "asc" };
+let legacyFilterMessage = null;
 
 // MiniSearch instance
 function customTagsExtractField(document, fieldName) {
@@ -196,6 +197,7 @@ async function fetchUnifiedTemplates() {
       return;
     }
     unifiedTemplates = await resp.json();
+    legacyFilterMessage = null;
 
     // Filter out global templates when creating content for suborg branches
     // Only allow global templates when managing suborg templates (editorMode = "suborg_templates")
@@ -218,6 +220,27 @@ async function fetchUnifiedTemplates() {
       console.log(
         `Filtered templates by aspect ratio ${currentAspectRatio}: ${originalCount} → ${unifiedTemplates.length}`,
       );
+    }
+
+    if (
+      suborgId &&
+      isSuborgContentCreationMode() &&
+      typeof store.legacyGridEnabled === "boolean"
+    ) {
+      const targetLegacyState = Boolean(store.legacyGridEnabled);
+      const beforeLegacyFilter = unifiedTemplates.length;
+      unifiedTemplates = unifiedTemplates.filter(
+        (template) => Boolean(template.isLegacy) === targetLegacyState,
+      );
+      if (beforeLegacyFilter > 0 && unifiedTemplates.length === 0) {
+        legacyFilterMessage = targetLegacyState
+          ? gettext(
+              "No legacy templates are available for this suborganisation. Contact your administrator to create one.",
+            )
+          : gettext(
+              "No per-pixel templates are available for this suborganisation. Contact your administrator to convert or create one.",
+            );
+      }
     }
 
     // Templates now set their own aspect ratio automatically, so no filtering needed
@@ -297,10 +320,21 @@ function renderUnifiedTemplateTable(templates) {
   const tableBody = document.querySelector("#unifiedTemplateTable tbody");
   tableBody.innerHTML = "";
   if (templates.length === 0) {
-    noTemplatesFoundAlert.classList.remove("d-none");
+    if (noTemplatesFoundAlert) {
+      if (legacyFilterMessage) {
+        noTemplatesFoundAlert.textContent = legacyFilterMessage;
+      } else if (!noTemplatesFoundAlert.textContent) {
+        noTemplatesFoundAlert.textContent = gettext("No templates found.");
+      }
+      noTemplatesFoundAlert.classList.remove("d-none");
+    }
     return;
   } else {
-    noTemplatesFoundAlert.classList.add("d-none");
+    if (noTemplatesFoundAlert) {
+      noTemplatesFoundAlert.classList.add("d-none");
+      noTemplatesFoundAlert.textContent = "";
+    }
+    legacyFilterMessage = null;
     templates.forEach((t) => {
       const tr = document.createElement("tr");
 

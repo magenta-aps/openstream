@@ -48,6 +48,7 @@ import {
   getCurrentZoomInfo,
 } from "../utils/zoomController.js";
 import { gettext } from "../../../../utils/locales.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 export function loadSlide(
   slide,
@@ -55,6 +56,7 @@ export function loadSlide(
   completeReload = false,
   forceCompleteReload = false,
 ) {
+  syncGridToCurrentSlide(slide);
   // Sanitize all slides to ensure unique IDs and correct indices
   const slideIdSet = new Set();
   const elementIdSet = new Set();

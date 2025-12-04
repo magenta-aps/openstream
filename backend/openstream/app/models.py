@@ -390,6 +390,10 @@ class Slideshow(models.Model):
     previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
     isCustomDimensions = models.BooleanField(default=True)
     slideshow_data = models.JSONField(default=dict, blank=True, null=True)
+    isLegacy = models.BooleanField(
+        default=False,
+        help_text="Set to True for older manage_content that must stay on the fixed 200x200 grid",
+    )
     # Track when this slideshow was last edited (auto-updated on save)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1238,6 +1242,10 @@ class SlideTemplate(models.Model):
 
     name = models.CharField(max_length=255)
     slideData = models.JSONField(default=dict, blank=True, null=True)
+    isLegacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,

@@ -11,6 +11,7 @@ import {
   ORIENTATION,
   getAspectRatiosByOrientation,
 } from "../../../../utils/availableAspectRatios.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 function getAspectRatiosForOrientation(orientation) {
   if (orientation === ORIENTATION.LANDSCAPE) {
@@ -199,6 +200,7 @@ export async function updateResolution(selectedResolution) {
 
     store.emulatedWidth = nextWidth;
     store.emulatedHeight = nextHeight;
+    syncGridToCurrentSlide();
     const currentAspectRatio = getCurrentAspectRatio();
 
     // Update aspect ratio displays

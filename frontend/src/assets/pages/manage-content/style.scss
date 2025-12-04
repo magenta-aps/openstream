@@ -60,6 +60,12 @@ h1 {
   overflow: auto;
 }
 
+.legacy-grid-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* A small indicator for sortable columns */
 th.sortable {
   cursor: pointer;

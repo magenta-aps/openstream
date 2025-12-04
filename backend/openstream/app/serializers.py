@@ -246,6 +246,7 @@ class SlideshowSerializer(serializers.ModelSerializer):
             "previewHeight",
             "isCustomDimensions",
             "slideshow_data",
+            "isLegacy",
             "aspect_ratio",  # read-only calculated property
         ]
         # If you want to prevent branch or created_by from changing:
@@ -1129,6 +1130,7 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slideData",
+            "isLegacy",
             "category",
             "tags",
             "organisation",

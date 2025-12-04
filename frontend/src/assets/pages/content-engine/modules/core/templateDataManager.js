@@ -23,6 +23,7 @@ import {
   DEFAULT_ASPECT_RATIO,
   getResolutionForAspectRatio,
 } from "../../../../utils/availableAspectRatios.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 const TEMPLATE_AUTOSAVE_DEBOUNCE_MS = 1200;
 let templateAutosaveTimer = null;
@@ -33,6 +34,12 @@ let templateDirtySinceLastSave = false;
 let templateSaveInFlight = false;
 
 let lastStoredSingleSlideStr = null;
+
+function ensureTemplateLegacyMap() {
+  if (!(store.templateLegacyFlags instanceof Map)) {
+    store.templateLegacyFlags = new Map();
+  }
+}
 
 /**
  * Set the resolution based on aspect ratio and update resolution modal
@@ -53,6 +60,8 @@ function setResolutionFromAspectRatio(aspectRatio) {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
+
+  syncGridToCurrentSlide();
 
   console.log(
     `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
@@ -127,6 +136,10 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
       store.slides.length = 0;
       store.currentSlideIndex = -1;
       store.lastSlideIndex = null;
+      store.activeSlideshowIsLegacy = false;
+      store.legacyGridEnabled = false;
+      ensureTemplateLegacyMap();
+      store.templateLegacyFlags.clear();
 
       if (fetchedTemplates && fetchedTemplates.length > 0) {
         fetchedTemplates.forEach((template) => {
@@ -136,6 +149,10 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
             );
             return;
           }
+          store.templateLegacyFlags.set(
+            template.id,
+            Boolean(template.isLegacy),
+          );
           const slideObject = JSON.parse(JSON.stringify(template.slideData));
 
           slideObject.templateId = template.id;
@@ -231,8 +248,10 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
         if (!store.emulatedWidth || !store.emulatedHeight) {
           store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
           store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+          syncGridToCurrentSlide(currentTemplateSlide);
         }
 
+        syncGridToCurrentSlide(currentTemplateSlide);
         loadSlide(currentTemplateSlide);
         scaleAllSlides();
         initTemplateAutoSave();
@@ -348,8 +367,16 @@ export async function saveCurrentTemplateData() {
     currentSlideObject.templateOriginalName = updatedTemplateFromServer.name;
     currentSlideObject.previewWidth = updatedTemplateFromServer.previewWidth;
     currentSlideObject.previewHeight = updatedTemplateFromServer.previewHeight;
-    currentSlideObject.aspect_ratio =
-  updatedTemplateFromServer.aspect_ratio || DEFAULT_ASPECT_RATIO;
+        currentSlideObject.aspect_ratio =
+          updatedTemplateFromServer.aspect_ratio || DEFAULT_ASPECT_RATIO;
+
+        if (updatedTemplateFromServer?.id) {
+          ensureTemplateLegacyMap();
+          store.templateLegacyFlags.set(
+            updatedTemplateFromServer.id,
+            Boolean(updatedTemplateFromServer.isLegacy),
+          );
+        }
 
     lastStoredSingleSlideStr = JSON.stringify(currentSlideObject);
 

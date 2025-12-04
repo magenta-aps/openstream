@@ -16,6 +16,7 @@ import {
   subscribeToPersistedStateChanges,
   suspendPersistedStateNotifications,
 } from "./persistedStateObserver.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 let autosaveDebounceHandle = null;
@@ -46,6 +47,9 @@ export async function fetchSlideshow(slideshowId) {
     const resumePersistedNotifications = suspendPersistedStateNotifications();
     try {
       const data = await resp.json();
+      const isLegacySlideshow = Boolean(data.isLegacy);
+      store.activeSlideshowIsLegacy = isLegacySlideshow;
+      store.legacyGridEnabled = isLegacySlideshow;
       store.slideshowMode = data.mode;
       document.querySelector("#contentEngineTitle").innerHTML = autoHyphenate(
         data.name,
@@ -56,6 +60,7 @@ export async function fetchSlideshow(slideshowId) {
         store.emulatedWidth = data.previewWidth;
         store.emulatedHeight = data.previewHeight;
       }
+      syncGridToCurrentSlide();
 
       if (
         data.slideshow_data &&
@@ -123,6 +128,7 @@ export async function fetchSlideshow(slideshowId) {
         store.currentSlideIndex = 0;
 
         if (store.currentSlideIndex > -1) {
+          syncGridToCurrentSlide();
           loadSlide(store.slides[store.currentSlideIndex]);
         }
         scaleAllSlides();
@@ -142,6 +148,7 @@ export async function fetchSlideshow(slideshowId) {
             "</p>";
         }
 
+        syncGridToCurrentSlide();
         // Open the add slide modal
         setTimeout(() => {
           openAddSlideModal();

@@ -21,6 +21,13 @@ export const store = {
   emulatedHeight: null,
   currentScale: 1,
   showGrid: false,
+  legacyGridEnabled: false,
+  activeSlideshowIsLegacy: false,
+  templateLegacyFlags: new Map(),
+  dragSnapSettings: {
+    unit: "cells",
+    amount: 1,
+  },
 
   selectedVideoId: null,
   selectedImgId: null,

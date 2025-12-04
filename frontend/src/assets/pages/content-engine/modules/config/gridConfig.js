@@ -2,15 +2,49 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "../core/slideStore.js";
 import { gettext } from "../../../../utils/locales.js";
+
+const DEFAULT_GRID_COLUMNS = 200;
+const DEFAULT_GRID_ROWS = 200;
+
+const gridState = {
+  columns: DEFAULT_GRID_COLUMNS,
+  rows: DEFAULT_GRID_ROWS,
+};
+
+const gridChangeListeners = new Set();
+
+function notifyGridChange() {
+  gridChangeListeners.forEach((listener) => {
+    try {
+      listener({
+        columns: gridState.columns,
+        rows: gridState.rows,
+      });
+    } catch (err) {
+      console.warn("Grid listener failed", err);
+    }
+  });
+}
+
+function applyGridStateToCSS() {
+  const root = document.documentElement;
+  if (!root) return;
+  root.style.setProperty("--grid-columns", gridState.columns);
+  root.style.setProperty("--grid-rows", gridState.rows);
+}
+
 /**
  * Grid configuration constants for the content engine
  * This is the single source of truth for grid dimensions
  */
-
 export const GRID_CONFIG = {
-  // Main grid dimensions
-  COLUMNS: 200,
-  ROWS: 200,
+  // Main grid dimensions with runtime getters
+  get COLUMNS() {
+    return gridState.columns;
+  },
+  get ROWS() {
+    return gridState.rows;
+  },
 
   // Derived values for convenience
   get TOTAL_CELLS() {
@@ -30,6 +64,23 @@ export const GRID_CONFIG = {
   get BACKGROUND_SIZE() {
     return `calc(100% / ${this.COLUMNS}) calc(100% / ${this.ROWS})`;
   },
+
+  setDimensions(columns, rows) {
+    const nextColumns = Math.max(1, Math.round(Number(columns)) || 1);
+    const nextRows = Math.max(1, Math.round(Number(rows)) || 1);
+    const hasChanged =
+      nextColumns !== gridState.columns || nextRows !== gridState.rows;
+    gridState.columns = nextColumns;
+    gridState.rows = nextRows;
+    if (hasChanged) {
+      applyGridStateToCSS();
+      notifyGridChange();
+    }
+  },
+
+  resetToDefault() {
+    this.setDimensions(DEFAULT_GRID_COLUMNS, DEFAULT_GRID_ROWS);
+  },
 };
 
 /**
@@ -37,9 +88,79 @@ export const GRID_CONFIG = {
  * Call this when the page loads to ensure CSS and JS are in sync
  */
 export function syncGridConfigWithCSS() {
-  const root = document.documentElement;
-  root.style.setProperty("--grid-columns", GRID_CONFIG.COLUMNS);
-  root.style.setProperty("--grid-rows", GRID_CONFIG.ROWS);
+  applyGridStateToCSS();
+}
+
+export function applyGridMode({ isLegacy, width, height }) {
+  const normalizedWidth = Number(width);
+  const normalizedHeight = Number(height);
+  if (
+    !isLegacy &&
+    Number.isFinite(normalizedWidth) &&
+    Number.isFinite(normalizedHeight) &&
+    normalizedWidth > 0 &&
+    normalizedHeight > 0
+  ) {
+    GRID_CONFIG.setDimensions(normalizedWidth, normalizedHeight);
+    return;
+  }
+  GRID_CONFIG.resetToDefault();
+}
+
+function resolveLegacyFlag(slide) {
+  if (slide?.templateId && store.templateLegacyFlags?.has(slide.templateId)) {
+    return Boolean(store.templateLegacyFlags.get(slide.templateId));
+  }
+  if (typeof slide?.isLegacy === "boolean") {
+    return slide.isLegacy;
+  }
+  if (typeof slide?.isLegacyGrid === "boolean") {
+    return slide.isLegacyGrid;
+  }
+  if (typeof store.activeSlideshowIsLegacy === "boolean") {
+    return store.activeSlideshowIsLegacy;
+  }
+  return false;
+}
+
+export function syncGridToCurrentSlide(slideOverride = null) {
+  const slide =
+    slideOverride ??
+    (store.currentSlideIndex > -1 ? store.slides[store.currentSlideIndex] : null);
+  const isLegacy = resolveLegacyFlag(slide);
+  store.legacyGridEnabled = isLegacy;
+  applyGridMode({
+    isLegacy,
+    width: store.emulatedWidth,
+    height: store.emulatedHeight,
+  });
+}
+
+export function onGridDimensionsChange(callback) {
+  if (typeof callback !== "function") {
+    return () => {};
+  }
+  gridChangeListeners.add(callback);
+  // Immediately notify so UI stays in sync on subscription
+  callback({ columns: gridState.columns, rows: gridState.rows });
+  return () => gridChangeListeners.delete(callback);
+}
+
+export function getDragSnapSteps() {
+  const settings = store.dragSnapSettings || { unit: "cells", amount: 1 };
+  const amount = Math.max(1, Math.round(Number(settings.amount)) || 1);
+
+  if (settings.unit === "division") {
+    return {
+      x: Math.max(1, Math.round(GRID_CONFIG.COLUMNS / amount) || 1),
+      y: Math.max(1, Math.round(GRID_CONFIG.ROWS / amount) || 1),
+    };
+  }
+
+  return {
+    x: amount,
+    y: amount,
+  };
 }
 
 /**
@@ -152,13 +273,20 @@ export const GridUtils = {
    * @returns {string} Formatted grid information for status bar
    */
   formatGridInfoCompact(x, y, width, height) {
+    const statusSegments = [];
+    statusSegments.push(
+      store.selectedElementData.isLocked
+        ? gettext("Locked")
+        : gettext("Unlocked"),
+    );
 
-    let type = store.selectedElementData.type;
-    if (type === "tiptap-textbox") {
-      type = "Textbox";
+    if (store.selectedElementData.isPersistent) {
+      statusSegments.push(gettext("Persistent"));
     }
 
-    const percentages = this.getGridPercentages(width, height);
-    return `${gettext("Type")}: ${gettext(type).toLowerCase()} • ${gettext("Move/Resize")}: ${store.selectedElementData.isLocked ? gettext("Locked") : gettext("Unlocked")} • ${store.selectedElementData.isPersistent ? gettext("Persistent") + " • " : ""}   ${gettext("Position")}: (${x + 1}, ${y + 1}) • ${gettext("Size")}: ${width} × ${height}`;
+    statusSegments.push(`${gettext("Position")}: (${x + 1}, ${y + 1})`);
+    statusSegments.push(`${gettext("Size")}: ${width} × ${height}`);
+
+    return statusSegments.join(" • ");
   },
 };

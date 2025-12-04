@@ -12,6 +12,7 @@ import { loadSlide, scaleAllSlides } from "../core/renderSlide.js";
 import { scaleSlide } from "../core/renderSlide.js";
 import { store } from "../core/slideStore.js";
 import { updateAllSlidesZoom } from "../utils/zoomController.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 let currentSuborgId = null;
 let savedResolution = null;
@@ -24,6 +25,7 @@ function restoreResolution(resolution) {
 
   store.emulatedWidth = resolution.width;
   store.emulatedHeight = resolution.height;
+  syncGridToCurrentSlide();
 
   // Import and call the same update functions that setResolutionFromAspectRatio calls
   setTimeout(async () => {
@@ -200,6 +202,10 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     if (templateId) {
       chosenTemplate = globalTemplates.find((t) => t.id == templateId);
       if (chosenTemplate && chosenTemplate.slideData) {
+        const isLegacyTemplate = Boolean(chosenTemplate.isLegacy);
+        const gridModeLabel = isLegacyTemplate
+          ? gettext("Legacy grid (200×200)")
+          : gettext("Per-pixel grid");
         // Show template info
         infoDiv.innerHTML = `
           <div class="card">
@@ -208,6 +214,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
               <p class="mb-1"><strong>${gettext("Name")}:</strong> ${chosenTemplate.name}</p>
               ${chosenTemplate.category ? `<p class="mb-1"><strong>${gettext("Category")}:</strong> ${chosenTemplate.category.name}</p>` : ""}
               ${chosenTemplate.tags && chosenTemplate.tags.length > 0 ? `<p class="mb-1"><strong>${gettext("Tags")}:</strong> ${chosenTemplate.tags.map((t) => t.name).join(", ")}</p>` : ""}
+              <p class="mb-1"><strong>${gettext("Grid Mode")}:</strong> ${gridModeLabel}</p>
               ${chosenTemplate.aspect_ratio ? `<p class="mb-1"><strong>${gettext("Aspect Ratio")}:</strong> ${chosenTemplate.aspect_ratio}</p>` : ""}
             </div>
           </div>

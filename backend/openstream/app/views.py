@@ -3576,6 +3576,7 @@ class SuborgTemplateAPIView(APIView):
             "suborganisation_id": suborg.id,
             "parent_template_id": parent_template.id,
             "aspect_ratio": parent_template.aspect_ratio,
+            "isLegacy": parent_template.isLegacy,
         }
 
         if parent_template.category:
@@ -3615,6 +3616,7 @@ class SuborgTemplateAPIView(APIView):
         data.pop("organisation_id", None)
         data.pop("suborganisation_id", None)
         data.pop("parent_template_id", None)
+        data.pop("isLegacy", None)
 
         serializer = SlideTemplateSerializer(template, data=data, partial=True)
         if serializer.is_valid():

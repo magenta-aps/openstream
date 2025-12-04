@@ -27,6 +27,7 @@ import {
   DEFAULT_ASPECT_RATIO,
   getResolutionForAspectRatio,
 } from "../../../../utils/availableAspectRatios.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 let suborgId = null;
 
@@ -49,6 +50,8 @@ export function setResolutionFromAspectRatio(aspectRatio) {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
+
+  syncGridToCurrentSlide();
 
   console.log(
     `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
@@ -193,6 +196,13 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
     store.slides.length = 0;
     store.currentSlideIndex = -1;
     store.lastSlideIndex = null;
+    store.activeSlideshowIsLegacy = false;
+    store.legacyGridEnabled = false;
+
+    if (!(store.templateLegacyFlags instanceof Map)) {
+      store.templateLegacyFlags = new Map();
+    }
+    store.templateLegacyFlags.clear();
 
     if (fetchedTemplates && fetchedTemplates.length > 0) {
       // Filter to only show suborg-specific templates (not global ones)
@@ -207,6 +217,11 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
           );
           return;
         }
+        store.templateLegacyFlags.set(
+          template.id,
+          Boolean(template.isLegacy),
+        );
+
         const slideObject = JSON.parse(JSON.stringify(template.slideData));
 
         slideObject.templateId = template.id;
@@ -316,8 +331,10 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
       if (!store.emulatedWidth || !store.emulatedHeight) {
         store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
         store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+          syncGridToCurrentSlide(currentTemplateSlide);
       }
 
+        syncGridToCurrentSlide(currentTemplateSlide);
       loadSlide(currentTemplateSlide);
       scaleAllSlides();
 
