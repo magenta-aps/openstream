@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "../core/slideStore.js";
 import { gettext } from "../../../../utils/locales.js";
+import { getDefaultCellSnapForResolution } from "../../../../utils/availableAspectRatios.js";
 
 const DEFAULT_GRID_COLUMNS = 200;
 const DEFAULT_GRID_ROWS = 200;
@@ -102,9 +103,11 @@ export function applyGridMode({ isLegacy, width, height }) {
     normalizedHeight > 0
   ) {
     GRID_CONFIG.setDimensions(normalizedWidth, normalizedHeight);
+    ensureDefaultSnapSettings();
     return;
   }
   GRID_CONFIG.resetToDefault();
+  ensureDefaultSnapSettings();
 }
 
 function resolveLegacyFlag(slide) {
@@ -121,6 +124,50 @@ function resolveLegacyFlag(slide) {
     return store.activeSlideshowIsLegacy;
   }
   return false;
+}
+
+function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+  return `${Math.round(columns)}x${Math.round(rows)}`;
+}
+
+function ensureDefaultSnapSettings() {
+  const columns = GRID_CONFIG.COLUMNS;
+  const rows = GRID_CONFIG.ROWS;
+  const defaultSnap =
+    getDefaultCellSnapForResolution(columns, rows) || 1;
+  const signature = getGridSignature(columns, rows);
+
+  if (!store.dragSnapSettings) {
+    store.dragSnapSettings = {
+      unit: "cells",
+      amount: defaultSnap,
+      isAuto: true,
+      appliedGridSignature: signature,
+    };
+    return;
+  }
+
+  const existing = store.dragSnapSettings;
+  const isAuto = existing.isAuto !== false;
+  if (!isAuto) {
+    return;
+  }
+
+  if (existing.unit !== "cells") {
+    existing.appliedGridSignature = signature;
+    return;
+  }
+
+  if (existing.amount === defaultSnap && existing.appliedGridSignature === signature) {
+    return;
+  }
+
+  store.dragSnapSettings = {
+    ...existing,
+    amount: defaultSnap,
+    appliedGridSignature: signature,
+    isAuto: true,
+  };
 }
 
 export function syncGridToCurrentSlide(slideOverride = null) {
@@ -147,6 +194,7 @@ export function onGridDimensionsChange(callback) {
 }
 
 export function getDragSnapSteps() {
+  ensureDefaultSnapSettings();
   const settings = store.dragSnapSettings || { unit: "cells", amount: 1 };
   const amount = Math.max(1, Math.round(Number(settings.amount)) || 1);
 

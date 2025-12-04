@@ -6,6 +6,7 @@
 
 import { queryParams, showToast } from "../../../../utils/utils.js";
 import { gettext } from "../../../../utils/locales.js";
+import { getDefaultCellSnapForResolution } from "../../../../utils/availableAspectRatios.js";
 import {
   GridUtils,
   GRID_CONFIG,
@@ -190,6 +191,7 @@ function ensureGridSizeSubscription() {
   unsubscribeGridChange = onGridDimensionsChange(({ columns, rows }) => {
     updateGridSizeDisplay(columns, rows);
     updateSnapAmountOptions(columns, rows);
+    updateSnapControlsUI();
   });
 }
 
@@ -422,6 +424,10 @@ function normalizeSnapAmount(
   return amount;
 }
 
+function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+  return `${Math.round(columns)}x${Math.round(rows)}`;
+}
+
 function getCommonDivisors(columns, rows) {
   const safeColumns = Math.max(1, Math.round(Number(columns)) || 1);
   const safeRows = Math.max(1, Math.round(Number(rows)) || 1);
@@ -460,9 +466,32 @@ function sanitizeSnapAmount(value) {
 
 function getCurrentSnapSettings() {
   const defaults = { unit: "cells", amount: 1 };
+  const columns = GRID_CONFIG.COLUMNS;
+  const rows = GRID_CONFIG.ROWS;
+  const defaultSnap =
+    getDefaultCellSnapForResolution(columns, rows) || defaults.amount;
+  const signature = getGridSignature(columns, rows);
+
   if (!store.dragSnapSettings) {
-    store.dragSnapSettings = { ...defaults };
+    store.dragSnapSettings = {
+      unit: defaults.unit,
+      amount: defaultSnap,
+      isAuto: true,
+      appliedGridSignature: signature,
+    };
+  } else if (
+    store.dragSnapSettings.unit === "cells" &&
+    store.dragSnapSettings.isAuto !== false &&
+    store.dragSnapSettings.appliedGridSignature !== signature
+  ) {
+    store.dragSnapSettings = {
+      ...store.dragSnapSettings,
+      amount: defaultSnap,
+      isAuto: true,
+      appliedGridSignature: signature,
+    };
   }
+
   return {
     unit: store.dragSnapSettings.unit || defaults.unit,
     amount: sanitizeSnapAmount(store.dragSnapSettings.amount),
@@ -481,6 +510,8 @@ function setSnapSettings(partial = {}) {
     : current.amount;
 
   next.amount = normalizeSnapAmount(next.unit, sanitizeSnapAmount(rawAmount));
+  next.isAuto = false;
+  next.appliedGridSignature = getGridSignature();
 
   store.dragSnapSettings = next;
   updateSnapAmountOptions(GRID_CONFIG.COLUMNS, GRID_CONFIG.ROWS, next);
