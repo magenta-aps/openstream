@@ -16,10 +16,26 @@ import { gettext } from "../../../../utils/locales.js";
 import {
   getResolutionForAspectRatio,
   findAspectRatioValueByDimensions,
+  getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
 import * as bootstrap from "bootstrap";
 let unifiedTemplates = [];
 let selectedUnifiedTemplate = null;
+
+function cloneSnapSettings(settings) {
+  if (!settings) {
+    return null;
+  }
+  try {
+    return structuredClone(settings);
+  } catch (err) {
+    try {
+      return JSON.parse(JSON.stringify(settings));
+    } catch {
+      return null;
+    }
+  }
+}
 
 /**
  * Set the resolution based on aspect ratio and update resolution modal
@@ -523,14 +539,30 @@ export function initAddSlide() {
         });
       }
 
-      // Set snap to disabled for new slides, but use default snap size for the resolution
-      const defaultSnapAmount = getDefaultCellSnapForResolution(store.emulatedWidth, store.emulatedHeight) || 1;
-      newSlide.savedSnapSettings = {
-        unit: "cells",
-        amount: defaultSnapAmount,
-        isAuto: true,
-        snapEnabled: false,
-      };
+      const templateSnap = cloneSnapSettings(templateSlide.savedSnapSettings);
+      if (templateSnap) {
+        newSlide.savedSnapSettings = {
+          unit: templateSnap.unit === "division" ? "division" : "cells",
+          amount: Math.max(1, Math.round(Number(templateSnap.amount)) || 1),
+          isAuto: templateSnap.isAuto ?? false,
+          snapEnabled: templateSnap.snapEnabled !== false,
+          savedUnit: templateSnap.savedUnit,
+          savedAmount: templateSnap.savedAmount,
+          appliedGridSignature: templateSnap.appliedGridSignature,
+        };
+      } else {
+        const defaultSnapAmount =
+          getDefaultCellSnapForResolution(
+            store.emulatedWidth,
+            store.emulatedHeight,
+          ) || 1;
+        newSlide.savedSnapSettings = {
+          unit: "cells",
+          amount: defaultSnapAmount,
+          isAuto: true,
+          snapEnabled: false,
+        };
+      }
 
       store.slides.push(newSlide);
       store.currentSlideIndex = store.slides.length - 1;

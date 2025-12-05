@@ -26,11 +26,97 @@ import { gettext } from "../../../../utils/locales.js";
 import {
   DEFAULT_ASPECT_RATIO,
   getResolutionForAspectRatio,
-  getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
-import { syncGridToCurrentSlide } from "../config/gridConfig.js";
+import {
+  syncGridToCurrentSlide,
+  getDefaultSnapSettings,
+} from "../config/gridConfig.js";
 
 let suborgId = null;
+const parentSnapSettingsCache = new Map();
+
+function cloneSnapSettings(settings) {
+  if (!settings) {
+    return null;
+  }
+  try {
+    return structuredClone(settings);
+  } catch (err) {
+    try {
+      return JSON.parse(JSON.stringify(settings));
+    } catch {
+      return null;
+    }
+  }
+}
+
+function normalizeSnapSettings(settings) {
+  const cloned = cloneSnapSettings(settings);
+  if (!cloned) {
+    return null;
+  }
+
+  const normalizedAmount = Math.max(1, Math.round(Number(cloned.amount)) || 1);
+  return {
+    unit: cloned.unit === "division" ? "division" : "cells",
+    amount: normalizedAmount,
+    isAuto: cloned.isAuto ?? false,
+    snapEnabled: cloned.snapEnabled !== false,
+    savedUnit: cloned.savedUnit,
+    savedAmount: cloned.savedAmount,
+    appliedGridSignature: cloned.appliedGridSignature,
+  };
+}
+
+async function getParentTemplateSnapSettings(template) {
+  const parentId = template?.parent_template?.id;
+  if (!parentId) {
+    return null;
+  }
+
+  if (parentSnapSettingsCache.has(parentId)) {
+    return parentSnapSettingsCache.get(parentId);
+  }
+
+  try {
+    const resp = await fetch(`${BASE_URL}/api/slide-templates/${parentId}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!resp.ok) {
+      throw new Error(`Failed to load parent template ${parentId}`);
+    }
+
+    const parentTemplate = await resp.json();
+    const snap = normalizeSnapSettings(
+      parentTemplate?.slideData?.savedSnapSettings,
+    );
+    parentSnapSettingsCache.set(parentId, snap);
+    return snap;
+  } catch (err) {
+    console.warn("Unable to fetch parent template snap settings", err);
+    parentSnapSettingsCache.set(parentId, null);
+    return null;
+  }
+}
+
+async function deriveSnapSettingsForTemplate(slideObject, template) {
+  const inheritedSnap = normalizeSnapSettings(slideObject.savedSnapSettings);
+  if (inheritedSnap) {
+    return inheritedSnap;
+  }
+
+  const parentSnap = await getParentTemplateSnapSettings(template);
+  if (parentSnap) {
+    return parentSnap;
+  }
+
+  return getDefaultSnapSettings(undefined, undefined, {
+    snapEnabled: false,
+  });
+}
 
 /**
  * Set the resolution based on aspect ratio and update resolution modal
@@ -204,6 +290,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
       store.templateLegacyFlags = new Map();
     }
     store.templateLegacyFlags.clear();
+    parentSnapSettingsCache.clear();
 
     if (fetchedTemplates && fetchedTemplates.length > 0) {
       // Filter to only show suborg-specific templates (not global ones)
@@ -211,12 +298,12 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         (t) => t.suborganisation !== null,
       );
 
-      suborgOnlyTemplates.forEach((template) => {
+      for (const template of suborgOnlyTemplates) {
         if (!template.slideData) {
           console.warn(
             `Template ID ${template.id} ('${template.name}') is missing slideData. Skipping.`,
           );
-          return;
+          continue;
         }
         store.templateLegacyFlags.set(
           template.id,
@@ -293,22 +380,13 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
           }
         });
 
-        // Ensure savedSnapSettings exists (inherit from parent or use defaults)
-        if (!slideObject.savedSnapSettings) {
-          const defaultSnapAmount = getDefaultCellSnapForResolution(
-            store.emulatedWidth,
-            store.emulatedHeight
-          ) || 1;
-          slideObject.savedSnapSettings = {
-            unit: "cells",
-            amount: defaultSnapAmount,
-            isAuto: true,
-            snapEnabled: false,
-          };
-        }
+        slideObject.savedSnapSettings = await deriveSnapSettingsForTemplate(
+          slideObject,
+          template,
+        );
 
         store.slides.push(slideObject);
-      });
+      }
     }
 
     if (store.slides.length === 0) {

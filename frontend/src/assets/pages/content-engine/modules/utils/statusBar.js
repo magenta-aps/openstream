@@ -449,14 +449,33 @@ function normalizeSnapAmount(
   columns = GRID_CONFIG.COLUMNS,
   rows = GRID_CONFIG.ROWS,
 ) {
+  const sanitized = sanitizeSnapAmount(amount);
+
   if (unit === "cells") {
     const divisors = getCommonDivisors(columns, rows);
     if (!divisors.length) {
       return 1;
     }
-    return divisors.includes(amount) ? amount : divisors[0];
+    return divisors.includes(sanitized) ? sanitized : divisors[0];
   }
-  return amount;
+
+  if (unit === "division") {
+    const divisors = getCommonDivisors(columns, rows);
+    if (!divisors.length) {
+      return sanitized;
+    }
+    if (divisors.includes(sanitized)) {
+      return sanitized;
+    }
+    return divisors.reduce((closest, value) => {
+      if (Math.abs(value - sanitized) < Math.abs(closest - sanitized)) {
+        return value;
+      }
+      return closest;
+    }, divisors[0]);
+  }
+
+  return sanitized;
 }
 
 function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
@@ -511,6 +530,7 @@ function toggleSnapEnabled() {
     store.dragSnapSettings.savedUnit = store.dragSnapSettings.unit;
     store.dragSnapSettings.savedAmount = store.dragSnapSettings.amount;
     store.dragSnapSettings.snapEnabled = false;
+    store.dragSnapSettings.unit = "cells";
     store.dragSnapSettings.amount = 1;
   } else {
     // Turning snap ON - restore previous settings
@@ -567,18 +587,27 @@ function getCurrentSnapSettings() {
       appliedGridSignature: signature,
     };
   }
-  
-  // If snap is disabled, always return 1 cell
+
   if (store.dragSnapSettings.snapEnabled === false) {
+    const fallbackUnit =
+      store.dragSnapSettings.savedUnit ||
+      store.dragSnapSettings.unit ||
+      defaults.unit;
+    const fallbackAmount =
+      store.dragSnapSettings.savedAmount ||
+      store.dragSnapSettings.amount ||
+      defaults.amount;
     return {
-      unit: "cells",
-      amount: 1,
+      unit: fallbackUnit,
+      amount: sanitizeSnapAmount(fallbackAmount),
+      snapEnabled: false,
     };
   }
 
   return {
     unit: store.dragSnapSettings.unit || defaults.unit,
     amount: sanitizeSnapAmount(store.dragSnapSettings.amount),
+    snapEnabled: true,
   };
 }
 
@@ -593,7 +622,7 @@ function setSnapSettings(partial = {}) {
     ? partial.amount
     : current.amount;
 
-  next.amount = normalizeSnapAmount(next.unit, sanitizeSnapAmount(rawAmount));
+  next.amount = normalizeSnapAmount(next.unit, rawAmount);
   next.isAuto = false;
   next.appliedGridSignature = getGridSignature();
   

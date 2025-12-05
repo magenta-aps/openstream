@@ -130,20 +130,27 @@ function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS
   return `${Math.round(columns)}x${Math.round(rows)}`;
 }
 
+export function getDefaultSnapSettings(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+  overrides = {},
+) {
+  const defaultSnap = getDefaultCellSnapForResolution(columns, rows) || 1;
+  return {
+    unit: "cells",
+    amount: defaultSnap,
+    isAuto: true,
+    snapEnabled: true,
+    appliedGridSignature: getGridSignature(columns, rows),
+    ...overrides,
+  };
+}
+
 function ensureDefaultSnapSettings() {
-  const columns = GRID_CONFIG.COLUMNS;
-  const rows = GRID_CONFIG.ROWS;
-  const defaultSnap =
-    getDefaultCellSnapForResolution(columns, rows) || 1;
-  const signature = getGridSignature(columns, rows);
+  const defaults = getDefaultSnapSettings();
 
   if (!store.dragSnapSettings) {
-    store.dragSnapSettings = {
-      unit: "cells",
-      amount: defaultSnap,
-      isAuto: true,
-      appliedGridSignature: signature,
-    };
+    store.dragSnapSettings = { ...defaults };
     return;
   }
 
@@ -154,18 +161,21 @@ function ensureDefaultSnapSettings() {
   }
 
   if (existing.unit !== "cells") {
-    existing.appliedGridSignature = signature;
+    existing.appliedGridSignature = defaults.appliedGridSignature;
     return;
   }
 
-  if (existing.amount === defaultSnap && existing.appliedGridSignature === signature) {
+  if (
+    existing.amount === defaults.amount &&
+    existing.appliedGridSignature === defaults.appliedGridSignature
+  ) {
     return;
   }
 
   store.dragSnapSettings = {
     ...existing,
-    amount: defaultSnap,
-    appliedGridSignature: signature,
+    amount: defaults.amount,
+    appliedGridSignature: defaults.appliedGridSignature,
     isAuto: true,
   };
 }
@@ -195,13 +205,19 @@ export function onGridDimensionsChange(callback) {
 
 export function getDragSnapSteps() {
   ensureDefaultSnapSettings();
-  const settings = store.dragSnapSettings || { unit: "cells", amount: 1 };
+  const settings =
+    store.dragSnapSettings || { unit: "cells", amount: 1, snapEnabled: true };
+
+  if (settings.snapEnabled === false) {
+    return { x: 1, y: 1 };
+  }
+
   const amount = Math.max(1, Math.round(Number(settings.amount)) || 1);
 
   if (settings.unit === "division") {
     return {
-      x: Math.max(1, Math.round(GRID_CONFIG.COLUMNS / amount) || 1),
-      y: Math.max(1, Math.round(GRID_CONFIG.ROWS / amount) || 1),
+      x: Math.max(1, Math.floor(GRID_CONFIG.COLUMNS / amount) || 1),
+      y: Math.max(1, Math.floor(GRID_CONFIG.ROWS / amount) || 1),
     };
   }
 

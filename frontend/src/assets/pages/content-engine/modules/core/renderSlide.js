@@ -48,7 +48,10 @@ import {
   getCurrentZoomInfo,
 } from "../utils/zoomController.js";
 import { gettext } from "../../../../utils/locales.js";
-import { syncGridToCurrentSlide } from "../config/gridConfig.js";
+import {
+  syncGridToCurrentSlide,
+  getDefaultSnapSettings,
+} from "../config/gridConfig.js";
 import { updateSnapControlsUI } from "../utils/statusBar.js";
 
 export function loadSlide(
@@ -80,17 +83,33 @@ export function loadSlide(
   syncGridToCurrentSlide(slide);
 
   // Restore snap settings from the slide being loaded
+  const defaultSnapSettings = getDefaultSnapSettings(
+    store.emulatedWidth,
+    store.emulatedHeight,
+  );
+
+  let appliedSnapSettings = defaultSnapSettings;
+
   if (slide && slide.savedSnapSettings) {
-    store.dragSnapSettings = {
+    appliedSnapSettings = {
       ...slide.savedSnapSettings,
       appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
       snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
       savedUnit: slide.savedSnapSettings.savedUnit,
       savedAmount: slide.savedSnapSettings.savedAmount,
     };
-    // Update the UI to reflect the restored settings
-    updateSnapControlsUI();
+  } else if (store.dragSnapSettings?.snapEnabled === false) {
+    appliedSnapSettings = {
+      ...defaultSnapSettings,
+      snapEnabled: false,
+      savedUnit: store.dragSnapSettings.savedUnit || defaultSnapSettings.unit,
+      savedAmount:
+        store.dragSnapSettings.savedAmount || defaultSnapSettings.amount,
+    };
   }
+
+  store.dragSnapSettings = appliedSnapSettings;
+  updateSnapControlsUI();
   // Sanitize all slides to ensure unique IDs and correct indices
   const slideIdSet = new Set();
   const elementIdSet = new Set();
