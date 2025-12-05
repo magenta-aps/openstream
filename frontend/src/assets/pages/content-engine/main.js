@@ -260,7 +260,6 @@ if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
   disableAspectRatioControls();
   document.getElementById("settings-and-play-btn-container").classList.add("d-none");
-  document.getElementById("top-menu-first-vr").classList.add("d-none");
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";

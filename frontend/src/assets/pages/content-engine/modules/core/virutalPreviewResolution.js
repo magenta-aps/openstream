@@ -79,7 +79,7 @@ export function initVirtualPreviewResolution() {
   };
 
   const options = document.querySelectorAll(".resolution-option");
-  const allowAspectRatioChanges = queryParams.mode !== "suborg_templates";
+  const allowAspectRatioChanges = queryParams.mode !== "suborg_templates" && queryParams.mode !== "template_editor";
 
   options.forEach((option) => {
     const optionWidth = parseInt(option.getAttribute("data-width"), 10);

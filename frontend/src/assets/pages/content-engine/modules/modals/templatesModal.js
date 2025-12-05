@@ -259,7 +259,7 @@ function setTemplateAspectRatioDisabled(disabled) {
 renderTemplateAspectRatioOptions();
 
 function isAspectRatioLocked() {
-  return queryParams.mode === "suborg_templates";
+  return queryParams.mode === "suborg_templates" || queryParams.mode === "template_editor";
 }
 
 function getAspectRatioForIndex(index = null) {
