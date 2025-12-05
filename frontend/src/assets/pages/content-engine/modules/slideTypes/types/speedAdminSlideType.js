@@ -153,12 +153,8 @@ export const SpeedAdminSlideType = {
     const defaults = SlideTypeUtils.getDefaultSlideSettings();
 
     return {
-      gridWidth: defaults.gridWidth,
-      gridHeight: defaults.gridHeight,
-      gridX: defaults.gridX,
-      gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-      slideTypeId: 6,
+      slideTypeId: 8,
       config: config,
       integrationName: "Speed Admin",
     };

@@ -266,6 +266,8 @@ function saveHtmlElement(existingElement = null) {
       return;
     }
 
+    const defaultSize = GridUtils.getDefaultElementSize('medium');
+    const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
     const newElement = {
       id: store.elementIdCounter++,
       type: "html",
@@ -273,10 +275,10 @@ function saveHtmlElement(existingElement = null) {
       css: cssCode,
       js: jsCode,
       content: combinedHtml,
-      gridX: GridUtils.getCenteredPosition(100, 100).x,
-      gridY: GridUtils.getCenteredPosition(100, 100).y,
-      gridWidth: 100,
-      gridHeight: 100,
+      gridX: defaultSize.x ?? centeredPos.x,
+      gridY: defaultSize.y ?? centeredPos.y,
+      gridWidth: defaultSize.width,
+      gridHeight: defaultSize.height,
       zIndex: getNewZIndex(),
       originSlideIndex: store.currentSlideIndex, // Track which slide this element was created on
       isLocked: false, // Initialize lock state

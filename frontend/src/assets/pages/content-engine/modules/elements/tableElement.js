@@ -258,6 +258,7 @@ function initTableEventListeners() {
 
 function addTableElementToSlide() {
   pushCurrentSlideState();
+  const defaultSize = GridUtils.getDefaultElementSize('table');
 
   const newTable = {
     id: store.elementIdCounter++,
@@ -265,10 +266,10 @@ function addTableElementToSlide() {
     rows: 5,
     cols: 5,
     data: generateTableData(5, 5),
-    gridX: 0,
-    gridY: 0,
-    gridWidth: 125,
-    gridHeight: 200,
+    gridX: defaultSize.x ?? 0,
+    gridY: defaultSize.y ?? 0,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     zIndex: getNewZIndex(),
     striped: true,
     bordered: true,

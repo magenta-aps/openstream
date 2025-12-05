@@ -337,4 +337,142 @@ export const GridUtils = {
 
     return statusSegments.join(" • ");
   },
+
+  /**
+   * Get adaptive default size for elements based on current grid dimensions and aspect ratio
+   * This ensures elements have appropriate sizes per aspect ratio configuration
+   * @param {string} sizeType - Type of element size needed (e.g., 'medium', 'large', 'textbox', 'qrcode', 'table', 'embedWebsite')
+   * @param {string} integrationType - Optional integration type for dynamic content (e.g., 'clock', 'newsfeed', 'kmd-foreningsportalen')
+   * @returns {object} Object with width and height in grid cells
+   */
+  getDefaultElementSize(sizeType = 'medium', integrationType = null) {
+    const cols = GRID_CONFIG.COLUMNS;
+    const rows = GRID_CONFIG.ROWS;
+    const gridSignature = `${cols}x${rows}`;
+    
+    // Define exact sizes for specific aspect ratios
+    // Format: 'widthxheight': { elementType: { width, height, x?, y? } }
+    const aspectRatioPresets = {
+      // 16:9 Landscape (1920x1080)
+      '1920x1080': {
+        'qrcode': { width: 144, height: 144, x: 1753, y: 913 },
+        'textbox': { width: 1056, height: 189, x: 10, y: 10 },
+        'medium': { width: 960, height: 540, x: null, y: null },
+        'table': { width: 1200, height: 1080, x: 0, y: 0 },
+        'mask': { width: 1536, height: 864, x: null, y: null },
+        'embedWebsite': { width: 960, height: 1080, x: 100, y: 0 },
+        // Dynamic content integrations
+        'integration-clock': { width: 960, height: 540, x: null, y: null },
+        'integration-newsfeed': { width: 1200, height: 800, x: null, y: null },
+        'integration-newsticker': { width: 1920, height: 200, x: 0, y: 880 },
+        'integration-kmd': { width: 1200, height: 1080, x: null, y: null },
+        'integration-speedadmin': { width: 1200, height: 1080, x: null, y: null },
+        'integration-dreambroker': { width: 1920, height: 1080, x: 0, y: 0 },
+        'integration-drstreams': { width: 1920, height: 1080, x: 0, y: 0 },
+        'integration-winkas': { width: 960, height: 540, x: null, y: null },
+        'integration-ddb-events': { width: 1200, height: 800, x: null, y: null },
+        'integration-frontdesk': { width: 1200, height: 1080, x: null, y: null },
+      },
+      // 9:16 Portrait (1080x1920)
+      '1080x1920': {
+        'qrcode': { width: 240, height: 240, x: 793, y: 1633 },
+        'textbox': { width: 594, height: 336, x: 10, y: 10 },
+        'medium': { width: 540, height: 960, x: null, y: null },
+        'table': { width: 675, height: 1920, x: 0, y: 0 },
+        'mask': { width: 864, height: 864, x: null, y: null },
+        'embedWebsite': { width: 540, height: 1920, x: 100, y: 0 },
+        // Dynamic content integrations
+        'integration-clock': { width: 540, height: 960, x: null, y: null },
+        'integration-newsfeed': { width: 675, height: 1400, x: null, y: null },
+        'integration-newsticker': { width: 1080, height: 60, x: 0, y: 1860 },
+        'integration-kmd': { width: 675, height: 1920, x: null, y: null },
+        'integration-speedadmin': { width: 675, height: 1920, x: null, y: null },
+        'integration-dreambroker': { width: 1080, height: 1920, x: 0, y: 0 },
+        'integration-drstreams': { width: 1080, height: 1920, x: 0, y: 0 },
+        'integration-winkas': { width: 540, height: 960, x: null, y: null },
+        'integration-ddb-events': { width: 675, height: 1400, x: null, y: null },
+        'integration-frontdesk': { width: 675, height: 1920, x: null, y: null },
+      },
+      // 4:3 Landscape (1024x768)
+      '1024x768': {
+        'qrcode': { width: 150, height: 150, x: 850, y: 580 },
+        'textbox': { width: 563, height: 134, x: 10, y: 10 },
+        'medium': { width: 512, height: 384, x: null, y: null },
+        'table': { width: 640, height: 768, x: 0, y: 0 },
+        'mask': { width: 819, height: 614, x: null, y: null },
+        'embedWebsite': { width: 512, height: 768, x: 100, y: 0 },
+        // Dynamic content integrations
+        'integration-clock': { width: 512, height: 384, x: null, y: null },
+        'integration-newsfeed': { width: 640, height: 576, x: null, y: null },
+        'integration-newsticker': { width: 1024, height: 150, x: 0, y: 618 },
+        'integration-kmd': { width: 640, height: 768, x: null, y: null },
+        'integration-speedadmin': { width: 640, height: 768, x: null, y: null },
+        'integration-dreambroker': { width: 1024, height: 768, x: 0, y: 0 },
+        'integration-drstreams': { width: 1024, height: 768, x: 0, y: 0 },
+        'integration-winkas': { width: 512, height: 384, x: null, y: null },
+        'integration-ddb-events': { width: 640, height: 576, x: null, y: null },
+        'integration-frontdesk': { width: 640, height: 768, x: null, y: null },
+      },
+      // 4:3 Portrait (768x1024)
+      '768x1024': {
+        'qrcode': { width: 170, height: 170, x: 564, y: 820 },
+        'textbox': { width: 422, height: 179, x: 10, y: 10 },
+        'medium': { width: 384, height: 512, x: null, y: null },
+        'table': { width: 480, height: 1024, x: 0, y: 0 },
+        'mask': { width: 614, height: 614, x: null, y: null },
+        'embedWebsite': { width: 384, height: 1024, x: 100, y: 0 },
+        // Dynamic content integrations
+        'integration-clock': { width: 384, height: 512, x: null, y: null },
+        'integration-newsfeed': { width: 480, height: 768, x: null, y: null },
+        'integration-newsticker': { width: 768, height: 200, x: 0, y: 824 },
+        'integration-kmd': { width: 480, height: 1024, x: null, y: null },
+        'integration-speedadmin': { width: 480, height: 1024, x: null, y: null },
+        'integration-dreambroker': { width: 768, height: 1024, x: 0, y: 0 },
+        'integration-drstreams': { width: 768, height: 1024, x: 0, y: 0 },
+        'integration-winkas': { width: 384, height: 512, x: null, y: null },
+        'integration-ddb-events': { width: 480, height: 768, x: null, y: null },
+        'integration-frontdesk': { width: 480, height: 1024, x: null, y: null },
+      },
+    };
+    
+    // Get preset for current grid signature
+    const presetForGrid = aspectRatioPresets[gridSignature];
+    
+    // Check for integration-specific preset first
+    if (integrationType && presetForGrid) {
+      const integrationKey = `integration-${integrationType}`;
+      if (presetForGrid[integrationKey]) {
+        return presetForGrid[integrationKey];
+      }
+    }
+    
+    // Fall back to regular size type
+    if (presetForGrid && presetForGrid[sizeType]) {
+      return presetForGrid[sizeType];
+    }
+    
+    // Fallback: calculate proportionally if no exact preset exists
+    // Use 1920x1080 as base and scale proportionally
+    const basePresets = aspectRatioPresets['1920x1080'];
+    if (basePresets && basePresets[sizeType]) {
+      const base = basePresets[sizeType];
+      const scaleX = cols / 1920;
+      const scaleY = rows / 1080;
+      
+      return {
+        width: Math.max(10, Math.round(base.width * scaleX)),
+        height: Math.max(10, Math.round(base.height * scaleY)),
+        x: base.x !== null && base.x !== undefined ? Math.round(base.x * scaleX) : null,
+        y: base.y !== null && base.y !== undefined ? Math.round(base.y * scaleY) : null,
+      };
+    }
+    
+    // Ultimate fallback: use simple proportions
+    return {
+      width: Math.max(10, Math.round(cols * 0.50)),
+      height: Math.max(10, Math.round(rows * 0.50)),
+      x: null,
+      y: null,
+    };
+  },
 };

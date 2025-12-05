@@ -104,6 +104,8 @@ function initListEventListeners() {
 
 function addListElementToSlide() {
   pushCurrentSlideState();
+  const defaultSize = GridUtils.getDefaultElementSize('medium');
+  const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
 
   const newList = {
     id: store.elementIdCounter++,
@@ -114,10 +116,10 @@ function addListElementToSlide() {
       { text: "Second list item", indent: 0 },
       { text: "Third list item", indent: 0 },
     ],
-    gridX: GridUtils.getCenteredPosition(100, 100).x,
-    gridY: GridUtils.getCenteredPosition(100, 100).y,
-    gridWidth: 100,
-    gridHeight: 100,
+    gridX: defaultSize.x ?? centeredPos.x,
+    gridY: defaultSize.y ?? centeredPos.y,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     zIndex: getNewZIndex(),
     fontSize: 1.5,
     fontFamily: getDefaultFont(),

@@ -51,14 +51,16 @@ function addImageElementToSlide(imageId) {
       return;
     }
     pushCurrentSlideState();
+    const defaultSize = GridUtils.getDefaultElementSize('medium');
+    const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
     const newImage = {
       id: store.elementIdCounter++,
       type: "image",
       content: imageId,
-      gridX: GridUtils.getCenteredPosition(100, 100).x,
-      gridY: GridUtils.getCenteredPosition(100, 100).y,
-      gridWidth: 100,
-      gridHeight: 100,
+      gridX: defaultSize.x ?? centeredPos.x,
+      gridY: defaultSize.y ?? centeredPos.y,
+      gridWidth: defaultSize.width,
+      gridHeight: defaultSize.height,
       backgroundColor: "transparent",
       zIndex: getNewZIndex(),
       sizingMode: "scaled",

@@ -213,10 +213,6 @@ export const ClockSlideType = {
     const config = this.extractFormData();
 
     return {
-      gridWidth: 46,
-      gridHeight: 25,
-      gridX: 1,
-      gridY: 1,
       backgroundColor: "transparent",
       slideTypeId: 7,
       config: config,

@@ -188,10 +188,6 @@ export const NewsfeedWithImageSlideType = {
     const config = this.extractFormData();
 
     return {
-      gridWidth: 100,
-      gridHeight: 200,
-      gridX: 0,
-      gridY: 0,
       backgroundColor: "transparent",
       slideTypeId: 3,
       config: config,

@@ -54,14 +54,15 @@ function ensureMaskDefaults(element) {
 }
 
 function createMaskElement() {
-  const centered = GridUtils.getCenteredPosition(160, 160);
+  const defaultSize = GridUtils.getDefaultElementSize('mask');
+  const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
   const base = {
     id: store.elementIdCounter++,
     type: "mask",
-    gridX: centered.x,
-    gridY: centered.y,
-    gridWidth: 160,
-    gridHeight: 160,
+    gridX: defaultSize.x ?? centeredPos.x,
+    gridY: defaultSize.y ?? centeredPos.y,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     backgroundColor: "transparent",
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,

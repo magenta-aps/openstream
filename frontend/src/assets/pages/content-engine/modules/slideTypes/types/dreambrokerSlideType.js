@@ -152,10 +152,6 @@ export const DreambrokerSlideType = {
     const config = this.extractFormData();
 
     return {
-      gridWidth: 100,
-      gridHeight: 100,
-      gridX: 50,
-      gridY: 50,
       backgroundColor: "transparent",
       slideTypeId: 4,
       config: config,

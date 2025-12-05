@@ -319,10 +319,6 @@ export const KmdForeningsportalenSlideType = {
     const defaults = SlideTypeUtils.getDefaultSlideSettings();
 
     return {
-      gridWidth: defaults.gridWidth,
-      gridHeight: defaults.gridHeight,
-      gridX: defaults.gridX,
-      gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
       slideTypeId: 9,
       config: config,

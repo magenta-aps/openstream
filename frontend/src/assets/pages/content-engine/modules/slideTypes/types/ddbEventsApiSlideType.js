@@ -2102,10 +2102,6 @@ export const DdbEventsApiSlideType = {
     const defaults = SlideTypeUtils.getDefaultSlideSettings();
 
     return {
-      gridWidth: defaults.gridWidth,
-      gridHeight: defaults.gridHeight,
-      gridX: defaults.gridX,
-      gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
       slideTypeId: 1,
       config: {

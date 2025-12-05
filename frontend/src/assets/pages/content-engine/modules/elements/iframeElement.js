@@ -61,17 +61,39 @@ export function addIframe(html, newElementOverrides = {}) {
     pushCurrentSlideState();
 
     const newId = store.elementIdCounter++;
+    
+    // Determine integration type from integrationName for sizing
+    let integrationType = null;
+    if (newElementOverrides.integrationName) {
+      // Map integration names to type keys
+      const integrationMap = {
+        'Clock': 'clock',
+        'Newsfeed with Image': 'newsfeed',
+        'Newsticker': 'newsticker',
+        'KMD - Foreningsportalen': 'kmd',
+        'SpeedAdmin': 'speedadmin',
+        'Dreambroker': 'dreambroker',
+        'DR Streams': 'drstreams',
+        'Winkas': 'winkas',
+        'DDB Events API': 'ddb-events',
+        'Frontdesk/LTK Borgerservice': 'frontdesk',
+      };
+      integrationType = integrationMap[newElementOverrides.integrationName];
+    }
+    
+    const defaultSize = GridUtils.getDefaultElementSize('medium', integrationType);
+    const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
 
     const newElement = {
       id: newId,
       type: "iframe",
       content: newElementOverrides.html ?? html,
       gridX:
-        newElementOverrides.gridX ?? GridUtils.getCenteredPosition(100, 100).x,
+        newElementOverrides.gridX ?? (defaultSize.x ?? centeredPos.x),
       gridY:
-        newElementOverrides.gridY ?? GridUtils.getCenteredPosition(100, 100).y,
-      gridWidth: newElementOverrides.gridWidth ?? 100,
-      gridHeight: newElementOverrides.gridHeight ?? 100,
+        newElementOverrides.gridY ?? (defaultSize.y ?? centeredPos.y),
+      gridWidth: newElementOverrides.gridWidth ?? defaultSize.width,
+      gridHeight: newElementOverrides.gridHeight ?? defaultSize.height,
       backgroundColor: newElementOverrides.backgroundColor ?? "transparent",
       zIndex: getNewZIndex(),
       isDynamic: true,

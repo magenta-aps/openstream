@@ -16,13 +16,15 @@ export function addBoxElement() {
   if (store.currentSlideIndex === -1) return;
   pushCurrentSlideState();
 
+  const defaultSize = GridUtils.getDefaultElementSize('medium');
+  const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
   const newBox = {
     id: store.elementIdCounter++,
     type: "box",
-    gridX: GridUtils.getCenteredPosition(100, 100).x,
-    gridY: GridUtils.getCenteredPosition(100, 100).y,
-    gridWidth: 100,
-    gridHeight: 100,
+    gridX: defaultSize.x ?? centeredPos.x,
+    gridY: defaultSize.y ?? centeredPos.y,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     backgroundColor: "#000000",
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,

@@ -1142,16 +1142,17 @@ function addTiptapTextboxToSlide() {
   pushCurrentSlideState();
   const defaultFontSizeKey = DEFAULT_FONT_SIZE_KEY;
   const defaultFontFamily = getDefaultFont();
+  const defaultSize = GridUtils.getDefaultElementSize('textbox');
 
   const newTextbox = {
     id: store.elementIdCounter++,
     type: "tiptap-textbox",
     tiptapContent: DEFAULT_TEXT_HTML,
     text: DEFAULT_TEXT_HTML,
-    gridX: 10,
-    gridY: 10,
-    gridWidth: 110,
-    gridHeight: 35,
+    gridX: defaultSize.x ?? 10,
+    gridY: defaultSize.y ?? 10,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     border: false,
     backgroundColor: "transparent",
     fontFamily: defaultFontFamily,
