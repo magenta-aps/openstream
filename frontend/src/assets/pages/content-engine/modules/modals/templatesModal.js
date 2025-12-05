@@ -24,6 +24,7 @@ import {
   getAspectRatioDefinition,
   getAspectRatiosByOrientation,
   getResolutionForAspectRatio,
+  getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
 
 const modalEl = document.getElementById("saveAsTemplateModal");
@@ -259,7 +260,18 @@ function setTemplateAspectRatioDisabled(disabled) {
 renderTemplateAspectRatioOptions();
 
 function isAspectRatioLocked() {
-  return queryParams.mode === "suborg_templates" || queryParams.mode === "template_editor";
+  // Lock aspect ratio when EDITING existing templates (not when creating new ones)
+  // For suborg templates, always lock (both creating and editing)
+  if (queryParams.mode === "suborg_templates") {
+    return true;
+  }
+  
+  // For global templates, only lock when editing an existing template
+  if (queryParams.mode === "template_editor") {
+    return store.editingTemplateId !== null;
+  }
+  
+  return false;
 }
 
 function getAspectRatioForIndex(index = null) {
@@ -678,6 +690,12 @@ if (confirmBtn) {
             backgroundColor: "#ffffff",
             name: name, // Default name for blank slide
             duration: 5, // Default duration
+            savedSnapSettings: {
+              unit: "cells",
+              amount: getDefaultCellSnapForResolution(store.emulatedWidth, store.emulatedHeight) || 1,
+              isAuto: true,
+              snapEnabled: false,
+            },
           }
         : {
             ...structuredClone(store.slides[store.currentTemplateSlideIndex]),

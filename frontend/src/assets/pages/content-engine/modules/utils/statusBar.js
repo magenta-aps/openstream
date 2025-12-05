@@ -224,6 +224,40 @@ function createSnapControls(rightSection) {
     border-radius: 6px;
   `;
 
+  // Snap toggle button (on/off)
+  const snapToggleButton = document.createElement("button");
+  snapToggleButton.type = "button";
+  snapToggleButton.className = "snap-toggle-button";
+  snapToggleButton.title = gettext("Toggle Snap");
+  snapToggleButton.style.cssText = `
+    border: none;
+    background: var(--bs-primary);
+    color: var(--bs-white);
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  `;
+  
+  const snapToggleIcon = document.createElement("i");
+  snapToggleIcon.className = "material-symbols-outlined";
+  snapToggleIcon.textContent = "grid_on";
+  snapToggleIcon.style.cssText = `
+    font-size: 14px;
+    font-variation-settings: 'FILL' 1;
+  `;
+  
+  snapToggleButton.appendChild(snapToggleIcon);
+  
+  snapToggleButton.addEventListener("click", () => {
+    toggleSnapEnabled();
+  });
+
   const snapLabel = document.createElement("span");
   snapLabel.textContent = gettext("Snap");
   snapLabel.style.fontWeight = "600";
@@ -346,6 +380,7 @@ function createSnapControls(rightSection) {
     setSnapSettings({ amount: sanitized });
   });
 
+  snapControlsContainer.appendChild(snapToggleButton);
   snapControlsContainer.appendChild(snapLabel);
   snapControlsContainer.appendChild(snapModeToggle);
   snapControlsContainer.appendChild(snapAmountGroup);
@@ -464,8 +499,48 @@ function sanitizeSnapAmount(value) {
   return parsed;
 }
 
+function toggleSnapEnabled() {
+  if (!store.dragSnapSettings) {
+    getCurrentSnapSettings();
+  }
+  
+  const wasEnabled = store.dragSnapSettings.snapEnabled !== false;
+  
+  if (wasEnabled) {
+    // Turning snap OFF - save current settings and set to 1 cell
+    store.dragSnapSettings.savedUnit = store.dragSnapSettings.unit;
+    store.dragSnapSettings.savedAmount = store.dragSnapSettings.amount;
+    store.dragSnapSettings.snapEnabled = false;
+    store.dragSnapSettings.amount = 1;
+  } else {
+    // Turning snap ON - restore previous settings
+    store.dragSnapSettings.snapEnabled = true;
+    if (store.dragSnapSettings.savedUnit) {
+      store.dragSnapSettings.unit = store.dragSnapSettings.savedUnit;
+    }
+    if (store.dragSnapSettings.savedAmount) {
+      store.dragSnapSettings.amount = store.dragSnapSettings.savedAmount;
+    }
+  }
+  
+  // Save to current slide
+  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
+    const currentSlide = store.slides[store.currentSlideIndex];
+    currentSlide.savedSnapSettings = {
+      unit: store.dragSnapSettings.unit,
+      amount: store.dragSnapSettings.amount,
+      isAuto: store.dragSnapSettings.isAuto,
+      snapEnabled: store.dragSnapSettings.snapEnabled,
+      savedUnit: store.dragSnapSettings.savedUnit,
+      savedAmount: store.dragSnapSettings.savedAmount,
+    };
+  }
+  
+  updateSnapControlsUI();
+}
+
 function getCurrentSnapSettings() {
-  const defaults = { unit: "cells", amount: 1 };
+  const defaults = { unit: "cells", amount: 1, snapEnabled: true };
   const columns = GRID_CONFIG.COLUMNS;
   const rows = GRID_CONFIG.ROWS;
   const defaultSnap =
@@ -477,6 +552,7 @@ function getCurrentSnapSettings() {
       unit: defaults.unit,
       amount: defaultSnap,
       isAuto: true,
+      snapEnabled: true,
       appliedGridSignature: signature,
     };
   } else if (
@@ -489,6 +565,14 @@ function getCurrentSnapSettings() {
       amount: defaultSnap,
       isAuto: true,
       appliedGridSignature: signature,
+    };
+  }
+  
+  // If snap is disabled, always return 1 cell
+  if (store.dragSnapSettings.snapEnabled === false) {
+    return {
+      unit: "cells",
+      amount: 1,
     };
   }
 
@@ -512,18 +596,65 @@ function setSnapSettings(partial = {}) {
   next.amount = normalizeSnapAmount(next.unit, sanitizeSnapAmount(rawAmount));
   next.isAuto = false;
   next.appliedGridSignature = getGridSignature();
+  
+  // Preserve snapEnabled state and saved values
+  if (store.dragSnapSettings) {
+    next.snapEnabled = store.dragSnapSettings.snapEnabled;
+    next.savedUnit = store.dragSnapSettings.savedUnit;
+    next.savedAmount = store.dragSnapSettings.savedAmount;
+  }
 
   store.dragSnapSettings = next;
+
+  // Save snap settings to current slide
+  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
+    const currentSlide = store.slides[store.currentSlideIndex];
+    currentSlide.savedSnapSettings = {
+      unit: next.unit,
+      amount: next.amount,
+      isAuto: next.isAuto,
+      snapEnabled: next.snapEnabled,
+      savedUnit: next.savedUnit,
+      savedAmount: next.savedAmount,
+    };
+  }
+
   updateSnapAmountOptions(GRID_CONFIG.COLUMNS, GRID_CONFIG.ROWS, next);
   updateSnapControlsUI();
 }
 
-function updateSnapControlsUI() {
+export function updateSnapControlsUI() {
   if (!snapControlsContainer) {
     return;
   }
+  
+  const snapEnabled = store.dragSnapSettings?.snapEnabled !== false;
   const settings = getCurrentSnapSettings();
   const isDivision = settings.unit === "division";
+  
+  // Update toggle button appearance
+  const toggleButton = snapControlsContainer.querySelector(".snap-toggle-button");
+  const toggleIcon = toggleButton?.querySelector(".material-symbols-outlined");
+  if (toggleButton) {
+    toggleButton.style.background = snapEnabled ? "var(--bs-primary)" : "var(--bs-darker-gray)";
+    toggleButton.title = snapEnabled ? gettext("Snap: On") : gettext("Snap: Off");
+    if (toggleIcon) {
+      toggleIcon.textContent = snapEnabled ? "grid_on" : "grid_off";
+    }
+  }
+  
+  // Disable/enable other controls based on snap state
+  const modeToggle = snapControlsContainer.querySelector(".snap-mode-toggle");
+  const amountGroup = snapControlsContainer.querySelector(".snap-amount-group");
+  
+  if (modeToggle) {
+    modeToggle.style.opacity = snapEnabled ? "1" : "0.5";
+    modeToggle.style.pointerEvents = snapEnabled ? "" : "none";
+  }
+  if (amountGroup) {
+    amountGroup.style.opacity = snapEnabled ? "1" : "0.5";
+    amountGroup.style.pointerEvents = snapEnabled ? "" : "none";
+  }
 
   if (snapAmountSelect && !isDivision) {
     snapAmountSelect.value = settings.amount.toString();

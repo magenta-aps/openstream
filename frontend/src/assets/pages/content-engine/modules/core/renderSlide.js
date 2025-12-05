@@ -49,6 +49,7 @@ import {
 } from "../utils/zoomController.js";
 import { gettext } from "../../../../utils/locales.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
+import { updateSnapControlsUI } from "../utils/statusBar.js";
 
 export function loadSlide(
   slide,
@@ -56,7 +57,40 @@ export function loadSlide(
   completeReload = false,
   forceCompleteReload = false,
 ) {
+  // Save current snap settings to the slide we're switching FROM
+  // Use lastSlideIndex if available, otherwise use currentSlideIndex
+  const previousSlideIndex = store.lastSlideIndex !== null && store.lastSlideIndex !== undefined 
+    ? store.lastSlideIndex 
+    : store.currentSlideIndex;
+    
+  if (previousSlideIndex > -1 && store.slides[previousSlideIndex]) {
+    const previousSlide = store.slides[previousSlideIndex];
+    if (store.dragSnapSettings) {
+      previousSlide.savedSnapSettings = {
+        unit: store.dragSnapSettings.unit,
+        amount: store.dragSnapSettings.amount,
+        isAuto: store.dragSnapSettings.isAuto || false,
+        snapEnabled: store.dragSnapSettings.snapEnabled !== false,
+        savedUnit: store.dragSnapSettings.savedUnit,
+        savedAmount: store.dragSnapSettings.savedAmount,
+      };
+    }
+  }
+
   syncGridToCurrentSlide(slide);
+
+  // Restore snap settings from the slide being loaded
+  if (slide && slide.savedSnapSettings) {
+    store.dragSnapSettings = {
+      ...slide.savedSnapSettings,
+      appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
+      snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
+      savedUnit: slide.savedSnapSettings.savedUnit,
+      savedAmount: slide.savedSnapSettings.savedAmount,
+    };
+    // Update the UI to reflect the restored settings
+    updateSnapControlsUI();
+  }
   // Sanitize all slides to ensure unique IDs and correct indices
   const slideIdSet = new Set();
   const elementIdSet = new Set();

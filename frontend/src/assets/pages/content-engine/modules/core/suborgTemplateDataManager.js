@@ -26,6 +26,7 @@ import { gettext } from "../../../../utils/locales.js";
 import {
   DEFAULT_ASPECT_RATIO,
   getResolutionForAspectRatio,
+  getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
@@ -291,6 +292,20 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
             }
           }
         });
+
+        // Ensure savedSnapSettings exists (inherit from parent or use defaults)
+        if (!slideObject.savedSnapSettings) {
+          const defaultSnapAmount = getDefaultCellSnapForResolution(
+            store.emulatedWidth,
+            store.emulatedHeight
+          ) || 1;
+          slideObject.savedSnapSettings = {
+            unit: "cells",
+            amount: defaultSnapAmount,
+            isAuto: true,
+            snapEnabled: false,
+          };
+        }
 
         store.slides.push(slideObject);
       });

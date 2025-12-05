@@ -322,14 +322,17 @@ export const GridUtils = {
    */
   formatGridInfoCompact(x, y, width, height) {
     const statusSegments = [];
-    statusSegments.push(
-      store.selectedElementData.isLocked
-        ? gettext("Locked")
-        : gettext("Unlocked"),
-    );
+    
+    if (store.selectedElementData) {
+      statusSegments.push(
+        store.selectedElementData.isLocked
+          ? gettext("Locked")
+          : gettext("Unlocked"),
+      );
 
-    if (store.selectedElementData.isPersistent) {
-      statusSegments.push(gettext("Persistent"));
+      if (store.selectedElementData.isPersistent) {
+        statusSegments.push(gettext("Persistent"));
+      }
     }
 
     statusSegments.push(`${gettext("Position")}: (${x + 1}, ${y + 1})`);

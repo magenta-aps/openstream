@@ -523,6 +523,15 @@ export function initAddSlide() {
         });
       }
 
+      // Set snap to disabled for new slides, but use default snap size for the resolution
+      const defaultSnapAmount = getDefaultCellSnapForResolution(store.emulatedWidth, store.emulatedHeight) || 1;
+      newSlide.savedSnapSettings = {
+        unit: "cells",
+        amount: defaultSnapAmount,
+        isAuto: true,
+        snapEnabled: false,
+      };
+
       store.slides.push(newSlide);
       store.currentSlideIndex = store.slides.length - 1;
       updateSlideSelector();

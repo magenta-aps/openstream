@@ -657,6 +657,8 @@ export function updateSlideSelector() {
         window.selectedElementForUpdate = null;
       }
 
+      // Track the previous slide index before switching
+      store.lastSlideIndex = store.currentSlideIndex;
       store.currentSlideIndex = index;
 
       // For template mode, set resolution based on template's aspect ratio
