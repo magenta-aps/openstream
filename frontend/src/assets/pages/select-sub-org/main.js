@@ -730,18 +730,20 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         selectBtn.className =
           "btn btn-tertiary btn-sm ms-2 d-flex align-items-center justify-content-center global-settings-btn";
 
-        filterVisibleBranches(suborg.branches).forEach((branch) => {
+        const visibleGlobalBranches = filterVisibleBranches(suborg.branches);
+        if (visibleGlobalBranches.length > 0) {
+          const globalBranch = visibleGlobalBranches[0];
+          // Skip dashboard redirect by linking straight to Global Settings page
           selectBtn.onclick = function () {
-            selectBranch(
-              branch.id,
-              branch.name,
-              suborg.id,
-              suborg.name,
-              suborg.organisation,
-              suborg.organisation_name,
-            );
+            window.location.href =
+              "/manage-fonts-and-color-scheme?orgId=" +
+              suborg.organisation +
+              "&suborgId=" +
+              suborg.id +
+              "&branchId=" +
+              globalBranch.id;
           };
-        });
+        }
         document.getElementById("admin-buttons").appendChild(selectBtn);
       } else {
         let templateBranchId = null;
