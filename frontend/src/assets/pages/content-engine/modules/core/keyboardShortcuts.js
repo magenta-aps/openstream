@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
-import { GRID_CONFIG, GridUtils } from "../config/gridConfig.js";
+import { GRID_CONFIG, GridUtils, getDragSnapSteps } from "../config/gridConfig.js";
 import { updateGridInfo, clearGridInfo } from "../utils/statusBar.js";
 import { isElementLocked } from "../element_formatting/lockElement.js";
 import { showToast } from "../../../../utils/utils.js";
@@ -18,6 +18,22 @@ function parseSpan(value, fallback = 1) {
   } catch (err) {
     return fallback;
   }
+}
+
+function getNextSnappedValue(current, direction, step) {
+  if (direction === 0) return current;
+  const normalizedStep = Math.max(1, Math.round(Number(step)) || 1);
+  if (normalizedStep <= 1) {
+    return current + direction;
+  }
+
+  if (direction > 0) {
+    const nextIndex = Math.ceil((current + 1) / normalizedStep);
+    return nextIndex * normalizedStep;
+  }
+
+  const prevIndex = Math.floor((current - 1) / normalizedStep);
+  return prevIndex * normalizedStep;
 }
 
 document.addEventListener("keydown", (e) => {
@@ -71,13 +87,17 @@ document.addEventListener("keydown", (e) => {
   let newH = currentHeight;
 
   const key = e.key; // ArrowLeft, ArrowRight, ArrowUp, ArrowDown
+  const { x: snapX, y: snapY } = getDragSnapSteps();
 
   if (e.shiftKey) {
+    const widthStep = snapX > 1 ? Math.max(1, Math.round(snapX)) : 1;
+    const heightStep = snapY > 1 ? Math.max(1, Math.round(snapY)) : 1;
+
     // Resize
-    if (key === "ArrowRight") newW = currentWidth + 1;
-    if (key === "ArrowLeft") newW = Math.max(1, currentWidth - 1);
-    if (key === "ArrowDown") newH = currentHeight + 1;
-    if (key === "ArrowUp") newH = Math.max(1, currentHeight - 1);
+    if (key === "ArrowRight") newW = currentWidth + widthStep;
+    if (key === "ArrowLeft") newW = Math.max(1, currentWidth - widthStep);
+    if (key === "ArrowDown") newH = currentHeight + heightStep;
+    if (key === "ArrowUp") newH = Math.max(1, currentHeight - heightStep);
 
     // Constrain size so element doesn't overflow grid at current position
     newW = Math.min(newW, GRID_CONFIG.COLUMNS - newX);
@@ -101,10 +121,15 @@ document.addEventListener("keydown", (e) => {
   }
 
   // Move
-  if (key === "ArrowRight") newX = currentX + 1;
-  if (key === "ArrowLeft") newX = currentX - 1;
-  if (key === "ArrowDown") newY = currentY + 1;
-  if (key === "ArrowUp") newY = currentY - 1;
+  const deltaX = key === "ArrowRight" ? 1 : key === "ArrowLeft" ? -1 : 0;
+  const deltaY = key === "ArrowDown" ? 1 : key === "ArrowUp" ? -1 : 0;
+
+  if (deltaX !== 0) {
+    newX = getNextSnappedValue(currentX, deltaX, snapX);
+  }
+  if (deltaY !== 0) {
+    newY = getNextSnappedValue(currentY, deltaY, snapY);
+  }
 
   // Constrain within grid
   const constrained = GridUtils.constrainPosition(
