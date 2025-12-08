@@ -5,9 +5,9 @@ import { loadSlide, scaleAllSlides } from "./renderSlide.js";
 import { updateSlideSelector } from "./slideSelector.js";
 import {
   autoHyphenate,
+  selectedBranchID,
   showToast,
   token,
-  selectedBranchID,
 } from "../../../../utils/utils.js";
 import { openAddSlideModal } from "./addSlide.js";
 import { BASE_URL } from "../../../../utils/constants.js";
@@ -17,6 +17,11 @@ import {
   suspendPersistedStateNotifications,
 } from "./persistedStateObserver.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
+import { registerFontsFromSlides } from "../utils/fontUtils.js";
+import {
+  SPECIAL_SAVE_ENABLED,
+  resolveSlidesForSpecialSave,
+} from "../utils/specialSaveUtils.js";
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 let autosaveDebounceHandle = null;
@@ -123,6 +128,8 @@ export async function fetchSlideshow(slideshowId) {
             }
           });
         });
+
+        await registerFontsFromSlides(store.slides);
 
         store.lastSlidesStr = JSON.stringify(store.slides);
         store.currentSlideIndex = 0;
@@ -260,10 +267,14 @@ async function runSlideshowAutoSave() {
 }
 
 export async function saveSlideshow(slideshowId) {
+  const slidesForPayload = SPECIAL_SAVE_ENABLED
+    ? await resolveSlidesForSpecialSave(store.slides)
+    : store.slides;
+
   const payload = {
     ...(store.emulatedHeight && { previewHeight: store.emulatedHeight }),
     ...(store.emulatedWidth && { previewWidth: store.emulatedWidth }),
-    slideshow_data: { slides: store.slides },
+    slideshow_data: { slides: slidesForPayload },
   };
 
   const url = `${BASE_URL}/api/manage_content/${slideshowId}/?branch_id=${selectedBranchID}`;

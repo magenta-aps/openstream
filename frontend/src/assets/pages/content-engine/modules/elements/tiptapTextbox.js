@@ -19,6 +19,7 @@ import {
   getAvailableFonts,
   getDefaultFont,
   getDefaultFonts,
+  getFontDisplayLabel,
 } from "../utils/fontUtils.js";
 import { gettext } from "../../../../utils/locales.js";
 import { getNewZIndex } from "../utils/domUtils.js";
@@ -483,7 +484,11 @@ function populateFontDropdown() {
   if (fontFamilySelect) {
     fontFamilySelect.innerHTML = "";
 
-    const availableFonts = getAvailableFonts();
+    const activeSlide =
+      store.currentSlideIndex > -1
+        ? store.slides[store.currentSlideIndex]
+        : null;
+    const availableFonts = getAvailableFonts({ slide: activeSlide });
     const defaultFonts = getDefaultFonts();
     const usingFallbackFonts = defaultFonts.length > 0;
 
@@ -500,7 +505,7 @@ function populateFontDropdown() {
       if (!font?.name) return;
       const option = document.createElement("option");
       option.value = font.name;
-      option.textContent = font.name;
+      option.textContent = getFontDisplayLabel(font) || font.name;
       option.style.fontFamily = `"${font.name}"`;
       option.title = font.name;
       fontFamilySelect.appendChild(option);
@@ -1178,6 +1183,15 @@ function addTiptapTextboxToSlide() {
 export function initTiptapTextbox() {
   applyToolbarFeatureVisibility();
   populateFontDropdown();
+
+  document.addEventListener(
+    "content-engine:fonts-changed",
+    populateFontDropdown,
+  );
+  document.addEventListener(
+    "content-engine:active-slide-changed",
+    populateFontDropdown,
+  );
 
   const addBtn = document.querySelector('[data-type="tiptap-textbox"]');
   addBtn?.addEventListener("click", addTiptapTextboxToSlide);

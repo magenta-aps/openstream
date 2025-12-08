@@ -11,12 +11,22 @@ import {
   getAvailableFonts,
   getDefaultFonts,
   getDefaultFont,
+  getFontDisplayLabel,
 } from "../utils/fontUtils.js";
 import { gettext } from "../../../../utils/locales.js";
 
 export function initTableElement() {
   initTableEventListeners();
   populateTableFontDropdowns();
+
+  document.addEventListener(
+    "content-engine:fonts-changed",
+    populateTableFontDropdowns,
+  );
+  document.addEventListener(
+    "content-engine:active-slide-changed",
+    populateTableFontDropdowns,
+  );
 }
 
 // Debounce timer for live table structure updates
@@ -1285,14 +1295,18 @@ function populateTableFontDropdowns() {
   });
 
   // Add fetched custom fonts
-  const availableFonts = getAvailableFonts();
+  const activeSlide =
+    store.currentSlideIndex > -1
+      ? store.slides[store.currentSlideIndex]
+      : null;
+  const availableFonts = getAvailableFonts({ slide: activeSlide });
   availableFonts.forEach((font) => {
     if (font.name) {
       // Add to header font dropdown
       if (headerFontFamilySelect) {
         const option = document.createElement("option");
         option.value = font.name;
-        option.textContent = font.name;
+        option.textContent = getFontDisplayLabel(font) || font.name;
         option.style.fontFamily = `'${font.name}'`;
         headerFontFamilySelect.appendChild(option);
       }
@@ -1301,7 +1315,7 @@ function populateTableFontDropdowns() {
       if (rowFontFamilySelect) {
         const option = document.createElement("option");
         option.value = font.name;
-        option.textContent = font.name;
+        option.textContent = getFontDisplayLabel(font) || font.name;
         option.style.fontFamily = `'${font.name}'`;
         rowFontFamilySelect.appendChild(option);
       }

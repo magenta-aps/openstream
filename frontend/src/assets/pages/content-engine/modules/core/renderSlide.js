@@ -364,6 +364,17 @@ export function loadSlide(
 
   store.lastSlideIndex = store.currentSlideIndex;
 
+  if (typeof document !== "undefined") {
+    document.dispatchEvent(
+      new CustomEvent("content-engine:active-slide-changed", {
+        detail: {
+          slideIndex: store.currentSlideIndex,
+          slideId: slide?.id ?? null,
+        },
+      }),
+    );
+  }
+
   // Add lock indicators to locked elements in template editor mode
   addLockIndicatorsToElements();
 }

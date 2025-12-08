@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
-import { getAvailableFonts, getDefaultFont } from "../utils/fontUtils.js";
+import {
+  getAvailableFonts,
+  getDefaultFont,
+  getFontDisplayLabel,
+} from "../utils/fontUtils.js";
 import { selectElement } from "../core/elementSelector.js";
 import { loadSlide } from "../core/renderSlide.js";
 import { store } from "../core/slideStore.js";
@@ -13,6 +17,15 @@ import { gettext } from "../../../../utils/locales.js";
 export function initListElement() {
   initListEventListeners();
   populateListFontDropdowns();
+
+  document.addEventListener(
+    "content-engine:fonts-changed",
+    populateListFontDropdowns,
+  );
+  document.addEventListener(
+    "content-engine:active-slide-changed",
+    populateListFontDropdowns,
+  );
 }
 
 // Debounce timer for live list updates
@@ -783,7 +796,11 @@ function populateListFontDropdowns() {
   });
 
   // Add custom fonts
-  const customFonts = getAvailableFonts();
+  const activeSlide =
+    store.currentSlideIndex > -1
+      ? store.slides[store.currentSlideIndex]
+      : null;
+  const customFonts = getAvailableFonts({ slide: activeSlide });
   if (customFonts && customFonts.length > 0) {
     const separator = document.createElement("option");
     separator.disabled = true;
@@ -793,7 +810,7 @@ function populateListFontDropdowns() {
     customFonts.forEach((font) => {
       const option = document.createElement("option");
       option.value = font.name;
-      option.textContent = font.name;
+      option.textContent = getFontDisplayLabel(font) || font.name;
       fontFamilySelect.appendChild(option);
     });
   }

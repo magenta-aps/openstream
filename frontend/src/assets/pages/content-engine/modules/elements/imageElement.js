@@ -17,6 +17,7 @@ import { openImageEditorForElement } from "../modals/imageEditorModal.js";
 import { GridUtils } from "../config/gridConfig.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
+import { isDirectImageUrl } from "../utils/specialSaveUtils.js";
 
 // Define image extensions list locally
 const imageExtensionsList = ["png", "jpeg", "jpg", "svg", "pdf", "webp"];
@@ -181,28 +182,32 @@ export function _renderImage(el, container) {
   }
 
   if (el.content) {
-    const apiKey = queryParams.apiKey;
+    if (isDirectImageUrl(el.content)) {
+      img.src = el.content;
+    } else {
+      const apiKey = queryParams.apiKey;
 
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) {
-      headers["X-API-KEY"] = apiKey;
-    } else if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      const headers = { "Content-Type": "application/json" };
+      if (apiKey) {
+        headers["X-API-KEY"] = apiKey;
+      } else if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      fetch(
+        `${BASE_URL}/api/documents/file-token/${el.content}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
+        { method: "GET", headers },
+      )
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.file_url) {
+            img.src = data.file_url;
+          } else {
+            console.error("Thumb: Failed to get image URL:", data);
+          }
+        })
+        .catch((err) => console.error("Thumb: Failed to load image:", err));
     }
-
-    fetch(
-      `${BASE_URL}/api/documents/file-token/${el.content}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
-      { method: "GET", headers },
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.file_url) {
-          img.src = data.file_url;
-        } else {
-          console.error("Thumb: Failed to get image URL:", data);
-        }
-      })
-      .catch((err) => console.error("Thumb: Failed to load image:", err));
   } else {
     console.warn("Image element has no content ID:", el.id);
   }

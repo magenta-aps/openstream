@@ -32,6 +32,7 @@ import {
   getDefaultSnapSettings,
 } from "../config/gridConfig.js";
 import { refreshTemplateFilterOptions } from "./templateFilterControls.js";
+import { registerFontsFromSlides } from "../utils/fontUtils.js";
 
 let suborgId = null;
 const parentSnapSettingsCache = new Map();
@@ -395,6 +396,8 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         store.slides.push(slideObject);
       }
     }
+
+    await registerFontsFromSlides(store.slides);
 
     if (store.slides.length === 0) {
       console.warn(

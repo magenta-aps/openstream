@@ -25,6 +25,11 @@ import {
 } from "../../../../utils/availableAspectRatios.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 import { refreshTemplateFilterOptions } from "./templateFilterControls.js";
+import { registerFontsFromSlides } from "../utils/fontUtils.js";
+import {
+  SPECIAL_SAVE_ENABLED,
+  resolveSingleSlideForSpecialSave,
+} from "../utils/specialSaveUtils.js";
 
 const TEMPLATE_AUTOSAVE_DEBOUNCE_MS = 1200;
 let templateAutosaveTimer = null;
@@ -230,6 +235,8 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
         });
       }
 
+      await registerFontsFromSlides(store.slides);
+
       // Try to preserve the selection of the specified template
       let targetSlideIndex = 0;
       if (templateIdToPreserve && store.slides.length > 0) {
@@ -308,7 +315,7 @@ export async function saveCurrentTemplateData() {
     return Promise.reject("Missing templateId");
   }
 
-  const slideDataToSave = { ...currentSlideObject };
+  let slideDataToSave = { ...currentSlideObject };
   delete slideDataToSave.templateId;
   delete slideDataToSave.templateOriginalName;
   delete slideDataToSave.previewWidth;
@@ -329,6 +336,10 @@ export async function saveCurrentTemplateData() {
     });
   }
 
+  if (SPECIAL_SAVE_ENABLED) {
+    slideDataToSave = await resolveSingleSlideForSpecialSave(slideDataToSave);
+  }
+
   // For suborg templates, use organisationId from slide object; otherwise use parentOrgID
   const orgId =
     currentSlideObject.isSuborgTemplate && currentSlideObject.organisationId
@@ -341,7 +352,7 @@ export async function saveCurrentTemplateData() {
     previewWidth: store.emulatedWidth,
     previewHeight: store.emulatedHeight,
     organisation_id: orgId,
-  aspect_ratio: currentSlideObject.aspect_ratio || DEFAULT_ASPECT_RATIO,
+    aspect_ratio: currentSlideObject.aspect_ratio || DEFAULT_ASPECT_RATIO,
   };
 
   // Use the correct endpoint based on whether it's a suborg template or global template
