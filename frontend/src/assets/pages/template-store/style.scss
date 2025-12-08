@@ -1,1 +1,143 @@
 @import "../../scss/main";
+
+// Template grid - flexible width based on aspect ratios
+[data-template-grid] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: center;
+
+  .col {
+    flex: 0 0 auto;
+  }
+}
+
+// Template cards - dimensions based on image aspect ratio
+.template-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .position-relative {
+    overflow: hidden;
+  }
+
+  .card-img-top {
+    object-fit: contain;
+    background-color: var(--bs-light);
+    display: block;
+    
+    // Dimensions based on aspect ratio
+    &[data-aspect="16:9"] {
+      width: 480px;
+      height: 270px;
+    }
+    
+    &[data-aspect="9:16"] {
+      width: 270px;
+      height: 480px;
+    }
+    
+    &[data-aspect="4:3"] {
+      width: 400px;
+      height: 300px;
+    }
+    
+    &[data-aspect="3:4"] {
+      width: 340px;
+      height: 453px;
+    }
+    
+    &[data-aspect="1:1"] {
+      width: 380px;
+      height: 380px;
+    }
+    
+    // Default fallback
+    width: 400px;
+    height: 300px;
+  }
+
+  .card-title {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+// Styling for a disabled aspect filter button
+[data-template-aspect-filter] {
+  .btn--disabled-aspect,
+  .btn:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+}
+
+  .card-body {
+    
+    // Dimensions based on aspect ratio
+    // Allow matching when the attribute is set on the element itself
+    &[data-aspect="16:9"],
+    // or when the attribute lives on the column ancestor
+    .col[data-aspect="16:9"] & {
+      width: 480px;
+    }
+
+    &[data-aspect="9:16"],
+    .col[data-aspect="9:16"] & {
+      width: 270px;
+    }
+
+    &[data-aspect="4:3"],
+    .col[data-aspect="4:3"] & {
+      width: 400px;
+    }
+
+    &[data-aspect="3:4"],
+    .col[data-aspect="3:4"] & {
+      width: 340px;
+    }
+
+    &[data-aspect="1:1"],
+    .col[data-aspect="1:1"] & {
+      width: 380px;
+    }
+  }
+
+  .badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .card-body {
+    height: 8rem; // Fixed footer height
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+}
+
+// Skeleton loading - simplified using placeholder utilities
+.template-card--skeleton {
+  pointer-events: none;
+  
+  .placeholder {
+    animation: shimmer 1.4s ease infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
