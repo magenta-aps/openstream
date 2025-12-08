@@ -1,0 +1,22 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/containers/html-container title="Template Store" script-src="/src/assets/pages/template-store/main.js" }}
+    {{> base/navbar/navbar_branch }}
+    {{#> base/containers/main-container }}
+
+        {{#> base/containers/sidebar-and-content-container pageTitle="Template Store" }}
+            <!-- Sidebar -->
+            {{#*inline "sidebarContent"}}
+                
+            {{/inline}}
+
+            <!-- Main Content Area -->
+            {{#*inline "mainContent"}}
+                <div class="p-3 d-flex flex-column h-100">
+                
+                </div>
+            {{/inline}}
+
+        {{/base/containers/sidebar-and-content-container}}
+    {{/base/containers/main-container}}
+{{/base/containers/html-container}}
