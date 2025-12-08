@@ -31,6 +31,7 @@ import {
   syncGridToCurrentSlide,
   getDefaultSnapSettings,
 } from "../config/gridConfig.js";
+import { refreshTemplateFilterOptions } from "./templateFilterControls.js";
 
 let suborgId = null;
 const parentSnapSettingsCache = new Map();
@@ -327,12 +328,18 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
           ? template.suborganisation.id
           : null;
 
+        const templateCategory = template.category || null;
         slideObject.categoryId =
           template.category_id ||
-          (template.category ? template.category.id : null);
-        slideObject.tagIds = template.tags
-          ? template.tags.map((tag) => tag.id)
+          (templateCategory ? templateCategory.id : null);
+        slideObject.categoryName = templateCategory
+          ? templateCategory.name
+          : null;
+        const templateTags = Array.isArray(template.tags)
+          ? template.tags
           : [];
+        slideObject.tagIds = templateTags.map((tag) => tag.id);
+        slideObject.tagNames = templateTags.map((tag) => tag.name || "");
 
         slideObject.previewWidth = template.previewWidth;
         slideObject.previewHeight = template.previewHeight;
@@ -411,6 +418,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
     store.currentSlideIndex = store.slides.length > 0 ? slideIdxToLoad : -1;
 
     updateSlideSelector();
+    refreshTemplateFilterOptions();
 
     if (store.currentSlideIndex !== -1) {
       const currentTemplateSlide = store.slides[store.currentSlideIndex];

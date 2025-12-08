@@ -84,6 +84,7 @@ import { syncGridConfigWithCSS } from "./modules/config/gridConfig.js";
 import { initStatusBar } from "./modules/utils/statusBar.js";
 import initSlideElementsSidebar from "./modules/core/slideElementsSidebar.js";
 import { initZoomController } from "./modules/utils/zoomController.js";
+import { initTemplateFilterControls } from "./modules/core/templateFilterControls.js";
 import * as bootstrap from "bootstrap";
 
 await Promise.all([fetchAndInitializeFonts(), fetchTextFormattingSettings()]);
@@ -207,6 +208,7 @@ if (queryParams.mode === "template_editor") {
     initCommonEditorFeatures();
     // init slide elements sidebar UI
     initSlideElementsSidebar();
+    initTemplateFilterControls();
     const playBtn = document.getElementById("playBtn");
     if (playBtn) {
       playBtn.style.display = "none";
@@ -318,6 +320,7 @@ if (queryParams.mode === "suborg_templates") {
     // Then initialize common editor features
     initCommonEditorFeatures();
     initSlideElementsSidebar();
+    initTemplateFilterControls();
 
     // Hide unnecessary buttons
     const playBtn = document.getElementById("playBtn");

@@ -32,6 +32,12 @@ import {
 } from "./templateDataManager.js"; // Removed fetchAllOrgTemplatesAndPopulateStore, added initTemplateEditor
 import { gettext } from "../../../../utils/locales.js";
 import { getResolutionForAspectRatio } from "../../../../utils/availableAspectRatios.js";
+import {
+  applyTemplateFilters,
+  hasActiveTemplateFilters,
+  isTemplateFilteringEnabled,
+  resetTemplateFilters,
+} from "./templateFilterControls.js";
 
 let slideSortable; // Declare a variable to store the Sortable instance
 
@@ -192,12 +198,28 @@ function createSlideContextMenu(e, slideIndex) {
 
 export function updateSlideSelector() {
   const slideSelector = document.querySelector(".slide-selector");
+  if (!slideSelector) {
+    return;
+  }
   slideSelector.innerHTML = "";
 
-  store.slides.forEach((slide, index) => {
+  const templateFilterMode = isTemplateFilteringEnabled();
+  let slidesToRender = store.slides.map((slide, index) => ({ slide, index }));
+
+  if (templateFilterMode) {
+    slidesToRender = applyTemplateFilters(slidesToRender);
+  }
+
+  if (slidesToRender.length === 0) {
+    renderEmptyTemplateState(slideSelector, templateFilterMode);
+    destroySortableInstance();
+    return;
+  }
+
+  slidesToRender.forEach(({ slide, index: storeIndex }, renderIndex) => {
     const slideItem = document.createElement("div");
     slideItem.classList.add("slide-item");
-    slideItem.dataset.index = index;
+    slideItem.dataset.index = storeIndex;
 
     let isActive = true;
     let generalIndicatorClass = ""; // For the button
@@ -252,13 +274,13 @@ export function updateSlideSelector() {
       generalIndicatorClass = "btn-secondary"; // Default when feature is OFF
     }
 
-    if (index === store.currentSlideIndex) {
+    if (storeIndex === store.currentSlideIndex) {
       slideItem.classList.add("active");
     }
 
     const slideNumber = document.createElement("div");
     slideNumber.classList.add("slide-number");
-    slideNumber.textContent = index + 1;
+    slideNumber.textContent = renderIndex + 1;
 
     const slidePreview = document.createElement("div");
     slidePreview.classList.add("slide-preview");
@@ -478,7 +500,7 @@ export function updateSlideSelector() {
     calendarButton.addEventListener("click", (e) => {
       e.stopPropagation(); // Prevent slide selection
       // Assuming openActivationModal is globally available or imported
-      openActivationModal(index);
+      openActivationModal(storeIndex);
     });
 
     if (
@@ -495,7 +517,7 @@ export function updateSlideSelector() {
       '<i class="material-symbols-outlined" style="vertical-align:middle;">share</i>';
     saveAsTemplateBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      openSaveAsTemplateModal(index);
+      openSaveAsTemplateModal(storeIndex);
     });
 
     if (
@@ -506,7 +528,7 @@ export function updateSlideSelector() {
         '<i class="material-symbols-outlined" style="vertical-align:middle;">content_copy</i>';
       saveAsTemplateBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        openSaveAsTemplateModal(index);
+        openSaveAsTemplateModal(storeIndex);
       });
     }
 
@@ -536,7 +558,7 @@ export function updateSlideSelector() {
         editTemplateMetadataBtn.title = gettext("Edit Template Details");
         editTemplateMetadataBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          openEditTemplateMetadataModal(index);
+          openEditTemplateMetadataModal(storeIndex);
         });
         slideDetailsButtons.appendChild(editTemplateMetadataBtn);
       }
@@ -559,7 +581,7 @@ export function updateSlideSelector() {
         deleteTemplateBtn.addEventListener("click", async (e) => {
           // Added event arg e
           e.stopPropagation(); // Prevent slide selection
-          const currentSlide = store.slides[index];
+          const currentSlide = store.slides[storeIndex];
           if (!currentSlide || !currentSlide.templateId) {
             showToast(
               gettext("Error: Cannot delete template. Template ID is missing."),
@@ -647,7 +669,7 @@ export function updateSlideSelector() {
         }
       }
       // Only deselect elements if we're changing to a different slide
-      if (store.currentSlideIndex !== index) {
+      if (store.currentSlideIndex !== storeIndex) {
         // Deselect any currently selected elements
         hideElementToolbars();
         hideResizeHandles();
@@ -659,7 +681,7 @@ export function updateSlideSelector() {
 
       // Track the previous slide index before switching
       store.lastSlideIndex = store.currentSlideIndex;
-      store.currentSlideIndex = index;
+      store.currentSlideIndex = storeIndex;
 
       // For template mode, set resolution based on template's aspect ratio
       if (
@@ -678,38 +700,41 @@ export function updateSlideSelector() {
     // Add context menu event listener
     slideItem.addEventListener("contextmenu", (e) => {
       e.preventDefault();
-      createSlideContextMenu(e, index);
+      createSlideContextMenu(e, storeIndex);
     });
 
     slideSelector.appendChild(slideItem);
   });
 
-  // Initialize Sortable.js after populating the slide selector
-  if (slideSortable) {
-    slideSortable.destroy(); // Destroy previous instance if it exists
+  if (!templateFilterMode) {
+    if (slideSortable) {
+      slideSortable.destroy();
+    }
+
+    slideSortable = new Sortable(slideSelector, {
+      animation: 150, // Animation speed in ms
+      ghostClass: "sortable-ghost", // Class name for the drop placeholder
+      chosenClass: "sortable-chosen", // Class name for the chosen item
+      dragClass: "sortable-drag", // Class name for the dragged item
+      handle: ".slide-item", // Drag handle selector within list items
+      filter: "input, button, select, textarea", // Prevent dragging when interacting with form elements
+      preventOnFilter: false, // Allow default behavior on filtered elements
+      onEnd: function (evt) {
+        // Update the store when drag ends
+        const fromIndex = evt.oldIndex;
+        const toIndex = evt.newIndex;
+
+        if (fromIndex !== toIndex) {
+          reorderSlides(fromIndex, toIndex);
+        }
+      },
+    });
+
+    // Update slide numbers after reordering
+    updateSlideNumbers();
+  } else {
+    destroySortableInstance();
   }
-
-  slideSortable = new Sortable(slideSelector, {
-    animation: 150, // Animation speed in ms
-    ghostClass: "sortable-ghost", // Class name for the drop placeholder
-    chosenClass: "sortable-chosen", // Class name for the chosen item
-    dragClass: "sortable-drag", // Class name for the dragged item
-    handle: ".slide-item", // Drag handle selector within list items
-    filter: "input, button, select, textarea", // Prevent dragging when interacting with form elements
-    preventOnFilter: false, // Allow default behavior on filtered elements
-    onEnd: function (evt) {
-      // Update the store when drag ends
-      const fromIndex = evt.oldIndex;
-      const toIndex = evt.newIndex;
-
-      if (fromIndex !== toIndex) {
-        reorderSlides(fromIndex, toIndex);
-      }
-    },
-  });
-
-  // Update slide numbers after reordering
-  updateSlideNumbers();
 
   // Initialize tooltips for newly created elements
   setTimeout(() => {
@@ -745,6 +770,40 @@ export function updateSlideSelector() {
   }
 }
 
+function renderEmptyTemplateState(container, templateFilterMode) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "template-filter-empty";
+
+  if (templateFilterMode && store.slides.length > 0) {
+    const message = document.createElement("p");
+    message.className = "mb-2";
+    message.textContent = gettext("No templates match your filters.");
+    wrapper.appendChild(message);
+
+    if (hasActiveTemplateFilters()) {
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.className = "btn btn-sm btn-outline-secondary";
+      resetButton.textContent = gettext("Clear filters");
+      resetButton.addEventListener("click", () => {
+        resetTemplateFilters();
+      });
+      wrapper.appendChild(resetButton);
+    }
+  } else {
+    wrapper.textContent = gettext("No slides available.");
+  }
+
+  container.appendChild(wrapper);
+}
+
+function destroySortableInstance() {
+  if (slideSortable) {
+    slideSortable.destroy();
+    slideSortable = null;
+  }
+}
+
 // Add a helper function to update slide numbers
 function updateSlideNumbers() {
   const slideItems = document.querySelectorAll(".slide-item");
@@ -756,6 +815,10 @@ function updateSlideNumbers() {
     item.dataset.index = index;
   });
 }
+
+document.addEventListener("os:templateFiltersChanged", () => {
+  updateSlideSelector();
+});
 
 export function reorderSlides(fromIndex, toIndex) {
   const movedSlide = store.slides.splice(fromIndex, 1)[0];

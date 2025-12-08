@@ -24,6 +24,7 @@ import {
   getResolutionForAspectRatio,
 } from "../../../../utils/availableAspectRatios.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
+import { refreshTemplateFilterOptions } from "./templateFilterControls.js";
 
 const TEMPLATE_AUTOSAVE_DEBOUNCE_MS = 1200;
 let templateAutosaveTimer = null;
@@ -161,12 +162,19 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
           slideObject.aspect_ratio =
             template.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
+          const templateCategory = template.category || null;
           slideObject.categoryId =
             template.category_id ||
-            (template.category ? template.category.id : null);
-          slideObject.tagIds = template.tags
-            ? template.tags.map((tag) => tag.id)
+            (templateCategory ? templateCategory.id : null);
+          slideObject.categoryName = templateCategory
+            ? templateCategory.name
+            : null;
+
+          const templateTags = Array.isArray(template.tags)
+            ? template.tags
             : [];
+          slideObject.tagIds = templateTags.map((tag) => tag.id);
+          slideObject.tagNames = templateTags.map((tag) => tag.name || "");
 
           slideObject.previewWidth = template.previewWidth;
           slideObject.previewHeight = template.previewHeight;
@@ -235,6 +243,7 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
 
       store.currentSlideIndex = store.slides.length > 0 ? targetSlideIndex : -1;
       updateSlideSelector();
+      refreshTemplateFilterOptions();
 
       if (store.currentSlideIndex !== -1) {
         const currentTemplateSlide = store.slides[store.currentSlideIndex];
