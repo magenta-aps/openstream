@@ -701,6 +701,12 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
   if (existingGlobalButton) {
     existingGlobalButton.remove();
   }
+  const existingGlobalTemplatesButton = document.querySelector(
+    ".global-templates-btn",
+  );
+  if (existingGlobalTemplatesButton) {
+    existingGlobalTemplatesButton.remove();
+  }
 
   let nrOfSubOrgs = null;
 
@@ -745,6 +751,24 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
           };
         }
         document.getElementById("admin-buttons").appendChild(selectBtn);
+      } else if (suborg.name === "global_templates") {
+        const globalTemplatesBranch = suborg.branches?.find(
+          (branch) => branch.name === "global_templates",
+        );
+        if (globalTemplatesBranch) {
+          const globalTemplatesBtn = document.createElement("button");
+          globalTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">dashboard_customize</span>&nbsp;${gettext(
+            "Global Templates",
+          )}`;
+          globalTemplatesBtn.className =
+            "btn btn-tertiary btn-sm ms-2 d-flex align-items-center justify-content-center global-templates-btn";
+          globalTemplatesBtn.onclick = function () {
+            window.location.href = `/global-templates?mode=template_editor&template_scope=global&special_save=true&orgId=${suborg.organisation}&suborgId=${suborg.id}&branchId=${globalTemplatesBranch.id}`;
+          };
+          document.getElementById("admin-buttons").appendChild(
+            globalTemplatesBtn,
+          );
+        }
       } else {
         let templateBranchId = null;
 
