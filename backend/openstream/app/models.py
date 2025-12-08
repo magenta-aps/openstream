@@ -1268,6 +1268,33 @@ class SlideTemplate(models.Model):
         return self.name
 
 
+class GlobalSlideTemplate(models.Model):
+    """Org-less template managed centrally by the application team."""
+
+    name = models.CharField(max_length=255)
+    slideData = models.JSONField(default=dict, blank=True, null=True)
+    thumbnail_url = models.URLField(max_length=500, blank=True, null=True)
+    previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
+    )
+    isLegacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class RegisteredSlideTypes(models.Model):
     """
     Represents registered slide types for an organisation.

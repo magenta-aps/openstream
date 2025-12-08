@@ -107,6 +107,144 @@ function updateAspectRatioDisplay() {
   }
 }
 
+export async function populateStoreFromTemplates({
+  templates = [],
+  templateIdToPreserve = null,
+  transformSlideObject = () => {},
+} = {}) {
+  const resumePersistedNotifications = suspendPersistedStateNotifications();
+  try {
+    store.slides.length = 0;
+    store.currentSlideIndex = -1;
+    store.lastSlideIndex = null;
+    store.activeSlideshowIsLegacy = false;
+    store.legacyGridEnabled = false;
+    ensureTemplateLegacyMap();
+    store.templateLegacyFlags.clear();
+
+    templates.forEach((template) => {
+      if (!template?.slideData) {
+        console.warn(
+          `Template ID ${template?.id} ('${template?.name}') is missing slideData. Skipping.`,
+        );
+        return;
+      }
+
+      store.templateLegacyFlags.set(
+        template.id,
+        Boolean(template.isLegacy),
+      );
+
+      const slideObject = JSON.parse(JSON.stringify(template.slideData));
+      slideObject.templateId = template.id;
+      slideObject.templateOriginalName = template.name;
+      slideObject.name = template.name;
+      slideObject.aspect_ratio =
+        template.aspect_ratio || DEFAULT_ASPECT_RATIO;
+
+      const templateCategory = template.category || null;
+      slideObject.categoryId =
+        template.category_id ||
+        (templateCategory ? templateCategory.id : null);
+      slideObject.categoryName = templateCategory
+        ? templateCategory.name
+        : null;
+
+      const templateTags = Array.isArray(template.tags) ? template.tags : [];
+      slideObject.tagIds = templateTags.map((tag) => tag.id);
+      slideObject.tagNames = templateTags.map((tag) => tag.name || "");
+
+      slideObject.previewWidth = template.previewWidth;
+      slideObject.previewHeight = template.previewHeight;
+
+      if (!slideObject.duration) slideObject.duration = 5;
+      if (!slideObject.elements) slideObject.elements = [];
+      if (!slideObject.undoStack) slideObject.undoStack = [];
+      if (!slideObject.redoStack) slideObject.redoStack = [];
+      if (typeof slideObject.activationEnabled === "undefined")
+        slideObject.activationEnabled = false;
+      if (typeof slideObject.activationDate === "undefined")
+        slideObject.activationDate = null;
+      if (typeof slideObject.deactivationDate === "undefined")
+        slideObject.deactivationDate = null;
+
+      slideObject.elements.forEach((element) => {
+        if (element.id === undefined) {
+          element.id = store.elementIdCounter++;
+        } else if (element.id >= store.elementIdCounter) {
+          store.elementIdCounter = element.id + 1;
+        }
+
+        if (typeof element.isLocked === "undefined") {
+          element.isLocked = false;
+        }
+
+        if (element.type === "html" && element.content) {
+          try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(element.content, "text/html");
+            element.html = doc.body.innerHTML.trim();
+            const styleEl = doc.querySelector("style");
+            element.css = styleEl ? styleEl.textContent : "";
+            const scriptEl = doc.querySelector("script");
+            element.js = scriptEl ? scriptEl.textContent : "";
+          } catch (e) {
+            console.error(
+              "Failed to parse HTML element content for template's slide",
+              e,
+            );
+            element.html = element.html || "";
+            element.css = element.css || "";
+            element.js = element.js || "";
+          }
+        }
+      });
+
+      transformSlideObject(slideObject, template);
+      store.slides.push(slideObject);
+    });
+
+    await registerFontsFromSlides(store.slides);
+
+    let targetSlideIndex = 0;
+    if (templateIdToPreserve && store.slides.length > 0) {
+      const foundIndex = store.slides.findIndex(
+        (slide) => slide.templateId === templateIdToPreserve,
+      );
+      if (foundIndex !== -1) {
+        targetSlideIndex = foundIndex;
+      }
+    }
+
+    store.currentSlideIndex = store.slides.length > 0 ? targetSlideIndex : -1;
+    updateSlideSelector();
+    refreshTemplateFilterOptions();
+
+    if (store.currentSlideIndex !== -1) {
+      const currentTemplateSlide = store.slides[store.currentSlideIndex];
+      const aspectRatio =
+        currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
+      setResolutionFromAspectRatio(aspectRatio);
+
+      if (!store.emulatedWidth || !store.emulatedHeight) {
+        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
+        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+        syncGridToCurrentSlide(currentTemplateSlide);
+      }
+
+      syncGridToCurrentSlide(currentTemplateSlide);
+      loadSlide(currentTemplateSlide);
+      scaleAllSlides();
+      initTemplateAutoSave();
+      lastStoredSingleSlideStr = JSON.stringify(currentTemplateSlide);
+    }
+  } finally {
+    resumePersistedNotifications();
+  }
+
+  return true;
+}
+
 export async function fetchAllOrgTemplatesAndPopulateStore(
   templateIdToPreserve = null,
 ) {
@@ -118,6 +256,8 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
     console.error("fetchAllOrgTemplates: Organisation ID is missing.");
     return false;
   }
+
+  store.globalTemplateContext = false;
 
   try {
     const resp = await fetch(
@@ -137,145 +277,14 @@ export async function fetchAllOrgTemplatesAndPopulateStore(
       );
     }
     const fetchedTemplates = await resp.json();
-    const resumePersistedNotifications = suspendPersistedStateNotifications();
-    try {
-      store.slides.length = 0;
-      store.currentSlideIndex = -1;
-      store.lastSlideIndex = null;
-      store.activeSlideshowIsLegacy = false;
-      store.legacyGridEnabled = false;
-      ensureTemplateLegacyMap();
-      store.templateLegacyFlags.clear();
-
-      if (fetchedTemplates && fetchedTemplates.length > 0) {
-        fetchedTemplates.forEach((template) => {
-          if (!template.slideData) {
-            console.warn(
-              `Template ID ${template.id} ('${template.name}') is missing slideData. Skipping.`,
-            );
-            return;
-          }
-          store.templateLegacyFlags.set(
-            template.id,
-            Boolean(template.isLegacy),
-          );
-          const slideObject = JSON.parse(JSON.stringify(template.slideData));
-
-          slideObject.templateId = template.id;
-          slideObject.templateOriginalName = template.name;
-          slideObject.name = template.name;
-          slideObject.aspect_ratio =
-            template.aspect_ratio || DEFAULT_ASPECT_RATIO;
-
-          const templateCategory = template.category || null;
-          slideObject.categoryId =
-            template.category_id ||
-            (templateCategory ? templateCategory.id : null);
-          slideObject.categoryName = templateCategory
-            ? templateCategory.name
-            : null;
-
-          const templateTags = Array.isArray(template.tags)
-            ? template.tags
-            : [];
-          slideObject.tagIds = templateTags.map((tag) => tag.id);
-          slideObject.tagNames = templateTags.map((tag) => tag.name || "");
-
-          slideObject.previewWidth = template.previewWidth;
-          slideObject.previewHeight = template.previewHeight;
-
-          if (!slideObject.duration) slideObject.duration = 5;
-          if (!slideObject.elements) slideObject.elements = [];
-          if (!slideObject.undoStack) slideObject.undoStack = [];
-          if (!slideObject.redoStack) slideObject.redoStack = [];
-          if (typeof slideObject.activationEnabled === "undefined")
-            slideObject.activationEnabled = false;
-          if (typeof slideObject.activationDate === "undefined")
-            slideObject.activationDate = null;
-          if (typeof slideObject.deactivationDate === "undefined")
-            slideObject.deactivationDate = null;
-
-          slideObject.elements.forEach((element) => {
-            if (element.id === undefined) {
-              element.id = store.elementIdCounter++;
-            } else if (element.id >= store.elementIdCounter) {
-              store.elementIdCounter = element.id + 1;
-            }
-
-            // Ensure lock state is properly initialized
-            if (typeof element.isLocked === "undefined") {
-              element.isLocked = false;
-            }
-
-            if (element.type === "html" && element.content) {
-              try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(
-                  element.content,
-                  "text/html",
-                );
-                element.html = doc.body.innerHTML.trim();
-                const styleEl = doc.querySelector("style");
-                element.css = styleEl ? styleEl.textContent : "";
-                const scriptEl = doc.querySelector("script");
-                element.js = scriptEl ? scriptEl.textContent : "";
-              } catch (e) {
-                console.error(
-                  "Failed to parse HTML element content for template's slide",
-                  e,
-                );
-                element.html = element.html || "";
-                element.css = element.css || "";
-                element.js = element.js || "";
-              }
-            }
-          });
-
-          store.slides.push(slideObject);
-        });
-      }
-
-      await registerFontsFromSlides(store.slides);
-
-      // Try to preserve the selection of the specified template
-      let targetSlideIndex = 0;
-      if (templateIdToPreserve && store.slides.length > 0) {
-        const foundIndex = store.slides.findIndex(
-          (slide) => slide.templateId === templateIdToPreserve,
-        );
-        if (foundIndex !== -1) {
-          targetSlideIndex = foundIndex;
-        }
-      }
-
-      store.currentSlideIndex = store.slides.length > 0 ? targetSlideIndex : -1;
-      updateSlideSelector();
-      refreshTemplateFilterOptions();
-
-      if (store.currentSlideIndex !== -1) {
-        const currentTemplateSlide = store.slides[store.currentSlideIndex];
-
-        // Set resolution based on template's aspect ratio
-        const aspectRatio =
-          currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
-        setResolutionFromAspectRatio(aspectRatio);
-
-        // Fallback to previewWidth/Height if needed
-        if (!store.emulatedWidth || !store.emulatedHeight) {
-          store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-          store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
-          syncGridToCurrentSlide(currentTemplateSlide);
-        }
-
-        syncGridToCurrentSlide(currentTemplateSlide);
-        loadSlide(currentTemplateSlide);
-        scaleAllSlides();
-        initTemplateAutoSave();
-        lastStoredSingleSlideStr = JSON.stringify(currentTemplateSlide);
-      }
-    } finally {
-      resumePersistedNotifications();
-    }
+    await populateStoreFromTemplates({
+      templates: fetchedTemplates,
+      templateIdToPreserve,
+      transformSlideObject: (slideObject) => {
+        slideObject.isSuborgTemplate = false;
+        slideObject.isGlobalTemplate = false;
+      },
+    });
     return true;
   } catch (err) {
     console.error("Error fetching and populating templates:", err);
@@ -340,29 +349,45 @@ export async function saveCurrentTemplateData() {
     slideDataToSave = await resolveSingleSlideForSpecialSave(slideDataToSave);
   }
 
-  // For suborg templates, use organisationId from slide object; otherwise use parentOrgID
-  const orgId =
-    currentSlideObject.isSuborgTemplate && currentSlideObject.organisationId
-      ? currentSlideObject.organisationId
-      : parentOrgID;
+  const isSuborgTemplate = currentSlideObject.isSuborgTemplate === true;
+  const isGlobalTemplateContext =
+    store.globalTemplateContext === true ||
+    currentSlideObject.isGlobalTemplate === true;
+
+  let orgId = null;
+  if (!isGlobalTemplateContext) {
+    orgId =
+      isSuborgTemplate && currentSlideObject.organisationId
+        ? currentSlideObject.organisationId
+        : parentOrgID;
+  }
 
   const payload = {
     name: currentSlideObject.name,
     slideData: slideDataToSave,
     previewWidth: store.emulatedWidth,
     previewHeight: store.emulatedHeight,
-    organisation_id: orgId,
     aspect_ratio: currentSlideObject.aspect_ratio || DEFAULT_ASPECT_RATIO,
   };
 
-  // Use the correct endpoint based on whether it's a suborg template or global template
-  const isSuborgTemplate = currentSlideObject.isSuborgTemplate === true;
-  const apiEndpoint = isSuborgTemplate
-    ? `${BASE_URL}/api/suborg-templates/${templateIdToSave}/`
-    : `${BASE_URL}/api/slide-templates/${templateIdToSave}/`;
+  if (!isGlobalTemplateContext) {
+    payload.organisation_id = orgId;
+  } else {
+    payload.thumbnail_url = currentSlideObject.thumbnail_url || null;
+  }
+
+  let apiEndpoint;
+  if (isGlobalTemplateContext) {
+    apiEndpoint = `${BASE_URL}/api/global-templates/${templateIdToSave}/`;
+  } else if (isSuborgTemplate) {
+    apiEndpoint = `${BASE_URL}/api/suborg-templates/${templateIdToSave}/`;
+  } else {
+    apiEndpoint = `${BASE_URL}/api/slide-templates/${templateIdToSave}/`;
+  }
 
   console.log(`Saving template ${templateIdToSave} to ${apiEndpoint}`, {
     isSuborgTemplate,
+    isGlobalTemplateContext,
     editorMode: store.editorMode,
     templateId: templateIdToSave,
   });
@@ -397,6 +422,11 @@ export async function saveCurrentTemplateData() {
             Boolean(updatedTemplateFromServer.isLegacy),
           );
         }
+
+    if (isGlobalTemplateContext) {
+      currentSlideObject.thumbnail_url =
+        updatedTemplateFromServer.thumbnail_url || null;
+    }
 
     lastStoredSingleSlideStr = JSON.stringify(currentSlideObject);
 
@@ -525,6 +555,7 @@ function stopTemplateAutoSave() {
 
 export async function initTemplateEditor() {
   store.editorMode = "template_editor";
+  store.globalTemplateContext = false;
 
   const slideshowNameEl = document.getElementById("slideshow-name");
   if (slideshowNameEl)
@@ -558,6 +589,9 @@ export async function duplicateTemplateOnBackend(templateId) {
 
   const queryParams = new URLSearchParams(window.location.search);
   const isSuborgMode = queryParams.get("mode") === "suborg_templates";
+  const isGlobalMode =
+    store.globalTemplateContext === true ||
+    queryParams.get("template_scope") === "global";
   const suborgIdFromParams =
     queryParams.get("suborgId") ??
     queryParams.get("suborg_id") ??
@@ -686,6 +720,58 @@ export async function duplicateTemplateOnBackend(templateId) {
       return duplicatedTemplate;
     }
 
+    if (isGlobalMode) {
+      const getResp = await fetch(
+        `${BASE_URL}/api/global-templates/${templateId}/`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!getResp.ok) {
+        throw new Error(
+          `Failed to fetch global template. Status: ${getResp.status} ${await getResp.text()}`,
+        );
+      }
+
+      const originalTemplate = await getResp.json();
+      const duplicatePayload = {
+        name: gettext("Copy of ") + originalTemplate.name,
+        slideData: originalTemplate.slideData,
+        previewWidth: originalTemplate.previewWidth,
+        previewHeight: originalTemplate.previewHeight,
+        aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
+        thumbnail_url: originalTemplate.thumbnail_url || null,
+      };
+
+      const createResp = await fetch(`${BASE_URL}/api/global-templates/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(duplicatePayload),
+      });
+
+      if (!createResp.ok) {
+        throw new Error(
+          `Failed to create duplicate template. Status: ${createResp.status} ${await createResp.text()}`,
+        );
+      }
+
+      const duplicatedTemplate = await createResp.json();
+      showToast(gettext("Template duplicated successfully."), "success");
+      const { fetchAllGlobalTemplatesAndPopulateStore } = await import(
+        "./globalTemplateDataManager.js"
+      );
+      await fetchAllGlobalTemplatesAndPopulateStore(duplicatedTemplate.id);
+      return duplicatedTemplate;
+    }
+
     // Global template duplication fallback
     const getResp = await fetch(
       `${BASE_URL}/api/slide-templates/${templateId}/`,
@@ -755,6 +841,9 @@ export async function deleteTemplateOnBackend(templateId) {
   // Check if we're in suborg templates mode
   const queryParams = new URLSearchParams(window.location.search);
   const isSuborgMode = queryParams.get("mode") === "suborg_templates";
+  const isGlobalMode =
+    store.globalTemplateContext === true ||
+    queryParams.get("template_scope") === "global";
   const suborgId =
     queryParams.get("suborgId") ??
     queryParams.get("suborg_id") ??
@@ -763,9 +852,11 @@ export async function deleteTemplateOnBackend(templateId) {
 
   try {
     // Use appropriate endpoint based on mode
-    const endpoint = isSuborgMode
-      ? `${BASE_URL}/api/suborg-templates/${templateId}/`
-      : `${BASE_URL}/api/slide-templates/${templateId}/`;
+    const endpoint = isGlobalMode
+      ? `${BASE_URL}/api/global-templates/${templateId}/`
+      : isSuborgMode
+        ? `${BASE_URL}/api/suborg-templates/${templateId}/`
+        : `${BASE_URL}/api/slide-templates/${templateId}/`;
 
     const resp = await fetch(endpoint, {
       method: "DELETE",
@@ -782,7 +873,12 @@ export async function deleteTemplateOnBackend(templateId) {
     showToast(gettext("Template deleted successfully."), "success");
 
     // Refresh the appropriate template list
-    if (isSuborgMode && suborgId) {
+    if (isGlobalMode) {
+      const { fetchAllGlobalTemplatesAndPopulateStore } = await import(
+        "./globalTemplateDataManager.js"
+      );
+      await fetchAllGlobalTemplatesAndPopulateStore();
+    } else if (isSuborgMode && suborgId) {
       // Import and call suborg template refresh
       const { fetchAllSuborgTemplatesAndPopulateStore } = await import(
         "./suborgTemplateDataManager.js"

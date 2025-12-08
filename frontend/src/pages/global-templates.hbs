@@ -1,0 +1,58 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/containers/html-container title="Global Templates" script-src="/src/assets/pages/content-engine/main.js" showCollapseLeftSidebarBtn=true}}
+    {{> base/navbar/navbar_global_settings }}
+    {{#> base/containers/main-container }}
+        {{#> base/containers/sidebar-and-content-container pageTitleId="contentEngineTitle" pageTitle="Global Templates" }}
+            {{#*inline "sidebarContent"}}
+                {{> base/content-engine/sidebar-content }}
+            {{/inline}}
+            {{#*inline "mainContent"}}
+                {{#> base/content-engine/top-menu-and-canvas-container }}
+                    {{> base/content-engine/top-menu }}
+                    {{> base/content-engine/slide-canvas }}
+                {{/base/content-engine/top-menu-and-canvas-container}}
+            {{/inline}}
+        {{/base/containers/sidebar-and-content-container}}
+    {{/base/containers/main-container}}
+    {{> base/content-engine/modals/background_image_options_modal }}
+    {{> base/content-engine/modals/embed_website_modal }}
+    {{> base/content-engine/modals/html_element_modal }}
+    {{> base/content-engine/modals/media_list_modal }}
+    {{> base/content-engine/modals/media_submit_modal }}
+    {{> base/content-engine/modals/media_preview_modal returnModal="mediaListModal"}}
+    {{> base/content-engine/modals/image_editor_modal }}
+    {{> base/content-engine/modals/remove_background_image_confirmation_modal }}
+    {{> base/content-engine/modals/resolution_modal }}
+    {{> base/content-engine/modals/save_as_template_modal }}
+    {{> base/content-engine/modals/slide_activation_modal }}
+    {{> base/content-engine/modals/slide_type_modal }}
+    {{> base/content-engine/modals/unified_slide_modal }}
+    {{> base/content-engine/modals/unpin_confirmation_modal }}
+    <div class="modal fade" id="createGlobalTemplateModal" tabindex="-1" aria-labelledby="createGlobalTemplateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createGlobalTemplateModalLabel">Create Global Template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="globalTemplateNameInput" class="form-label">Template Name</label>
+                        <input type="text" class="form-control" id="globalTemplateNameInput" placeholder="Enter template name">
+                    </div>
+                    <div class="mb-0">
+                        <label for="globalTemplateAspectRatioSelect" class="form-label">Aspect Ratio</label>
+                        <select class="form-select" id="globalTemplateAspectRatioSelect"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmCreateGlobalTemplateBtn">
+                        Create Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{{/base/containers/html-container}}

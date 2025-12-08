@@ -58,6 +58,7 @@ from app.models import (
     Category,
     Tag,
     SlideTemplate,
+    GlobalSlideTemplate,
     BranchURLCollectionItem,
     CustomColor,
     CustomFont,
@@ -90,6 +91,7 @@ from app.serializers import (
     CategorySerializer,
     TagSerializer,
     SlideTemplateSerializer,
+    GlobalSlideTemplateSerializer,
     BranchURLCollectionItemSerializer,  # optional
     CustomColorSerializer,
     CustomFontSerializer,
@@ -3478,6 +3480,86 @@ class SlideTemplateAPIView(APIView):
             {"detail": "Template deleted successfully."},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+
+class GlobalSlideTemplateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        if pk:
+            template = get_object_or_404(GlobalSlideTemplate, pk=pk)
+            serializer = GlobalSlideTemplateSerializer(
+                template, context={"request": request}
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        templates = GlobalSlideTemplate.objects.all().order_by("name")
+        serializer = GlobalSlideTemplateSerializer(
+            templates, many=True, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        if not user_is_super_admin(request.user):
+            return Response(
+                {"detail": "Only super admins can manage global templates."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = GlobalSlideTemplateSerializer(
+            data=request.data, context={"request": request}
+        )
+        if serializer.is_valid():
+            template = serializer.save()
+            return Response(
+                GlobalSlideTemplateSerializer(
+                    template, context={"request": request}
+                ).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        if not user_is_super_admin(request.user):
+            return Response(
+                {"detail": "Only super admins can manage global templates."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        template = get_object_or_404(GlobalSlideTemplate, pk=pk)
+        serializer = GlobalSlideTemplateSerializer(
+            template,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response(
+                GlobalSlideTemplateSerializer(
+                    updated, context={"request": request}
+                ).data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        if not user_is_super_admin(request.user):
+            return Response(
+                {"detail": "Only super admins can manage global templates."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        template = get_object_or_404(GlobalSlideTemplate, pk=pk)
+        template.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class GlobalSlideTemplatePermissionAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"can_manage": user_is_super_admin(request.user)})
 
 
 ###############################################################################

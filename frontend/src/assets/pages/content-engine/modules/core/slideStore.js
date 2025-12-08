@@ -10,6 +10,8 @@ export const store = {
   lastSlideIndex: null,
   slideIdCounter: 1,
   elementIdCounter: 1,
+  editorMode: null,
+  globalTemplateContext: false,
 
   selectedElement: null,
   selectedElementData: null,

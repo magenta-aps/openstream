@@ -462,6 +462,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
 export async function initSuborgTemplateEditor(suborgIdToUse) {
   suborgId = suborgIdToUse;
   store.editorMode = "suborg_templates";
+  store.globalTemplateContext = false;
   console.log(`Initializing suborg template editor for suborg ID: ${suborgId}`);
 
   try {

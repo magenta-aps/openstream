@@ -37,6 +37,7 @@ from app.models import (
     # Documents
     Document,
     SlideTemplate,
+    GlobalSlideTemplate,
     BranchURLCollectionItem,
     CustomColor,
     CustomFont,
@@ -1162,6 +1163,23 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
         if tags is not None:
             updated_instance.tags.set(tags)
         return updated_instance
+
+
+class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GlobalSlideTemplate
+        fields = [
+            "id",
+            "name",
+            "slideData",
+            "thumbnail_url",
+            "previewWidth",
+            "previewHeight",
+            "aspect_ratio",
+            "isLegacy",
+            "created_at",
+            "updated_at",
+        ]
 
 
 ###############################################################################
