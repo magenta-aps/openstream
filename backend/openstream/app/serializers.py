@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # app/serializers.py
 
+import base64
+import binascii
 
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
@@ -1166,6 +1168,10 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
 
 
 class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
+    MAX_THUMBNAIL_BYTES = 1_000_000  # 1 MB decoded payload limit
+
+    thumbnail_url = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+
     class Meta:
         model = GlobalSlideTemplate
         fields = [
@@ -1180,6 +1186,31 @@ class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def validate_thumbnail_url(self, value):
+        if value in (None, ""):
+            return None
+
+        if value.startswith("data:"):
+            header, _, b64_data = value.partition(",")
+            if not b64_data:
+                raise serializers.ValidationError("Invalid data URL: missing payload.")
+
+            if "image" not in header:
+                raise serializers.ValidationError("Only image data URLs are supported for thumbnails.")
+
+            try:
+                decoded = base64.b64decode(b64_data, validate=True)
+            except (binascii.Error, ValueError) as exc:
+                raise serializers.ValidationError("Thumbnail data URL is not valid base64.") from exc
+
+            if len(decoded) > self.MAX_THUMBNAIL_BYTES:
+                raise serializers.ValidationError("Thumbnail image exceeds the 1 MB limit.")
+
+            return value
+
+        # Allow legacy absolute URLs for backwards compatibility
+        return value
 
 
 ###############################################################################

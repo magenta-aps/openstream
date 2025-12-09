@@ -40,6 +40,28 @@ const templateAspectRatioGroup = document.querySelector(
   ".js-template-aspect-ratio-group",
 );
 
+const globalTemplateThumbnailField = document.getElementById(
+  "globalTemplateThumbnailField",
+);
+const globalTemplateThumbnailInput = document.getElementById(
+  "globalTemplateThumbnailInput",
+);
+const globalTemplateThumbnailPreview = document.getElementById(
+  "globalTemplateThumbnailPreview",
+);
+const globalTemplateThumbnailPreviewImage = document.getElementById(
+  "globalTemplateThumbnailPreviewImage",
+);
+const globalTemplateThumbnailPlaceholder = document.getElementById(
+  "globalTemplateThumbnailPlaceholder",
+);
+const clearGlobalTemplateThumbnailBtn = document.getElementById(
+  "clearGlobalTemplateThumbnailBtn",
+);
+
+const MAX_GLOBAL_THUMBNAIL_BYTES = 1024 * 1024; // 1 MB
+let globalTemplateThumbnailValue = null;
+
 const templateAspectRatioOptionMap = new Map();
 
 
@@ -135,6 +157,17 @@ function applyTemplateMetadataLocally(
 
   if (Array.isArray(metadataUpdate.tag_ids)) {
     targetSlide.tagIds = metadataUpdate.tag_ids;
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(metadataUpdate, "thumbnail_url") ||
+    (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url"))
+  ) {
+    if (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url")) {
+      targetSlide.thumbnail_url = serverData.thumbnail_url;
+    } else {
+      targetSlide.thumbnail_url = metadataUpdate.thumbnail_url;
+    }
   }
 
   const nextAspect =
@@ -259,6 +292,99 @@ function setTemplateAspectRatioDisabled(disabled) {
 
 renderTemplateAspectRatioOptions();
 
+function toggleGlobalThumbnailField(shouldShow) {
+  if (!globalTemplateThumbnailField) {
+    return;
+  }
+  globalTemplateThumbnailField.classList.toggle("d-none", !shouldShow);
+}
+
+function setGlobalThumbnailPreview(thumbnailValue) {
+  globalTemplateThumbnailValue = thumbnailValue || null;
+
+  if (globalTemplateThumbnailPreviewImage) {
+    if (globalTemplateThumbnailValue) {
+      globalTemplateThumbnailPreviewImage.src = globalTemplateThumbnailValue;
+      globalTemplateThumbnailPreviewImage.classList.remove("d-none");
+    } else {
+      globalTemplateThumbnailPreviewImage.removeAttribute("src");
+      globalTemplateThumbnailPreviewImage.classList.add("d-none");
+    }
+  }
+
+  if (globalTemplateThumbnailPlaceholder) {
+    globalTemplateThumbnailPlaceholder.classList.toggle(
+      "d-none",
+      Boolean(globalTemplateThumbnailValue),
+    );
+  }
+
+  if (clearGlobalTemplateThumbnailBtn) {
+    clearGlobalTemplateThumbnailBtn.disabled = !globalTemplateThumbnailValue;
+  }
+}
+
+function resetGlobalThumbnailState() {
+  if (globalTemplateThumbnailInput) {
+    globalTemplateThumbnailInput.value = "";
+  }
+  setGlobalThumbnailPreview(null);
+}
+
+function prepareGlobalThumbnailControlsForTemplate(template) {
+  const isGlobalTemplate = Boolean(
+    template?.isGlobalTemplate || store.globalTemplateContext,
+  );
+  toggleGlobalThumbnailField(isGlobalTemplate);
+  if (isGlobalTemplate) {
+    setGlobalThumbnailPreview(template?.thumbnail_url || null);
+  } else {
+    resetGlobalThumbnailState();
+  }
+}
+
+if (globalTemplateThumbnailInput) {
+  globalTemplateThumbnailInput.addEventListener("change", (event) => {
+    const [file] = event.target.files || [];
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_GLOBAL_THUMBNAIL_BYTES) {
+      showToast(
+        gettext("Thumbnail image must be 1 MB or smaller."),
+        "Warning",
+      );
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setGlobalThumbnailPreview(reader.result);
+    };
+    reader.onerror = () => {
+      showToast(gettext("Unable to read the selected image."), "Error");
+      event.target.value = "";
+      setGlobalThumbnailPreview(null);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (clearGlobalTemplateThumbnailBtn) {
+  clearGlobalTemplateThumbnailBtn.addEventListener("click", () => {
+    resetGlobalThumbnailState();
+  });
+}
+
+if (modalEl) {
+  modalEl.addEventListener("hidden.bs.modal", () => {
+    resetGlobalThumbnailState();
+    toggleGlobalThumbnailField(false);
+  });
+}
+
 function isAspectRatioLocked() {
   // Lock aspect ratio when EDITING existing templates (not when creating new ones)
   // For suborg templates, always lock (both creating and editing)
@@ -312,6 +438,9 @@ export function openSaveAsTemplateModal(index = null, isBlank = false) {
     return;
   }
 
+  toggleGlobalThumbnailField(false);
+  resetGlobalThumbnailState();
+
   store.editingTemplateId = null; // Ensure we are in "create" mode
   store.editingTemplateIndex = null;
   store.currentTemplateSlideIndex = isBlank ? null : index;
@@ -354,6 +483,8 @@ export function openEditTemplateMetadataModal(index) {
   store.currentTemplateSlideIndex = null; // Not saving "as new"
 
   templateNameField.value = templateToEdit.name;
+
+  prepareGlobalThumbnailControlsForTemplate(templateToEdit);
 
   if (modalTitleEl) {
     modalTitleEl.textContent = gettext("Edit Template Details");
@@ -606,23 +737,32 @@ if (confirmBtn) {
 
     if (store.editingTemplateId) {
       // Editing existing template metadata
+      const currentTemplate = store.slides[store.editingTemplateIndex];
+      const isSuborgTemplate = Boolean(currentTemplate?.isSuborgTemplate);
+      const isGlobalTemplate = Boolean(
+        currentTemplate?.isGlobalTemplate || store.globalTemplateContext,
+      );
+
       const payload = {
         name: name,
-        category_id: categoryId ? parseInt(categoryId) : null,
-        tag_ids: tagValues.map((t) => parseInt(t)),
         aspect_ratio: aspectRatio,
-        organisation_id: parentOrgID, // Include if your API requires/uses it for PATCH
       };
 
-      // Check if we're editing a suborg template by looking at the current template
-      const currentTemplate = store.slides[store.editingTemplateIndex];
-      const isSuborgTemplate =
-        currentTemplate && currentTemplate.isSuborgTemplate;
+      let apiEndpoint = `${BASE_URL}/api/slide-templates/${store.editingTemplateId}/`;
 
-      // Use the appropriate API endpoint based on template type
-      const apiEndpoint = isSuborgTemplate
-        ? `${BASE_URL}/api/suborg-templates/${store.editingTemplateId}/`
-        : `${BASE_URL}/api/slide-templates/${store.editingTemplateId}/`;
+      if (isGlobalTemplate) {
+        payload.thumbnail_url = globalTemplateThumbnailValue;
+        payload.previewWidth = selectedResolution.width;
+        payload.previewHeight = selectedResolution.height;
+        apiEndpoint = `${BASE_URL}/api/global-templates/${store.editingTemplateId}/`;
+      } else {
+        payload.category_id = categoryId ? parseInt(categoryId) : null;
+        payload.tag_ids = tagValues.map((t) => parseInt(t));
+        payload.organisation_id = parentOrgID;
+        if (isSuborgTemplate) {
+          apiEndpoint = `${BASE_URL}/api/suborg-templates/${store.editingTemplateId}/`;
+        }
+      }
 
       try {
         const resp = await fetch(apiEndpoint, {

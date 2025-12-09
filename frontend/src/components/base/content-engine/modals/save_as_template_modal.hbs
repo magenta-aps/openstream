@@ -78,6 +78,28 @@
                 {{> base/form/input type="hidden" id="templateAspectRatio" name="aspectRatio"}}
             </div>
 
+            <div class="mb-3 d-none" id="globalTemplateThumbnailField">
+                {{> base/form/label for="globalTemplateThumbnailInput" text="Global Template Thumbnail (optional)"}}
+                <p class="text-muted small mb-2">{% trans "Upload a thumbnail image to help other editors recognize this global template. Images up to 1 MB are embedded as data URLs." %}</p>
+                <div class="d-flex flex-column flex-lg-row gap-3 align-items-start">
+                    <div class="ratio ratio-16x9 bg-body-secondary border rounded position-relative overflow-hidden w-100" style="max-width: 280px;" id="globalTemplateThumbnailPreview">
+                        <img id="globalTemplateThumbnailPreviewImage" class="w-100 h-100 object-fit-contain d-none" alt="{% trans "Template thumbnail preview" %}" loading="lazy">
+                        <span class="text-muted small position-absolute top-50 start-50 translate-middle text-center px-2" id="globalTemplateThumbnailPlaceholder">{% trans "No thumbnail selected." %}</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <label class="btn btn-outline-secondary mb-0" id="globalTemplateThumbnailUploadBtn">
+                            <i class="material-symbols-outlined align-middle me-1">image</i>
+                            {% trans "Choose Image" %}
+                            <input type="file" class="visually-hidden" id="globalTemplateThumbnailInput" accept="image/*">
+                        </label>
+                        <button type="button" class="btn btn-outline-danger" id="clearGlobalTemplateThumbnailBtn">
+                            <i class="material-symbols-outlined align-middle me-1">delete</i>
+                            {% trans "Remove Thumbnail" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {{> base/form/input type="hidden" id="templateOrgId"}}
         </form>
     {{/inline}}

@@ -1273,7 +1273,11 @@ class GlobalSlideTemplate(models.Model):
 
     name = models.CharField(max_length=255)
     slideData = models.JSONField(default=dict, blank=True, null=True)
-    thumbnail_url = models.URLField(max_length=500, blank=True, null=True)
+    thumbnail_url = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Base64 encoded data URL representing the template thumbnail",
+    )
     previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
     previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
     aspect_ratio = models.CharField(
