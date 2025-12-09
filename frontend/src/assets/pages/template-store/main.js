@@ -487,8 +487,6 @@ function createTemplateCard(template) {
   const card = createEl("div", { className: "card template-card" });
 
   const imageContainer = createEl("div", { className: "d-flex justify-content-center" });
-  const badge = createEl("span", { className: "badge bg-success", text: gettext("Free") });
-  imageContainer.appendChild(badge);
 
   const image = createEl("img", { className: "card-img-top" });
   image.src = template.thumbnail_url || PLACEHOLDER_THUMBNAIL;
