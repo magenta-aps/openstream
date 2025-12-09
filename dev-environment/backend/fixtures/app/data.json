@@ -1602,21 +1602,24 @@
   "model": "app.organisation",
   "pk": 1,
   "fields": {
-    "name": "Lyngby-Taarbæk"
+    "name": "Lyngby-Taarbæk",
+    "uri_name": "ltk"
   }
 },
 {
   "model": "app.organisation",
   "pk": 3,
   "fields": {
-    "name": "Brøndby"
+    "name": "Brøndby",
+    "uri_name": "brby"
   }
 },
 {
   "model": "app.organisation",
   "pk": 4,
   "fields": {
-    "name": "Test Organisation"
+    "name": "Test Organisation",
+    "uri_name": "torg"
   }
 },
 {
