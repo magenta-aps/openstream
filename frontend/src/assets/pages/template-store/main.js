@@ -2,7 +2,7 @@ import "./style.scss";
 
 import { gettext, translateHTML } from "../../utils/locales";
 translateHTML();
-import { token } from "../../utils/utils";
+import { token, showToast, parentOrgID, initOrgQueryParams } from "../../utils/utils";
 import { DEFAULT_ASPECT_RATIO } from "../../utils/availableAspectRatios";
 import { BASE_URL } from "../../utils/constants";
 
@@ -11,6 +11,12 @@ const PLACEHOLDER_THUMBNAIL =
 
 // Use the project's default aspect ratio definition
 const DEFAULT_ASPECT = DEFAULT_ASPECT_RATIO;
+const TEMPLATE_IMPORT_STATUS = {
+  IDLE: "idle",
+  LOADING: "loading",
+  SUCCESS: "success",
+};
+const TEMPLATE_SUCCESS_RESET_MS = 1800;
 
 const state = {
   all: [],
@@ -21,7 +27,73 @@ const state = {
     sort: "recent",
   },
   isLoading: false,
+  importStatuses: new Map(),
 };
+
+function getTemplateKey(templateOrId) {
+  if (templateOrId === null || typeof templateOrId === "undefined") {
+    return null;
+  }
+
+  if (
+    (typeof templateOrId === "string" || templateOrId instanceof String) &&
+    templateOrId.trim() !== ""
+  ) {
+    return templateOrId.toString();
+  }
+
+  if (typeof templateOrId === "number" && Number.isFinite(templateOrId)) {
+    return templateOrId.toString();
+  }
+
+  if (typeof templateOrId === "object") {
+    if (templateOrId.id !== undefined && templateOrId.id !== null) {
+      return templateOrId.id.toString();
+    }
+    if (templateOrId.slug) {
+      return templateOrId.slug.toString();
+    }
+    if (templateOrId.thumbnail_url) {
+      return templateOrId.thumbnail_url;
+    }
+    if (templateOrId.name) {
+      return templateOrId.name;
+    }
+  }
+
+  return null;
+}
+
+function getTemplateImportStatus(templateOrId) {
+  const key = getTemplateKey(templateOrId);
+  if (!key) {
+    return TEMPLATE_IMPORT_STATUS.IDLE;
+  }
+  return state.importStatuses.get(key) ?? TEMPLATE_IMPORT_STATUS.IDLE;
+}
+
+function setTemplateImportStatus(templateOrId, status) {
+  const key = getTemplateKey(templateOrId);
+  if (!key) {
+    return;
+  }
+
+  if (status === TEMPLATE_IMPORT_STATUS.IDLE) {
+    state.importStatuses.delete(key);
+  } else {
+    state.importStatuses.set(key, status);
+  }
+
+  renderCards();
+}
+
+function scheduleImportStatusReset(template) {
+  window.setTimeout(() => {
+    if (getTemplateImportStatus(template) === TEMPLATE_IMPORT_STATUS.SUCCESS) {
+      setTemplateImportStatus(template, TEMPLATE_IMPORT_STATUS.IDLE);
+    }
+  }, TEMPLATE_SUCCESS_RESET_MS);
+}
 
 const ui = {
   searchInput: null,
@@ -63,16 +135,7 @@ function cacheUI() {
   ui.summary = document.querySelector("[data-template-summary]");
   ui.resetButtons = Array.from(document.querySelectorAll("[data-template-reset]"));
 
-  // If the aspect filter includes an 'all' button, disable it; we require a specific ratio
-  if (ui.aspectFilter) {
-    const allButton = ui.aspectFilter.querySelector("[data-value='all']");
-    if (allButton) {
-      allButton.disabled = true;
-      allButton.classList.add("btn--disabled-aspect");
-      allButton.setAttribute("aria-disabled", "true");
-      allButton.title = gettext("'All' is not a valid option for aspect ratio; please select a specific ratio.");
-    }
-  }
+  // The aspect filter shouldn't include an 'all' option; the default is a specific ratio
 
   // Make sure the UI reflects the currently selected aspect ratio
   if (ui.aspectFilter) {
@@ -114,12 +177,16 @@ async function loadTemplates() {
 
     const payload = await response.json();
     state.all = normalizeTemplates(payload);
+    state.importStatuses.clear();
     applyFilters();
   } catch (error) {
     console.error("Error fetching templates from store:", error);
     showLoadError();
   } finally {
     setLoading(false);
+    // Refresh the UI after loading finishes; ensures skeletons have been cleared
+    // and the filtered set is rendered.
+    refreshUI();
   }
 }
 
@@ -166,6 +233,7 @@ function handleSearchInput(event) {
   searchDebounceId = window.setTimeout(() => {
     state.filters.search = nextValue.trim();
     applyFilters();
+    refreshUI();
   }, 150);
 }
 
@@ -188,11 +256,13 @@ function handleAspectFilterClick(event) {
   state.filters.aspect = nextValue;
   updateAspectSelection(nextValue);
   applyFilters();
+  refreshUI();
 }
 
 function handleSortChange(event) {
   state.filters.sort = event.target.value || "recent";
   applyFilters();
+  refreshUI();
 }
 
 function resetFilters() {
@@ -211,14 +281,14 @@ function resetFilters() {
 
   updateAspectSelection(state.filters.aspect);
   applyFilters();
+  refreshUI();
 }
 
 function updateAspectSelection(value) {
   if (!ui.aspectFilter) {
     return;
   }
-
-  const selected = value === "all" ? DEFAULT_ASPECT : value;
+  const selected = value || DEFAULT_ASPECT;
   ui.aspectFilter.querySelectorAll(".btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.value === selected);
   });
@@ -227,9 +297,6 @@ function updateAspectSelection(value) {
 function applyFilters() {
   if (!state.all.length) {
     state.filtered = [];
-    renderCards();
-    toggleEmptyState();
-    updateSummary();
     return;
   }
 
@@ -254,6 +321,11 @@ function applyFilters() {
   }
 
   state.filtered = filtered;
+}
+
+// Refresh the UI (render cards and update auxiliary indicators). This is separate
+// so we can keep `applyFilters` as a pure filtering operation useful from tests.
+function refreshUI() {
   renderCards();
   toggleEmptyState();
   updateSummary();
@@ -393,82 +465,78 @@ function showLoadError() {
   }
 }
 
+function createEl(tag, options = {}) {
+  const el = document.createElement(tag);
+  if (options.className) el.className = options.className;
+  if (options.text) el.textContent = options.text;
+  if (options.attrs) {
+    Object.entries(options.attrs).forEach(([k, v]) => el.setAttribute(k, v));
+  }
+  if (options.dataset) {
+    Object.entries(options.dataset).forEach(([k, v]) => (el.dataset[k] = v));
+  }
+  return el;
+}
+
 function createTemplateCard(template) {
-  const col = document.createElement("div");
-  col.className = "col";
-  
-  // Set aspect ratio data attribute for CSS grid sizing
   const aspectRatio = template.aspect_ratio || "16:9";
-  col.setAttribute("data-aspect", aspectRatio);
+  const importStatus = getTemplateImportStatus(template);
 
-  const card = document.createElement("div");
-  card.className = "card template-card";
+  const col = createEl("div", { className: "col", dataset: { aspect: aspectRatio, templateId: template.id || "" } });
 
-  const imageContainer = document.createElement("div");
-  imageContainer.className = "d-flex justify-content-center";
+  const card = createEl("div", { className: "card template-card" });
 
-  const badge = document.createElement("span");
-  badge.className = "badge bg-success";
-  badge.textContent = gettext("Free");
+  const imageContainer = createEl("div", { className: "d-flex justify-content-center" });
+  const badge = createEl("span", { className: "badge bg-success", text: gettext("Free") });
   imageContainer.appendChild(badge);
 
-  const image = document.createElement("img");
-  image.className = "card-img-top";
+  const image = createEl("img", { className: "card-img-top" });
   image.src = template.thumbnail_url || PLACEHOLDER_THUMBNAIL;
   image.alt = `${template.name || gettext("Template")} ${gettext("preview")}`;
   image.loading = "lazy";
   image.referrerPolicy = "no-referrer";
   image.setAttribute("data-aspect", aspectRatio);
-  
-  image.addEventListener("error", () => {
-    image.src = PLACEHOLDER_THUMBNAIL;
-  }, { once: true });
+  image.addEventListener("error", () => { image.src = PLACEHOLDER_THUMBNAIL; }, { once: true });
   imageContainer.appendChild(image);
 
-  const body = document.createElement("div");
-  body.className = "card-body";
-
-  const name = document.createElement("h5");
-  name.className = "card-title";
-  name.textContent = template.name || gettext("Untitled template");
-  body.appendChild(name);
-
-  const meta = document.createElement("div");
-  meta.className = "d-flex justify-content-between text-muted small mb-3";
-
-  const aspect = document.createElement("span");
-  aspect.textContent = formatAspectRatio(template.aspect_ratio);
-  meta.appendChild(aspect);
-
-  const updated = document.createElement("span");
-  updated.textContent = formatUpdated(template.updated_at || template.created_at);
-  meta.appendChild(updated);
-
-  body.appendChild(meta);
-
-  // Mirror the aspect ratio attribute on the body so CSS attribute selectors work
+  const body = createEl("div", { className: "card-body" });
   body.setAttribute("data-aspect", aspectRatio);
 
-  const footer = document.createElement("div");
-  footer.className = "d-flex justify-content-between align-items-center";
+  const name = createEl("h5", { className: "card-title", text: template.name || gettext("Untitled template") });
+  body.appendChild(name);
 
-  const price = document.createElement("span");
-  price.className = "fw-bold text-success";
-  price.textContent = gettext("Free");
-  footer.appendChild(price);
+  const meta = createEl("div", { className: "d-flex justify-content-between text-muted small mb-3" });
+  const aspect = createEl("span", { text: formatAspectRatio(template.aspect_ratio) });
+  const updated = createEl("span", { text: formatUpdated(template.updated_at || template.created_at) });
+  meta.appendChild(aspect);
+  meta.appendChild(updated);
+  body.appendChild(meta);
 
-  const action = document.createElement("button");
+  const footer = createEl("div", { className: "d-flex justify-content-between align-items-center" });
+  const price = createEl("span", { className: "fw-bold text-success", text: gettext("Free") });
+  const action = createEl("button", { className: "btn btn-primary btn-sm" });
   action.type = "button";
-  action.className = "btn btn-primary btn-sm";
-  action.textContent = gettext("Get Template");
+
+  if (importStatus === TEMPLATE_IMPORT_STATUS.LOADING) {
+    action.disabled = true;
+    action.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${gettext("Adding…")}`;
+  } else if (importStatus === TEMPLATE_IMPORT_STATUS.SUCCESS) {
+    action.disabled = true;
+    action.classList.replace("btn-primary", "btn-outline-success");
+    action.textContent = gettext("Added");
+  } else {
+    action.disabled = false;
+    action.textContent = gettext("Get Template");
+  }
+
+  action.addEventListener("click", () => handleGetTemplate(template));
+  footer.appendChild(price);
   footer.appendChild(action);
 
   body.appendChild(footer);
-
   card.appendChild(imageContainer);
   card.appendChild(body);
   col.appendChild(card);
-
   return col;
 }
 
@@ -518,3 +586,177 @@ function formatRelativeTime(date) {
 
   return relativeFormatter.format(0, "day");
 }
+
+async function handleGetTemplate(template) {
+  if (!template || getTemplateImportStatus(template) === TEMPLATE_IMPORT_STATUS.LOADING) {
+    return;
+  }
+
+  if (!parentOrgID) {
+    showToast(gettext("Missing organisation context. Open the template store from an organisation."), "Error");
+    return;
+  }
+
+  if (!token) {
+    showToast(gettext("Your session has expired. Please sign in again."), "Error");
+    return;
+  }
+
+  const payload = buildOrganisationTemplatePayload(template);
+  if (!payload) {
+    showToast(gettext("This template cannot be added because it is missing slide data."), "Error");
+    return;
+  }
+
+  setTemplateImportStatus(template, TEMPLATE_IMPORT_STATUS.LOADING);
+
+  try {
+    const response = await fetch(
+      `${BASE_URL}/api/slide-templates/?organisation_id=${encodeURIComponent(parentOrgID)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    if (!response.ok) {
+      const detail = await parseErrorResponse(response);
+      throw new Error(detail || `${response.status} ${response.statusText}`);
+    }
+
+    setTemplateImportStatus(template, TEMPLATE_IMPORT_STATUS.SUCCESS);
+    scheduleImportStatusReset(template);
+    showToast(gettext("Template added to your organisation templates."), "Success");
+  } catch (error) {
+    console.error("Template Store: failed to add template", error);
+    const fallbackMessage = gettext("Could not add the template.");
+    const detailMessage = error?.message ? `${fallbackMessage} ${error.message}` : fallbackMessage;
+    showToast(detailMessage, "Error");
+    setTemplateImportStatus(template, TEMPLATE_IMPORT_STATUS.IDLE);
+  }
+}
+
+function buildOrganisationTemplatePayload(template) {
+  const slideData = cloneSlideData(template.slideData);
+  if (!slideData) {
+    return null;
+  }
+
+  const previewWidth = template.previewWidth ?? slideData.previewWidth ?? null;
+  const previewHeight = template.previewHeight ?? slideData.previewHeight ?? null;
+
+  if (previewWidth) {
+    slideData.previewWidth = previewWidth;
+  }
+  if (previewHeight) {
+    slideData.previewHeight = previewHeight;
+  }
+
+  return {
+    name: template.name || gettext("Untitled template"),
+    slideData,
+    aspect_ratio:
+      template.aspect_ratio || deriveAspectRatioFromDimensions(previewWidth, previewHeight),
+    isLegacy: Boolean(template.isLegacy),
+  };
+}
+
+function cloneSlideData(slideData) {
+  if (slideData === null || typeof slideData === "undefined") {
+    return null;
+  }
+
+  if (typeof slideData === "string") {
+    try {
+      return JSON.parse(slideData);
+    } catch (error) {
+      console.error("Template Store: slideData string is invalid JSON", error);
+      return null;
+    }
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(slideData));
+  } catch (error) {
+    console.warn("Template Store: failed to clone slideData", error);
+    if (typeof slideData === "object") {
+      return { ...slideData };
+    }
+  }
+
+  return null;
+}
+
+function deriveAspectRatioFromDimensions(width, height) {
+  const parsedWidth = Number(width);
+  const parsedHeight = Number(height);
+
+  if (
+    !Number.isFinite(parsedWidth) ||
+    !Number.isFinite(parsedHeight) ||
+    parsedWidth <= 0 ||
+    parsedHeight <= 0
+  ) {
+    return DEFAULT_ASPECT;
+  }
+
+  const divisor = gcd(parsedWidth, parsedHeight);
+  const normalizedWidth = Math.round(parsedWidth / divisor);
+  const normalizedHeight = Math.round(parsedHeight / divisor);
+  return `${normalizedWidth}:${normalizedHeight}`;
+}
+
+function gcd(a, b) {
+  let x = Math.abs(Math.round(a));
+  let y = Math.abs(Math.round(b));
+  while (y !== 0) {
+    const temp = y;
+    y = x % y;
+    x = temp;
+  }
+  return x || 1;
+}
+
+async function parseErrorResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    try {
+      const data = await response.json();
+      if (typeof data === "string") {
+        return data;
+      }
+      if (Array.isArray(data)) {
+        return data.join(", ");
+      }
+      if (data.detail) {
+        return data.detail;
+      }
+      const [firstKey] = Object.keys(data);
+      if (firstKey) {
+        const value = data[firstKey];
+        if (Array.isArray(value)) {
+          return value.join(", ");
+        }
+        if (typeof value === "string") {
+          return value;
+        }
+        return JSON.stringify(value);
+      }
+    } catch (error) {
+      console.warn("Template Store: could not parse error payload", error);
+    }
+  }
+
+  try {
+    return await response.text();
+  } catch (error) {
+    console.warn("Template Store: could not read error response", error);
+    return "";
+  }
+}
+
+initOrgQueryParams();
