@@ -12,19 +12,41 @@ import {
 export const SPECIAL_SAVE_ENABLED =
   queryParams.special_save === "true" || queryParams.special_save === "1";
 
-const imageUrlCache = new Map();
+const assetUrlCache = new Map();
 
 export function isDirectImageUrl(value) {
   return typeof value === "string" && /^https?:\/\//i.test(value);
 }
 
-function elementNeedsInlineUrl(element) {
-  return (
-    element &&
-    element.type === "image" &&
-    element.content &&
-    !isDirectImageUrl(element.content)
-  );
+function enqueueAssetResolution(target, fieldName, resolverPromises) {
+  if (!target || !fieldName) {
+    return;
+  }
+  const assetId = target[fieldName];
+  if (!assetId || isDirectImageUrl(assetId)) {
+    return;
+  }
+  const resolver = resolveAssetContentToUrl(assetId).then((url) => {
+    target[fieldName] = url;
+  });
+  resolverPromises.push(resolver);
+}
+
+function enqueueMaskAssetResolutions(element, resolverPromises) {
+  if (!element || element.type !== "mask") {
+    return;
+  }
+
+  if (element.maskSourceType === "image") {
+    enqueueAssetResolution(element, "maskSourceId", resolverPromises);
+  }
+
+  if (
+    element.contentMediaId &&
+    (element.contentType === "image" || element.contentType === "video")
+  ) {
+    enqueueAssetResolution(element, "contentMediaId", resolverPromises);
+  }
 }
 
 export async function resolveSlidesForSpecialSave(slides) {
@@ -37,13 +59,17 @@ export async function resolveSlidesForSpecialSave(slides) {
 
   slidesCopy.forEach((slide) => {
     slide.elements?.forEach((element) => {
-      if (elementNeedsInlineUrl(element)) {
-        const resolver = resolveImageContentToUrl(element.content).then(
-          (url) => {
-            element.content = url;
-          },
-        );
-        resolverPromises.push(resolver);
+      if (!element) {
+        return;
+      }
+
+      if (element.type === "image") {
+        enqueueAssetResolution(element, "content", resolverPromises);
+        return;
+      }
+
+      if (element.type === "mask") {
+        enqueueMaskAssetResolutions(element, resolverPromises);
       }
     });
   });
@@ -60,9 +86,9 @@ export async function resolveSingleSlideForSpecialSave(slide) {
   return resolvedSlide;
 }
 
-async function resolveImageContentToUrl(imageId) {
-  if (imageUrlCache.has(imageId)) {
-    return imageUrlCache.get(imageId);
+async function resolveAssetContentToUrl(assetId) {
+  if (assetUrlCache.has(assetId)) {
+    return assetUrlCache.get(assetId);
   }
 
   const params = new URLSearchParams();
@@ -81,23 +107,23 @@ async function resolveImageContentToUrl(imageId) {
 
   const queryString = params.toString();
   const url = queryString
-    ? `${BASE_URL}/api/documents/file-token/${imageId}/?${queryString}`
-    : `${BASE_URL}/api/documents/file-token/${imageId}/`;
+    ? `${BASE_URL}/api/documents/file-token/${assetId}/?${queryString}`
+    : `${BASE_URL}/api/documents/file-token/${assetId}/`;
 
   const resp = await fetch(url, { method: "GET", headers });
   if (!resp.ok) {
     throw new Error(
-      gettext("Unable to resolve image asset for export") + ` (${resp.status})`,
+      gettext("Unable to resolve media asset for export") + ` (${resp.status})`,
     );
   }
 
   const data = await resp.json();
   if (!data.file_url) {
     throw new Error(
-      gettext("Image asset response missing file_url; cannot complete special save"),
+      gettext("Media asset response missing file_url; cannot complete special save"),
     );
   }
 
-  imageUrlCache.set(imageId, data.file_url);
+  assetUrlCache.set(assetId, data.file_url);
   return data.file_url;
 }

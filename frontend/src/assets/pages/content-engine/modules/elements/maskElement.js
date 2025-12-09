@@ -19,6 +19,7 @@ import { displayMediaModal } from "../modals/mediaModal.js";
 import { showColorPalette } from "../utils/colorUtils.js";
 import { videoCacheManager } from "../core/videoCacheManager.js";
 import { getShapeSVG, shapeMap } from "./shapeElement.js";
+import { isDirectImageUrl } from "../utils/specialSaveUtils.js";
 import * as bootstrap from "bootstrap";
 
 const MASK_SOURCE_EXTENSIONS = ["png", "svg"];
@@ -474,6 +475,7 @@ function mapContentFitToObjectFit(value) {
 
 function fetchDocumentUrl(documentId) {
   if (!documentId) return Promise.resolve(null);
+  if (isDirectImageUrl(documentId)) return Promise.resolve(documentId);
 
   const headers = { "Content-Type": "application/json" };
   if (queryParams.apiKey) {
@@ -617,6 +619,12 @@ function applyVideoContent(element, mediaLayer) {
   mediaLayer.appendChild(video);
 
   const expectedId = element.contentMediaId;
+  if (isDirectImageUrl(expectedId)) {
+    video.src = expectedId;
+    video.play().catch(() => {});
+    return;
+  }
+
   videoCacheManager
     .getVideoUrl(expectedId)
     .then((url) => {

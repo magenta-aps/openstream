@@ -48,6 +48,10 @@ export const shapeMap = {
     `<polygon points="0,0 100,0 80,100 0,100" ${attrs}/>`,
   "straight-parallelogram-inverse": (attrs) =>
     `<polygon points="20,0 100,0 100,100 0,100" ${attrs}/>`,
+  // Square with a slanted/angled top: top-left is lower (less tall) than top-right
+  "angled-top-square": (attrs) =>
+    // left side stays vertical (x=0) from bottom(100) to top-left(20), top is angled to top-right(0)
+    `<polygon points="0,100 100,100 100,0 0,5" ${attrs}/>`,
   trapezoid: (attrs) => `<polygon points="20,0 80,0 100,100 0,100" ${attrs}/>`,
   semicircle: (attrs) =>
     `<path d="M0,50 A50,50 0 0,1 100,50 L100,100 L0,100 Z" ${attrs}/>`,
