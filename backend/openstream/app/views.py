@@ -2723,7 +2723,20 @@ class MembershipAPIView(APIView):
             return Response(ser.data, status=200)
 
     def post(self, request):
-        ser = OrganisationMembershipSerializer(data=request.data)
+        data = request.data.copy()
+        # Allow passing organisation as an identifier (id, uri_name, or name)
+        org_input = data.get("organisation")
+        if org_input is not None:
+            # If a nested dict with 'id' was provided, prefer that
+            if isinstance(org_input, dict) and "id" in org_input:
+                data["organisation"] = org_input.get("id")
+            else:
+                org_obj = get_organisation_from_identifier(org_input)
+                if not org_obj:
+                    return Response({"error": "Organisation not found"}, status=400)
+                data["organisation"] = org_obj.id
+
+        ser = OrganisationMembershipSerializer(data=data)
         ser.is_valid(raise_exception=True)
 
         org_id = ser.validated_data["organisation"].id
@@ -2739,7 +2752,19 @@ class MembershipAPIView(APIView):
 
     def patch(self, request, pk):
         mship = get_object_or_404(OrganisationMembership, pk=pk)
-        ser = OrganisationMembershipSerializer(mship, data=request.data, partial=True)
+        data = request.data.copy()
+        # If organisation provided in patch, allow identifier forms
+        if "organisation" in data:
+            org_input = data.get("organisation")
+            if isinstance(org_input, dict) and "id" in org_input:
+                data["organisation"] = org_input.get("id")
+            else:
+                org_obj = get_organisation_from_identifier(org_input)
+                if not org_obj:
+                    return Response({"error": "Organisation not found"}, status=400)
+                data["organisation"] = org_obj.id
+
+        ser = OrganisationMembershipSerializer(mship, data=data, partial=True)
         ser.is_valid(raise_exception=True)
 
         org_id = ser.validated_data.get("organisation", mship.organisation).id
