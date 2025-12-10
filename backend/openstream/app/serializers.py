@@ -1170,7 +1170,9 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
 class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
     MAX_THUMBNAIL_BYTES = 1_000_000  # 1 MB decoded payload limit
 
-    thumbnail_url = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    thumbnail_url = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False
+    )
 
     class Meta:
         model = GlobalSlideTemplate
@@ -1197,15 +1199,21 @@ class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Invalid data URL: missing payload.")
 
             if "image" not in header:
-                raise serializers.ValidationError("Only image data URLs are supported for thumbnails.")
+                raise serializers.ValidationError(
+                    "Only image data URLs are supported for thumbnails."
+                )
 
             try:
                 decoded = base64.b64decode(b64_data, validate=True)
             except (binascii.Error, ValueError) as exc:
-                raise serializers.ValidationError("Thumbnail data URL is not valid base64.") from exc
+                raise serializers.ValidationError(
+                    "Thumbnail data URL is not valid base64."
+                ) from exc
 
             if len(decoded) > self.MAX_THUMBNAIL_BYTES:
-                raise serializers.ValidationError("Thumbnail image exceeds the 1 MB limit.")
+                raise serializers.ValidationError(
+                    "Thumbnail image exceeds the 1 MB limit."
+                )
 
             return value
 

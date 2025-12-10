@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import "./style.scss";
 
 import { gettext, translateHTML } from "../../utils/locales";
