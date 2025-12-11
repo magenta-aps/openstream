@@ -888,7 +888,6 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         };
       });
       document.getElementById("admin-buttons").appendChild(selectBtn);
-      return;
     }
 
     let templateBranchId = null;

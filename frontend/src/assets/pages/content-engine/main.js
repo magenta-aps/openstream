@@ -14,7 +14,6 @@ import {
   updateNavbarUsername,
   makeActiveInNav,
   initSignOutButton,
-  initOrgQueryParams,
   initCollapseLeftSidebarBtn,
   initOrgUrlRouting,
 } from "../../utils/utils.js";
