@@ -4,7 +4,7 @@ import "bootstrap";
 import "./style.scss";
 import { marked } from "marked";
 import MiniSearch from "minisearch";
-import { initOrgQueryParams, makeActiveInNav } from "../../utils/utils.js";
+import {initOrgUrlRouting, makeActiveInNav } from "../../utils/utils.js";
 import {
   translateHTML,
   fetchUserLangugage,
@@ -625,7 +625,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Set up translations first
   fetchUserLangugage();
   translateHTML();
-  initOrgQueryParams();
+  initOrgUrlRouting();
   // Then initialize the app
   new DocumentationApp();
 });

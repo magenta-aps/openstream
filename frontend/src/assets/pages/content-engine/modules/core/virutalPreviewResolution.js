@@ -11,6 +11,7 @@ import {
   ORIENTATION,
   getAspectRatiosByOrientation,
 } from "../../../../utils/availableAspectRatios.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
 function getAspectRatiosForOrientation(orientation) {
   if (orientation === ORIENTATION.LANDSCAPE) {
@@ -78,7 +79,7 @@ export function initVirtualPreviewResolution() {
   };
 
   const options = document.querySelectorAll(".resolution-option");
-  const allowAspectRatioChanges = queryParams.mode !== "suborg_templates";
+  const allowAspectRatioChanges = queryParams.mode !== "suborg_templates" && queryParams.mode !== "template_editor";
 
   options.forEach((option) => {
     const optionWidth = parseInt(option.getAttribute("data-width"), 10);
@@ -199,6 +200,7 @@ export async function updateResolution(selectedResolution) {
 
     store.emulatedWidth = nextWidth;
     store.emulatedHeight = nextHeight;
+    syncGridToCurrentSlide();
     const currentAspectRatio = getCurrentAspectRatio();
 
     // Update aspect ratio displays

@@ -13,9 +13,11 @@ import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
 import { getNewZIndex } from "../utils/domUtils.js";
 import { displayMediaModal } from "../modals/mediaModal.js";
+import { openImageEditorForElement } from "../modals/imageEditorModal.js";
 import { GridUtils } from "../config/gridConfig.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
+import { isDirectImageUrl } from "../utils/specialSaveUtils.js";
 
 // Define image extensions list locally
 const imageExtensionsList = ["png", "jpeg", "jpg", "svg", "pdf", "webp"];
@@ -50,14 +52,16 @@ function addImageElementToSlide(imageId) {
       return;
     }
     pushCurrentSlideState();
+    const defaultSize = GridUtils.getDefaultElementSize('medium');
+    const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
     const newImage = {
       id: store.elementIdCounter++,
       type: "image",
       content: imageId,
-      gridX: GridUtils.getCenteredPosition(100, 100).x,
-      gridY: GridUtils.getCenteredPosition(100, 100).y,
-      gridWidth: 100,
-      gridHeight: 100,
+      gridX: defaultSize.x ?? centeredPos.x,
+      gridY: defaultSize.y ?? centeredPos.y,
+      gridWidth: defaultSize.width,
+      gridHeight: defaultSize.height,
       backgroundColor: "transparent",
       zIndex: getNewZIndex(),
       sizingMode: "scaled",
@@ -94,6 +98,17 @@ function initImageEventListeners() {
         },
         gettext("Image"),
       );
+    } else {
+      showToast(gettext("Please select an image element first!"), "Info");
+    }
+  });
+
+  document.getElementById("open-image-editor")?.addEventListener("click", () => {
+    if (
+      window.selectedElementForUpdate &&
+      window.selectedElementForUpdate.element.type === "image"
+    ) {
+      openImageEditorForElement(window.selectedElementForUpdate);
     } else {
       showToast(gettext("Please select an image element first!"), "Info");
     }
@@ -167,28 +182,32 @@ export function _renderImage(el, container) {
   }
 
   if (el.content) {
-    const apiKey = queryParams.apiKey;
+    if (isDirectImageUrl(el.content)) {
+      img.src = el.content;
+    } else {
+      const apiKey = queryParams.apiKey;
 
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) {
-      headers["X-API-KEY"] = apiKey;
-    } else if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      const headers = { "Content-Type": "application/json" };
+      if (apiKey) {
+        headers["X-API-KEY"] = apiKey;
+      } else if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      fetch(
+        `${BASE_URL}/api/documents/file-token/${el.content}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
+        { method: "GET", headers },
+      )
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.file_url) {
+            img.src = data.file_url;
+          } else {
+            console.error("Thumb: Failed to get image URL:", data);
+          }
+        })
+        .catch((err) => console.error("Thumb: Failed to load image:", err));
     }
-
-    fetch(
-      `${BASE_URL}/api/documents/file-token/${el.content}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
-      { method: "GET", headers },
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.file_url) {
-          img.src = data.file_url;
-        } else {
-          console.error("Thumb: Failed to get image URL:", data);
-        }
-      })
-      .catch((err) => console.error("Thumb: Failed to load image:", err));
   } else {
     console.warn("Image element has no content ID:", el.id);
   }

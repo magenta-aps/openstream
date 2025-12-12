@@ -188,11 +188,8 @@ export const NewstickerSlideType = {
     const config = this.extractFormData();
     const defaults = SlideTypeUtils.getDefaultSlideSettings();
 
+    // Don't hardcode sizes - let the aspect ratio presets handle it
     return {
-      gridWidth: 200,
-      gridHeight: 12,
-      gridX: 0,
-      gridY: 188,
       backgroundColor: defaults.backgroundColor,
       slideTypeId: 5,
       config: config,

@@ -19,11 +19,15 @@ COPY . .
 # Development target
 FROM base AS development
 
-# Expose Vite dev server port
-EXPOSE 5173
+# Expose Express server port
+EXPOSE 4174
 
-# Start development server with host binding for Docker
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Set environment to development
+ENV NODE_ENV=development
+ENV PORT=4174
+
+# Start Express server with nodemon (which will start Vite in middleware mode)
+CMD ["npm", "run", "dev:server"]
 
 # Production build stage
 FROM base AS build
@@ -32,40 +36,32 @@ FROM base AS build
 RUN npm run build
 
 # Production target
-FROM docker.io/library/nginx:alpine AS production
+FROM node:20-alpine AS production
 
-# Create and copy nginx configuration
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    \
-    gzip on; \
-    gzip_vary on; \
-    gzip_min_length 1024; \
-    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json; \
-    \
-    location / { \
-        try_files $uri $uri.html $uri/ =404; \
-    } \
-    \
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
-    } \
-    \
-    add_header X-Frame-Options "SAMEORIGIN" always; \
-    add_header X-Content-Type-Options "nosniff" always; \
-    add_header X-XSS-Protection "1; mode=block" always; \
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always; \
-}' > /etc/nginx/conf.d/default.conf
+# Set working directory
+WORKDIR /app
+
+# Copy package files for production dependencies
+COPY package.json package-lock.json* ./
+
+# Install only production dependencies
+RUN npm ci --omit=dev
 
 # Copy built application from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist ./dist
 
-# Expose port 4173 (to match Vite preview port)
+# Copy server code
+COPY server ./server
+
+# Copy source pages for the server (needed for development mode fallback)
+COPY src/pages ./src/pages
+
+# Set environment to production
+ENV NODE_ENV=production
+ENV PORT=4173
+
+# Expose port 4173
 EXPOSE 4173
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Express server
+CMD ["node", "server/main.js"]

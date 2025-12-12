@@ -292,14 +292,10 @@ export const WinkasSlideType = {
     const defaults = SlideTypeUtils.getDefaultSlideSettings();
 
     return {
-      gridWidth: defaults.gridWidth,
-      gridHeight: defaults.gridHeight,
-      gridX: defaults.gridX,
-      gridY: defaults.gridY,
       backgroundColor: defaults.backgroundColor,
-      slideTypeId: 11,
+      slideTypeId: 6,
       config: config,
-      integrationName: "WinKAS - Bookingoversigt",
+      integrationName: "Winkas",
     };
   },
 };

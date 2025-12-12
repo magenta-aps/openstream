@@ -5,9 +5,9 @@ import { loadSlide, scaleAllSlides } from "./renderSlide.js";
 import { updateSlideSelector } from "./slideSelector.js";
 import {
   autoHyphenate,
+  selectedBranchID,
   showToast,
   token,
-  selectedBranchID,
 } from "../../../../utils/utils.js";
 import { openAddSlideModal } from "./addSlide.js";
 import { BASE_URL } from "../../../../utils/constants.js";
@@ -16,6 +16,12 @@ import {
   subscribeToPersistedStateChanges,
   suspendPersistedStateNotifications,
 } from "./persistedStateObserver.js";
+import { syncGridToCurrentSlide } from "../config/gridConfig.js";
+import { registerFontsFromSlides } from "../utils/fontUtils.js";
+import {
+  SPECIAL_SAVE_ENABLED,
+  resolveSlidesForSpecialSave,
+} from "../utils/specialSaveUtils.js";
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 let autosaveDebounceHandle = null;
@@ -46,6 +52,9 @@ export async function fetchSlideshow(slideshowId) {
     const resumePersistedNotifications = suspendPersistedStateNotifications();
     try {
       const data = await resp.json();
+      const isLegacySlideshow = Boolean(data.isLegacy);
+      store.activeSlideshowIsLegacy = isLegacySlideshow;
+      store.legacyGridEnabled = isLegacySlideshow;
       store.slideshowMode = data.mode;
       document.querySelector("#contentEngineTitle").innerHTML = autoHyphenate(
         data.name,
@@ -56,6 +65,7 @@ export async function fetchSlideshow(slideshowId) {
         store.emulatedWidth = data.previewWidth;
         store.emulatedHeight = data.previewHeight;
       }
+      syncGridToCurrentSlide();
 
       if (
         data.slideshow_data &&
@@ -119,10 +129,13 @@ export async function fetchSlideshow(slideshowId) {
           });
         });
 
+        await registerFontsFromSlides(store.slides);
+
         store.lastSlidesStr = JSON.stringify(store.slides);
         store.currentSlideIndex = 0;
 
         if (store.currentSlideIndex > -1) {
+          syncGridToCurrentSlide();
           loadSlide(store.slides[store.currentSlideIndex]);
         }
         scaleAllSlides();
@@ -142,6 +155,7 @@ export async function fetchSlideshow(slideshowId) {
             "</p>";
         }
 
+        syncGridToCurrentSlide();
         // Open the add slide modal
         setTimeout(() => {
           openAddSlideModal();
@@ -253,10 +267,14 @@ async function runSlideshowAutoSave() {
 }
 
 export async function saveSlideshow(slideshowId) {
+  const slidesForPayload = SPECIAL_SAVE_ENABLED
+    ? await resolveSlidesForSpecialSave(store.slides)
+    : store.slides;
+
   const payload = {
     ...(store.emulatedHeight && { previewHeight: store.emulatedHeight }),
     ...(store.emulatedWidth && { previewWidth: store.emulatedWidth }),
-    slideshow_data: { slides: store.slides },
+    slideshow_data: { slides: slidesForPayload },
   };
 
   const url = `${BASE_URL}/api/manage_content/${slideshowId}/?branch_id=${selectedBranchID}`;

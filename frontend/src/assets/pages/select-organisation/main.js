@@ -14,8 +14,10 @@ translateHTML();
 
 import { BASE_URL } from "../../utils/constants";
 import {
+  createUrl,
   fetchUserLanguageFromBackend,
   initSignOutButton,
+  signOut,
 } from "../../utils/utils";
 // Get DOM elements
 const errorMessage = document.getElementById("error-message");
@@ -35,13 +37,7 @@ if (!token) {
 }
 
 // Sign out functionality
-signOutBtn.addEventListener("click", () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("username");
-  localStorage.removeItem("myUserId");
-  window.location.href = "/sign-in";
-});
+signOutBtn.addEventListener("click", signOut);
 
 // Fetch user info
 async function fetchUserInfo() {
@@ -97,6 +93,9 @@ function displayOrganisations(organisations) {
     return;
   }
 
+
+
+
   // If user has only one organization, redirect directly to it
   if (organisations.length === 1) {
     selectOrganisation(organisations[0]);
@@ -142,8 +141,9 @@ function createOrganisationCard(org) {
 
 // Select organization
 function selectOrganisation(org) {
-  // Redirect to sub-organization selection
-  window.location.href = "/select-sub-org?orgId=" + org.id;
+  // Redirect to sub-organisation selection using the URI-friendly slug
+  const orgPath = org.uri_name || org.name;
+  window.location.href = `/${encodeURIComponent(orgPath)}/select-sub-org`;
 }
 
 function showError(message) {

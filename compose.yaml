@@ -35,7 +35,6 @@ services:
     volumes:
       - ./backend/openstream/project:/app/project:Z
       - ./backend/openstream/app:/app/app:Z
-      - ./backend/openstream/sso:/app/sso:Z
       - ./backend/openstream/osauth:/app/osauth:Z
       - ./backend/locale:/app/locale:Z
       - ./dev-environment/backend/fixtures:/app/fixtures:Z
@@ -64,7 +63,6 @@ services:
     volumes:
       - ./backend/openstream/project:/app/project:Z
       - ./backend/openstream/app:/app/app:Z
-      - ./backend/openstream/sso:/app/sso:Z
     entrypoint: [ "/usr/local/bin/supercronic", "/crontab" ]
     depends_on:
       - openstream
@@ -95,12 +93,13 @@ services:
       - *env-frontend
     networks: *common-networks
     ports:
-      - "5173:5173"  # Development port
-      - "4173:80"    # Production port (nginx internal port 80)
+      - "4174:4174"  # Development port (Express server with Vite middleware)
+      - "4173:4173"  # Production port (Express server)
     volumes:
       # Only mount source code in development mode
       - ./frontend/src:/app/src:Z
       - ./frontend/public:/app/public:Z
+      - ./frontend/server:/app/server:Z
       - ./frontend/vite.config.js:/app/vite.config.js:Z
     depends_on:
       - openstream

@@ -1,0 +1,27 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+<div class="modal fade" id="imageEditorModal" tabindex="-1" aria-labelledby="imageEditorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl image-editor-modal-dialog">
+        <div class="modal-content h-100">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageEditorModalLabel">{% trans "Image Editor" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body position-relative p-0 image-editor-body">
+                <div class="image-editor-viewport">
+                    <div id="image-editor-loading" class="image-editor-loading d-flex flex-column align-items-center justify-content-center gap-3 d-none">
+                        <div class="spinner-border text-white" role="status">
+                            <span class="visually-hidden">{% trans "Loading" %}</span>
+                        </div>
+                        <p class="text-white-75 fw-semibold mb-0" id="image-editor-loading-text">{% trans "Preparing editor..." %}</p>
+                    </div>
+                    <div id="tui-image-editor-root" class="image-editor-root"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="imageEditorCancelBtn">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-primary" id="imageEditorSaveBtn">{% trans "Save Edited Image" %}</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+{{#> base/navbar/navbar_base }}
+
+    {{#*inline "nav-links"}}
+        {{> base/navbar/nav_link href="/global-templates?mode=template_editor&template_scope=global" icon="public" title="Global Templates"}}
+    {{/inline}}
+
+
+    {{#*inline "user-actions"}}
+        {{> base/navbar/branch-switcher }}
+        {{> base/navbar/user-dropdown }}
+    {{/inline}}
+{{/ base/navbar/navbar_base }}

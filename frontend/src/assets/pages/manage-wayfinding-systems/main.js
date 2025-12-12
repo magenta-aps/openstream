@@ -15,7 +15,7 @@ import {
   updateNavbarUsername,
   initSignOutButton,
   setupDeleteConfirmation,
-  initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 
 updateNavbarUsername();
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSignOutButton();
   await fetchAllWayfindingSystems();
   applySearchFilterSort();
-  initOrgQueryParams();
+  initOrgUrlRouting();
 
   searchInput.addEventListener("input", (e) => {
     searchQuery = e.target.value.toLowerCase();

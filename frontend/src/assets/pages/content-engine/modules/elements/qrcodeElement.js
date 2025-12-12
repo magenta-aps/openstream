@@ -18,15 +18,17 @@ function addQRCodeElementToSlide(url = "") {
   }
 
   pushCurrentSlideState();
+  const defaultSize = GridUtils.getDefaultElementSize('qrcode');
+  const centeredPos = GridUtils.getCenteredPosition(defaultSize.width, defaultSize.height);
 
   const newQRCode = {
     id: store.elementIdCounter++,
     type: "qrcode",
     content: url || "https://example.com", // Default URL
-    gridX: GridUtils.getCenteredPosition(150, 150).x,
-    gridY: GridUtils.getCenteredPosition(150, 150).y,
-    gridWidth: 150,
-    gridHeight: 150,
+    gridX: defaultSize.x ?? centeredPos.x,
+    gridY: defaultSize.y ?? centeredPos.y,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     backgroundColor: "transparent",
     zIndex: getNewZIndex(),
     qrOptions: {

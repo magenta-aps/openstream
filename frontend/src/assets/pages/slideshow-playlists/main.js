@@ -13,7 +13,7 @@ import {
   queryParams,
   updateNavbarUsername,
   setupDeleteConfirmation,
-  initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import {
   translateHTML,
@@ -727,5 +727,5 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast(gettext("Failed to delete playlist."), "Error");
       }
     });
-  initOrgQueryParams();
+  initOrgUrlRouting();
 });

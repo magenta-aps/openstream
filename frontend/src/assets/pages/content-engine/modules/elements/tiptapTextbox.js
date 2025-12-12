@@ -19,6 +19,7 @@ import {
   getAvailableFonts,
   getDefaultFont,
   getDefaultFonts,
+  getFontDisplayLabel,
 } from "../utils/fontUtils.js";
 import { gettext } from "../../../../utils/locales.js";
 import { getNewZIndex } from "../utils/domUtils.js";
@@ -38,97 +39,27 @@ export function autoResizeTextbox(textEl, containerEl, dataObj) {
   }
 }
 
-export const fontSizeMapping = {
-  1: "1.02cqw",
-  2: "1.07cqw",
-  3: "1.13cqw",
-  4: "1.23cqw",
-  5: "1.33cqw",
-  6: "1.44cqw",
-  7: "1.54cqw",
-  8: "1.75cqw",
-  9: "1.96cqw",
-  10: "2.17cqw",
-  11: "2.38cqw",
-  12: "2.58cqw",
-  13: "2.79cqw",
-  14: "3.00cqw",
-  15: "3.21cqw",
-  16: "3.42cqw",
-  17: "3.63cqw",
-  18: "3.83cqw",
-  19: "4.04cqw",
-  20: "4.25cqw",
-  21: "4.67cqw",
-  22: "5.08cqw",
-  23: "5.50cqw",
-  24: "5.92cqw",
-  25: "6.33cqw",
-  26: "6.75cqw",
-  27: "7.17cqw",
-  28: "8.00cqw",
-  29: "8.83cqw",
-  30: "9.67cqw",
-  31: "10.50cqw",
-  32: "11.33cqw",
-  33: "12.17cqw",
-  34: "13.00cqw",
-  35: "13.83cqw",
-  36: "14.67cqw",
-  37: "15.50cqw",
-  38: "16.33cqw",
-  39: "17.17cqw",
-  40: "18.00cqw",
-  41: "18.83cqw",
-  42: "19.67cqw",
-  43: "20.50cqw",
-  44: "21.33cqw",
-  45: "22.17cqw",
-  46: "23.00cqw",
-  47: "23.83cqw",
-  48: "24.67cqw",
-  49: "25.50cqw",
-  50: "26.33cqw",
-  51: "27.17cqw",
-};
+// Font sizes and line heights are now directly mapped from dropdown values
+// The dropdown values correspond to the actual CSS values (px for font size, unitless for line height)
 
-const fontSizeKeys = Object.keys(fontSizeMapping).sort(
-  (a, b) => Number(a) - Number(b),
-);
+const PREDEFINED_FONT_SIZES = [
+  10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72,
+  80, 88, 96, 104, 112, 120, 128, 144, 160, 176, 192, 208, 224, 240, 256, 272,
+  288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512
+];
 
-export const lineHeightMapping = {
-  0.5: "0.5",
-  0.6: "0.6",
-  0.7: "0.7",
-  0.8: "0.8",
-  0.9: "0.9",
-  1: "1",
-  1.1: "1.1",
-  1.2: "1.2",
-  1.3: "1.3",
-  1.4: "1.4",
-  1.5: "1.5",
-  1.6: "1.6",
-  1.8: "1.8",
-  2: "2",
-  2.2: "2.2",
-  2.5: "2.5",
-  3: "3",
-};
-
-
-const DEFAULT_FONT_SIZE_KEY = "12";
+const DEFAULT_FONT_SIZE_KEY = "40"; // Default font size in pixels (matches toolbar default)
 const DEFAULT_LINE_HEIGHT_KEY = "1.2";
 const DEFAULT_TEXT_COLOR = "#000000";
 
 function getFontSizeCssValue(key) {
-  const resolvedKey = key || DEFAULT_FONT_SIZE_KEY;
-  return fontSizeMapping[resolvedKey] || fontSizeMapping[DEFAULT_FONT_SIZE_KEY];
+  // The key is the dropdown value (pixel size), just append 'px' to convert it to a CSS value
+  return key ? `${key}px` : `${DEFAULT_FONT_SIZE_KEY}px`;
 }
 
 function getLineHeightCssValue(key) {
-  const resolvedKey = key || DEFAULT_LINE_HEIGHT_KEY;
-  return lineHeightMapping[resolvedKey] || resolvedKey;
+  // The key is the dropdown value, which directly corresponds to the CSS line-height value
+  return key || DEFAULT_LINE_HEIGHT_KEY;
 }
 
 function buildTextStyleAttributes(elementData) {
@@ -203,7 +134,7 @@ function resetEditorSelection(editor) {
 
 const tiptapToolbar = document.querySelector(".tiptap-toolbar");
 const fontFamilySelect = document.querySelector(".tiptap-font-family-select");
-const fontSizeSelect = document.querySelector(".tiptap-font-size-select");
+const fontSizeInput = document.querySelector(".tiptap-font-size-input");
 const fontSizeDecreaseBtn = document.getElementById(
   "tiptapFontSizeDecreaseBtn",
 );
@@ -218,6 +149,9 @@ const underlineBtn = document.getElementById("tiptapUnderlineBtn");
 const alignLeftBtn = document.getElementById("tiptapAlignTextLeftBtn");
 const alignCenterBtn = document.getElementById("tiptapAlignTextCenterBtn");
 const alignRightBtn = document.getElementById("tiptapAlignTextRightBtn");
+const alignTopBtn = document.getElementById("tiptapAlignTopBtn");
+const alignMiddleBtn = document.getElementById("tiptapAlignMiddleBtn");
+const alignBottomBtn = document.getElementById("tiptapAlignBottomBtn");
 const basicFormattingGroup = document.getElementById(
   "tiptapBasicFormattingGroup",
 );
@@ -267,12 +201,6 @@ function applyToolbarFeatureVisibility() {
   if (basicFormattingSeparator) {
     basicFormattingSeparator.classList.toggle("d-none", !hasBasicFormatting);
   }
-}
-
-function findKeyByValue(mapping, targetValue) {
-  if (targetValue == null) return null;
-  const entry = Object.entries(mapping).find(([, val]) => val === targetValue);
-  return entry ? entry[0] : null;
 }
 
 const DefaultFormattingExtension = Extension.create({
@@ -553,34 +481,64 @@ function applyInitialTextFormatting(editor, elementData) {
 }
 
 function populateFontDropdown() {
-  if (!fontFamilySelect) return;
-  fontFamilySelect.innerHTML = "";
+  if (fontFamilySelect) {
+    fontFamilySelect.innerHTML = "";
 
-  const availableFonts = getAvailableFonts();
-  const defaultFonts = getDefaultFonts();
-  const usingFallbackFonts = defaultFonts.length > 0;
+    const activeSlide =
+      store.currentSlideIndex > -1
+        ? store.slides[store.currentSlideIndex]
+        : null;
+    const availableFonts = getAvailableFonts({ slide: activeSlide });
+    const defaultFonts = getDefaultFonts();
+    const usingFallbackFonts = defaultFonts.length > 0;
 
-  defaultFonts.forEach((fontName) => {
-    const option = document.createElement("option");
-    option.value = fontName;
-    option.textContent = fontName;
-    option.style.fontFamily = fontName;
-    option.title = fontName;
-    fontFamilySelect.appendChild(option);
-  });
+    defaultFonts.forEach((fontName) => {
+      const option = document.createElement("option");
+      option.value = fontName;
+      option.textContent = fontName;
+      option.style.fontFamily = fontName;
+      option.title = fontName;
+      fontFamilySelect.appendChild(option);
+    });
 
-  availableFonts.forEach((font) => {
-    if (!font?.name) return;
-    const option = document.createElement("option");
-    option.value = font.name;
-    option.textContent = font.name;
-    option.style.fontFamily = `"${font.name}"`;
-    option.title = font.name;
-    fontFamilySelect.appendChild(option);
-  });
+    availableFonts.forEach((font) => {
+      if (!font?.name) return;
+      const option = document.createElement("option");
+      option.value = font.name;
+      option.textContent = getFontDisplayLabel(font) || font.name;
+      option.style.fontFamily = `"${font.name}"`;
+      option.title = font.name;
+      fontFamilySelect.appendChild(option);
+    });
 
-  if (availableFonts.length > 0 && !usingFallbackFonts) {
-    console.log("Fonts loaded...");
+    if (availableFonts.length > 0 && !usingFallbackFonts) {
+      console.log("Fonts loaded...");
+    }
+  }
+
+  // Populate font size dropdown
+  const fontSizeDropdownMenu = document.querySelector(".tiptap-font-size-dropdown-menu");
+  if (fontSizeDropdownMenu) {
+    fontSizeDropdownMenu.innerHTML = "";
+    PREDEFINED_FONT_SIZES.forEach(size => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.classList.add("dropdown-item", "text-center");
+      a.href = "#";
+      a.dataset.value = size;
+      a.textContent = size;
+      
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (fontSizeInput) {
+          fontSizeInput.value = size;
+          fontSizeInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+      
+      li.appendChild(a);
+      fontSizeDropdownMenu.appendChild(li);
+    });
   }
 }
 
@@ -593,9 +551,24 @@ function applyContainerStyles(elementData, wrapper) {
     wrapper.style.removeProperty("text-align");
   }
 
-  wrapper.style.removeProperty("display");
-  wrapper.style.removeProperty("flex-direction");
-  wrapper.style.removeProperty("justify-content");
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+
+  const vAlign = elementData.verticalAlign || "top";
+  if (vAlign === "middle") {
+    wrapper.style.justifyContent = "center";
+  } else if (vAlign === "bottom") {
+    wrapper.style.justifyContent = "flex-end";
+  } else {
+    wrapper.style.justifyContent = "flex-start";
+  }
+
+  const editorDom = wrapper.querySelector(".ProseMirror");
+  if (editorDom) {
+    editorDom.style.display = "flex";
+    editorDom.style.flexDirection = "column";
+    editorDom.style.justifyContent = wrapper.style.justifyContent;
+  }
 }
 
 function updateColorButton(color) {
@@ -610,21 +583,14 @@ function updateColorButton(color) {
   }
 }
 
-function updateFontSizeStepperState(activeKey) {
-  if (!fontSizeDecreaseBtn || !fontSizeIncreaseBtn) return;
-  if (!fontSizeKeys.length) {
-    fontSizeDecreaseBtn.disabled = false;
-    fontSizeIncreaseBtn.disabled = false;
-    return;
-  }
-  const index = fontSizeKeys.indexOf(String(activeKey));
-  if (index === -1) {
-    fontSizeDecreaseBtn.disabled = false;
-    fontSizeIncreaseBtn.disabled = false;
-    return;
-  }
-  fontSizeDecreaseBtn.disabled = index <= 0;
-  fontSizeIncreaseBtn.disabled = index >= fontSizeKeys.length - 1;
+function updateFontSizeStepperState(activeValue) {
+  if (!fontSizeDecreaseBtn || !fontSizeIncreaseBtn || !fontSizeInput) return;
+  
+  const currentVal = parseInt(activeValue, 10);
+  if (isNaN(currentVal)) return;
+  
+  fontSizeDecreaseBtn.disabled = currentVal <= 1;
+  fontSizeIncreaseBtn.disabled = currentVal >= 1000;
 }
 
 function updateAlignmentButtons(targetAlign) {
@@ -634,6 +600,13 @@ function updateAlignmentButtons(targetAlign) {
   alignRightBtn?.classList.toggle("active", targetAlign === "right");
 }
 
+function updateVerticalAlignmentButtons(targetAlign) {
+  if (!targetAlign) targetAlign = "top";
+  alignTopBtn?.classList.toggle("active", targetAlign === "top");
+  alignMiddleBtn?.classList.toggle("active", targetAlign === "middle");
+  alignBottomBtn?.classList.toggle("active", targetAlign === "bottom");
+}
+
 function syncToolbarFromData() {
   const data = store.selectedElementData;
   if (!data || data.type !== "tiptap-textbox") return;
@@ -641,14 +614,15 @@ function syncToolbarFromData() {
   if (fontFamilySelect) {
     fontFamilySelect.value = data.fontFamily || getDefaultFont();
   }
-  if (fontSizeSelect) {
-    fontSizeSelect.value = data.fontSize || DEFAULT_FONT_SIZE_KEY;
-    updateFontSizeStepperState(fontSizeSelect.value);
+  if (fontSizeInput) {
+    fontSizeInput.value = data.fontSize || DEFAULT_FONT_SIZE_KEY;
+    updateFontSizeStepperState(fontSizeInput.value);
   }
   if (lineHeightSelect) {
     lineHeightSelect.value = data.lineHeight || DEFAULT_LINE_HEIGHT_KEY;
   }
   updateAlignmentButtons(data.textAlign || "left");
+  updateVerticalAlignmentButtons(data.verticalAlign || "top");
   updateColorButton(data.textColor);
 }
 
@@ -680,32 +654,25 @@ function updateToolbarFromEditor(editor) {
     fontFamilySelect.value = family;
   }
 
-  if (fontSizeSelect) {
+  if (fontSizeInput) {
     const sizeValue = attrs.fontSize;
     if (sizeValue) {
-      const sizeKey = findKeyByValue(fontSizeMapping, sizeValue);
-      if (sizeKey) {
-        fontSizeSelect.value = sizeKey;
-      } else if (store.selectedElementData) {
-        fontSizeSelect.value =
-          store.selectedElementData.fontSize || DEFAULT_FONT_SIZE_KEY;
-      }
-    } else if (store.selectedElementData) {
-      fontSizeSelect.value =
-        store.selectedElementData.fontSize || DEFAULT_FONT_SIZE_KEY;
+      // Extract the numeric value from the CSS value (e.g., "40px" -> "40")
+      const sizeKey = sizeValue.replace('px', '');
+      fontSizeInput.value = sizeKey;
+    } else if (store.selectedElementData?.fontSize) {
+      fontSizeInput.value = store.selectedElementData.fontSize;
+    } else {
+      fontSizeInput.value = DEFAULT_FONT_SIZE_KEY;
     }
-    updateFontSizeStepperState(fontSizeSelect.value);
+    updateFontSizeStepperState(fontSizeInput.value);
   }
 
   if (lineHeightSelect) {
     const lineHeightValue =
       attrs.lineHeight || store.selectedElementData?.lineHeight;
     if (lineHeightValue) {
-      const key =
-        findKeyByValue(lineHeightMapping, lineHeightValue) || lineHeightValue;
-      lineHeightSelect.value = String(key);
-    } else if (store.selectedElementData?.lineHeight) {
-      lineHeightSelect.value = store.selectedElementData.lineHeight;
+      lineHeightSelect.value = String(lineHeightValue);
     } else {
       lineHeightSelect.value = DEFAULT_LINE_HEIGHT_KEY;
     }
@@ -721,6 +688,7 @@ function updateToolbarFromEditor(editor) {
       ? "right"
       : "left";
   updateAlignmentButtons(textAlign);
+  updateVerticalAlignmentButtons(store.selectedElementData?.verticalAlign || "top");
 }
 
 export function updateTiptapToolbarState() {
@@ -759,30 +727,37 @@ function handleFontFamilyChange(e) {
   updateToolbarFromEditor(editor);
 }
 
-function getCurrentFontSizeKey() {
-  if (!fontSizeSelect) return null;
-  const current = fontSizeSelect.value;
-  if (fontSizeKeys.includes(current)) {
-    return current;
-  }
-  return fontSizeKeys.length ? fontSizeKeys[0] : null;
-}
-
 function stepFontSize(step) {
-  if (!fontSizeSelect) return;
-  const currentKey = getCurrentFontSizeKey();
-  if (!currentKey) return;
-  const currentIndex = fontSizeKeys.indexOf(currentKey);
-  const targetIndex = currentIndex + step;
-  if (targetIndex < 0 || targetIndex >= fontSizeKeys.length) {
-    return;
+  if (!fontSizeInput) return;
+  
+  let currentVal = parseInt(fontSizeInput.value, 10);
+  if (isNaN(currentVal)) currentVal = parseInt(DEFAULT_FONT_SIZE_KEY, 10);
+
+  let nextVal;
+  
+  if (step > 0) {
+      // Increasing
+      const nextPredefined = PREDEFINED_FONT_SIZES.find(s => s > currentVal);
+      if (nextPredefined) {
+          nextVal = nextPredefined;
+      } else {
+          nextVal = currentVal + 1;
+      }
+  } else {
+      // Decreasing
+      // Find largest predefined strictly less than currentVal
+      const prevPredefined = [...PREDEFINED_FONT_SIZES].reverse().find(s => s < currentVal);
+      if (prevPredefined) {
+          nextVal = prevPredefined;
+      } else {
+          nextVal = Math.max(1, currentVal - 1);
+      }
   }
-  const targetKey = fontSizeKeys[targetIndex];
-  if (targetKey === fontSizeSelect.value) {
-    return;
+  
+  if (nextVal !== currentVal) {
+      fontSizeInput.value = nextVal;
+      fontSizeInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
-  fontSizeSelect.value = targetKey;
-  fontSizeSelect.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 function handleFontSizeDecreaseClick(e) {
@@ -934,9 +909,9 @@ function setTextAlignment(targetAlign) {
     store.selectedElementData.textAlign = targetAlign;
   }
 
-  const dom = getEditorDom(editor);
-  if (dom && applyDefaults) {
-    applyContainerStyles(store.selectedElementData, dom);
+  const wrapper = editor.options.element;
+  if (wrapper && applyDefaults) {
+    applyContainerStyles(store.selectedElementData, wrapper);
   }
 
   updateToolbarFromEditor(editor);
@@ -952,6 +927,35 @@ function handleAlignCenter() {
 
 function handleAlignRight() {
   setTextAlignment("right");
+}
+
+function setVerticalAlignment(targetAlign) {
+  if (store.selectedElementData) {
+    pushCurrentSlideState();
+    store.selectedElementData.verticalAlign = targetAlign;
+    
+    updateVerticalAlignmentButtons(targetAlign);
+    
+    const editor = getActiveEditor();
+    if (editor) {
+      const wrapper = editor.options.element;
+      if (wrapper) {
+        applyContainerStyles(store.selectedElementData, wrapper);
+      }
+    }
+  }
+}
+
+function handleAlignTop() {
+  setVerticalAlignment("top");
+}
+
+function handleAlignMiddle() {
+  setVerticalAlignment("middle");
+}
+
+function handleAlignBottom() {
+  setVerticalAlignment("bottom");
 }
 
 function handleTextColorPickerClick() {
@@ -990,7 +994,11 @@ function handleTextColorPickerClick() {
 }
 
 function handleToolbarMousedown(e) {
-  if (!e.target.closest("button") && !e.target.closest("select")) {
+  // Allow interaction with inputs, selects, buttons, and dropdown items
+  if (!e.target.closest("button") && 
+      !e.target.closest("select") && 
+      !e.target.closest("input") && 
+      !e.target.closest(".dropdown-item")) {
     e.preventDefault();
   }
 }
@@ -1124,8 +1132,9 @@ export function finalizeEditorForElement(elementId) {
     dom.blur();
   }
 
-  if (dom && data) {
-    applyContainerStyles(data, dom);
+  const wrapper = editor.options.element;
+  if (wrapper && data) {
+    applyContainerStyles(data, wrapper);
   }
 }
 
@@ -1138,16 +1147,17 @@ function addTiptapTextboxToSlide() {
   pushCurrentSlideState();
   const defaultFontSizeKey = DEFAULT_FONT_SIZE_KEY;
   const defaultFontFamily = getDefaultFont();
+  const defaultSize = GridUtils.getDefaultElementSize('textbox');
 
   const newTextbox = {
     id: store.elementIdCounter++,
     type: "tiptap-textbox",
     tiptapContent: DEFAULT_TEXT_HTML,
     text: DEFAULT_TEXT_HTML,
-    gridX: 10,
-    gridY: 10,
-    gridWidth: 110,
-    gridHeight: 35,
+    gridX: defaultSize.x ?? 10,
+    gridY: defaultSize.y ?? 10,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     border: false,
     backgroundColor: "transparent",
     fontFamily: defaultFontFamily,
@@ -1155,6 +1165,7 @@ function addTiptapTextboxToSlide() {
     lineHeight: DEFAULT_LINE_HEIGHT_KEY,
     textColor: DEFAULT_TEXT_COLOR,
     textAlign: "left",
+    verticalAlign: "top",
     zIndex: getNewZIndex(),
     originSlideIndex: store.currentSlideIndex,
     isLocked: false,
@@ -1173,13 +1184,22 @@ export function initTiptapTextbox() {
   applyToolbarFeatureVisibility();
   populateFontDropdown();
 
+  document.addEventListener(
+    "content-engine:fonts-changed",
+    populateFontDropdown,
+  );
+  document.addEventListener(
+    "content-engine:active-slide-changed",
+    populateFontDropdown,
+  );
+
   const addBtn = document.querySelector('[data-type="tiptap-textbox"]');
   addBtn?.addEventListener("click", addTiptapTextboxToSlide);
 
   fontFamilySelect?.addEventListener("change", handleFontFamilyChange);
   fontSizeDecreaseBtn?.addEventListener("click", handleFontSizeDecreaseClick);
   fontSizeIncreaseBtn?.addEventListener("click", handleFontSizeIncreaseClick);
-  fontSizeSelect?.addEventListener("change", handleFontSizeChange);
+  fontSizeInput?.addEventListener("change", handleFontSizeChange);
   lineHeightSelect?.addEventListener("change", handleLineHeightChange);
 
   boldBtn?.addEventListener("click", handleBoldClick);
@@ -1190,12 +1210,16 @@ export function initTiptapTextbox() {
   alignCenterBtn?.addEventListener("click", handleAlignCenter);
   alignRightBtn?.addEventListener("click", handleAlignRight);
 
+  alignTopBtn?.addEventListener("click", handleAlignTop);
+  alignMiddleBtn?.addEventListener("click", handleAlignMiddle);
+  alignBottomBtn?.addEventListener("click", handleAlignBottom);
+
   textColorBtn?.addEventListener("click", handleTextColorPickerClick);
 
   tiptapToolbar?.addEventListener("mousedown", handleToolbarMousedown);
 
-  if (fontSizeSelect) {
-    updateFontSizeStepperState(fontSizeSelect.value);
+  if (fontSizeInput) {
+    updateFontSizeStepperState(fontSizeInput.value);
   }
 }
 

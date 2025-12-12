@@ -14,10 +14,292 @@ import {
 } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
+import { SPECIAL_SAVE_ENABLED } from "./specialSaveUtils.js";
 
-let availableFonts = []; // Global store for fetched fonts
+const PUBLIC_BASE_PATH =
+  (typeof import.meta !== "undefined" && import.meta.env?.BASE_URL) || "/";
+
+let availableFonts = []; // Primary font list from current mode
+const transientFontRegistry = new Map(); // name -> { font, slides:Set }
 let fontStyleSheet = null; // Global stylesheet for @font-face rules
 let fontInitializationPromise = null; // Prevent duplicate initialization
+let globalFontManifest = null; // Cached manifest of static global fonts
+let globalFontManifestPromise = null; // In-flight manifest fetch promise
+let slideKeyCounter = 0;
+
+const FONT_PROPERTY_KEYS = [
+  "fontFamily",
+  "headerFontFamily",
+  "rowFontFamily",
+];
+
+function normalizeFontName(name) {
+  return typeof name === "string" ? name.trim().toLowerCase() : "";
+}
+
+function getSlideKey(slide, fallbackIndex = null) {
+  if (!slide || typeof slide !== "object") {
+    return null;
+  }
+  if (slide.__fontSlideKey) {
+    return slide.__fontSlideKey;
+  }
+  const candidate =
+    slide.id ??
+    slide.templateId ??
+    slide.slide_id ??
+    slide.uuid ??
+    (typeof fallbackIndex === "number" ? `slide-${fallbackIndex}` : null) ??
+    `slide-${Date.now()}-${slideKeyCounter++}`;
+  slide.__fontSlideKey = String(candidate);
+  return slide.__fontSlideKey;
+}
+
+function isBaseFont(name) {
+  const normalized = normalizeFontName(name);
+  if (!normalized) {
+    return false;
+  }
+  return availableFonts.some(
+    (font) => normalizeFontName(font.name) === normalized,
+  );
+}
+
+function associateSlideWithTransientFont(fontName, slideKey) {
+  if (!fontName || !slideKey) {
+    return false;
+  }
+  const entry = transientFontRegistry.get(normalizeFontName(fontName));
+  if (!entry) {
+    return false;
+  }
+  const priorSize = entry.slides.size;
+  entry.slides.add(slideKey);
+  return entry.slides.size !== priorSize;
+}
+
+function getTransientFontsForSlide(slideKey) {
+  if (!slideKey) {
+    return [];
+  }
+  const fonts = [];
+  transientFontRegistry.forEach((entry) => {
+    if (entry.slides.has(slideKey)) {
+      fonts.push(entry.font);
+    }
+  });
+  return fonts;
+}
+
+function collectFontsFromSlide(slide) {
+  const fonts = new Set();
+  if (!slide || !Array.isArray(slide.elements)) {
+    return fonts;
+  }
+  slide.elements.forEach((element) => {
+    FONT_PROPERTY_KEYS.forEach((key) => {
+      const value = element?.[key];
+      if (typeof value === "string" && value.trim()) {
+        fonts.add(value.trim());
+      }
+    });
+  });
+  return fonts;
+}
+
+function getAllFonts() {
+  return [
+    ...availableFonts,
+    ...Array.from(transientFontRegistry.values()).map((entry) => entry.font),
+  ];
+}
+
+function fontExists(name) {
+  const normalized = normalizeFontName(name);
+  if (!normalized) {
+    return false;
+  }
+  if (isBaseFont(name)) {
+    return true;
+  }
+  return transientFontRegistry.has(normalized);
+}
+
+function normalizeFontRecord(font, source = "org", { transient = false } = {}) {
+  if (!font || !font.name || !(font.font_url || font.url)) {
+    return null;
+  }
+  const fontUrl = font.font_url || font.url;
+  return {
+    name: font.name,
+    font_url: fontUrl,
+    weight: font.weight || "normal",
+    style: font.style || "normal",
+    source,
+    isTransient: Boolean(transient),
+  };
+}
+
+function refreshFontFaceRules() {
+  injectFontFacesIntoStylesheet(getAllFonts());
+}
+
+function notifyFontListChanged() {
+  if (typeof document === "undefined") {
+    return;
+  }
+  document.dispatchEvent(new CustomEvent("content-engine:fonts-changed"));
+}
+
+function setAvailableFonts(fonts = [], { source = "org", resetTransient = true } = {}) {
+  const normalized = fonts
+    .map((font) => normalizeFontRecord(font, source))
+    .filter(Boolean);
+  availableFonts = normalized;
+  if (resetTransient) {
+    transientFontRegistry.clear();
+  }
+  refreshFontFaceRules();
+  notifyFontListChanged();
+}
+
+function addTransientFonts(fonts = [], { source = "global" } = {}) {
+  const normalized = fonts
+    .map((font) => normalizeFontRecord(font, source, { transient: true }))
+    .filter(Boolean)
+    .filter((font) => !fontExists(font.name));
+
+  if (normalized.length === 0) {
+    return [];
+  }
+
+  normalized.forEach((font) => {
+    const key = normalizeFontName(font.name);
+    if (!key) {
+      return;
+    }
+    transientFontRegistry.set(key, {
+      font,
+      slides: new Set(),
+    });
+  });
+
+  refreshFontFaceRules();
+  notifyFontListChanged();
+  return normalized;
+}
+
+function buildPublicGlobalFontUrl(relPath = "") {
+  const sanitizedPath = relPath.replace(/^\/+/, "");
+  const base = PUBLIC_BASE_PATH.endsWith("/")
+    ? PUBLIC_BASE_PATH.slice(0, -1)
+    : PUBLIC_BASE_PATH;
+  if (/^https?:\/\//i.test(sanitizedPath)) {
+    return sanitizedPath;
+  }
+  const hasPrefix = sanitizedPath.startsWith("global_fonts/");
+  const finalPath = hasPrefix ? sanitizedPath : `global_fonts/${sanitizedPath}`;
+  return `${base}/${finalPath}`.replace(/\/+/g, "/");
+}
+
+async function fetchGlobalFontsManifest() {
+  if (globalFontManifest) {
+    return globalFontManifest;
+  }
+  if (globalFontManifestPromise) {
+    return globalFontManifestPromise;
+  }
+
+  const manifestUrl = buildPublicGlobalFontUrl("fonts.json");
+  globalFontManifestPromise = fetch(manifestUrl, { cache: "no-store" })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        console.warn(
+          `Global fonts manifest not available (${resp.status}). URL: ${manifestUrl}`,
+        );
+        return [];
+      }
+      const data = await resp.json();
+      return Array.isArray(data) ? data : [];
+    })
+    .catch((error) => {
+      console.warn("Failed to fetch global font manifest:", error);
+      return [];
+    })
+    .finally(() => {
+      // placeholder; actual assignment happens after await below
+    });
+
+  const manifest = await globalFontManifestPromise;
+  globalFontManifest = manifest;
+  globalFontManifestPromise = null;
+  return manifest;
+}
+
+function mapManifestEntryToFont(entry) {
+  if (!entry || !entry.name) {
+    return null;
+  }
+  const fileRef = entry.url || entry.font_url || entry.path || entry.file;
+  if (!fileRef) {
+    console.warn("Skipping global font without file reference", entry);
+    return null;
+  }
+  const fontUrl = /^https?:\/\//i.test(fileRef)
+    ? fileRef
+    : buildPublicGlobalFontUrl(fileRef);
+  return {
+    name: entry.name,
+    font_url: fontUrl,
+    weight: entry.weight || "normal",
+    style: entry.style || "normal",
+  };
+}
+
+async function fetchGlobalFontsFromStatic() {
+  const manifest = await fetchGlobalFontsManifest();
+  if (!manifest || manifest.length === 0) {
+    console.warn("Global font manifest is empty. No global fonts loaded.");
+    return [];
+  }
+  return manifest
+    .map(mapManifestEntryToFont)
+    .filter(Boolean);
+}
+
+async function ensureGlobalFontsAvailable(fontNames = [], { transient = false } = {}) {
+  if (!fontNames || fontNames.length === 0) {
+    return [];
+  }
+
+  const manifest = await fetchGlobalFontsManifest();
+  if (!manifest || manifest.length === 0) {
+    return [];
+  }
+
+  const normalizedNames = fontNames
+    .map((name) => name?.trim())
+    .filter(Boolean)
+    .map((name) => name.toLowerCase());
+  if (normalizedNames.length === 0) {
+    return [];
+  }
+
+  const matchedFonts = manifest
+    .filter((entry) =>
+      normalizedNames.includes(entry.name?.trim().toLowerCase()),
+    )
+    .map(mapManifestEntryToFont)
+    .filter(Boolean);
+
+  if (matchedFonts.length === 0) {
+    return [];
+  }
+
+  return transient
+    ? addTransientFonts(matchedFonts)
+    : matchedFonts;
+}
 
 /**
  * Fetches custom fonts from the API and makes them available globally
@@ -45,103 +327,88 @@ export async function fetchAndInitializeFonts() {
 
 async function _doFetchAndInitializeFonts() {
   try {
-    const headers = {};
+    const fonts = SPECIAL_SAVE_ENABLED
+      ? await fetchGlobalFontsFromStatic()
+      : await fetchOrgFontsFromApi();
 
-    // Prefer explicit token when available (editor/admin mode)
-    if (token && queryParams.mode !== "slideshow-player") {
-      headers["Authorization"] = `Bearer ${token}`;
-      console.log("Using Authorization Bearer token for font fetching");
-    }
+    setAvailableFonts(fonts, {
+      source: SPECIAL_SAVE_ENABLED ? "global" : "org",
+      resetTransient: true,
+    });
 
-    // If in slideshow-player mode try apiKey from query params or localStorage
-    if (queryParams.mode === "slideshow-player") {
-      const apiKey = queryParams.apiKey || localStorage.getItem("apiKey");
-      if (apiKey) {
-        headers["X-API-KEY"] = apiKey;
-        console.log(
-          "Using X-API-KEY for font fetching in slideshow-player mode",
-        );
-      } else {
-        console.warn("No API key found for slideshow-player mode");
-      }
-    }
-
-    // Build URL: in slideshow-player mode prefer passing a displayWebsiteId so
-    // the backend can infer the organisation without the client needing to know it.
-    let fontsUrl = `${BASE_URL}/api/fonts/?organisation_id=${parentOrgID}`;
-    if (queryParams.mode === "slideshow-player") {
-      const displayWebsiteId =
-        queryParams.displayWebsiteId ||
-        queryParams.display_website_id ||
-        queryParams.id ||
-        queryParams.dw_id;
-      if (displayWebsiteId) {
-        fontsUrl = `${BASE_URL}/api/fonts/?displayWebsiteId=${displayWebsiteId}`;
-        console.log(`Using displayWebsiteId-based URL: ${fontsUrl}`);
-      } else {
-        console.warn("No displayWebsiteId found for slideshow-player mode");
-      }
-    }
-
-    console.log(`Fetching fonts from: ${fontsUrl}`);
-    const fonts = await genericFetch(fontsUrl, "GET", null, headers);
-
-    if (fonts && Array.isArray(fonts)) {
-      console.log(
-        `Successfully fetched ${fonts.length} fonts:`,
-        fonts.map((f) => f.name),
-      );
-      availableFonts = fonts;
-
-      // TEMPORARY: Always use @font-face injection for consistency
-      // The FontFace API is causing timing issues in slideshow-player mode
-      console.log(
-        "Using @font-face stylesheet injection (forced for slideshow-player compatibility)...",
-      );
-      injectFontFacesIntoStylesheet(availableFonts);
-
-      /* DISABLED: FontFace API causing timing issues
-      // If we supplied an X-API-KEY header (player mode), try loading font
-      // bytes via the FontFace API so the font file fetch can include headers.
-      if (headers && headers["X-API-KEY"]) {
-        console.log("Using FontFace API for protected font loading...");
-        // Don't block the UI if this fails; fall back to stylesheet injection.
-        try {
-          await loadProtectedFontsViaFontFace(availableFonts, headers);
-        } catch (e) {
-          console.warn(
-            "Falling back to @font-face injection after FontFace failure",
-            e,
-          );
-          injectFontFacesIntoStylesheet(availableFonts);
-        }
-      } else {
-        console.log("Using @font-face stylesheet injection...");
-        injectFontFacesIntoStylesheet(availableFonts);
-      }
-      */
-
-      console.log(
-        `Font initialization complete. Available fonts: ${availableFonts.length}`,
-      );
-      return fonts;
-    } else {
-      console.warn("No custom fonts found or invalid response:", fonts);
-      return [];
-    }
+    console.log(
+      `Font initialization complete. Loaded ${getAllFonts().length} font(s).`,
+    );
+    return fonts;
   } catch (error) {
     console.error("Error fetching custom fonts:", error);
     showToast(gettext("Failed to load custom fonts."), "Error");
+    setAvailableFonts([], { resetTransient: true });
     return [];
   }
+}
+
+async function fetchOrgFontsFromApi() {
+  const headers = {};
+
+  if (token && queryParams.mode !== "slideshow-player") {
+    headers["Authorization"] = `Bearer ${token}`;
+    console.log("Using Authorization Bearer token for font fetching");
+  }
+
+  if (queryParams.mode === "slideshow-player") {
+    const apiKey = queryParams.apiKey || localStorage.getItem("apiKey");
+    if (apiKey) {
+      headers["X-API-KEY"] = apiKey;
+      console.log("Using X-API-KEY for font fetching in slideshow-player mode");
+    } else {
+      console.warn("No API key found for slideshow-player mode");
+    }
+  }
+
+  let fontsUrl = `${BASE_URL}/api/fonts/?organisation_id=${parentOrgID}`;
+  if (queryParams.mode === "slideshow-player") {
+    const displayWebsiteId =
+      queryParams.displayWebsiteId ||
+      queryParams.display_website_id ||
+      queryParams.id ||
+      queryParams.dw_id;
+    if (displayWebsiteId) {
+      fontsUrl = `${BASE_URL}/api/fonts/?displayWebsiteId=${displayWebsiteId}`;
+      console.log(`Using displayWebsiteId-based URL: ${fontsUrl}`);
+    } else {
+      console.warn("No displayWebsiteId found for slideshow-player mode");
+    }
+  }
+
+  console.log(`Fetching fonts from: ${fontsUrl}`);
+  const fonts = await genericFetch(fontsUrl, "GET", null, headers);
+
+  if (!Array.isArray(fonts)) {
+    console.warn("No custom fonts found or invalid response:", fonts);
+    return [];
+  }
+
+  console.log(
+    `Successfully fetched ${fonts.length} fonts:`,
+    fonts.map((f) => f.name),
+  );
+
+  console.log(
+    "Using @font-face stylesheet injection (forced for slideshow-player compatibility)...",
+  );
+
+  // Keep legacy behavior of FontFace API attempts disabled (see previous note)
+  return fonts;
 }
 
 /**
  * Injects @font-face rules into a global stylesheet for fetched fonts
  * @param {Array} fonts - Array of font objects with name and font_url properties
  */
-function injectFontFacesIntoStylesheet(fonts) {
-  console.log(`Injecting @font-face rules for ${fonts.length} fonts...`);
+function injectFontFacesIntoStylesheet(fonts = getAllFonts()) {
+  const fontsToInject = Array.isArray(fonts) ? fonts : [];
+  console.log(`Injecting @font-face rules for ${fontsToInject.length} fonts...`);
 
   if (!fontStyleSheet) {
     const styleEl = document.createElement("style");
@@ -161,11 +428,14 @@ function injectFontFacesIntoStylesheet(fonts) {
   }
 
   let successCount = 0;
-  fonts.forEach((font) => {
+  fontsToInject.forEach((font) => {
     if (font.name && font.font_url) {
       const rule = `
         @font-face {
-          font-family: '${font.name}'; 
+          font-family: '${font.name}';
+          font-style: ${font.style || "normal"};
+          font-weight: ${font.weight || "normal"};
+          font-display: swap;
           src: url('${font.font_url}');
         }
       `;
@@ -182,7 +452,7 @@ function injectFontFacesIntoStylesheet(fonts) {
   });
 
   console.log(
-    `@font-face injection complete: ${successCount}/${fonts.length} rules added`,
+    `@font-face injection complete: ${successCount}/${fontsToInject.length} rules added`,
   );
 }
 
@@ -192,7 +462,7 @@ function injectFontFacesIntoStylesheet(fonts) {
  * @param {Array} fonts
  * @param {Object} headers
  */
-async function loadProtectedFontsViaFontFace(fonts, headers = {}) {
+async function loadProtectedFontsViaFontFace(fonts = getAllFonts(), headers = {}) {
   if (!window.FontFace) {
     // FontFace API not supported; fall back to stylesheet injection
     console.log(
@@ -309,8 +579,19 @@ async function loadProtectedFontsViaFontFace(fonts, headers = {}) {
  * Gets all available custom fonts fetched from the backend
  * @returns {Array} Array of custom font objects
  */
-export function getAvailableFonts() {
-  return availableFonts;
+export function getAvailableFonts({ slide = null, slideKey = null } = {}) {
+  if (SPECIAL_SAVE_ENABLED) {
+    return getAllFonts();
+  }
+
+  const fonts = [...availableFonts];
+  const resolvedSlideKey = slideKey || (slide ? getSlideKey(slide) : null);
+
+  if (!resolvedSlideKey) {
+    return fonts;
+  }
+
+  return fonts.concat(getTransientFontsForSlide(resolvedSlideKey));
 }
 
 /**
@@ -318,7 +599,7 @@ export function getAvailableFonts() {
  * @returns {Array} Array of default system font names
  */
 export function getDefaultFonts() {
-  return availableFonts.length === 0 ? ["Arial"] : [];
+  return getAllFonts().length === 0 ? ["Arial"] : [];
 }
 
 /**
@@ -326,12 +607,23 @@ export function getDefaultFonts() {
  * @returns {string} Default font name
  */
 export function getDefaultFont() {
-  if (availableFonts.length > 0) {
-    return availableFonts[0].name;
+  const fonts = getAllFonts();
+  if (fonts.length > 0) {
+    return fonts[0].name;
   }
 
   const defaults = getDefaultFonts();
   return defaults.length > 0 ? defaults[0] : "Arial";
+}
+
+export function getFontDisplayLabel(font) {
+  if (!font || !font.name) {
+    return "";
+  }
+  if (font.isTransient && !SPECIAL_SAVE_ENABLED) {
+    return `${font.name} (${gettext("Global template font")})`;
+  }
+  return font.name;
 }
 
 /**
@@ -378,7 +670,8 @@ async function verifyFontsLoaded(fonts) {
  * @returns {Promise<boolean>} - True if fonts render differently than fallback
  */
 async function verifyFontsActuallyWork() {
-  if (availableFonts.length === 0) return true;
+  const fonts = getAllFonts();
+  if (fonts.length === 0) return true;
 
   try {
     // Create a hidden canvas to test font rendering
@@ -390,7 +683,7 @@ async function verifyFontsActuallyWork() {
     const testText = "Ag"; // Letters that look different in different fonts
     const fontSize = 20;
 
-    for (const font of availableFonts) {
+    for (const font of fonts) {
       if (!font.name) continue;
 
       // Measure text with custom font
@@ -432,7 +725,7 @@ async function verifyFontsActuallyWork() {
  * @returns {boolean} True if fonts are loaded
  */
 export function areFontsLoaded() {
-  return availableFonts.length > 0;
+  return getAllFonts().length > 0;
 }
 
 /**
@@ -441,13 +734,14 @@ export function areFontsLoaded() {
  * @returns {Promise<boolean>} - True if fonts are ready, false if timeout
  */
 export async function waitForFontsReady(maxWaitMs = 3000) {
-  if (availableFonts.length === 0) {
+  const fonts = getAllFonts();
+  if (fonts.length === 0) {
     console.log("No custom fonts to wait for");
     return true;
   }
 
   console.log(
-    `Waiting for ${availableFonts.length} fonts to be ready (max ${maxWaitMs}ms)...`,
+    `Waiting for ${fonts.length} fonts to be ready (max ${maxWaitMs}ms)...`,
   );
 
   const startTime = Date.now();
@@ -458,7 +752,7 @@ export async function waitForFontsReady(maxWaitMs = 3000) {
     let allReady = true;
     const currentResults = [];
 
-    for (const font of availableFonts) {
+    for (const font of fonts) {
       if (!font.name) continue;
 
       try {
@@ -530,6 +824,55 @@ export async function waitForFontsReady(maxWaitMs = 3000) {
   return false;
 }
 
+export async function registerFontsFromSlides(slides = []) {
+  if (
+    !Array.isArray(slides) ||
+    slides.length === 0 ||
+    SPECIAL_SAVE_ENABLED
+  ) {
+    return;
+  }
+
+  const slideFontEntries = slides
+    .map((slide, index) => ({
+      slide,
+      index,
+      fonts: collectFontsFromSlide(slide),
+    }))
+    .filter((entry) => entry.fonts.size > 0);
+
+  if (slideFontEntries.length === 0) {
+    return;
+  }
+
+  const missingFonts = [];
+  slideFontEntries.forEach(({ fonts }) => {
+    fonts.forEach((fontName) => {
+      if (!fontExists(fontName) && !missingFonts.includes(fontName)) {
+        missingFonts.push(fontName);
+      }
+    });
+  });
+
+  if (missingFonts.length > 0) {
+    await ensureGlobalFontsAvailable(missingFonts, { transient: true });
+  }
+
+  let associationsChanged = false;
+  slideFontEntries.forEach(({ slide, index, fonts }) => {
+    const slideKey = getSlideKey(slide, index);
+    fonts.forEach((fontName) => {
+      if (associateSlideWithTransientFont(fontName, slideKey)) {
+        associationsChanged = true;
+      }
+    });
+  });
+
+  if (associationsChanged) {
+    notifyFontListChanged();
+  }
+}
+
 /**
  * Debug function to log current font status - useful for troubleshooting
  * Can be called from browser console: window.debugFonts()
@@ -537,7 +880,8 @@ export async function waitForFontsReady(maxWaitMs = 3000) {
 export function debugFonts() {
   console.group("Font Debug Information");
 
-  console.log("Available fonts from API:", availableFonts);
+  const fonts = getAllFonts();
+  console.log("Available fonts (base + transient):", fonts);
   console.log("Current mode:", queryParams.mode);
 
   if (document.fonts && document.fonts.values) {
@@ -561,7 +905,7 @@ export function debugFonts() {
   }
 
   // Test font availability
-  availableFonts.forEach((font) => {
+  fonts.forEach((font) => {
     if (font.name) {
       try {
         const isAvailable = document.fonts.check(`12px "${font.name}"`);
@@ -585,7 +929,8 @@ if (typeof window !== "undefined") {
 
   // Add a simple visual test function
   window.testFontRendering = function (fontName = null) {
-    const testFonts = fontName ? [{ name: fontName }] : availableFonts;
+    const allFonts = getAllFonts();
+    const testFonts = fontName ? [{ name: fontName }] : allFonts;
 
     console.log(`Testing font rendering for ${testFonts.length} fonts...`);
 
@@ -725,8 +1070,8 @@ if (typeof window !== "undefined") {
 
   // Add function to force-apply a custom font to test if it works
   window.forceApplyFont = function (fontName = null) {
-    const targetFont =
-      fontName || (availableFonts.length > 0 ? availableFonts[0].name : null);
+    const allFonts = getAllFonts();
+    const targetFont = fontName || (allFonts.length > 0 ? allFonts[0].name : null);
     if (!targetFont) {
       console.error("No font specified and no fonts available");
       return;

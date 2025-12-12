@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security and General Settings
 ###############################################################################
 
-PRODUCTION = os.environ.get("ENV", "production") == "production"
+PRODUCTION = os.environ.get("DJANGO_ENV", "production") == "production"
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 SLIDETYPE_BASE_API_URL = os.environ.get(
@@ -26,8 +26,9 @@ FRONTDESK_API_KEY = os.environ.get("FRONTDESK_API_KEY")
 WINKAS_USERNAME = os.environ.get("WINKAS_USERNAME")
 WINKAS_PW = os.environ.get("WINKAS_PW")
 WINKAS_CONTRACTCODE = os.environ.get("WINKAS_CONTRACTCODE")
-FRONTEND_PASSWORD_RESET_URL = os.environ.get("FRONTEND_PASSWORD_RESET_URL")
 
+FRONTEND_HOST = os.environ.get("FRONTEND_HOST", "https://openstream.dk")
+FRONTEND_PASSWORD_RESET_URL = os.environ.get("FRONTEND_PASSWORD_RESET_URL")
 
 DEBUG = os.environ.get("DEBUG") == "True"
 
@@ -40,6 +41,10 @@ if os.environ.get("CSRF_TRUSTED_ORIGINS"):
     CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
 else:
     CSRF_TRUSTED_ORIGINS = []
+
+# Reverse proxy configurations
+USE_X_FORWARDED_HOST = True if PRODUCTION else False
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if PRODUCTION else None
 
 ################################################################################
 # Media Files and S3-compatible storage (Using Django 4.2+ STORAGES)
@@ -167,7 +172,6 @@ INSTALLED_APPS = [
     # OpenStream Apps
     "osauth.apps.OSAuthConfig",
     "app.apps.App",
-    "sso.apps.SSOConfig",
 ]
 
 MIDDLEWARE = [
@@ -313,6 +317,10 @@ LOGGING = {
             "level": "WARNING",  # Change to "ERROR" or "CRITICAL" to reduce more output
             "class": "logging.StreamHandler",
         },
+        "management_command": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+        },
     },
     "loggers": {
         "django": {
@@ -323,6 +331,11 @@ LOGGING = {
         "django.server": {  # Suppresses server startup logs
             "handlers": ["console"],
             "level": "ERROR",
+            "propagate": False,
+        },
+        "django.management.cmd": {
+            "handlers": ["management_command"],
+            "level": "INFO",
             "propagate": False,
         },
     },
@@ -355,13 +368,18 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "noreply@openstream.dk"
 
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "auth.openstream.dk")
 KEYCLOAK_PORT = os.environ.get("KEYCLOAK_PORT", "")
-
-KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "openstream-customer_name-here")
+KEYCLOAK_ADMIN_USERNAME = os.environ.get("KEYCLOAK_ADMIN_USERNAME", "admin")
+KEYCLOAK_ADMIN_PASSWORD = os.environ.get(
+    "KEYCLOAK_ADMIN_PASSWORD", "your_keycloak_admin_password_here"
+)
 KEYCLOAK_CLIENT_ID = os.environ.get(
     "KEYCLOAK_CLIENT_ID", "openstream-customer_name-client_id-here"
 )
-KEYCLOAK_CLIENT_SECRET = os.environ.get(
-    "KEYCLOAK_CLIENT_SECRET", "openstream-customer_name-client_secret-here"
-)
-
 KEYCLOAK_TIMEOUT = int(os.environ.get("KEYCLOAK_TIMEOUT", "5"))
+
+###############################################################################
+# OpenStream Auth Configurations
+###############################################################################
+
+OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN = "org_admin"
+OSAUTH_ORG_MEMBERSHIP_ORG_USER = "org_user"

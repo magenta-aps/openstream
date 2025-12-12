@@ -14,11 +14,11 @@ for (const [key, value] of urlSearchParams.entries()) {
 
 export const token = localStorage.getItem("accessToken");
 
-export const parentOrgID = queryParams.orgId || "";
+export const parentOrgID = window.ORG_NAME || "";
 
-export const selectedSubOrgID = queryParams.suborgId || "";
+export const selectedSubOrgID = window.SUB_ORG || "";
 
-export const selectedBranchID = queryParams.branchId || "";
+export const selectedBranchID = window.BRANCH || "";
 
 export const myUserId = localStorage.getItem("myUserId") || "";
 
@@ -124,7 +124,19 @@ export function showToast(message, type = "Info") {
   toast.show();
 }
 
-export function signOut() {
+export async function signOut() {
+  // Fetch signout-tokens
+  const signout_params = new URLSearchParams({ "org": window.ORG_NAME })
+  const signout_api_resp = await fetch(`${BASE_URL}/auth/signout/api?${signout_params.toString()}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+
+  const resp_data = await signout_api_resp.json()
+
+  // Remove local storage
   localStorage.removeItem("accessToken");
   localStorage.removeItem("apiKey");
   localStorage.removeItem("parentOrgID");
@@ -135,7 +147,12 @@ export function signOut() {
   localStorage.removeItem("selectedSubOrgID");
   localStorage.removeItem("selectedSubOrgName");
   localStorage.removeItem("username");
-  window.location.href = "/"; // Redirect to root
+
+  const redirectUrl = new URL(
+    resp_data.redirect_url,
+    window.location.origin,
+  );
+  window.location.href = redirectUrl.toString();
 }
 
 export function initSignOutButton() {
@@ -277,45 +294,6 @@ async function fetchUserSuborganisationsWithRoles() {
     });
   }
   return cachedSuborganisationsPromise;
-}
-
-export async function isUserOrgAdminForOrganisation(orgId) {
-  if (!orgId) {
-    return false;
-  }
-
-  try {
-    const suborgs = await fetchUserSuborganisationsWithRoles();
-    if (!Array.isArray(suborgs)) {
-      return false;
-    }
-
-    const actingOrgId = String(orgId);
-    return (
-      suborgs.some(
-        (s) =>
-          String(s.organisation) === actingOrgId &&
-          s.user_role === "org_admin",
-      ) ||
-      suborgs.some(
-        (s) =>
-          s.user_role === "org_admin" &&
-          (!s.organisation || String(s.organisation) === actingOrgId),
-      ) ||
-      suborgs.some(
-        (s) =>
-          s.user_role === null &&
-          s.organisation &&
-          String(s.organisation) === actingOrgId,
-      )
-    );
-  } catch (error) {
-    console.warn(
-      "Failed to determine organisation admin status from suborganisations response:",
-      error,
-    );
-    return false;
-  }
 }
 
 export async function updateUserLanguagePreference() {
@@ -823,16 +801,31 @@ export function getSuborgId() {
 /**
  * Fetches organisation/suborg/branch name by id and returns the name string or null
  */
+const orgNameCache = new Map();
+
 export async function getOrgName(id) {
-  if (!id) return null;
+  const identifier = id || window.ORG_NAME;
+  if (!identifier) {
+    return null;
+  }
+
+  if (orgNameCache.has(identifier)) {
+    return orgNameCache.get(identifier);
+  }
+
+  const encoded = encodeURIComponent(identifier);
+
   try {
-    const res = await genericFetch(
-      `${BASE_URL}/api/organisations/${id}/name/`,
+    const result = await genericFetch(
+      `${BASE_URL}/api/organisations/${encoded}/name/`,
       "GET",
     );
-    return res?.name ?? null;
-  } catch (err) {
-    console.error("getOrgName error:", err);
+    const resolvedName = result?.name ?? null;
+    orgNameCache.set(identifier, resolvedName);
+    return resolvedName;
+  } catch (error) {
+    console.error("Failed to fetch organisation name", error);
+    orgNameCache.set(identifier, null);
     return null;
   }
 }
@@ -864,56 +857,7 @@ export async function getBranchName(id) {
     return null;
   }
 }
-export function initOrgQueryParams() {
-  window.addEventListener(
-    "click",
-    function (event) {
-      const anchor = event.target.closest("a");
-      if (!anchor) return;
 
-      let linkHref;
-      try {
-        linkHref = new URL(anchor.href);
-      } catch (e) {
-        return;
-      }
-
-      if (linkHref.origin !== window.location.origin) return;
-      if (!["http:", "https:"].includes(linkHref.protocol)) return;
-
-      if (
-        linkHref.pathname === window.location.pathname &&
-        linkHref.search === window.location.search
-      ) {
-        if (linkHref.hash) return;
-      }
-
-      const orgId = getOrgId();
-      const suborgId = getSuborgId();
-      const branchId = getBranchId();
-
-      // Normalize pathname (remove trailing slashes) to compare reliably
-      const normalizedPath = linkHref.pathname.replace(/\/+$/, "");
-
-      if (normalizedPath === "/select-sub-org") {
-        // For /select-sub-org only ensure orgId is present; remove others
-        if (orgId) {
-          linkHref.searchParams.set("orgId", orgId);
-        }
-        linkHref.searchParams.delete("suborgId");
-        linkHref.searchParams.delete("branchId");
-      } else {
-        // Default behavior: add/update all available ids
-        if (orgId) linkHref.searchParams.set("orgId", orgId);
-        if (suborgId) linkHref.searchParams.set("suborgId", suborgId);
-        if (branchId) linkHref.searchParams.set("branchId", branchId);
-      }
-
-      anchor.href = linkHref.href;
-    },
-    true,
-  );
-}
 
 export function initCollapseLeftSidebarBtn() {
   const collapseBtn = document.getElementById("collapse-left-sidebar-btn");
@@ -927,15 +871,15 @@ export function initCollapseLeftSidebarBtn() {
       if (sidebar) {
         sidebar?.classList.toggle("collapsed")
       }
-      
+
       if (pageTitle) {
         pageTitle?.classList.toggle("d-none");
       }
-      
+
       if (sidebarContent) {
         sidebarContent?.classList.toggle("d-none");
       }
-      
+
       if (goBackBtn) {
         goBackBtn?.classList.toggle("d-none");
       }
@@ -947,4 +891,128 @@ export function initCollapseLeftSidebarBtn() {
       }
     });
   }
+}
+
+export function createUrl(path, includeSubOrg = false, includeBranch = false) {
+  const orgName = window.ORG_NAME;
+
+  if (!orgName) {
+    return path;
+  }
+
+  const [rawPath = "", rawQuery = ""] = String(path ?? "").split("?");
+  const normalizedPath = rawPath.replace(/^\/+/, "");
+  const hasTrailingSlash = normalizedPath.endsWith("/");
+  const encodedSegments = normalizedPath
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment));
+
+  const query = rawQuery ? `?${rawQuery}` : "";
+  const trailingSlash = hasTrailingSlash ? "/" : "";
+
+  let url = `/${encodeURIComponent(orgName)}`;
+
+  if (includeSubOrg && window.SUB_ORG) {
+    url += `/suborg/${encodeURIComponent(window.SUB_ORG)}`;
+  }
+
+  if (includeBranch && window.BRANCH) {
+    url += `/branch/${encodeURIComponent(window.BRANCH)}`;
+  }
+
+  if (encodedSegments.length) {
+    url += `/${encodedSegments.join("/")}`;
+  }
+
+  return `${url}${trailingSlash}${query}`;
+}
+
+export function initOrgUrlRouting() {
+  window.addEventListener(
+    "click",
+    (event) => {
+      const anchor = event.target.closest("a");
+      if (!anchor) return;
+
+      const hrefAttr = anchor.getAttribute("href");
+      if (!hrefAttr || hrefAttr.startsWith("#")) return;
+      if (anchor.hasAttribute("download")) return;
+
+      if (hrefAttr.startsWith("mailto:")) return;
+      if (hrefAttr.startsWith("tel:")) return;
+
+      const orgName = window.ORG_NAME;
+      if (!orgName) return;
+
+      let targetUrl;
+      try {
+        targetUrl = new URL(hrefAttr, window.location.href);
+      } catch (error) {
+        return;
+      }
+
+      if (targetUrl.origin !== window.location.origin) return;
+      if (!["http:", "https:"].includes(targetUrl.protocol)) return;
+
+      const encodedOrg = encodeURIComponent(orgName);
+      const pathSegments = targetUrl.pathname.split("/").filter(Boolean);
+
+      if (pathSegments.length === 0) return;
+      if (pathSegments[0] === encodedOrg || pathSegments[0] === orgName) return;
+
+      if (pathSegments[0].startsWith("@") || targetUrl.pathname.startsWith("/@")) return;
+
+      if (targetUrl.pathname.startsWith("/assets") || targetUrl.pathname.startsWith("/static")) {
+        return;
+      }
+
+      const isRootRelative = hrefAttr.startsWith("/");
+      const isAbsoluteSameOrigin = hrefAttr.startsWith(window.location.origin);
+
+      if (!isRootRelative && !isAbsoluteSameOrigin) {
+        return;
+      }
+
+      const keepTrailingSlash = targetUrl.pathname.endsWith("/");
+      const innerPath = targetUrl.pathname.replace(/^\/+/, "");
+      if (!innerPath) return;
+
+      const decodedSegments = pathSegments.map((segment) => {
+        try {
+          return decodeURIComponent(segment).toLowerCase();
+        } catch (error) {
+          return segment.toLowerCase();
+        }
+      });
+
+      const pathContainsSubOrg = decodedSegments.includes("suborg");
+      const pathContainsBranch = decodedSegments.includes("branch");
+
+      const includeSubOrg =
+        anchor.dataset.includeSuborg === "true"
+          ? Boolean(window.SUB_ORG)
+          : anchor.dataset.includeSuborg === "false"
+            ? false
+            : Boolean(window.SUB_ORG) && !pathContainsSubOrg;
+
+      const includeBranch =
+        anchor.dataset.includeBranch === "true"
+          ? Boolean(window.BRANCH)
+          : anchor.dataset.includeBranch === "false"
+            ? false
+            : Boolean(window.BRANCH) && !pathContainsBranch;
+
+      const newPath = createUrl(
+        `${innerPath}${keepTrailingSlash ? "/" : ""}${targetUrl.search}`,
+        includeSubOrg,
+        includeBranch,
+      );
+
+      const finalUrl = `${newPath}${targetUrl.hash || ""}`;
+
+      anchor.href = finalUrl;
+    },
+    true,
+  );
 }

@@ -23,6 +23,7 @@ from app.models import (
     RecurringScheduledContent,
     Document,
     SlideTemplate,
+    GlobalSlideTemplate,
     BranchURLCollectionItem,
     CustomColor,
     CustomFont,
@@ -53,6 +54,13 @@ class SlideTemplateAdmin(admin.ModelAdmin):
     list_filter = ("organisation", "category", "tags")
     search_fields = ("name",)
     filter_horizontal = ("tags",)
+
+
+@admin.register(GlobalSlideTemplate)
+class GlobalSlideTemplateAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "aspect_ratio", "isLegacy", "updated_at")
+    list_filter = ("aspect_ratio", "isLegacy")
+    search_fields = ("name",)
 
 
 # Extend the built-in UserAdmin to show the inline

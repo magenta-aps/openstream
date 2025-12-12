@@ -7,14 +7,12 @@ import {
   genericFetch,
   showToast,
   parentOrgID,
-  isUserOrgAdminForOrganisation,
 } from "../../../../utils/utils";
 import { BASE_URL } from "../../../../utils/constants";
 
 let colors = [];
 let colorBeingEdited = null;
 let deleteId = null;
-let canManageColors = false;
 let colorsSortable = null;
 
 // DOM elements
@@ -43,8 +41,6 @@ const modalSaveBtn = document.getElementById("modal-save-btn");
  * Initialize color scheme management
  */
 export default async function initializeManageColorScheme() {
-  canManageColors = await isUserOrgAdminForOrganisation(parentOrgID);
-  toggleAdminUI();
   await loadColors();
   setupEventListeners();
 }
@@ -73,16 +69,6 @@ async function loadColors() {
   }
 }
 
-function toggleAdminUI() {
-  if (openModalBtn) {
-    openModalBtn.classList.toggle("d-none", !canManageColors);
-    openModalBtn.disabled = !canManageColors;
-  }
-  if (adminRequiredMessage && canManageColors) {
-    adminRequiredMessage.classList.add("d-none");
-  }
-}
-
 function sortColorsInPlace() {
   colors.sort((a, b) => {
     const posA =
@@ -103,7 +89,7 @@ function destroyColorSortable() {
 
 function initColorSortable() {
   destroyColorSortable();
-  if (!canManageColors || !colorsTableBody || colors.length < 2) {
+  if (!colorsTableBody || colors.length < 2) {
     return;
   }
 
@@ -136,12 +122,8 @@ function renderColors() {
     const dragIcon = document.createElement("span");
     dragIcon.textContent = "drag_indicator";
     dragIcon.className = "material-symbols-outlined drag-icon";
-    if (canManageColors) {
-      dragIcon.classList.add("drag-handle");
-      dragTd.title = gettext("Drag to reorder");
-    } else {
-      dragTd.classList.add("drag-cell-disabled");
-    }
+    dragIcon.classList.add("drag-handle");
+    dragTd.title = gettext("Drag to reorder");
     dragTd.appendChild(dragIcon);
 
     const nameTd = document.createElement("td");
@@ -346,10 +328,6 @@ function setupEventListeners() {
 }
 
 async function handleColorReorder() {
-  if (!canManageColors) {
-    return;
-  }
-
   const rows = Array.from(colorsTableBody.querySelectorAll("tr"));
   const updates = rows.map((row, index) => ({
     id: row.dataset.id,

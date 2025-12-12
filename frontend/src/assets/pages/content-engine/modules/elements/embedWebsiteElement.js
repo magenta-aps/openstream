@@ -200,14 +200,15 @@ function addEmbedWebsiteElementToSlide(url) {
   }
 
   pushCurrentSlideState();
+  const defaultSize = GridUtils.getDefaultElementSize('embedWebsite');
   const newEmbedWebsite = {
     id: store.elementIdCounter++,
     type: "embed-website",
     url: url,
-    gridX: 100,
-    gridY: 0,
-    gridWidth: 100,
-    gridHeight: 200,
+    gridX: defaultSize.x ?? 100,
+    gridY: defaultSize.y ?? 0,
+    gridWidth: defaultSize.width,
+    gridHeight: defaultSize.height,
     border: false,
     backgroundColor: "transparent",
     zIndex: getNewZIndex(),

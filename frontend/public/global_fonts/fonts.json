@@ -1,0 +1,14 @@
+[
+	{
+		"name": "Bitcount Prop Single",
+		"path": "BitcountPropSingle-VariableFont_CRSV,ELSH,ELXP,slnt,wght.ttf",
+		"weight": "variable",
+		"style": "normal"
+	},
+	{
+		"name": "Science Gothic",
+		"path": "ScienceGothic-VariableFont_CTRS,slnt,wdth,wght.ttf",
+		"weight": "variable",
+		"style": "normal"
+	}
+]

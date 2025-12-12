@@ -16,7 +16,7 @@ import {
   genericFetch,
   parentOrgID,
   initSignOutButton,
-  initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import { BASE_URL } from "../../utils/constants";
 
@@ -408,4 +408,4 @@ function renderTags(tags) {
   });
 }
 
-initOrgQueryParams();
+initOrgUrlRouting();

@@ -61,6 +61,7 @@ const BASE_ASPECT_RATIOS = [
     note: "Most Common",
     inUI: true,
     isDefault: true,
+    defaultCellSnap: 24,
   },
   {
     value: "4:3",
@@ -68,27 +69,7 @@ const BASE_ASPECT_RATIOS = [
     height: 768,
     note: "Common on old monitors",
     inUI: true,
-  },
-  {
-    value: "21:9",
-    width: 3440,
-    height: 1440,
-    note: "Ultrawide",
-    inUI: true,
-  },
-  {
-    value: "1.85:1",
-    width: 1998,
-    height: 1080,
-    note: "Cinema",
-    inUI: true,
-  },
-  {
-    value: "2.39:1",
-    width: 2048,
-    height: 858,
-    note: "Ultra Widescreen",
-    inUI: true,
+    defaultCellSnap: 16,
   },
 ];
 
@@ -101,6 +82,7 @@ function createDefinitionsForBase(baseRatio) {
     inUI = true,
     isDefault = false,
     allowPortrait = true,
+    defaultCellSnap = null,
   } = baseRatio;
 
   const isSquare = Math.round(width) === Math.round(height);
@@ -135,6 +117,7 @@ function createDefinitionsForBase(baseRatio) {
     },
     inUI,
     isDefault,
+    defaultCellSnap,
     smallMenuPreviewWidth: landscapeSmallPreview.width,
     smallMenuPreviewHeight: landscapeSmallPreview.height,
     mediumMenuPreviewWidth: landscapeMediumPreview.width,
@@ -174,6 +157,7 @@ function createDefinitionsForBase(baseRatio) {
       },
       inUI,
       isDefault: false,
+      defaultCellSnap,
       smallMenuPreviewWidth: portraitSmallPreview.width,
       smallMenuPreviewHeight: portraitSmallPreview.height,
       mediumMenuPreviewWidth: portraitMediumPreview.width,
@@ -190,6 +174,13 @@ export const AVAILABLE_ASPECT_RATIOS = BASE_ASPECT_RATIOS.flatMap(
 
 const ratioValueToDefinition = new Map(
   AVAILABLE_ASPECT_RATIOS.map((ratio) => [ratio.value, ratio]),
+);
+
+const resolutionToDefinition = new Map(
+  AVAILABLE_ASPECT_RATIOS.map((ratio) => [
+    `${Math.round(ratio.width)}x${Math.round(ratio.height)}`,
+    ratio,
+  ]),
 );
 
 const defaultRatioDefinition =
@@ -209,6 +200,15 @@ export function getAspectRatioDefinition(value) {
 export function getResolutionForAspectRatio(value) {
   const definition = ratioValueToDefinition.get(value) || defaultRatioDefinition;
   return { width: definition.width, height: definition.height };
+}
+
+export function getDefaultCellSnapForResolution(width, height) {
+  const key = `${Math.round(width)}x${Math.round(height)}`;
+  const definition = resolutionToDefinition.get(key);
+  if (!definition || !Number.isFinite(definition.defaultCellSnap)) {
+    return null;
+  }
+  return definition.defaultCellSnap;
 }
 
 export function findAspectRatioValueByDimensions(width, height) {

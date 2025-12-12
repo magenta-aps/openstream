@@ -21,6 +21,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.utils.text import slugify
 
 logger = logging.getLogger(__name__)
 
@@ -96,9 +97,35 @@ class UserExtended(models.Model):
 
 class Organisation(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    uri_name = models.SlugField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
+
+    def _generate_unique_uri_name(self, base_slug):
+        """Create a slug based on the supplied base and keep it unique."""
+        candidate = base_slug
+        suffix = 2
+
+        while (
+            Organisation.objects.exclude(pk=self.pk).filter(uri_name=candidate).exists()
+        ):
+            candidate = f"{base_slug}-{suffix}"
+            suffix += 1
+
+        return candidate
+
+    def save(self, *args, **kwargs):
+        """Ensure the URI-safe name exists, defaulting to a slug of the display name."""
+        slug_input = self.uri_name or self.name
+        desired_slug = slugify(slug_input or "")
+
+        if not desired_slug:
+            desired_slug = f"organisation-{uuid.uuid4().hex[:8]}"
+
+        self.uri_name = self._generate_unique_uri_name(desired_slug)
+
+        super().save(*args, **kwargs)
 
 
 class OrganisationAPIAccess(models.Model):
@@ -184,6 +211,7 @@ class BranchURLCollectionItem(models.Model):
 ROLE_CHOICES = (
     ("super_admin", "Super Admin"),
     ("org_admin", "Organisation Admin"),
+    ("org_user", "Organisation User"),
     ("suborg_admin", "Suborganisation Admin"),
     ("branch_admin", "Branch Admin"),
     ("employee", "Employee"),
@@ -390,6 +418,10 @@ class Slideshow(models.Model):
     previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
     isCustomDimensions = models.BooleanField(default=True)
     slideshow_data = models.JSONField(default=dict, blank=True, null=True)
+    isLegacy = models.BooleanField(
+        default=False,
+        help_text="Set to True for older manage_content that must stay on the fixed 200x200 grid",
+    )
     # Track when this slideshow was last edited (auto-updated on save)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1238,6 +1270,10 @@ class SlideTemplate(models.Model):
 
     name = models.CharField(max_length=255)
     slideData = models.JSONField(default=dict, blank=True, null=True)
+    isLegacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -1252,6 +1288,37 @@ class SlideTemplate(models.Model):
         default="16:9",
         help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
     )
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class GlobalSlideTemplate(models.Model):
+    """Org-less template managed centrally by the application team."""
+
+    name = models.CharField(max_length=255)
+    slideData = models.JSONField(default=dict, blank=True, null=True)
+    thumbnail_url = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Base64 encoded data URL representing the template thumbnail",
+    )
+    previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
+    )
+    isLegacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]

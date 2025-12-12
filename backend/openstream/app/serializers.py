@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # app/serializers.py
 
+import base64
+import binascii
 
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
@@ -37,6 +39,7 @@ from app.models import (
     # Documents
     Document,
     SlideTemplate,
+    GlobalSlideTemplate,
     BranchURLCollectionItem,
     CustomColor,
     CustomFont,
@@ -76,7 +79,8 @@ def make_aware_if_needed(dt):
 class OrganisationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organisation
-        fields = ["id", "name"]
+        fields = ["id", "name", "uri_name"]
+        read_only_fields = ["uri_name"]
 
 
 class OrganisationAPIAccessSerializer(serializers.ModelSerializer):
@@ -111,10 +115,20 @@ class SubOrganisationSerializer(serializers.ModelSerializer):
     organisation_id = serializers.PrimaryKeyRelatedField(
         source="organisation", queryset=Organisation.objects.all(), write_only=True
     )
+    organisation_uri_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SubOrganisation
-        fields = ["id", "name", "organisation", "organisation_id"]
+        fields = [
+            "id",
+            "name",
+            "organisation",
+            "organisation_id",
+            "organisation_uri_name",
+        ]
+
+    def get_organisation_uri_name(self, obj):
+        return obj.organisation.uri_name if obj.organisation_id else None
 
 
 class BranchSerializer(serializers.ModelSerializer):
@@ -246,6 +260,7 @@ class SlideshowSerializer(serializers.ModelSerializer):
             "previewHeight",
             "isCustomDimensions",
             "slideshow_data",
+            "isLegacy",
             "aspect_ratio",  # read-only calculated property
         ]
         # If you want to prevent branch or created_by from changing:
@@ -993,6 +1008,7 @@ class ShowAllUserInfoSerializer(ShowUsernameAndEmailSerializer):
 class SubOrganisationWithRoleSerializer(serializers.ModelSerializer):
     user_role = serializers.SerializerMethodField()
     organisation_name = serializers.SerializerMethodField()
+    organisation_uri_name = serializers.SerializerMethodField()
     branches = serializers.SerializerMethodField()  # dynamic
 
     class Meta:
@@ -1002,6 +1018,7 @@ class SubOrganisationWithRoleSerializer(serializers.ModelSerializer):
             "name",
             "organisation",
             "organisation_name",
+            "organisation_uri_name",
             "user_role",
             "branches",
         ]
@@ -1015,6 +1032,9 @@ class SubOrganisationWithRoleSerializer(serializers.ModelSerializer):
 
     def get_organisation_name(self, suborg):
         return suborg.organisation.name
+
+    def get_organisation_uri_name(self, suborg):
+        return suborg.organisation.uri_name
 
     def get_branches(self, suborg):
         request = self.context.get("request")
@@ -1129,6 +1149,7 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slideData",
+            "isLegacy",
             "category",
             "tags",
             "organisation",
@@ -1160,6 +1181,60 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
         if tags is not None:
             updated_instance.tags.set(tags)
         return updated_instance
+
+
+class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
+    MAX_THUMBNAIL_BYTES = 1_000_000  # 1 MB decoded payload limit
+
+    thumbnail_url = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False
+    )
+
+    class Meta:
+        model = GlobalSlideTemplate
+        fields = [
+            "id",
+            "name",
+            "slideData",
+            "thumbnail_url",
+            "previewWidth",
+            "previewHeight",
+            "aspect_ratio",
+            "isLegacy",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate_thumbnail_url(self, value):
+        if value in (None, ""):
+            return None
+
+        if value.startswith("data:"):
+            header, _, b64_data = value.partition(",")
+            if not b64_data:
+                raise serializers.ValidationError("Invalid data URL: missing payload.")
+
+            if "image" not in header:
+                raise serializers.ValidationError(
+                    "Only image data URLs are supported for thumbnails."
+                )
+
+            try:
+                decoded = base64.b64decode(b64_data, validate=True)
+            except (binascii.Error, ValueError) as exc:
+                raise serializers.ValidationError(
+                    "Thumbnail data URL is not valid base64."
+                ) from exc
+
+            if len(decoded) > self.MAX_THUMBNAIL_BYTES:
+                raise serializers.ValidationError(
+                    "Thumbnail image exceeds the 1 MB limit."
+                )
+
+            return value
+
+        # Allow legacy absolute URLs for backwards compatibility
+        return value
 
 
 ###############################################################################

@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "start": "node server/main.js",
+    "dev:server": "nodemon server/main.js",
     "preview": "vite preview",
     "serve": "vite preview --host",
     "clean": "rm -rf dist",
@@ -27,7 +29,6 @@
     "stylelint": "^16.24.0",
     "stylelint-config-standard-scss": "^16.0.0",
     "stylelint-scss": "^6.12.1",
-    "vite": "^7.1.2",
     "vituum": "^1.2.0"
   },
   "dependencies": {
@@ -48,16 +49,22 @@
     "@tiptap/starter-kit": "^3.10.1",
     "bootstrap": "^5.3.8",
     "codemirror": "^5.65.19",
+    "express": "^5.1.0",
     "htmx": "^0.0.2",
     "marked": "^16.2.1",
     "minisearch": "^7.1.2",
     "monaco-editor": "^0.52.2",
+    "nodemon": "^3.1.10",
     "qrcode": "^1.5.4",
     "qrcodejs": "^1.0.0",
     "requirejs": "^2.3.7",
     "sass": "~1.77.6",
     "sortablejs": "^1.14.0",
+    "tui-code-snippet": "^2.3.3",
+    "tui-color-picker": "^2.2.8",
+    "tui-image-editor": "^3.15.3",
     "vanilla-infinite-marquee": "^1.0.13",
-    "vanilla-marquee": "^1.1.2"
+    "vanilla-marquee": "^1.1.2",
+    "vite": "^7.1.2"
   }
 }

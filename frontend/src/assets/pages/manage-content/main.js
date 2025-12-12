@@ -13,12 +13,13 @@ import {
   showToast,
   parentOrgID,
   genericFetch,
-  initOrgQueryParams,
   updateNavbarBranchName,
   updateNavbarUsername,
   initSignOutButton,
   setupDeleteConfirmation,
   selectedSubOrgID,
+  initOrgUrlRouting,
+  createUrl,
 } from "../../utils/utils";
 
 updateNavbarUsername();
@@ -247,7 +248,7 @@ let currentlyEditingSlideshowId = null;
    1) Initialization: fetch data, set up event listeners
 ============================================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
-  initOrgQueryParams();
+  initOrgUrlRouting();
   initSignOutButton();
   categoriesList = await fetchCategories();
   await fetchTags();
@@ -547,14 +548,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       slideshowCreatedModal.show();
 
       openSlideshowBtn.onclick = () => {
-        window.location.href = `/edit-content?id=${data.id}&mode=edit&orgId=${parentOrgID}&suborgId=${selectedSubOrgID}&branchId=${selectedBranchID}`;
+        window.location.href = createUrl(`/edit-content?id=${data.id}&mode=edit`, true, true);
       };
     } catch (err) {
       console.error(err);
       showToast(gettext(err.message), "Error");
     }
   });
-  initOrgQueryParams();
 });
 
 async function fetchCategories() {
@@ -765,8 +765,12 @@ function renderSlideshowsTable(slideshows) {
     const row = slideshowsTableBody.insertRow();
 
     const nameCell = row.insertCell();
+    const legacyBadge = ss.isLegacy
+      ? `<span class='legacy-grid-badge badge bg-warning text-dark ms-2'>${gettext("Legacy grid")}</span>`
+      : "";
     nameCell.innerHTML = `
       <span>${autoHyphenate(ss.name)}</span>
+      ${legacyBadge}
       <i class="material-symbols-outlined ms-1"
          style="cursor:pointer;" title="${gettext("Edit Name")}">
         edit
@@ -851,6 +855,7 @@ async function duplicateSlideshow(id) {
 
     delete slideshowData.branch;
     delete slideshowData.created_by;
+    delete slideshowData.isLegacy;
 
     await genericFetch(
       `${BASE_URL}/api/manage_content/?branch_id=${selectedBranchID}`,

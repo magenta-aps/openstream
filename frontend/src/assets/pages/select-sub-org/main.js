@@ -10,10 +10,11 @@ import {
 import {
   getOrgId,
   getSuborgId,
-  initOrgQueryParams,
   parentOrgID,
   showToast,
   getOrgName,
+  createUrl,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import { token } from "../../utils/utils";
 import { myUserId } from "../../utils/utils";
@@ -28,10 +29,104 @@ let subOrgsData = [];
 let isActingUserOrgAdmin = false;
 let currentSelectedUserId = null;
 let isSuborgAdmin = false;
+const organisationIdCache = new Map();
 
 // Helper function to filter out suborg_templates branches (magic branches used for template management)
 function filterVisibleBranches(branches) {
-  return branches.filter((branch) => !branch.name.includes("suborg_templates"));
+  return branches.filter(branch => !branch.name.includes('suborg_templates'));
+}
+
+function normaliseOrgIdentifier(identifier) {
+  if (identifier === null || identifier === undefined) {
+    return { numeric: null, text: null };
+  }
+
+  const raw = String(identifier).trim();
+  if (!raw) {
+    return { numeric: null, text: null };
+  }
+
+  const numeric = /^\d+$/.test(raw) ? Number(raw) : null;
+  return { numeric, text: raw.toLowerCase() };
+}
+
+function organisationMatches(orgIdValue, orgUriValue, orgNameValue, identifier) {
+  const { numeric, text } = normaliseOrgIdentifier(identifier);
+
+  if (numeric !== null && String(orgIdValue) === String(numeric)) {
+    return true;
+  }
+
+  if (text) {
+    if (orgUriValue && String(orgUriValue).toLowerCase() === text) {
+      return true;
+    }
+
+    if (orgNameValue && String(orgNameValue).toLowerCase() === text) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function resolveOrganisationId(identifier) {
+  const { numeric } = normaliseOrgIdentifier(identifier);
+  if (numeric !== null) {
+    return numeric;
+  }
+
+  const match = subOrgsData.find((suborg) =>
+    organisationMatches(
+      suborg.organisation,
+      suborg.organisation_uri_name,
+      suborg.organisation_name,
+      identifier,
+    ),
+  );
+  return match ? match.organisation : null;
+}
+
+async function ensureOrganisationId(identifier) {
+  const cacheKey = String(identifier ?? "");
+  if (organisationIdCache.has(cacheKey)) {
+    return organisationIdCache.get(cacheKey);
+  }
+
+  const localResolution = resolveOrganisationId(identifier);
+  if (localResolution !== null) {
+    organisationIdCache.set(cacheKey, localResolution);
+    return localResolution;
+  }
+
+  try {
+    const resp = await fetch(`${BASE_URL}/api/organisations/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resp.ok) {
+      const organisations = await resp.json();
+      const match = organisations.find((org) =>
+        organisationMatches(
+          org.id,
+          org.uri_name,
+          org.name,
+          identifier,
+        ),
+      );
+      const resolved = match ? match.id : null;
+      organisationIdCache.set(cacheKey, resolved);
+      return resolved;
+    }
+    console.error(
+      gettext("Failed to resolve organisation identifier via API."),
+      resp.status,
+    );
+  } catch (error) {
+    console.error(gettext("Error resolving organisation identifier:"), error);
+  }
+
+  organisationIdCache.set(cacheKey, null);
+  return null;
 }
 
 function showAddSuborgModal() {
@@ -274,7 +369,14 @@ function showAddUserModal() {
   // Filter subOrgsData to only show suborgs from the current organization
   const currentOrgId = parentOrgID;
   const filteredSubOrgs = currentOrgId
-    ? subOrgsData.filter((s) => String(s.organisation) === String(currentOrgId))
+    ? subOrgsData.filter((s) =>
+        organisationMatches(
+          s.organisation,
+          s.organisation_uri_name,
+          s.organisation_name,
+          currentOrgId,
+        ),
+      )
     : subOrgsData;
 
   filteredSubOrgs.forEach((s) => {
@@ -353,7 +455,8 @@ async function fetchOrgUsers(orgId) {
       console.error(gettext("Failed to fetch org users:"), resp.status);
       return;
     }
-    const users = await resp.json();
+  const users = await resp.json();
+  const resolvedOrgId = (await ensureOrganisationId(orgId)) ?? orgId;
 
     // For each user, fetch their membership details
     const userPromises = users.map(async (user) => {
@@ -368,8 +471,13 @@ async function fetchOrgUsers(orgId) {
         return { ...user, role: null };
       }
       const memberships = await membershipResp.json();
-      const orgMembership = memberships.find(
-        (m) => String(m.organisation) === String(orgId),
+      const orgMembership = memberships.find((m) =>
+        organisationMatches(
+          m.organisation,
+          m.organisation_uri_name,
+          m.organisation_name,
+          resolvedOrgId,
+        ),
       );
       return { ...user, role: orgMembership ? orgMembership.role : null };
     });
@@ -562,8 +670,13 @@ cancel
     // Filter subOrgsData to only show suborgs from the current organization
     const currentOrgId = parentOrgID;
     const filteredSubOrgs = currentOrgId
-      ? subOrgsData.filter(
-          (s) => String(s.organisation) === String(currentOrgId),
+      ? subOrgsData.filter((s) =>
+          organisationMatches(
+            s.organisation,
+            s.organisation_uri_name,
+            s.organisation_name,
+            currentOrgId,
+          ),
         )
       : subOrgsData;
 
@@ -685,6 +798,7 @@ async function fetchSubOrgs() {
       document.getElementById("add-suborg-btn").style.display = "none";
     }
     subOrgsData = data;
+    organisationIdCache.clear();
 
     renderSuborgsAndBranches(data, isAnyTypeOfAdmin);
   } catch (error) {
@@ -702,302 +816,359 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
     existingGlobalButton.remove();
   }
 
-  let nrOfSubOrgs = null;
-
-  suborgList.forEach((suborg) => {
-    nrOfSubOrgs += filterVisibleBranches(suborg.branches).length;
-  });
-
-  if (nrOfSubOrgs === 1 && !isAnyTypeOfAdmin) {
-    let visibleBranches = filterVisibleBranches(suborgList[0].branches);
-    let branch = visibleBranches[0];
-    selectBranch(
-      branch.id,
-      branch.name,
-      suborgList[0].id,
-      suborgList[0].name,
-      suborgList[0].organisation,
-      suborgList[0].organisation_name,
-    );
+  const existingGlobalTemplatesButton = document.querySelector(
+    ".global-templates-btn",
+  );
+  if (existingGlobalTemplatesButton) {
+    existingGlobalTemplatesButton.remove();
   }
 
-  suborgList.forEach(async (suborg) => {
-    if (parseInt(suborg.organisation) === parseInt(parentOrgID)) {
-      if (suborg.name === "Global") {
-        const selectBtn = document.createElement("button");
+  const parentOrgName = window.ORG_NAME || "";
+  const parentOrgIdentifier = parentOrgID ? String(parentOrgID) : null;
 
-        selectBtn.innerHTML = `<span class="material-symbols-outlined">build_circle</span>&nbsp;${gettext("Global Settings")}`;
-        selectBtn.className =
-          "btn btn-tertiary btn-sm ms-2 d-flex align-items-center justify-content-center global-settings-btn";
+  const matchingSuborgs = suborgList.filter((suborg) => {
+    const organisationId = String(suborg.organisation ?? "");
+    const organisationName = suborg.organisation_name || "";
+    const organisationSlug = suborg.organisation_uri_name || "";
+    const matchesById = parentOrgIdentifier
+      ? organisationMatches(
+          organisationId,
+          organisationSlug,
+          organisationName,
+          parentOrgIdentifier,
+        )
+      : false;
+    const matchesByName = parentOrgName
+      ? organisationMatches(
+          organisationId,
+          organisationSlug,
+          organisationName,
+          parentOrgName,
+        )
+      : false;
 
-        filterVisibleBranches(suborg.branches).forEach((branch) => {
-          selectBtn.onclick = function () {
-            selectBranch(
-              branch.id,
-              branch.name,
-              suborg.id,
-              suborg.name,
-              suborg.organisation,
-              suborg.organisation_name,
-            );
-          };
-        });
-        document.getElementById("admin-buttons").appendChild(selectBtn);
-      } else {
-        let templateBranchId = null;
+    return matchesById || matchesByName;
+  });
 
-        for (const branch of suborg.branches) {
-          if (branch.name === "suborg_templates") {
-            templateBranchId = branch.id;
-          }
-        }
+  const suborgsToRender = matchingSuborgs.length ? matchingSuborgs : suborgList;
 
-        if (
-          !templateBranchId &&
-          (isActingUserOrgAdmin || suborg.user_role === "suborg_admin")
-        ) {
-          const suborgBranch = await createBranch(
+  let branchCount = 0;
+  suborgsToRender.forEach((suborg) => {
+    branchCount += filterVisibleBranches(suborg.branches || []).length;
+  });
+
+  if (branchCount === 1 && !isAnyTypeOfAdmin) {
+    const [firstSuborg] = suborgsToRender;
+    const [singleBranch] = filterVisibleBranches(firstSuborg.branches || []);
+    if (singleBranch) {
+      selectBranch(
+        singleBranch.id,
+        singleBranch.name,
+        firstSuborg.id,
+        firstSuborg.name,
+        firstSuborg.organisation,
+        firstSuborg.organisation_name,
+      );
+      return;
+    }
+  }
+
+  suborgsToRender.forEach(async (suborg) => {
+    if (suborg.name === "Global") {
+      const selectBtn = document.createElement("button");
+      selectBtn.innerHTML = `<span class="material-symbols-outlined">build_circle</span>&nbsp;${gettext(
+        "Global Settings",
+      )}`;
+      selectBtn.className =
+        "btn btn-tertiary btn-sm ms-2 d-flex align-items-center justify-content-center global-settings-btn";
+
+      filterVisibleBranches(suborg.branches).forEach((branch) => {
+        selectBtn.onclick = function () {
+          selectBranch(
+            branch.id,
+            branch.name,
             suborg.id,
-            "suborg_templates",
+            suborg.name,
+            suborg.organisation,
+            suborg.organisation_name,
           );
-          templateBranchId = suborgBranch.id;
+        };
+      });
+      document.getElementById("admin-buttons").appendChild(selectBtn);
+    } else if (suborg.name === "global_templates") {
+      const globalTemplatesBranch = suborg.branches?.find(
+        (branch) => branch.name === "global_templates",
+      );
+      if (globalTemplatesBranch) {
+        const globalTemplatesBtn = document.createElement("button");
+        globalTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">dashboard_customize</span>&nbsp;${gettext(
+          "Global Templates",
+        )}`;
+        globalTemplatesBtn.className =
+          "btn btn-tertiary btn-sm ms-2 d-flex align-items-center justify-content-center global-templates-btn";
+        globalTemplatesBtn.onclick = function () {
+          window.location.href = (`/${window.ORG_NAME}/suborg/${suborg.id}/branch/${globalTemplatesBranch.id}/global-templates?mode=template_editor&template_scope=global&special_save=true`);
+        };
+        document.getElementById("admin-buttons").appendChild(
+          globalTemplatesBtn,
+        );
+      }
+    }
+
+    let templateBranchId = null;
+
+    for (const branch of suborg.branches) {
+      if (branch.name === "suborg_templates") {
+        templateBranchId = branch.id;
+      }
+    }
+
+    if (
+      !templateBranchId &&
+      (isActingUserOrgAdmin || suborg.user_role === "suborg_admin")
+    ) {
+      const suborgBranch = await createBranch(suborg.id, "suborg_templates");
+      templateBranchId = suborgBranch.id;
+    }
+
+    // Create card container for each suborganisation
+    const card = document.createElement("div");
+    card.className = "mb-4";
+
+    // Card header (without "Suborg:" prefix)
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "d-flex align-items-center mx-1 mb-3";
+    const headerContent = document.createElement("h3");
+    headerContent.className = "mb-0 text-secondary";
+    headerContent.innerHTML = `${suborg.name}`;
+    cardHeader.appendChild(headerContent);
+
+    // Add buttons container for suborg actions
+    const suborgButtonsContainer = document.createElement("div");
+    suborgButtonsContainer.className = "d-flex align-items-center ms-auto";
+
+    // Manage Templates button (for org_admin or suborg_admin)
+    if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
+      const manageTemplatesBtn = document.createElement("button");
+      manageTemplatesBtn.className =
+        "btn btn-sm btn-secondary me-2 d-flex align-items-center";
+      manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext(
+        "Manage Templates",
+      )}`;
+      manageTemplatesBtn.onclick = function (e) {
+        e.stopPropagation();
+
+        window.location.href = (`/${window.ORG_NAME}/suborg/${suborg.id}/branch/${templateBranchId}/manage-templates?mode=suborg_templates`);
+      };
+      suborgButtonsContainer.appendChild(manageTemplatesBtn);
+    }
+
+    // Add branch button (for org_admin or suborg_admin)
+    if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
+      const addBranchBtn = document.createElement("button");
+      addBranchBtn.className =
+        "btn btn-sm btn-primary me-2 d-flex align-items-center";
+      addBranchBtn.innerHTML = `<span class="material-symbols-outlined">add</span>&nbsp;${gettext(
+        "Add Branch",
+      )}`;
+      addBranchBtn.onclick = function (e) {
+        e.stopPropagation();
+        showAddBranchModalFor(suborg.id);
+      };
+      suborgButtonsContainer.appendChild(addBranchBtn);
+    }
+
+    // Add edit button for suborgs (only for org_admin or suborg_admin)
+    if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
+      const editSuborgBtn = document.createElement("button");
+      editSuborgBtn.className =
+        "btn btn-sm btn-outline-secondary me-2 d-flex align-items-center";
+      editSuborgBtn.innerHTML = `<span class="material-symbols-outlined">edit</span>&nbsp;${gettext(
+        "Edit",
+      )}`;
+      editSuborgBtn.onclick = function (e) {
+        e.stopPropagation();
+        showEditSuborgModal(suborg.id, suborg.name);
+      };
+      suborgButtonsContainer.appendChild(editSuborgBtn);
+    }
+
+    // Add delete button for suborgs (only for org_admin)
+    if (isActingUserOrgAdmin) {
+      const deleteSuborgBtn = document.createElement("button");
+      deleteSuborgBtn.className =
+        "btn btn-sm btn-outline-danger d-flex align-items-center";
+      deleteSuborgBtn.innerHTML = `<span class="material-symbols-outlined">delete_forever</span>&nbsp;${gettext(
+        "Delete",
+      )}`;
+      deleteSuborgBtn.onclick = function (e) {
+        e.stopPropagation();
+        deleteSuborg({ id: suborg.id, name: suborg.name });
+      };
+      suborgButtonsContainer.appendChild(deleteSuborgBtn);
+    }
+
+    cardHeader.appendChild(suborgButtonsContainer);
+    card.appendChild(cardHeader);
+
+    // Card body with branch list
+    const cardBody = document.createElement("div");
+    cardBody.style.borderRadius = "8px";
+    cardBody.style.boxShadow = "1px 1px 10px 5px rgba(72, 99, 115, 0.12)";
+    cardBody.style.overflow = "hidden";
+
+    const visibleBranches = filterVisibleBranches(suborg.branches || []);
+    if (visibleBranches.length > 0) {
+      const table = document.createElement("table");
+      table.className = "table table-sm mb-0";
+      table.style.border = "none";
+
+      // Create table header
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+
+      const branchHeader = document.createElement("th");
+      branchHeader.textContent = gettext("Branch");
+      branchHeader.style.backgroundColor = "white";
+      branchHeader.style.border = "none";
+      branchHeader.style.borderBottom = "1px solid #dee2e6";
+      branchHeader.style.fontWeight = "bold";
+      branchHeader.style.padding = "12px 16px";
+      branchHeader.style.width = "25%";
+      branchHeader.style.fontSize = "1rem";
+
+      const actionsHeader = document.createElement("th");
+      actionsHeader.textContent = gettext("Actions");
+      actionsHeader.style.backgroundColor = "white";
+      actionsHeader.style.border = "none";
+      actionsHeader.style.borderBottom = "1px solid #dee2e6";
+      actionsHeader.style.fontWeight = "bold";
+      actionsHeader.style.padding = "12px 16px";
+      actionsHeader.style.width = "25%";
+      actionsHeader.style.fontSize = "1rem";
+
+      const fillerHeader = document.createElement("th");
+      fillerHeader.style.backgroundColor = "white";
+      fillerHeader.style.border = "none";
+      fillerHeader.style.borderBottom = "1px solid #dee2e6";
+      fillerHeader.style.width = "50%";
+      fillerHeader.style.padding = "12px 16px";
+
+      headerRow.appendChild(branchHeader);
+      headerRow.appendChild(actionsHeader);
+      headerRow.appendChild(fillerHeader);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Create table body
+      const tbody = document.createElement("tbody");
+      visibleBranches.forEach((branch, index) => {
+        const row = document.createElement("tr");
+
+        // Branch name cell
+        const branchCell = document.createElement("td");
+        branchCell.innerHTML = `${branch.name}`;
+        branchCell.style.backgroundColor = "white";
+        branchCell.style.verticalAlign = "middle";
+        branchCell.style.border = "none";
+        branchCell.style.padding = "12px 16px";
+        branchCell.style.width = "25%";
+        branchCell.style.fontSize = "1rem";
+        if (index < visibleBranches.length - 1) {
+          branchCell.style.borderBottom = "1px solid #dee2e6";
         }
 
-        // Create card container for each suborganisation
-        const card = document.createElement("div");
-        card.className = "mb-4";
-
-        // Card header (without "Suborg:" prefix)
-        const cardHeader = document.createElement("div");
-        cardHeader.className = "d-flex align-items-center mx-1 mb-3";
-        const headerContent = document.createElement("h3");
-        headerContent.className = "mb-0 text-secondary";
-        headerContent.innerHTML = `${suborg.name}`;
-        cardHeader.appendChild(headerContent);
-
-        // Add buttons container for suborg actions
-        const suborgButtonsContainer = document.createElement("div");
-        suborgButtonsContainer.className = "d-flex align-items-center ms-auto";
-
-        // Manage Templates button (for org_admin or suborg_admin)
-        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
-          const manageTemplatesBtn = document.createElement("button");
-          manageTemplatesBtn.className =
-            "btn btn-sm btn-secondary me-2 d-flex align-items-center";
-          manageTemplatesBtn.innerHTML = `<span class="material-symbols-outlined">note_stack</span>&nbsp;${gettext("Manage Templates")}`;
-          manageTemplatesBtn.onclick = function (e) {
-            e.stopPropagation();
-            window.location.href = `/manage-templates?mode=suborg_templates&orgId=${parentOrgID}&suborgId=${suborg.id}&branchId=${templateBranchId}`;
-          };
-          suborgButtonsContainer.appendChild(manageTemplatesBtn);
+        // Actions cell
+        const actionsCell = document.createElement("td");
+        actionsCell.style.backgroundColor = "white";
+        actionsCell.style.verticalAlign = "middle";
+        actionsCell.style.border = "none";
+        actionsCell.style.padding = "12px 16px";
+        actionsCell.style.width = "25%";
+        if (index < visibleBranches.length - 1) {
+          actionsCell.style.borderBottom = "1px solid #dee2e6";
         }
 
-        // Add branch button (for org_admin or suborg_admin)
-        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
-          const addBranchBtn = document.createElement("button");
-          addBranchBtn.className =
-            "btn btn-sm btn-primary me-2 d-flex align-items-center";
-          addBranchBtn.innerHTML = `<span class="material-symbols-outlined">add</span>&nbsp;${gettext("Add Branch")}`;
-          addBranchBtn.onclick = function (e) {
-            e.stopPropagation();
-            showAddBranchModalFor(suborg.id);
-          };
-          suborgButtonsContainer.appendChild(addBranchBtn);
-        }
-
-        // Add edit button for suborgs (only for org_admin or suborg_admin)
-        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
-          const editSuborgBtn = document.createElement("button");
-          editSuborgBtn.className =
-            "btn btn-sm btn-outline-secondary me-2 d-flex align-items-center";
-          editSuborgBtn.innerHTML = `<span class="material-symbols-outlined">edit</span>&nbsp;${gettext(
-            "Edit",
-          )}`;
-          editSuborgBtn.onclick = function (e) {
-            e.stopPropagation();
-            showEditSuborgModal(suborg.id, suborg.name);
-          };
-          suborgButtonsContainer.appendChild(editSuborgBtn);
-        }
-
-        // Add delete button for suborgs (only for org_admin)
-        if (isActingUserOrgAdmin) {
-          const deleteSuborgBtn = document.createElement("button");
-          deleteSuborgBtn.className =
-            "btn btn-sm btn-outline-danger d-flex align-items-center";
-          deleteSuborgBtn.innerHTML = `<span class="material-symbols-outlined">delete_forever</span>&nbsp;${gettext(
-            "Delete",
-          )}`;
-          deleteSuborgBtn.onclick = function (e) {
-            e.stopPropagation();
-            deleteSuborg({ id: suborg.id, name: suborg.name });
-          };
-          suborgButtonsContainer.appendChild(deleteSuborgBtn);
-        }
-
-        cardHeader.appendChild(suborgButtonsContainer);
-        card.appendChild(cardHeader);
-
-        // Card body with branch list
-        const cardBody = document.createElement("div");
-        cardBody.style.borderRadius = "8px";
-        cardBody.style.boxShadow = "1px 1px 10px 5px rgba(72, 99, 115, 0.12)";
-        cardBody.style.overflow = "hidden";
-
-        const visibleBranches = filterVisibleBranches(suborg.branches || []);
-        if (visibleBranches.length > 0) {
-          const table = document.createElement("table");
-          table.className = "table table-sm mb-0";
-          table.style.border = "none";
-
-          // Create table header
-          const thead = document.createElement("thead");
-          const headerRow = document.createElement("tr");
-
-          const branchHeader = document.createElement("th");
-          branchHeader.textContent = gettext("Branch");
-          branchHeader.style.backgroundColor = "white";
-          branchHeader.style.border = "none";
-          branchHeader.style.borderBottom = "1px solid #dee2e6";
-          branchHeader.style.fontWeight = "bold";
-          branchHeader.style.padding = "12px 16px";
-          branchHeader.style.width = "25%";
-          branchHeader.style.fontSize = "1rem";
-
-          const actionsHeader = document.createElement("th");
-          actionsHeader.textContent = gettext("Actions");
-          actionsHeader.style.backgroundColor = "white";
-          actionsHeader.style.border = "none";
-          actionsHeader.style.borderBottom = "1px solid #dee2e6";
-          actionsHeader.style.fontWeight = "bold";
-          actionsHeader.style.padding = "12px 16px";
-          actionsHeader.style.width = "25%";
-          actionsHeader.style.fontSize = "1rem";
-
-          const fillerHeader = document.createElement("th");
-          fillerHeader.style.backgroundColor = "white";
-          fillerHeader.style.border = "none";
-          fillerHeader.style.borderBottom = "1px solid #dee2e6";
-          fillerHeader.style.width = "50%";
-          fillerHeader.style.padding = "12px 16px";
-
-          headerRow.appendChild(branchHeader);
-          headerRow.appendChild(actionsHeader);
-          headerRow.appendChild(fillerHeader);
-          thead.appendChild(headerRow);
-          table.appendChild(thead);
-
-          // Create table body
-          const tbody = document.createElement("tbody");
-          visibleBranches.forEach((branch, index) => {
-            const row = document.createElement("tr");
-
-            // Branch name cell
-            const branchCell = document.createElement("td");
-            branchCell.innerHTML = `${branch.name}`;
-            branchCell.style.backgroundColor = "white";
-            branchCell.style.verticalAlign = "middle";
-            branchCell.style.border = "none";
-            branchCell.style.padding = "12px 16px";
-            branchCell.style.width = "25%";
-            branchCell.style.fontSize = "1rem";
-            if (index < visibleBranches.length - 1) {
-              branchCell.style.borderBottom = "1px solid #dee2e6";
-            }
-
-            // Actions cell
-            const actionsCell = document.createElement("td");
-            actionsCell.style.backgroundColor = "white";
-            actionsCell.style.verticalAlign = "middle";
-            actionsCell.style.border = "none";
-            actionsCell.style.padding = "12px 16px";
-            actionsCell.style.width = "25%";
-            if (index < visibleBranches.length - 1) {
-              actionsCell.style.borderBottom = "1px solid #dee2e6";
-            }
-
-            const actionDiv = document.createElement("div");
-            actionDiv.className = "d-flex align-items-center";
-            const selectBtn = document.createElement("button");
-            selectBtn.className =
-              "btn btn-sm btn-tertiary me-2 d-flex align-items-center justify-content-center";
-            selectBtn.innerHTML = `${gettext(
-              "Select",
-            )}&nbsp;<span class="material-symbols-outlined">
+        const actionDiv = document.createElement("div");
+        actionDiv.className = "d-flex align-items-center";
+        const selectBtn = document.createElement("button");
+        selectBtn.className =
+          "btn btn-sm btn-tertiary me-2 d-flex align-items-center justify-content-center";
+        selectBtn.innerHTML = `${gettext(
+          "Select",
+        )}&nbsp;<span class="material-symbols-outlined">
 arrow_outward
 </span>`;
 
-            selectBtn.onclick = function () {
-              selectBranch(
-                branch.id,
-                branch.name,
-                suborg.id,
-                suborg.name,
-                suborg.organisation,
-                suborg.organisation_name,
-              );
-            };
-            actionDiv.appendChild(selectBtn);
+        selectBtn.onclick = function () {
+          selectBranch(
+            branch.id,
+            branch.name,
+            suborg.id,
+            suborg.name,
+            suborg.organisation,
+            suborg.organisation_name,
+          );
+        };
+        actionDiv.appendChild(selectBtn);
 
-            // Add edit button for branches (only for org_admin or suborg_admin)
-            if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
-              const editBranchBtn = document.createElement("button");
-              editBranchBtn.className =
-                "btn btn-sm btn-outline-secondary me-2 d-flex align-items-center justify-content-center";
-              editBranchBtn.innerHTML = `<span class="material-symbols-outlined">edit</span>&nbsp;${gettext(
-                "Edit",
-              )}`;
-              editBranchBtn.onclick = function () {
-                showEditBranchModal(branch.id, branch.name);
-              };
-              actionDiv.appendChild(editBranchBtn);
-            }
-
-            // Add delete button for branches (for org_admin or suborg_admin)
-            if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
-              const deleteBtn = document.createElement("button");
-              deleteBtn.className =
-                "btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center";
-              deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete_forever</span>&nbsp;${gettext(
-                "Delete",
-              )}`;
-              deleteBtn.onclick = function () {
-                deleteBranch({ id: branch.id, name: branch.name });
-              };
-              actionDiv.appendChild(deleteBtn);
-            }
-
-            actionsCell.appendChild(actionDiv);
-            row.appendChild(branchCell);
-            row.appendChild(actionsCell);
-
-            // Filler cell
-            const fillerCell = document.createElement("td");
-            fillerCell.style.backgroundColor = "white";
-            fillerCell.style.verticalAlign = "middle";
-            fillerCell.style.border = "none";
-            fillerCell.style.padding = "12px 16px";
-            fillerCell.style.width = "50%";
-            if (index < visibleBranches.length - 1) {
-              fillerCell.style.borderBottom = "1px solid #dee2e6";
-            }
-
-            row.appendChild(fillerCell);
-            tbody.appendChild(row);
-          });
-
-          table.appendChild(tbody);
-          cardBody.appendChild(table);
-        } else {
-          const noBranchMsg = document.createElement("p");
-          noBranchMsg.className = "text-muted";
-          noBranchMsg.textContent = gettext("No branches found.");
-          cardBody.appendChild(noBranchMsg);
+        // Add edit button for branches (only for org_admin or suborg_admin)
+        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
+          const editBranchBtn = document.createElement("button");
+          editBranchBtn.className =
+            "btn btn-sm btn-outline-secondary me-2 d-flex align-items-center justify-content-center";
+          editBranchBtn.innerHTML = `<span class="material-symbols-outlined">edit</span>&nbsp;${gettext(
+            "Edit",
+          )}`;
+          editBranchBtn.onclick = function () {
+            showEditBranchModal(branch.id, branch.name);
+          };
+          actionDiv.appendChild(editBranchBtn);
         }
-        card.appendChild(cardBody);
-        container.appendChild(card);
-      }
+
+        // Add delete button for branches (for org_admin or suborg_admin)
+        if (isActingUserOrgAdmin || suborg.user_role === "suborg_admin") {
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className =
+            "btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center";
+          deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete_forever</span>&nbsp;${gettext(
+            "Delete",
+          )}`;
+          deleteBtn.onclick = function () {
+            deleteBranch({ id: branch.id, name: branch.name });
+          };
+          actionDiv.appendChild(deleteBtn);
+        }
+
+        actionsCell.appendChild(actionDiv);
+        row.appendChild(branchCell);
+        row.appendChild(actionsCell);
+
+        // Filler cell
+        const fillerCell = document.createElement("td");
+        fillerCell.style.backgroundColor = "white";
+        fillerCell.style.verticalAlign = "middle";
+        fillerCell.style.border = "none";
+        fillerCell.style.padding = "12px 16px";
+        fillerCell.style.width = "50%";
+        if (index < visibleBranches.length - 1) {
+          fillerCell.style.borderBottom = "1px solid #dee2e6";
+        }
+
+        row.appendChild(fillerCell);
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(tbody);
+      cardBody.appendChild(table);
+    } else {
+      const noBranchMsg = document.createElement("p");
+      noBranchMsg.className = "text-muted";
+      noBranchMsg.textContent = gettext("No branches found.");
+      cardBody.appendChild(noBranchMsg);
     }
+    card.appendChild(cardBody);
+    container.appendChild(card);
   });
 }
 
@@ -1009,13 +1180,9 @@ function selectBranch(
   orgId,
   orgName,
 ) {
-  window.location.href =
-    "/dashboard?orgId=" +
-    orgId +
-    "&suborgId=" +
-    suborgId +
-    "&branchId=" +
-    branchId;
+  window.SUB_ORG = suborgId;
+  window.BRANCH = branchId;
+  window.location.href = createUrl(`dashboard`, true, true);
 }
 
 async function createUser(
@@ -1173,7 +1340,12 @@ function isDuplicateSuborgName(orgId, name, excludeId = null) {
   return subOrgsData.some((s) => {
     if (excludeId && String(s.id) === String(excludeId)) return false;
     return (
-      String(s.organisation) === String(orgId) &&
+      organisationMatches(
+        s.organisation,
+        s.organisation_uri_name,
+        s.organisation_name,
+        orgId,
+      ) &&
       String(s.name).toLowerCase() === lower
     );
   });
@@ -1436,6 +1608,15 @@ async function onSubmitAddNewUser() {
     return;
   }
 
+  const resolvedOrgId = await ensureOrganisationId(orgId);
+  if (resolvedOrgId === null && !/^\d+$/.test(String(orgId))) {
+    showToast(
+      gettext("Unable to resolve organisation identifier for membership creation."),
+      "Error",
+    );
+    return;
+  }
+
   const newUser = await createUser(
     username,
     email,
@@ -1448,7 +1629,7 @@ async function onSubmitAddNewUser() {
 
   const membershipPayload = {
     user: newUser.id,
-    organisation: orgId,
+    organisation: resolvedOrgId ?? orgId,
     role: role,
     suborganisation: null,
     branch: null,
@@ -1729,5 +1910,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-  initOrgQueryParams();
+  initOrgUrlRouting();
 });
+
+console.log("test")

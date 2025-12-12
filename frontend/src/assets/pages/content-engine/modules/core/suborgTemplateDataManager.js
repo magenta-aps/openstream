@@ -27,8 +27,98 @@ import {
   DEFAULT_ASPECT_RATIO,
   getResolutionForAspectRatio,
 } from "../../../../utils/availableAspectRatios.js";
+import {
+  syncGridToCurrentSlide,
+  getDefaultSnapSettings,
+} from "../config/gridConfig.js";
+import { refreshTemplateFilterOptions } from "./templateFilterControls.js";
+import { registerFontsFromSlides } from "../utils/fontUtils.js";
 
 let suborgId = null;
+const parentSnapSettingsCache = new Map();
+
+function cloneSnapSettings(settings) {
+  if (!settings) {
+    return null;
+  }
+  try {
+    return structuredClone(settings);
+  } catch (err) {
+    try {
+      return JSON.parse(JSON.stringify(settings));
+    } catch {
+      return null;
+    }
+  }
+}
+
+function normalizeSnapSettings(settings) {
+  const cloned = cloneSnapSettings(settings);
+  if (!cloned) {
+    return null;
+  }
+
+  const normalizedAmount = Math.max(1, Math.round(Number(cloned.amount)) || 1);
+  return {
+    unit: cloned.unit === "division" ? "division" : "cells",
+    amount: normalizedAmount,
+    isAuto: cloned.isAuto ?? false,
+    snapEnabled: cloned.snapEnabled !== false,
+    savedUnit: cloned.savedUnit,
+    savedAmount: cloned.savedAmount,
+    appliedGridSignature: cloned.appliedGridSignature,
+  };
+}
+
+async function getParentTemplateSnapSettings(template) {
+  const parentId = template?.parent_template?.id;
+  if (!parentId) {
+    return null;
+  }
+
+  if (parentSnapSettingsCache.has(parentId)) {
+    return parentSnapSettingsCache.get(parentId);
+  }
+
+  try {
+    const resp = await fetch(`${BASE_URL}/api/slide-templates/${parentId}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!resp.ok) {
+      throw new Error(`Failed to load parent template ${parentId}`);
+    }
+
+    const parentTemplate = await resp.json();
+    const snap = normalizeSnapSettings(
+      parentTemplate?.slideData?.savedSnapSettings,
+    );
+    parentSnapSettingsCache.set(parentId, snap);
+    return snap;
+  } catch (err) {
+    console.warn("Unable to fetch parent template snap settings", err);
+    parentSnapSettingsCache.set(parentId, null);
+    return null;
+  }
+}
+
+async function deriveSnapSettingsForTemplate(slideObject, template) {
+  const inheritedSnap = normalizeSnapSettings(slideObject.savedSnapSettings);
+  if (inheritedSnap) {
+    return inheritedSnap;
+  }
+
+  const parentSnap = await getParentTemplateSnapSettings(template);
+  if (parentSnap) {
+    return parentSnap;
+  }
+
+  return getDefaultSnapSettings(undefined, undefined, {
+    snapEnabled: false,
+  });
+}
 
 /**
  * Set the resolution based on aspect ratio and update resolution modal
@@ -49,6 +139,8 @@ export function setResolutionFromAspectRatio(aspectRatio) {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
+
+  syncGridToCurrentSlide();
 
   console.log(
     `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
@@ -193,6 +285,14 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
     store.slides.length = 0;
     store.currentSlideIndex = -1;
     store.lastSlideIndex = null;
+    store.activeSlideshowIsLegacy = false;
+    store.legacyGridEnabled = false;
+
+    if (!(store.templateLegacyFlags instanceof Map)) {
+      store.templateLegacyFlags = new Map();
+    }
+    store.templateLegacyFlags.clear();
+    parentSnapSettingsCache.clear();
 
     if (fetchedTemplates && fetchedTemplates.length > 0) {
       // Filter to only show suborg-specific templates (not global ones)
@@ -200,13 +300,18 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         (t) => t.suborganisation !== null,
       );
 
-      suborgOnlyTemplates.forEach((template) => {
+      for (const template of suborgOnlyTemplates) {
         if (!template.slideData) {
           console.warn(
             `Template ID ${template.id} ('${template.name}') is missing slideData. Skipping.`,
           );
-          return;
+          continue;
         }
+        store.templateLegacyFlags.set(
+          template.id,
+          Boolean(template.isLegacy),
+        );
+
         const slideObject = JSON.parse(JSON.stringify(template.slideData));
 
         slideObject.templateId = template.id;
@@ -224,12 +329,18 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
           ? template.suborganisation.id
           : null;
 
+        const templateCategory = template.category || null;
         slideObject.categoryId =
           template.category_id ||
-          (template.category ? template.category.id : null);
-        slideObject.tagIds = template.tags
-          ? template.tags.map((tag) => tag.id)
+          (templateCategory ? templateCategory.id : null);
+        slideObject.categoryName = templateCategory
+          ? templateCategory.name
+          : null;
+        const templateTags = Array.isArray(template.tags)
+          ? template.tags
           : [];
+        slideObject.tagIds = templateTags.map((tag) => tag.id);
+        slideObject.tagNames = templateTags.map((tag) => tag.name || "");
 
         slideObject.previewWidth = template.previewWidth;
         slideObject.previewHeight = template.previewHeight;
@@ -277,9 +388,16 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
           }
         });
 
+        slideObject.savedSnapSettings = await deriveSnapSettingsForTemplate(
+          slideObject,
+          template,
+        );
+
         store.slides.push(slideObject);
-      });
+      }
     }
+
+    await registerFontsFromSlides(store.slides);
 
     if (store.slides.length === 0) {
       console.warn(
@@ -303,6 +421,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
     store.currentSlideIndex = store.slides.length > 0 ? slideIdxToLoad : -1;
 
     updateSlideSelector();
+    refreshTemplateFilterOptions();
 
     if (store.currentSlideIndex !== -1) {
       const currentTemplateSlide = store.slides[store.currentSlideIndex];
@@ -316,8 +435,10 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
       if (!store.emulatedWidth || !store.emulatedHeight) {
         store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
         store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+          syncGridToCurrentSlide(currentTemplateSlide);
       }
 
+        syncGridToCurrentSlide(currentTemplateSlide);
       loadSlide(currentTemplateSlide);
       scaleAllSlides();
 
@@ -341,6 +462,7 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
 export async function initSuborgTemplateEditor(suborgIdToUse) {
   suborgId = suborgIdToUse;
   store.editorMode = "suborg_templates";
+  store.globalTemplateContext = false;
   console.log(`Initializing suborg template editor for suborg ID: ${suborgId}`);
 
   try {

@@ -116,10 +116,6 @@ export const DrStreamsSlideType = {
     const config = this.extractFormData();
 
     return {
-      gridWidth: 100,
-      gridHeight: 100,
-      gridX: 50,
-      gridY: 50,
       backgroundColor: "transparent",
       slideTypeId: 8,
       config: config,

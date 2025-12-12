@@ -8,7 +8,7 @@ import {
   updateNavbarUsername,
   updateNavbarBranchName,
   initSignOutButton,
-  initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import initializeManageColorScheme from "./modules/color-scheme/manage-color-scheme.js";
 import initializeManageFonts from "./modules/fonts/manage-fonts.js";
@@ -28,5 +28,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initialize fonts management
   initializeManageFonts();
-  initOrgQueryParams();
+  initOrgUrlRouting();
 });

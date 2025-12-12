@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from django.contrib import admin
-from django.urls import path, include, re_path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import path, include
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from osauth.views import SSOAuthCodeView, SignInView, WhoAmIView
+from osauth.views import AuthCodeView, SignInView, SignOutAPIView
 
 # DRF API Views
 from app.views import (
@@ -53,6 +53,8 @@ from app.views import (
     BranchAPIKeyView,
     SlideTemplateAPIView,
     SuborgTemplateAPIView,
+    GlobalSlideTemplateAPIView,
+    GlobalSlideTemplatePermissionAPIView,
     FrontdeskAPIKey,
     BranchURLCollectionItemAPIView,
     DocumentListView,
@@ -84,7 +86,6 @@ from app.views import (
     KMDDataAPIView,
     KMDLocationsAPIView,
 )
-from sso.views import sso_login, sso_callback
 
 
 urlpatterns = [
@@ -201,7 +202,7 @@ urlpatterns = [
     path("api/documents/", DocumentAPIView.as_view(), name="document-api"),
     path("api/documents/list/", DocumentListView.as_view(), name="document-api"),
     path(
-        "api/documents/<int:document_id>",
+        "api/documents/<int:document_id>/",
         DocumentAPIView.as_view(),
         name="document-api",
     ),
@@ -238,7 +239,7 @@ urlpatterns = [
     # Users
     path("api/users/", CreateUserAPIView.as_view(), name="create_user"),
     path(
-        "api/organisations/<int:org_id>/users/",
+        "api/organisations/<str:org_identifier>/users/",
         OrganisationUsersListAPIView.as_view(),
         name="org_users",
     ),
@@ -337,7 +338,7 @@ urlpatterns = [
     path("api/branches/<int:pk>/", BranchDetailAPIView.as_view(), name="branch_detail"),
     # Name lookup endpoints
     path(
-        "api/organisations/<int:pk>/name/",
+        "api/organisations/<str:identifier>/name/",
         OrganisationNameAPIView.as_view(),
         name="organisation_name",
     ),
@@ -368,6 +369,21 @@ urlpatterns = [
         "api/suborg-templates/<int:pk>/",
         SuborgTemplateAPIView.as_view(),
         name="suborg_templates_detail",
+    ),
+    path(
+        "api/global-templates/permissions/",
+        GlobalSlideTemplatePermissionAPIView.as_view(),
+        name="global_templates_permissions",
+    ),
+    path(
+        "api/global-templates/",
+        GlobalSlideTemplateAPIView.as_view(),
+        name="global_templates_list_create",
+    ),
+    path(
+        "api/global-templates/<int:pk>/",
+        GlobalSlideTemplateAPIView.as_view(),
+        name="global_templates_detail",
     ),
     path(
         "api/frontdesk_ltk_borgerservice_api_key",
@@ -476,6 +492,6 @@ urlpatterns = [
     # Authentication endpoints
     ###############################################################################
     path("auth/signin/", SignInView.as_view(), name="osauth_signin"),
-    path("auth/whoami/", WhoAmIView.as_view(), name="osauth_whoami"),
-    path("auth/sso/code/", SSOAuthCodeView.as_view(), name="osauth_sso_code"),
+    path("auth/code/", AuthCodeView.as_view(), name="osauth_code"),
+    path("auth/signout/api", SignOutAPIView.as_view(), name="osauth_signout_api"),
 ]

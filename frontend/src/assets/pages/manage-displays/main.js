@@ -11,7 +11,7 @@ import {
   showToast,
   autoHyphenate,
   initSignOutButton,
-  initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import {
   translateHTML,
@@ -1935,8 +1935,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Load all data and initialize UI and calendar
   await refreshData();
   initCalendar();
-
-  initOrgQueryParams();
+  initOrgUrlRouting();
 });
 
 function populateDropdown(

@@ -14,8 +14,8 @@ import {
   updateNavbarUsername,
   makeActiveInNav,
   initSignOutButton,
-  initOrgQueryParams,
   initCollapseLeftSidebarBtn,
+  initOrgUrlRouting,
 } from "../../utils/utils.js";
 import { getCurrentAspectRatio } from "./modules/core/addSlide.js";
 import { initAddSlide } from "./modules/core/addSlide.js";
@@ -67,6 +67,7 @@ import {
   initActivationModal,
   openActivationModal,
 } from "./modules/modals/activationModal.js";
+import { initImageEditorModal } from "./modules/modals/imageEditorModal.js";
 import {
   initMediaAlignment,
   initMuteButtons,
@@ -83,6 +84,12 @@ import { syncGridConfigWithCSS } from "./modules/config/gridConfig.js";
 import { initStatusBar } from "./modules/utils/statusBar.js";
 import initSlideElementsSidebar from "./modules/core/slideElementsSidebar.js";
 import { initZoomController } from "./modules/utils/zoomController.js";
+import { initTemplateFilterControls } from "./modules/core/templateFilterControls.js";
+import { initGlobalTemplateEditor } from "./modules/core/globalTemplateDataManager.js";
+import {
+  initGlobalTemplateCreationModal,
+  openGlobalTemplateCreationModal,
+} from "./modules/modals/globalTemplateCreationModal.js";
 import * as bootstrap from "bootstrap";
 
 await Promise.all([fetchAndInitializeFonts(), fetchTextFormattingSettings()]);
@@ -109,6 +116,7 @@ const initCommonEditorFeatures = () => {
   initDeleteElement();
   initDeselectElement();
   initImageElement();
+  initImageEditorModal();
   initVideoElement();
   initEmbedWebsite();
   initSelectedElementBackgroundColor();
@@ -155,6 +163,12 @@ const disableAspectRatioControls = () => {
   }
 };
 
+const isGlobalTemplateScope = queryParams.template_scope === "global";
+
+if (isGlobalTemplateScope) {
+  initGlobalTemplateCreationModal();
+}
+
 if (queryParams.mode === "edit") {
   disableAspectRatioControls();
 
@@ -182,10 +196,15 @@ if (queryParams.mode === "edit") {
 }
 
 if (queryParams.mode === "template_editor") {
-  makeActiveInNav("/manage-templates?mode=template_editor");
+  const templateNavHref = isGlobalTemplateScope
+    ? "/global-templates?mode=template_editor&template_scope=global"
+    : "/manage-templates?mode=template_editor";
+  makeActiveInNav(templateNavHref);
   const navbar = document.getElementById("navbar");
 
-  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+  document
+    .getElementById("settings-and-play-btn-container")
+    .classList.add("d-none");
 
   if (navbar) {
     navbar.style.display = "block";
@@ -195,16 +214,49 @@ if (queryParams.mode === "template_editor") {
   } catch (e) {
     console.warn("exitPlayerMode failed or no player state:", e);
   }
-  //document.getElementById("change-slideshow-btn").classList.add("d-none");
-  const orgId = selectedSubOrgID || parentOrgID;
 
-  if (orgId) {
-    await initTemplateEditor(orgId).catch((err) =>
-      console.error(gettext("Error initializing template editor page:"), err),
-    );
+  let initSuccessful = false;
+
+  if (isGlobalTemplateScope) {
+    const result = await initGlobalTemplateEditor().catch((err) => {
+      console.error(
+        gettext("Error initializing global template editor:"),
+        err,
+      );
+      return false;
+    });
+    initSuccessful = Boolean(result);
+  } else {
+    const orgId = selectedSubOrgID || parentOrgID;
+
+    if (orgId) {
+      await initTemplateEditor(orgId).catch((err) =>
+        console.error(gettext("Error initializing template editor page:"), err),
+      );
+      initSuccessful = true;
+    } else {
+      console.error(
+        gettext(
+          "Organisation ID (selectedSubOrgID or parentOrgID) not found. Cannot initialize template editor.",
+        ),
+      );
+      const previewContainer =
+        document.querySelector(".preview-column .preview-container") ||
+        document.querySelector(".preview-container");
+      if (previewContainer) {
+        previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
+          "Error: Organisation ID is missing. Cannot load template editor.",
+        )}</p>`;
+      }
+      initSuccessful = false;
+    }
+  }
+
+  if (initSuccessful) {
     initCommonEditorFeatures();
     // init slide elements sidebar UI
     initSlideElementsSidebar();
+    initTemplateFilterControls();
     const playBtn = document.getElementById("playBtn");
     if (playBtn) {
       playBtn.style.display = "none";
@@ -220,36 +272,39 @@ if (queryParams.mode === "template_editor") {
       elementLinkDropdown.style.display = "none";
     }
 
-    const addTemplateBtn = document.createElement("div");
-    addTemplateBtn.innerHTML = `<button class="btn btn-primary" id="addTemplateBtn">+ ${gettext(
-      "Add Template",
-    )}</button>`;
-
-    addTemplateBtn.addEventListener("click", () => {
-      openSaveAsTemplateModal(null, true);
-    });
-
     const sectionButtons = document.querySelector(".section-buttons");
-    if (sectionButtons) {
-      sectionButtons.appendChild(addTemplateBtn);
+    if (isGlobalTemplateScope) {
+      if (sectionButtons && !sectionButtons.querySelector("#addGlobalTemplateBtn")) {
+        const wrapper = document.createElement("div");
+        const addGlobalTemplateBtn = document.createElement("button");
+        addGlobalTemplateBtn.className = "btn btn-primary";
+        addGlobalTemplateBtn.id = "addGlobalTemplateBtn";
+        addGlobalTemplateBtn.textContent = `+ ${gettext("Add Global Template")}`;
+
+        addGlobalTemplateBtn.addEventListener("click", () => {
+          openGlobalTemplateCreationModal();
+        });
+
+        wrapper.appendChild(addGlobalTemplateBtn);
+        sectionButtons.appendChild(wrapper);
+      }
+    } else if (sectionButtons) {
+      const addTemplateWrapper = document.createElement("div");
+      addTemplateWrapper.innerHTML = `<button class="btn btn-primary" id="addTemplateBtn">+ ${gettext(
+        "Add Template",
+      )}</button>`;
+
+      const addTemplateButton = addTemplateWrapper.querySelector("button");
+      addTemplateButton.addEventListener("click", () => {
+        openSaveAsTemplateModal(null, true);
+      });
+
+      sectionButtons.appendChild(addTemplateWrapper);
     }
+
     const addSlideBtnToRemove = document.querySelector("#addSlideBtn");
     if (addSlideBtnToRemove) {
       addSlideBtnToRemove.remove();
-    }
-  } else {
-    console.error(
-      gettext(
-        "Organisation ID (selectedSubOrgID or parentOrgID) not found. Cannot initialize template editor.",
-      ),
-    );
-    const previewContainer =
-      document.querySelector(".preview-column .preview-container") ||
-      document.querySelector(".preview-container");
-    if (previewContainer) {
-      previewContainer.innerHTML = `<p class="text-danger text-center mt-5">${gettext(
-        "Error: Organisation ID is missing. Cannot load template editor.",
-      )}</p>`;
     }
   }
 }
@@ -258,7 +313,6 @@ if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
   disableAspectRatioControls();
   document.getElementById("settings-and-play-btn-container").classList.add("d-none");
-  document.getElementById("top-menu-first-vr").classList.add("d-none");
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";
@@ -278,7 +332,7 @@ if (queryParams.mode === "suborg_templates") {
     }
   });
 
-  const suborgId = queryParams.suborgId;
+  const suborgId = window.SUB_ORG;
 
   if (suborgId) {
     // Fetch and display suborg name
@@ -317,6 +371,7 @@ if (queryParams.mode === "suborg_templates") {
     // Then initialize common editor features
     initCommonEditorFeatures();
     initSlideElementsSidebar();
+    initTemplateFilterControls();
 
     // Hide unnecessary buttons
     const playBtn = document.getElementById("playBtn");
@@ -419,7 +474,7 @@ function generalInit() {
       (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
     );
   }, 2000);
-  initOrgQueryParams();
+  initOrgUrlRouting();
 }
 
 const signOutBtn = document.getElementById("signOutBtn");

@@ -14,11 +14,12 @@ import {
   updateNavbarUsername,
   makeActiveInNav,
   initSignOutButton,
-  initOrgQueryParams,
   selectedBranchID,
   selectedSubOrgID,
   getSubOrgName,
   parentOrgID,
+  initOrgUrlRouting,
+  createUrl,
 } from "../../utils/utils.js";
 
 // Fetch branch-level active content and render into the "Afspilles nu" column
@@ -275,7 +276,7 @@ function renderNowPlayingGrouped(groups) {
           closePopover();
           try {
             pop.remove();
-          } catch (e) {}
+          } catch (e) { }
           window.removeEventListener("resize", reposition);
           window.removeEventListener("scroll", reposition, true);
           observer.disconnect();
@@ -392,15 +393,7 @@ function renderLatestSlideshows(items) {
     btn.addEventListener("click", () => {
       // Open manage content page for this slideshow
       localStorage.setItem("selectedSlideshowID", it.id);
-      window.location.href =
-        "/edit-content?id=" +
-        it.id +
-        "&mode=edit&orgId=" +
-        parentOrgID +
-        "&suborgId=" +
-        selectedSubOrgID +
-        "&branchId=" +
-        selectedBranchID;
+      window.location.href = `/${parentOrgID}/suborg/${selectedSubOrgID}/branch/${selectedBranchID}/edit-content?id=${it.id}&mode=edit`;
     });
 
     details.appendChild(btn);
@@ -448,15 +441,7 @@ function renderLatestPlaylists(items) {
     btn.className = "btn btn-sm dashboard-btn-outline";
     btn.textContent = gettext("Open");
     btn.addEventListener("click", () => {
-      window.location.href =
-        "/slideshow-playlists?playlist_id=" +
-        it.id +
-        "&orgId=" +
-        parentOrgID +
-        "&suborgId=" +
-        selectedSubOrgID +
-        "&branchId=" +
-        selectedBranchID;
+      window.location.href = `/${parentOrgID}/suborg/${selectedSubOrgID}/branch/${selectedBranchID}/slideshow-playlists?playlist_id=${it.id}`;
     });
 
     details.appendChild(btn);
@@ -550,7 +535,7 @@ function renderUpcoming(items) {
 
     const right = document.createElement("div");
     right.className = "calendar-entry-right-action";
-    
+
 
     article.appendChild(left);
     article.appendChild(right);
@@ -561,12 +546,7 @@ function renderUpcoming(items) {
 (async () => {
   if ((await getSubOrgName(selectedSubOrgID)) === "Global") {
     window.location.href =
-      "/manage-fonts-and-color-scheme?branchId=" +
-      selectedBranchID +
-      "&suborgId=" +
-      selectedSubOrgID +
-      "&orgId=" +
-      parentOrgID;
+      createUrl("/manage-fonts-and-color-scheme", true, true);
   }
 })();
 
@@ -580,5 +560,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateNavbarBranchName();
   makeActiveInNav("/dashboard");
   initSignOutButton();
-  initOrgQueryParams();
+  initOrgUrlRouting();
 });

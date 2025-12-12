@@ -18,7 +18,7 @@ import {
   debounce,
   getSelectedExtensions,
   initSignOutButton,
-  initOrgQueryParams,
+  initOrgUrlRouting,
 } from "../../utils/utils";
 import * as bootstrap from "bootstrap";
 import { BASE_URL } from "../../utils/constants";
@@ -1014,4 +1014,4 @@ function showLoadingOverlay(show) {
     overlay.style.display = "none";
   }
 }
-initOrgQueryParams();
+initOrgUrlRouting();
