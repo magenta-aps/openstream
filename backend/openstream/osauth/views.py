@@ -106,7 +106,7 @@ class AuthCodeView(APIView):
         kc_user_privilege_list = (
             parse_kc_sso_privilege_list(keycloak_user_info.sso_privilege_list)
             if keycloak_user_info.sso_privilege_list
-            else None
+            else {}
         )
 
         # Get local django user - if it exists
