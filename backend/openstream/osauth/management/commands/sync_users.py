@@ -7,10 +7,11 @@ from datetime import datetime
 from logging import getLogger
 from typing import List
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, UserManager
 from django.core.mail import EmailMultiAlternatives
 from django.core.management import BaseCommand
 from django.template.loader import render_to_string
+from django.db.models import Q
 
 from app.models import Organisation
 from osauth.keycloak import (
@@ -64,13 +65,20 @@ class Command(BaseCommand):
             default=self.temp_password,
             help=f"Number of users to process per batch (default: {self.batch_size}).",
         )
-
-    def get_organisation_from_realm(self, realm: str):
-        return Organisation.objects.get(uri_name=realm)
+        parser.add_argument(
+            "--include_super_admins",
+            action="store_true",
+            help="If set, the sync-process, will also try to sync super_admins to the keycloak realm.",
+        )
 
     def get_django_users(
-        self, kc_users: List[UserRepresentation], django_users_total: int
+        self,
+        kc_users: List[UserRepresentation],
+        django_users_qs: UserManager[User],
     ):
+        django_users_total = django_users_qs.count()
+        logger.info(f"Django-users count: {django_users_total}")
+
         users_to_create: List[User] = []
         users_to_update: List[User] = []
 
@@ -78,7 +86,7 @@ class Command(BaseCommand):
         for batch_index in range(num_batches):
             start = batch_index * self.batch_size
             end = start + self.batch_size
-            users = User.objects.all().order_by("id")[start:end]
+            users = django_users_qs.order_by("id")[start:end]
 
             if self.verbose:
                 self.stdout.write(
@@ -181,6 +189,7 @@ class Command(BaseCommand):
         self.batch_size = options["batch_size"]
         self.compare_field = options["compare_field"]
         self.temp_password = options["temp_password"]
+        self.include_super_admins = options["include_super_admins"]
 
         if self.temp_password:
             logger.warning(
@@ -208,10 +217,18 @@ class Command(BaseCommand):
         kc_users = self.kc_adm.list_realm_users(kc_token, self.realm, kc_users_total)
 
         # Get local users
-        django_users_total = User.objects.count()
-        logger.info(f"Django-users count: {django_users_total}")
+        django_users_organisation = Organisation.objects.get(uri_name=self.realm)
+
+        django_users_query = Q(
+            organisation_memberships__organisation=django_users_organisation
+        )
+
+        if self.include_super_admins:
+            django_users_query |= Q(organisation_memberships__role="super_admin")
+
+        django_users_qs = User.objects.filter(django_users_query)
         django_users_to_create, django_users_to_update = self.get_django_users(
-            kc_users, django_users_total
+            kc_users, django_users_qs
         )
 
         # Perform creates
