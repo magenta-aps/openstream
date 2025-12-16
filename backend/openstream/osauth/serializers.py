@@ -19,5 +19,5 @@ class TokenResponseSerializer(serializers.Serializer):
     scope = serializers.CharField()
 
 
-class SignOutResponse(serializers.Serializer):
+class SignOutResponseSerializer(serializers.Serializer):
     redirect_url = serializers.CharField()

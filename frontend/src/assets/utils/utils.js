@@ -138,7 +138,10 @@ export async function signOut() {
 
   // Remove local storage
   localStorage.removeItem("accessToken");
+
+  // API should actually never be set for a logged in user, but we remove it just in case it's there
   localStorage.removeItem("apiKey");
+
   localStorage.removeItem("parentOrgID");
   localStorage.removeItem("parentOrgName");
   localStorage.removeItem("screenId");

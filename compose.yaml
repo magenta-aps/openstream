@@ -68,18 +68,30 @@ services:
       - openstream
 
   keycloak:
-    container_name: openstream-keycloak
-    image: docker.io/magentaaps/openstream-keycloak:0.2.5
-    entrypoint: ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm"]
-    env_file:
-      - *env-keycloak
-    networks: *common-networks
-    ports:
-      - 8080:8080
-    volumes:
-      - ./dev-environment/keycloak/realms:/opt/keycloak/data/import
-    depends_on:
-      - db
+      container_name: openstream-keycloak
+      image: docker.io/magentaaps/openstream-keycloak:0.2.5
+      # Add environment variables directly here to override defaults
+      environment:
+        # 1. Tell Keycloak "You are accessed via localhost from the outside"
+        - KC_HOSTNAME=localhost
+        - KC_HOSTNAME_PORT=8080
+        
+        # 2. Disable strict checking so internal containers can still talk to it
+        - KC_HOSTNAME_STRICT=false
+        - KC_HOSTNAME_STRICT_BACKCHANNEL=false
+        
+        # 3. Ensure it runs in HTTP mode (not HTTPS) for dev
+        - KC_HTTP_ENABLED=true
+      entrypoint: ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm"]
+      env_file:
+        - *env-keycloak
+      networks: *common-networks
+      ports:
+        - "8080:8080"
+      volumes:
+        - ./dev-environment/keycloak/realms:/opt/keycloak/data/import
+      depends_on:
+        - db
 
   frontend:
     container_name: openstream-frontend

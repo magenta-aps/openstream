@@ -27,7 +27,7 @@ from osauth.keycloak import (
     KeycloakClient,
     KeycloakError,
 )
-from osauth.serializers import SignOutResponse, TokenResponseSerializer
+from osauth.serializers import SignOutResponseSerializer, TokenResponseSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def _get_org_helper(request: Request):
     return get_object_or_404(Organisation, uri_name=org_realm)
 
 
-class SignInView(APIView):
+class SignInViewAPIView(APIView):
     def get(self, request: Request):
         org_realm = request.GET.get("org")
         if not org_realm:
@@ -69,7 +69,7 @@ class SignInView(APIView):
         )
 
 
-class AuthCodeView(APIView):
+class AuthCodeAPIView(APIView):
     serializer_class = TokenResponseSerializer
 
     def get(self, request: Request):
@@ -80,7 +80,7 @@ class AuthCodeView(APIView):
 
         # Fetch access- & refresh-token using the authroization code
         kc_client = KeycloakClient(
-            host=settings.KEYCLOAK_HOST,
+            host=settings.KEYCLOAK_INTERNAL_HOST,  
             port=settings.KEYCLOAK_PORT,
             realm=org.uri_name,
             client_id=settings.KEYCLOAK_CLIENT_ID,
@@ -88,6 +88,8 @@ class AuthCodeView(APIView):
 
         keycloak_token = None
         try:
+            # Note: The redirect_uri must still match the BROWSER'S url (localhost)
+            # because Keycloak validates it against the original request.
             keycloak_token = kc_client.token_from_code(
                 code,
                 redirect_uri=request.build_absolute_uri(
@@ -188,7 +190,7 @@ class SignOutAPIView(APIView):
             client_id=settings.KEYCLOAK_CLIENT_ID,
         )
 
-        serializer = SignOutResponse(
+        serializer = SignOutResponseSerializer(
             instance={
                 "redirect_url": kc_client.url_signout(
                     db_keycloak_session.id_token,

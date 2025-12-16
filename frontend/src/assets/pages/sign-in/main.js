@@ -3,7 +3,9 @@
 import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
 
-const params = new URLSearchParams({ "org": window.ORG_NAME })
+const params = new URLSearchParams({ 
+  "org": window.ORG_NAME 
+})
 const redirectUrl = new URL(
   `${BASE_URL}/auth/signin/?` + params.toString(),
   window.location.origin
