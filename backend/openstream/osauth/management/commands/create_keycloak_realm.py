@@ -162,6 +162,23 @@ class Command(BaseCommand):
                 "backchannel.logout.session.required": "true",
                 "backchannel.logout.revoke.offline.tokens": "false",
             },
+            # Explicitly add Protocol Mappers to ensure roles appear in UserInfo
+            "protocolMappers": [
+                {
+                    "name": "OpenStream Realm Roles",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-usermodel-realm-role-mapper",
+                    "consentRequired": False,
+                    "config": {
+                        "multivalued": "true",
+                        "userinfo.token.claim": "true",  # <--- Crucial: Adds to User Info
+                        "id.token.claim": "true",
+                        "access.token.claim": "true",
+                        "claim.name": "realm_access.roles",
+                        "jsonType.label": "String",
+                    },
+                }
+            ],
             "defaultClientScopes": [
                 "web-origins",
                 "acr",
