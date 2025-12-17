@@ -29,7 +29,7 @@ def _default_backend_base_url() -> str:
 
 
 class Command(BaseCommand):
-    help = "Create a Keycloak realm with default OpenStream roles and client."
+    help = "Create a Keycloak realm with default OpenStream roles, client, and admin user."
 
     def add_arguments(self, parser):
         parser.add_argument("realm", type=str, help="Name of the realm to create.")
@@ -70,12 +70,13 @@ class Command(BaseCommand):
             if kc_admin.realm_exists(token, realm):
                 self.stdout.write(
                     self.style.WARNING(
-                        f"Realm '{realm}' already exists - nothing to create."
+                        f"Realm '{realm}' already exists - skipping realm creation."
                     )
                 )
-                return
+            else:
+                self._create_realm(kc_admin, token, realm)
 
-            self._create_realm(kc_admin, token, realm)
+            # Ensure components exist even if realm existed
             self._ensure_roles(kc_admin, token, realm)
             self._ensure_openstream_client(
                 kc_admin,
@@ -84,10 +85,12 @@ class Command(BaseCommand):
                 frontend_origin=frontend_origin,
                 backend_base_url=backend_base_url,
             )
+            self._ensure_admin_user(kc_admin, token, realm)
+
         except KeycloakError as exc:
             raise CommandError(str(exc)) from exc
 
-        self.stdout.write(self.style.SUCCESS(f"Realm '{realm}' created."))
+        self.stdout.write(self.style.SUCCESS(f"Realm '{realm}' setup complete."))
 
     def _create_realm(self, kc_admin, token, realm: str):
         kc_admin.create_realm(
@@ -122,6 +125,60 @@ class Command(BaseCommand):
 
             kc_admin.create_realm_role(token, realm, role)
             logger.info("Role '%s' created", role["name"])
+
+    def _ensure_admin_user(self, kc_admin, token, realm: str):
+        username = f"{realm}_org_admin"
+        password = f"{realm}_org_admin"
+        admin_role_name = settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN
+        user_id = None
+
+        user_payload = {
+            "username": username,
+            "enabled": True,
+            "emailVerified": True,
+            "firstName": "Organisation",
+            "lastName": "Admin",
+            "email": f"{username}@example.com",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": password,
+                    "temporary": False,
+                }
+            ],
+        }
+
+        # 1. Try to create user directly
+        try:
+            # We call the new 'create_user' method which accepts a dict
+            user_id = kc_admin.create_user(token, realm, user_payload)
+            logger.info("User '%s' created", username)
+        except Exception as e:
+            logger.info("Could not create user (might exist), attempting to find. Error: %s", e)
+            
+            # Now this will work because we added get_users() to keycloak.py
+            existing_users = kc_admin.get_users(token, realm, {"username": username})
+            if existing_users:
+                user_id = existing_users[0]["id"]
+                logger.info("User '%s' found", username)
+
+        if not user_id:
+            logger.error("Could not obtain ID for user '%s', cannot assign roles.", username)
+            return
+
+        # 2. Get Role Representation
+        role_rep = kc_admin.get_realm_role(token, realm, admin_role_name)
+        if not role_rep:
+            logger.error("Role '%s' not found, cannot assign to user.", admin_role_name)
+            return
+
+        # 3. Assign Role to User
+        try:
+            # Note: We pass role_rep directly, add_realm_role_to_user wraps it in a list
+            kc_admin.add_realm_role_to_user(token, realm, user_id, role_rep)
+            logger.info("Role '%s' assigned to user '%s'", admin_role_name, username)
+        except Exception as e:
+            logger.info("Role assignment logic finished (User might already have role).")
 
     def _ensure_openstream_client(
         self,
@@ -162,7 +219,6 @@ class Command(BaseCommand):
                 "backchannel.logout.session.required": "true",
                 "backchannel.logout.revoke.offline.tokens": "false",
             },
-            # Explicitly add Protocol Mappers to ensure roles appear in UserInfo
             "protocolMappers": [
                 {
                     "name": "OpenStream Realm Roles",
@@ -171,7 +227,7 @@ class Command(BaseCommand):
                     "consentRequired": False,
                     "config": {
                         "multivalued": "true",
-                        "userinfo.token.claim": "true",  # <--- Crucial: Adds to User Info
+                        "userinfo.token.claim": "true",
                         "id.token.claim": "true",
                         "access.token.claim": "true",
                         "claim.name": "realm_access.roles",

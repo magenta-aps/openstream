@@ -346,6 +346,40 @@ class KeycloakAdminClient(KeycloakBaseClient):
 
         return int(resp.json())
 
+    # --- ADDED: Generic method to find users by query (username, email) ---
+    def get_users(self, token: TokenResponse, realm: str, query: Dict[str, str] = None):
+        resp = requests.get(
+            f"{self.url()}/admin/realms/{realm}/users",
+            headers={"Authorization": f"Bearer {token.access_token}"},
+            params=query or {},
+        )
+
+        if resp.status_code != 200:
+            raise KeycloakError(
+                resp.status_code, data=resp.json() if resp.content else None
+            )
+
+        return resp.json()
+
+    # --- ADDED: Generic method to create user from dict (supports passwords/names) ---
+    def create_user(self, token: TokenResponse, realm: str, user_payload: Dict[str, Any]):
+        resp = requests.post(
+            f"{self.url()}/admin/realms/{realm}/users",
+            headers={
+                "Authorization": f"Bearer {token.access_token}",
+                "Content-Type": "application/json",
+            },
+            json=user_payload,
+        )
+
+        if resp.status_code != 201:
+            raise KeycloakError(
+                resp.status_code, data=resp.json() if resp.content else None
+            )
+
+        # Extract ID from Location header
+        return resp.headers["Location"].rstrip("/").split("/")[-1]
+
     def list_realm_users(
         self, token: TokenResponse, realm: str, total_count: int | None = None
     ):
@@ -427,6 +461,7 @@ class KeycloakAdminClient(KeycloakBaseClient):
     def add_realm_role_to_user(
         self, token: TokenResponse, realm: str, user_id: str, role
     ):
+        # NOTE: role should be a single dict. This method wraps it in a list.
         resp = requests.post(
             f"{self.url()}/admin/realms/{realm}/users/{user_id}/role-mappings/realm",
             headers={
