@@ -232,6 +232,107 @@ class KeycloakAdminClient(KeycloakBaseClient):
 
         return TokenResponse.model_validate(resp.json())
 
+    def realm_exists(self, token: TokenResponse, realm: str) -> bool:
+        resp = requests.get(
+            f"{self.url()}/admin/realms/{realm}",
+            headers={"Authorization": f"Bearer {token.access_token}"},
+        )
+
+        if resp.status_code == 200:
+            return True
+        if resp.status_code == 404:
+            return False
+
+        raise KeycloakError(
+            resp.status_code,
+            data=resp.json() if resp.content else None,
+        )
+
+    def create_realm(self, token: TokenResponse, realm_config: Dict[str, Any]):
+        resp = requests.post(
+            f"{self.url()}/admin/realms",
+            headers={
+                "Authorization": f"Bearer {token.access_token}",
+                "Content-Type": "application/json",
+            },
+            json=realm_config,
+        )
+
+        if resp.status_code not in (201, 204):
+            raise KeycloakError(
+                resp.status_code,
+                data=resp.json() if resp.content else None,
+            )
+
+    def client_exists(self, token: TokenResponse, realm: str, client_id: str) -> bool:
+        resp = requests.get(
+            f"{self.url()}/admin/realms/{realm}/clients",
+            headers={"Authorization": f"Bearer {token.access_token}"},
+            params={"clientId": client_id},
+        )
+
+        if resp.status_code != 200:
+            raise KeycloakError(
+                resp.status_code,
+                data=resp.json() if resp.content else None,
+            )
+
+        clients = resp.json()
+        return any(client.get("clientId") == client_id for client in clients)
+
+    def create_client(
+        self,
+        token: TokenResponse,
+        realm: str,
+        client_config: Dict[str, Any],
+    ):
+        resp = requests.post(
+            f"{self.url()}/admin/realms/{realm}/clients",
+            headers={
+                "Authorization": f"Bearer {token.access_token}",
+                "Content-Type": "application/json",
+            },
+            json=client_config,
+        )
+
+        if resp.status_code not in (201, 204):
+            raise KeycloakError(
+                resp.status_code,
+                data=resp.json() if resp.content else None,
+            )
+
+    def realm_role_exists(self, token: TokenResponse, realm: str, role_name: str) -> bool:
+        resp = requests.get(
+            f"{self.url()}/admin/realms/{realm}/roles/{role_name}",
+            headers={"Authorization": f"Bearer {token.access_token}"},
+        )
+
+        if resp.status_code == 200:
+            return True
+        if resp.status_code == 404:
+            return False
+
+        raise KeycloakError(
+            resp.status_code,
+            data=resp.json() if resp.content else None,
+        )
+
+    def create_realm_role(self, token: TokenResponse, realm: str, role: Dict[str, Any]):
+        resp = requests.post(
+            f"{self.url()}/admin/realms/{realm}/roles",
+            headers={
+                "Authorization": f"Bearer {token.access_token}",
+                "Content-Type": "application/json",
+            },
+            json=role,
+        )
+
+        if resp.status_code not in (201, 204):
+            raise KeycloakError(
+                resp.status_code,
+                data=resp.json() if resp.content else None,
+            )
+
     def count_realm_users(self, token: TokenResponse, realm: str):
         resp = requests.get(
             f"{self.url()}/admin/realms/{realm}/users/count",
@@ -426,7 +527,7 @@ def kc_client_from_settings(realm: str) -> KeycloakClient:
 
 def kc_adm_client_from_settings() -> KeycloakAdminClient:
     return KeycloakAdminClient(
-        host=settings.KEYCLOAK_HOST,
+        host=getattr(settings, "KEYCLOAK_INTERNAL_HOST", settings.KEYCLOAK_HOST),
         port=settings.KEYCLOAK_PORT,
         client_id="admin-cli",
     )
