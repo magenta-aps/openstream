@@ -16,7 +16,7 @@ CREATE_TEST_REALMS=${CREATE_TEST_REALMS:=false}
 # Keycloak will use the `uri` value; `name` is used when creating the organisation.
 # Example:
 #   TEST_REALM_LIST='name=Demo Organization;uri=demo,name=Example Org;uri=example'
-TEST_REALM_LIST='name=Demo Organization;uri=demo,name=Example Org;uri=example'
+TEST_REALM_LIST='name=Københavns Kommune;uri=kk,name=Admin Realm;uri=admin_realm,name=Kolding Kommune;uri=kolding,name=Lyngby-Taarbæk Kommune;uri=ltk,name=Brøndby Kommune;uri=brondby'
 KEYCLOAK_WAIT_TIMEOUT=${KEYCLOAK_WAIT_TIMEOUT:=60}
 
 wait_for_keycloak() {
