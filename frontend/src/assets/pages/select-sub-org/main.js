@@ -895,6 +895,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         };
       });
       document.getElementById("admin-buttons").appendChild(selectBtn);
+      // Do not render the Global suborganisation as a normal card/list item.
+      return;
     } else if (suborg.name === "global_templates") {
       const globalTemplatesBranch = suborg.branches?.find(
         (branch) => branch.name === "global_templates",
@@ -912,6 +914,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         document.getElementById("admin-buttons").appendChild(
           globalTemplatesBtn,
         );
+        // Do not render the global_templates suborganisation as a normal card/list item.
+        return;
       }
     }
 
