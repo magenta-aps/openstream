@@ -35,6 +35,15 @@ class Command(BaseCommand):
                 suborganisation=suborg, name='Global'
             )
 
+            # Also create a demo suborganisation and demo branch
+            demo_suborg, demo_sub_created = SubOrganisation.objects.get_or_create(
+                organisation=org, name='Demo Suborg'
+            )
+
+            demo_branch, demo_branch_created = Branch.objects.get_or_create(
+                suborganisation=demo_suborg, name='Demo Branch'
+            )
+
         if org_created:
             self.stdout.write(self.style.SUCCESS(f"Organisation created: {org.name} (uri_name={org.uri_name})"))
         else:
@@ -49,3 +58,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Branch created: {branch.name}"))
         else:
             self.stdout.write(self.style.NOTICE(f"Branch exists: {branch.name}"))
+
+        if demo_sub_created:
+            self.stdout.write(self.style.SUCCESS(f"SubOrganisation created: {demo_suborg.name}"))
+        else:
+            self.stdout.write(self.style.NOTICE(f"SubOrganisation exists: {demo_suborg.name}"))
+
+        if demo_branch_created:
+            self.stdout.write(self.style.SUCCESS(f"Branch created: {demo_branch.name}"))
+        else:
+            self.stdout.write(self.style.NOTICE(f"Branch exists: {demo_branch.name}"))

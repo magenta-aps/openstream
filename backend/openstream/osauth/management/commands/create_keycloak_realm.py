@@ -29,7 +29,7 @@ def _default_backend_base_url() -> str:
 
 
 class Command(BaseCommand):
-    help = "Create a Keycloak realm with default OpenStream roles, client, and admin user."
+    help = "Create a Keycloak realm with default OpenStream roles, client, and default users."
 
     def add_arguments(self, parser):
         parser.add_argument("realm", type=str, help="Name of the realm to create.")
@@ -85,7 +85,8 @@ class Command(BaseCommand):
                 frontend_origin=frontend_origin,
                 backend_base_url=backend_base_url,
             )
-            self._ensure_admin_user(kc_admin, token, realm)
+            # Create the 3 default users
+            self._ensure_default_users(kc_admin, token, realm)
 
         except KeycloakError as exc:
             raise CommandError(str(exc)) from exc
@@ -126,18 +127,67 @@ class Command(BaseCommand):
             kc_admin.create_realm_role(token, realm, role)
             logger.info("Role '%s' created", role["name"])
 
-    def _ensure_admin_user(self, kc_admin, token, realm: str):
-        username = f"{realm}_org_admin"
-        password = f"{realm}_org_admin"
-        admin_role_name = settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN
+    def _ensure_default_users(self, kc_admin, token, realm: str):
+        """Creates the standard set of users for a new realm."""
+        
+        users_to_create = [
+            # 1. Org Admin
+            {
+                "suffix": "org_admin",
+                "role": settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN,
+                "first_name": "Organisation",
+                "last_name": "Admin",
+            },
+            # 2. Employee (Org User)
+            {
+                "suffix": "employee",
+                "role": settings.OSAUTH_ORG_MEMBERSHIP_ORG_USER,
+                "first_name": "Organisation",
+                "last_name": "Employee",
+            },
+            # 3. Suborg Admin (Org User role per request)
+            {
+                "suffix": "suborg_admin",
+                "role": settings.OSAUTH_ORG_MEMBERSHIP_ORG_USER,
+                "first_name": "Sub-Organisation",
+                "last_name": "Admin",
+            },
+        ]
+
+        for user_conf in users_to_create:
+            username = f"{realm}_{user_conf['suffix']}"
+            password = username  # Password same as username
+            
+            self._create_and_assign_user(
+                kc_admin, 
+                token, 
+                realm, 
+                username=username, 
+                password=password, 
+                role_name=user_conf["role"],
+                first_name=user_conf["first_name"],
+                last_name=user_conf["last_name"]
+            )
+
+    def _create_and_assign_user(
+        self, 
+        kc_admin, 
+        token, 
+        realm: str, 
+        username: str, 
+        password: str, 
+        role_name: str,
+        first_name: str,
+        last_name: str
+    ):
         user_id = None
 
         user_payload = {
             "username": username,
             "enabled": True,
             "emailVerified": True,
-            "firstName": "Organisation",
-            "lastName": "Admin",
+            "firstName": first_name,
+            "lastName": last_name,
             "email": f"{username}@example.com",
             "credentials": [
                 {
@@ -148,37 +198,38 @@ class Command(BaseCommand):
             ],
         }
 
-        # 1. Try to create user directly
+        # 1. Try to create user
         try:
-            # We call the new 'create_user' method which accepts a dict
             user_id = kc_admin.create_user(token, realm, user_payload)
             logger.info("User '%s' created", username)
         except Exception as e:
-            logger.info("Could not create user (might exist), attempting to find. Error: %s", e)
-            
-            # Now this will work because we added get_users() to keycloak.py
-            existing_users = kc_admin.get_users(token, realm, {"username": username})
-            if existing_users:
-                user_id = existing_users[0]["id"]
-                logger.info("User '%s' found", username)
+            # Fallback if user exists
+            logger.info("User '%s' might exist, attempting to find...", username)
+            try:
+                existing_users = kc_admin.get_users(token, realm, {"username": username})
+                if existing_users:
+                    user_id = existing_users[0]["id"]
+                    logger.info("User '%s' found", username)
+            except AttributeError:
+                 logger.warning("SKIPPING USER '%s': 'get_users' method missing in client.", username)
+                 return
 
         if not user_id:
-            logger.error("Could not obtain ID for user '%s', cannot assign roles.", username)
+            logger.error("Could not obtain ID for user '%s', skipping.", username)
             return
 
         # 2. Get Role Representation
-        role_rep = kc_admin.get_realm_role(token, realm, admin_role_name)
+        role_rep = kc_admin.get_realm_role(token, realm, role_name)
         if not role_rep:
-            logger.error("Role '%s' not found, cannot assign to user.", admin_role_name)
+            logger.error("Role '%s' not found, cannot assign to user '%s'.", role_name, username)
             return
 
-        # 3. Assign Role to User
+        # 3. Assign Role
         try:
-            # Note: We pass role_rep directly, add_realm_role_to_user wraps it in a list
             kc_admin.add_realm_role_to_user(token, realm, user_id, role_rep)
-            logger.info("Role '%s' assigned to user '%s'", admin_role_name, username)
-        except Exception as e:
-            logger.info("Role assignment logic finished (User might already have role).")
+            logger.info("Role '%s' assigned to user '%s'", role_name, username)
+        except Exception:
+            logger.info("Role assignment logic finished for '%s' (might already have role).", username)
 
     def _ensure_openstream_client(
         self,
