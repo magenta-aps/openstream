@@ -301,7 +301,9 @@ class KeycloakAdminClient(KeycloakBaseClient):
                 data=resp.json() if resp.content else None,
             )
 
-    def realm_role_exists(self, token: TokenResponse, realm: str, role_name: str) -> bool:
+    def realm_role_exists(
+        self, token: TokenResponse, realm: str, role_name: str
+    ) -> bool:
         resp = requests.get(
             f"{self.url()}/admin/realms/{realm}/roles/{role_name}",
             headers={"Authorization": f"Bearer {token.access_token}"},
@@ -362,7 +364,9 @@ class KeycloakAdminClient(KeycloakBaseClient):
         return resp.json()
 
     # --- ADDED: Generic method to create user from dict (supports passwords/names) ---
-    def create_user(self, token: TokenResponse, realm: str, user_payload: Dict[str, Any]):
+    def create_user(
+        self, token: TokenResponse, realm: str, user_payload: Dict[str, Any]
+    ):
         resp = requests.post(
             f"{self.url()}/admin/realms/{realm}/users",
             headers={

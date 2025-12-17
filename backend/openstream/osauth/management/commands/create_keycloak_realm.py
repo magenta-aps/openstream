@@ -129,7 +129,7 @@ class Command(BaseCommand):
 
     def _ensure_default_users(self, kc_admin, token, realm: str):
         """Creates the standard set of users for a new realm."""
-        
+
         users_to_create = [
             # 1. Org Admin
             {
@@ -157,28 +157,28 @@ class Command(BaseCommand):
         for user_conf in users_to_create:
             username = f"{realm}_{user_conf['suffix']}"
             password = username  # Password same as username
-            
+
             self._create_and_assign_user(
-                kc_admin, 
-                token, 
-                realm, 
-                username=username, 
-                password=password, 
+                kc_admin,
+                token,
+                realm,
+                username=username,
+                password=password,
                 role_name=user_conf["role"],
                 first_name=user_conf["first_name"],
-                last_name=user_conf["last_name"]
+                last_name=user_conf["last_name"],
             )
 
     def _create_and_assign_user(
-        self, 
-        kc_admin, 
-        token, 
-        realm: str, 
-        username: str, 
-        password: str, 
+        self,
+        kc_admin,
+        token,
+        realm: str,
+        username: str,
+        password: str,
         role_name: str,
         first_name: str,
-        last_name: str
+        last_name: str,
     ):
         user_id = None
 
@@ -206,13 +206,18 @@ class Command(BaseCommand):
             # Fallback if user exists
             logger.info("User '%s' might exist, attempting to find...", username)
             try:
-                existing_users = kc_admin.get_users(token, realm, {"username": username})
+                existing_users = kc_admin.get_users(
+                    token, realm, {"username": username}
+                )
                 if existing_users:
                     user_id = existing_users[0]["id"]
                     logger.info("User '%s' found", username)
             except AttributeError:
-                 logger.warning("SKIPPING USER '%s': 'get_users' method missing in client.", username)
-                 return
+                logger.warning(
+                    "SKIPPING USER '%s': 'get_users' method missing in client.",
+                    username,
+                )
+                return
 
         if not user_id:
             logger.error("Could not obtain ID for user '%s', skipping.", username)
@@ -221,7 +226,9 @@ class Command(BaseCommand):
         # 2. Get Role Representation
         role_rep = kc_admin.get_realm_role(token, realm, role_name)
         if not role_rep:
-            logger.error("Role '%s' not found, cannot assign to user '%s'.", role_name, username)
+            logger.error(
+                "Role '%s' not found, cannot assign to user '%s'.", role_name, username
+            )
             return
 
         # 3. Assign Role
@@ -229,7 +236,10 @@ class Command(BaseCommand):
             kc_admin.add_realm_role_to_user(token, realm, user_id, role_rep)
             logger.info("Role '%s' assigned to user '%s'", role_name, username)
         except Exception:
-            logger.info("Role assignment logic finished for '%s' (might already have role).", username)
+            logger.info(
+                "Role assignment logic finished for '%s' (might already have role).",
+                username,
+            )
 
     def _ensure_openstream_client(
         self,

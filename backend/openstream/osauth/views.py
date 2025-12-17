@@ -80,7 +80,7 @@ class AuthCodeAPIView(APIView):
 
         # Fetch access- & refresh-token using the authorization code
         kc_client = KeycloakClient(
-            host=settings.KEYCLOAK_INTERNAL_HOST,  
+            host=settings.KEYCLOAK_INTERNAL_HOST,
             port=settings.KEYCLOAK_PORT,
             realm=org.uri_name,
             client_id=settings.KEYCLOAK_CLIENT_ID,
@@ -103,19 +103,22 @@ class AuthCodeAPIView(APIView):
 
         # Get KC user
         keycloak_user_info = kc_client.user_info(keycloak_token.access_token)
-        
+
         # --- SAFEGUARD: Extract roles safely ---
         current_user_roles = []
         if keycloak_user_info.realm_access:
             current_user_roles = keycloak_user_info.realm_access.roles
-        
+
         # Also check Access Token directly if UserInfo was empty (Double check)
         # (Optional, but robust if your Mapper is inconsistent)
         if not current_user_roles:
             import jwt
-            decoded = jwt.decode(keycloak_token.access_token, options={"verify_signature": False})
+
+            decoded = jwt.decode(
+                keycloak_token.access_token, options={"verify_signature": False}
+            )
             if "realm_access" in decoded and "roles" in decoded["realm_access"]:
-                 current_user_roles = decoded["realm_access"]["roles"]
+                current_user_roles = decoded["realm_access"]["roles"]
 
         kc_user_privilege_list = (
             parse_kc_sso_privilege_list(keycloak_user_info.sso_privilege_list)
@@ -135,8 +138,7 @@ class AuthCodeAPIView(APIView):
         ]
 
         kc_user_has_access = any(
-            x in current_user_roles
-            for x in keycloak_realm_roles_org_memberships
+            x in current_user_roles for x in keycloak_realm_roles_org_memberships
         ) or any(
             x in kc_user_privilege_list for x in keycloak_realm_roles_org_memberships
         )
@@ -164,7 +166,7 @@ class AuthCodeAPIView(APIView):
         # ---------------------------------------------------------
         # Sync Keycloak roles OrganisationMemberships
         # ---------------------------------------------------------
-        
+
         # 1. Sync from SSO Privilege List (if it exists)
         if kc_user_privilege_list:
             sync_keycloak_privilege_list_org_memberships(
@@ -175,10 +177,9 @@ class AuthCodeAPIView(APIView):
         # If the user has any relevant realm roles, we pass THEIR ROLES to the sync function.
         # OLD BUGGY CODE: passed keycloak_realm_roles_org_memberships (the config list)
         # NEW CODE: passes current_user_roles (the actual roles the user has)
-        
+
         user_has_realm_roles = any(
-            x in current_user_roles
-            for x in keycloak_realm_roles_org_memberships
+            x in current_user_roles for x in keycloak_realm_roles_org_memberships
         )
 
         if user_has_realm_roles:
@@ -192,6 +193,7 @@ class AuthCodeAPIView(APIView):
         redirect_params = configure_keycloak_session(django_user, keycloak_token)
         redirect_url = f"{settings.FRONTEND_HOST}/{org.uri_name}/sign-in-callback?{urlencode(redirect_params)}"
         return redirect(redirect_url)
+
 
 class SignOutAPIView(APIView):
     permission_classes = [IsAuthenticated]
