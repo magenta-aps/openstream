@@ -94,7 +94,7 @@ if [ "${CREATE_TEST_REALMS}" = true ]; then
         fi
 
         echo "Ensuring Keycloak realm '${CLEAN_REALM}' exists"
-        ./manage.py create_keycloak_realm "${CLEAN_REALM}"
+        ./manage.py create_keycloak_realm "${CLEAN_REALM} '${CLEAN_REALM}'"
       done
       IFS="$OLD_IFS"
     else
