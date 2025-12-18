@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2025 Magenta ApS, https://magenta.dk.
+# Contact: info@magenta.dk.
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.contrib.auth.models import User
