@@ -227,7 +227,7 @@ function renderFonts() {
     dragCell.appendChild(dragIcon);
 
     const nameCell = document.createElement("td");
-    nameCell.textContent = font.name;c
+    nameCell.textContent = font.name;
 
     const previewCell = document.createElement("td");
     const exampleText = document.createElement("span");
