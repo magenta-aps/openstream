@@ -10,7 +10,7 @@ from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from osauth.models import KeycloakSession
 from osauth.keycloak import TokenResponse, UserInfo
-from app.models import Organisation, OrganisationMembership, User
+from app.models import Organisation, OrganisationMembership, User, ROLE_CHOICES
 
 
 def kc_user_info_2_local_user(kc_user: UserInfo) -> User:
@@ -27,11 +27,16 @@ def kc_user_info_2_local_user(kc_user: UserInfo) -> User:
 def sync_keycloak_realm_roles_org_memberships(
     organisation: Organisation, user: User, realm_roles: List[str]
 ) -> tuple[List[OrganisationMembership], List[OrganisationMembership]]:
+    # Only allow syncing roles that are valid local role keys (protect against
+    # long or unrelated Keycloak role names which may exceed DB field lengths).
+    valid_roles = {r[0] for r in ROLE_CHOICES}
+    filtered_roles = [r for r in realm_roles if r in valid_roles]
+
     memberships = [
         OrganisationMembership.objects.get_or_create(
             user=user, organisation=organisation, role=role
         )
-        for role in realm_roles
+        for role in filtered_roles
     ]
     new = [m for m, created in memberships if created]
     existing = [m for m, created in memberships if not created]

@@ -27,7 +27,7 @@ from osauth.keycloak import (
     KeycloakClient,
     KeycloakError,
 )
-from osauth.serializers import SignOutResponse, TokenResponseSerializer
+from osauth.serializers import SignOutResponseSerializer, TokenResponseSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def _get_org_helper(request: Request):
     return get_object_or_404(Organisation, uri_name=org_realm)
 
 
-class SignInView(APIView):
+class SignInViewAPIView(APIView):
     def get(self, request: Request):
         org_realm = request.GET.get("org")
         if not org_realm:
@@ -69,7 +69,7 @@ class SignInView(APIView):
         )
 
 
-class AuthCodeView(APIView):
+class AuthCodeAPIView(APIView):
     serializer_class = TokenResponseSerializer
 
     def get(self, request: Request):
@@ -78,9 +78,9 @@ class AuthCodeView(APIView):
         if not code:
             raise exceptions.APIException("Missing SSO authorization code")
 
-        # Fetch access- & refresh-token using the authroization code
+        # Fetch access- & refresh-token using the authorization code
         kc_client = KeycloakClient(
-            host=settings.KEYCLOAK_HOST,
+            host=settings.KEYCLOAK_INTERNAL_HOST,
             port=settings.KEYCLOAK_PORT,
             realm=org.uri_name,
             client_id=settings.KEYCLOAK_CLIENT_ID,
@@ -103,6 +103,23 @@ class AuthCodeView(APIView):
 
         # Get KC user
         keycloak_user_info = kc_client.user_info(keycloak_token.access_token)
+
+        # --- SAFEGUARD: Extract roles safely ---
+        current_user_roles = []
+        if keycloak_user_info.realm_access:
+            current_user_roles = keycloak_user_info.realm_access.roles
+
+        # Also check Access Token directly if UserInfo was empty (Double check)
+        # (Optional, but robust if your Mapper is inconsistent)
+        if not current_user_roles:
+            import jwt
+
+            decoded = jwt.decode(
+                keycloak_token.access_token, options={"verify_signature": False}
+            )
+            if "realm_access" in decoded and "roles" in decoded["realm_access"]:
+                current_user_roles = decoded["realm_access"]["roles"]
+
         kc_user_privilege_list = (
             parse_kc_sso_privilege_list(keycloak_user_info.sso_privilege_list)
             if keycloak_user_info.sso_privilege_list
@@ -121,8 +138,7 @@ class AuthCodeView(APIView):
         ]
 
         kc_user_has_access = any(
-            x in keycloak_user_info.realm_access.roles
-            for x in keycloak_realm_roles_org_memberships
+            x in current_user_roles for x in keycloak_realm_roles_org_memberships
         ) or any(
             x in kc_user_privilege_list for x in keycloak_realm_roles_org_memberships
         )
@@ -147,21 +163,31 @@ class AuthCodeView(APIView):
                 ),
             )
 
+        # ---------------------------------------------------------
         # Sync Keycloak roles OrganisationMemberships
-        new_org_memberships, existing_org_memberships = (
+        # ---------------------------------------------------------
+
+        # 1. Sync from SSO Privilege List (if it exists)
+        if kc_user_privilege_list:
             sync_keycloak_privilege_list_org_memberships(
                 org, django_user, kc_user_privilege_list
             )
-            if kc_user_privilege_list
-            else sync_keycloak_realm_roles_org_memberships(
+
+        # 2. Sync Realm Roles
+        # If the user has any relevant realm roles, we pass THEIR ROLES to the sync function.
+        # OLD BUGGY CODE: passed keycloak_realm_roles_org_memberships (the config list)
+        # NEW CODE: passes current_user_roles (the actual roles the user has)
+
+        user_has_realm_roles = any(
+            x in current_user_roles for x in keycloak_realm_roles_org_memberships
+        )
+
+        if user_has_realm_roles:
+            sync_keycloak_realm_roles_org_memberships(
                 org,
                 django_user,
-                [
-                    settings.OSAUTH_ORG_MEMBERSHIP_ORG_ADMIN,
-                    settings.OSAUTH_ORG_MEMBERSHIP_ORG_USER,
-                ],
+                current_user_roles,  # <--- CRITICAL FIX: Pass what the user HAS
             )
-        )
 
         # Store the keycloak session in the DB and redirect the client
         redirect_params = configure_keycloak_session(django_user, keycloak_token)
@@ -188,7 +214,7 @@ class SignOutAPIView(APIView):
             client_id=settings.KEYCLOAK_CLIENT_ID,
         )
 
-        serializer = SignOutResponse(
+        serializer = SignOutResponseSerializer(
             instance={
                 "redirect_url": kc_client.url_signout(
                     db_keycloak_session.id_token,

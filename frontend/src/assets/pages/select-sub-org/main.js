@@ -141,6 +141,12 @@ function showAddSuborgModal() {
 }
 
 async function createSuborg(orgId, suborgName) {
+  // Guard against creating reserved suborg names
+  if (String(suborgName).trim().toLowerCase() === "global_templates") {
+    showToast(gettext("The name 'global_templates' is reserved."), "Warning");
+    return null;
+  }
+
   try {
     const resp = await fetch(`${BASE_URL}/api/suborganisations/`, {
       method: "POST",
@@ -177,6 +183,20 @@ async function onSubmitAddSuborg() {
   const suborgName = document.getElementById("suborgNameInput").value.trim();
   if (!suborgName) {
     showToast(gettext("Please enter a suborg name."), "Warning");
+    return;
+  }
+  // Prevent creating reserved suborg name
+  if (String(suborgName).toLowerCase() === "global_templates") {
+    const input = document.getElementById("suborgNameInput");
+    input.classList.add("is-invalid");
+    let err = document.getElementById("suborgNameError");
+    if (!err) {
+      err = document.createElement("div");
+      err.id = "suborgNameError";
+      err.className = "invalid-feedback d-block";
+      input.parentElement.appendChild(err);
+    }
+    err.textContent = gettext("The name 'global_templates' is reserved and cannot be used.");
     return;
   }
   // Client-side duplicate-name validation within the same organisation
@@ -222,6 +242,12 @@ function showAddBranchModalFor(suborgId) {
 }
 
 async function createBranch(suborgId, branchName) {
+  // Guard against creating reserved branch names
+  if (String(branchName).trim().toLowerCase() === "global_templates") {
+    showToast(gettext("The name 'global_templates' is reserved."), "Warning");
+    return null;
+  }
+
   try {
     const resp = await fetch(
       `${BASE_URL}/api/branches/?suborg_id=${suborgId}`,
@@ -260,6 +286,20 @@ async function onSubmitAddBranch() {
   const branchName = document.getElementById("branchNameInput").value.trim();
   if (!branchName) {
     showToast(gettext("Please enter a branch name."), "Warning");
+    return;
+  }
+  // Prevent creating reserved branch name
+  if (String(branchName).toLowerCase() === "global_templates") {
+    const input = document.getElementById("branchNameInput");
+    input.classList.add("is-invalid");
+    let err = document.getElementById("branchNameError");
+    if (!err) {
+      err = document.createElement("div");
+      err.id = "branchNameError";
+      err.className = "invalid-feedback d-block";
+      input.parentElement.appendChild(err);
+    }
+    err.textContent = gettext("The name 'global_templates' is reserved and cannot be used.");
     return;
   }
   // Client-side duplicate branch validation within the same suborganisation
@@ -895,6 +935,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         };
       });
       document.getElementById("admin-buttons").appendChild(selectBtn);
+      // Do not render the Global suborganisation as a normal card/list item.
+      return;
     } else if (suborg.name === "global_templates") {
       const globalTemplatesBranch = suborg.branches?.find(
         (branch) => branch.name === "global_templates",
@@ -912,6 +954,8 @@ function renderSuborgsAndBranches(suborgList, isAnyTypeOfAdmin) {
         document.getElementById("admin-buttons").appendChild(
           globalTemplatesBtn,
         );
+        // Do not render the global_templates suborganisation as a normal card/list item.
+        return;
       }
     }
 

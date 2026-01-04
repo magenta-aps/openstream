@@ -367,6 +367,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "noreply@openstream.dk"
 ###############################################################################
 
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "auth.openstream.dk")
+KEYCLOAK_INTERNAL_HOST = os.environ.get("KEYCLOAK_INTERNAL_HOST", KEYCLOAK_HOST)
 KEYCLOAK_PORT = os.environ.get("KEYCLOAK_PORT", "")
 KEYCLOAK_ADMIN_USERNAME = os.environ.get("KEYCLOAK_ADMIN_USERNAME", "admin")
 KEYCLOAK_ADMIN_PASSWORD = os.environ.get(
