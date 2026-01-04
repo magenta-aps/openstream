@@ -256,11 +256,11 @@ class SlideshowSerializer(serializers.ModelSerializer):
             "mode",
             "branch",
             "created_by",
-            "previewWidth",
-            "previewHeight",
-            "isCustomDimensions",
+            "preview_width",
+            "preview_height",
+            "is_custom_dimensions",
             "slideshow_data",
-            "isLegacy",
+            "is_legacy",
             "aspect_ratio",  # read-only calculated property
         ]
         # If you want to prevent branch or created_by from changing:
@@ -1148,8 +1148,8 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "slideData",
-            "isLegacy",
+            "slide_data",
+            "is_legacy",
             "category",
             "tags",
             "organisation",
@@ -1195,12 +1195,12 @@ class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "slideData",
+            "slide_data",
             "thumbnail_url",
-            "previewWidth",
-            "previewHeight",
+            "preview_width",
+            "preview_height",
             "aspect_ratio",
-            "isLegacy",
+            "is_legacy",
             "created_at",
             "updated_at",
         ]
@@ -1245,7 +1245,7 @@ class GlobalSlideTemplateSerializer(serializers.ModelSerializer):
 class CustomColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomColor
-        fields = ["id", "name", "hexValue", "type", "position", "organisation"]
+        fields = ["id", "name", "hex_value", "type", "position", "organisation"]
         read_only_fields = [
             "id",
             "organisation",

@@ -246,7 +246,7 @@ async function fetchUnifiedTemplates() {
       const targetLegacyState = Boolean(store.legacyGridEnabled);
       const beforeLegacyFilter = unifiedTemplates.length;
       unifiedTemplates = unifiedTemplates.filter(
-        (template) => Boolean(template.isLegacy) === targetLegacyState,
+        (template) => Boolean(template.is_legacy) === targetLegacyState,
       );
       if (beforeLegacyFilter > 0 && unifiedTemplates.length === 0) {
         legacyFilterMessage = targetLegacyState
@@ -425,7 +425,7 @@ function loadUnifiedTemplatePreview(template) {
 
   // Load the slide content into the specific previewSlide div
   // Pass the unique ID selector as the target
-  loadSlide(template.slideData, "#template-slide-preview", true); // Force complete reload for preview
+  loadSlide(template.slide_data, "#template-slide-preview", true); // Force complete reload for preview
 
   // Scale the content based on the wrapper container
   scaleSlide(wrapper);
@@ -502,7 +502,7 @@ export function initAddSlide() {
         );
         return;
       }
-      const templateSlide = selectedUnifiedTemplate.slideData;
+      const templateSlide = selectedUnifiedTemplate.slide_data;
       const newSlide = JSON.parse(JSON.stringify(templateSlide));
       newSlide.id = store.slideIdCounter++;
 

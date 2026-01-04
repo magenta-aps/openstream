@@ -58,8 +58,8 @@ class SlideTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(GlobalSlideTemplate)
 class GlobalSlideTemplateAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "aspect_ratio", "isLegacy", "updated_at")
-    list_filter = ("aspect_ratio", "isLegacy")
+    list_display = ("id", "name", "aspect_ratio", "is_legacy", "updated_at")
+    list_filter = ("aspect_ratio", "is_legacy")
     search_fields = ("name",)
 
 
@@ -152,8 +152,8 @@ class SlideshowAdmin(admin.ModelAdmin):
         "mode",
         "branch",
         "created_by",
-        "previewWidth",
-        "previewHeight",
+        "preview_width",
+        "preview_height",
         "updated_at",
     )
     list_filter = ("branch", "category", "mode", "tags")
@@ -321,9 +321,9 @@ class DocumentAdmin(admin.ModelAdmin):
 
 @admin.register(CustomColor)
 class CustomColorAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "hexValue", "type", "organisation")
+    list_display = ("id", "name", "hex_value", "type", "organisation")
     list_filter = ("organisation", "type")
-    search_fields = ("name", "hexValue", "organisation__name")
+    search_fields = ("name", "hex_value", "organisation__name")
     ordering = ("organisation", "type", "name")
 
 

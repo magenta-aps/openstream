@@ -132,11 +132,11 @@ function renderColors() {
     const previewTd = document.createElement("td");
     const previewDiv = document.createElement("div");
     previewDiv.className = "color-preview";
-    previewDiv.style.backgroundColor = color.hexValue;
+    previewDiv.style.backgroundColor = color.hex_value;
     previewTd.appendChild(previewDiv);
 
     const hexTd = document.createElement("td");
-    hexTd.textContent = color.hexValue;
+    hexTd.textContent = color.hex_value;
 
     const typeTd = document.createElement("td");
     typeTd.textContent = color.type;
@@ -189,7 +189,7 @@ function openEditModal(color) {
   colorBeingEdited = color;
   modalEditIdInput.value = color.id;
   modalNameInput.value = color.name;
-  const hexValue = color.hexValue;
+  const hexValue = color.hex_value;
   modalHexInput.value = hexValue;
   modalColorPicker.value = hexValue;
   modalTypeSelect.value = color.type;
@@ -212,11 +212,11 @@ async function handleModalSave() {
 
   const payload = {
     name: modalNameInput.value,
-    hexValue: hexValue,
+    hex_value: hexValue,
     type: modalTypeSelect.value,
   };
 
-  if (!payload.name || !payload.hexValue || !payload.type) {
+  if (!payload.name || !payload.hex_value || !payload.type) {
     showToast(gettext("Please fill in all required fields"), "Error");
     return;
   }

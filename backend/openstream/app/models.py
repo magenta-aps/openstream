@@ -24,51 +24,12 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 logger = logging.getLogger(__name__)
-
-
-###############################################################################
-# Utility Functions
-###############################################################################
-
-
-def calculate_aspect_ratio(width, height):
-    """
-    Calculate aspect ratio from width and height and return as a standardized string.
-    Common aspect ratios are simplified to their standard format.
-    """
-    from math import gcd
-
-    if not width or not height or width <= 0 or height <= 0:
-        return "16:9"  # Default fallback
-
-    # Calculate GCD to simplify the ratio
-    common_divisor = gcd(int(width), int(height))
-    simplified_width = int(width) // common_divisor
-    simplified_height = int(height) // common_divisor
-
-    # Map common ratios to their standard representation
-    ratio_map = {
-        (16, 9): "16:9",
-        (4, 3): "4:3",
-        (21, 9): "21:9",
-        (9, 16): "9:16",
-        (3, 4): "3:4",
-        (9, 21): "9:21",
-        (64, 27): "21:9",  # 2.37:1 mapped to 21:9
-        (37, 20): "1.85:1",  # Common cinema ratio
-        (239, 100): "2.39:1",  # Common widescreen ratio
-        (185, 100): "1.85:1",
-        (1, 1): "1:1",  # Square
-    }
-
-    # Check if this matches a common ratio
-    ratio_key = (simplified_width, simplified_height)
-    if ratio_key in ratio_map:
-        return ratio_map[ratio_key]
-
-    # For uncommon ratios, return the simplified form
-    return f"{simplified_width}:{simplified_height}"
-
+from .utils import (
+    convert_pdf_to_png,
+    generate_content_hash,
+    calculate_aspect_ratio,
+    create_hashed_filename,
+)
 
 ###############################################################################
 # Organisations and Memberships
@@ -414,11 +375,13 @@ class Slideshow(models.Model):
         blank=True,
         related_name="slideshows_created",
     )
-    previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
-    previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
-    isCustomDimensions = models.BooleanField(default=True)
+    preview_width = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    preview_height = models.IntegerField(
+        validators=[MinValueValidator(1)], default=1080
+    )
+    is_custom_dimensions = models.BooleanField(default=True)
     slideshow_data = models.JSONField(default=dict, blank=True, null=True)
-    isLegacy = models.BooleanField(
+    is_legacy = models.BooleanField(
         default=False,
         help_text="Set to True for older manage_content that must stay on the fixed 200x200 grid",
     )
@@ -433,8 +396,8 @@ class Slideshow(models.Model):
 
     @property
     def aspect_ratio(self):
-        """Calculate and return the aspect ratio based on previewWidth and previewHeight."""
-        return calculate_aspect_ratio(self.previewWidth, self.previewHeight)
+        """Calculate and return the aspect ratio based on preview_width and preview_height."""
+        return calculate_aspect_ratio(self.preview_width, self.preview_height)
 
 
 ###############################################################################
@@ -960,118 +923,41 @@ class Document(models.Model):
         return ext
 
     def save(self, *args, **kwargs):
-        ext = self.clean()
+        # 1. Validation and Setup
+        ext = self.clean()  # Returns extension, raises ValidationError if invalid
         detected_type = self.VALID_EXTENSIONS[ext]
+        self.file_type = detected_type
 
-        # If this is an existing instance and the file attribute hasn't changed
-        # we should skip all file-processing and storage operations. This avoids
-        # unnecessary reads/writes to S3/MinIO which can mutate object ACLs.
+        # 2. Skip processing if this is an update and file hasn't changed
         if self.pk:
             try:
-                orig = type(self).objects.get(pk=self.pk)
-                # If both original and current refer to the same storage name,
-                # assume no file update was intended and just persist metadata.
-                if (
-                    getattr(orig, "file", None)
-                    and getattr(self, "file", None)
-                    and orig.file.name == self.file.name
-                ):
-                    # Preserve file_type if already present, else use detected
+                orig = Document.objects.get(pk=self.pk)
+                if orig.file == self.file:
+                    # Keep original type if exists, else update it
                     self.file_type = orig.file_type or detected_type
                     return super().save(*args, **kwargs)
-            except type(self).DoesNotExist:
-                # New object race — continue with normal save flow
-                pass
+            except Document.DoesNotExist:
+                pass  # Proceed as new object
 
-        # Helper to produce a filename suffixed with a short content hash
-        def _name_with_hash(filename, content_bytes):
-            base, extension = os.path.splitext(filename)
-            h = hashlib.sha256(content_bytes).hexdigest()[:12]
-            return f"{base}-{h}{extension}"
-
-        # If it's a PDF, convert before saving and use the converted image bytes for hashing
+        # 3. Handle PDF Conversion (Special Case)
+        # Note: This logic replaces the original PDF with the PNG thumbnail.
         if detected_type == self.FileType.PDF:
-            try:
-                # Read PDF bytes
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                pdf_bytes = self.file.read()
-            except Exception:
-                pdf_bytes = b""
-
-            # Convert first page to image
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            page = doc.load_page(0)
-            pix = page.get_pixmap()
-            img_bytes = BytesIO(pix.tobytes("png"))
-
-            # Create a PNG filename based on original name with hash
-            original_png_name = os.path.splitext(self.file.name)[0] + ".png"
-            new_name = _name_with_hash(original_png_name, img_bytes.getvalue())
-            img_bytes.seek(0)
-            self.file = InMemoryUploadedFile(
-                file=img_bytes,
-                field_name="file",
-                name=new_name,
-                content_type="image/png",
-                size=img_bytes.getbuffer().nbytes,
-                charset=None,
-            )
-
-        # If it's a video, just save it directly (no compression) but rename to include content hash
-        elif detected_type in [self.FileType.MP4, self.FileType.WEBM]:
-            try:
-                logger.info(f"Uploading video file directly: {self.file.name}")
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                try:
-                    content_bytes = self.file.read()
-                    try:
-                        self.file.seek(0)
-                    except Exception:
-                        pass
-                    if content_bytes:
-                        self.file.name = _name_with_hash(self.file.name, content_bytes)
-                except Exception:
-                    # If reading fails, proceed without renaming
-                    pass
-
-                detected_type = (
-                    self.FileType.MP4
-                    if detected_type == self.FileType.MP4
-                    else self.FileType.WEBM
-                )
-                logger.info(
-                    f"Video upload completed successfully for: {self.file.name}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"Video upload failed for {getattr(self.file,'name',None)}: {str(e)}"
-                )
+            png_file = convert_pdf_to_png(self.file)
+            if png_file:
+                self.file = png_file
+                # Calculate hash based on the NEW png content
+                content_hash = generate_content_hash(self.file)
+                self.file.name = create_hashed_filename(self.file.name, content_hash)
+            else:
+                # Fallback: keep original PDF if conversion fails
                 pass
 
-        # For other file types (images, etc.) ensure we suffix the filename with its content hash
+        # 4. Handle Video and Generic Files (Hashing only)
+        # We group MP4, WEBM, and 'Other' logic as they just need hashing
         else:
-            try:
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                content = self.file.read()
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                if content and getattr(self.file, "name", None):
-                    self.file.name = _name_with_hash(self.file.name, content)
-            except Exception:
-                pass
-
-        self.file_type = detected_type
+            content_hash = generate_content_hash(self.file)
+            if content_hash:
+                self.file.name = create_hashed_filename(self.file.name, content_hash)
 
         super().save(*args, **kwargs)
 
@@ -1090,7 +976,7 @@ class Document(models.Model):
 class CustomColor(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    hexValue = models.CharField(max_length=7)  # e.g., '#RRGGBB'
+    hex_value = models.CharField(max_length=7)  # e.g., '#RRGGBB'
     type = models.CharField(
         max_length=50,
         choices=[
@@ -1111,7 +997,7 @@ class CustomColor(models.Model):
         ordering = ["organisation", "position", "name"]
 
     def __str__(self):
-        return f"{self.organisation.name} - {self.type}: {self.name} ({self.hexValue})"
+        return f"{self.organisation.name} - {self.type}: {self.name} ({self.hex_value})"
 
     def save(self, *args, **kwargs):
         if self.position in (None, 0) and self.organisation_id:
@@ -1269,8 +1155,8 @@ class SlideTemplate(models.Model):
     )
 
     name = models.CharField(max_length=255)
-    slideData = models.JSONField(default=dict, blank=True, null=True)
-    isLegacy = models.BooleanField(
+    slide_data = models.JSONField(default=dict, blank=True, null=True)
+    is_legacy = models.BooleanField(
         default=False,
         help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
     )
@@ -1300,20 +1186,22 @@ class GlobalSlideTemplate(models.Model):
     """Org-less template managed centrally by the application team."""
 
     name = models.CharField(max_length=255)
-    slideData = models.JSONField(default=dict, blank=True, null=True)
+    slide_data = models.JSONField(default=dict, blank=True, null=True)
     thumbnail_url = models.TextField(
         blank=True,
         null=True,
         help_text="Base64 encoded data URL representing the template thumbnail",
     )
-    previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
-    previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
+    preview_width = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    preview_height = models.IntegerField(
+        validators=[MinValueValidator(1)], default=1080
+    )
     aspect_ratio = models.CharField(
         max_length=10,
         default="16:9",
         help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
     )
-    isLegacy = models.BooleanField(
+    is_legacy = models.BooleanField(
         default=False,
         help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
     )

@@ -3495,7 +3495,7 @@ class SlideTemplateAPIView(APIView):
 
         templates = SlideTemplate.objects.filter(
             organisation=org, suborganisation__isnull=True
-        ).order_by("slideData__id")
+        ).order_by("slide_data__id")
         serializer = SlideTemplateSerializer(templates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -3503,7 +3503,7 @@ class SlideTemplateAPIView(APIView):
         """
             Creates a new SlideTemplate.
         Expects ?organisation_id=... (id or name)
-            The rest of the JSON (name, slideData, category_id, tag_ids) is in the request body.
+            The rest of the JSON (name, slide_data, category_id, tag_ids) is in the request body.
         """
         org_identifier = request.query_params.get("organisation_id")
         if not org_identifier:
@@ -3752,19 +3752,19 @@ class SuborgTemplateAPIView(APIView):
             )
 
         # Create the new suborg template
-        # Note: slideData is copied as-is, including any preventSettingsChanges flags
+        # Note: slide_data is copied as-is, including any preventSettingsChanges flags
         # from the parent template. These will be enforced in the frontend so that
         # suborg admins cannot modify settings that were locked by the global template.
         new_template_name = request.data.get("name", f"{parent_template.name} (Copy)")
 
         data = {
             "name": new_template_name,
-            "slideData": parent_template.slideData,
+            "slide_data": parent_template.slide_data,
             "organisation_id": suborg.organisation.id,
             "suborganisation_id": suborg.id,
             "parent_template_id": parent_template.id,
             "aspect_ratio": parent_template.aspect_ratio,
-            "isLegacy": parent_template.isLegacy,
+            "is_legacy": parent_template.is_legacy,
         }
 
         if parent_template.category:
@@ -3804,7 +3804,7 @@ class SuborgTemplateAPIView(APIView):
         data.pop("organisation_id", None)
         data.pop("suborganisation_id", None)
         data.pop("parent_template_id", None)
-        data.pop("isLegacy", None)
+        data.pop("is_legacy", None)
 
         serializer = SlideTemplateSerializer(template, data=data, partial=True)
         if serializer.is_valid():

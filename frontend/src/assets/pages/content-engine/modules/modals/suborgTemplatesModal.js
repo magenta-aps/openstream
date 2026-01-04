@@ -205,7 +205,7 @@ function updateTemplateInfo(modal, template) {
     return;
   }
 
-  const gridModeLabel = template.isLegacy
+  const gridModeLabel = template.is_legacy
     ? gettext("Legacy grid (200×200)")
     : gettext("Per-pixel grid");
   const categoryLabel = template.category
@@ -276,9 +276,9 @@ function renderTemplatePreview(modal, template) {
   }
 
   const slideObject = {
-    ...template.slideData,
-    previewWidth: template.previewWidth || 1920,
-    previewHeight: template.previewHeight || 1080,
+    ...template.slide_data,
+    previewWidth: template.preview_width || 1920,
+    previewHeight: template.preview_height || 1080,
   };
 
   loadSlide(slideObject, "#suborg-template-preview", true);

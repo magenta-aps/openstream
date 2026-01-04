@@ -123,19 +123,19 @@ export async function populateStoreFromTemplates({
     store.templateLegacyFlags.clear();
 
     templates.forEach((template) => {
-      if (!template?.slideData) {
+      if (!template?.slide_data) {
         console.warn(
-          `Template ID ${template?.id} ('${template?.name}') is missing slideData. Skipping.`,
+          `Template ID ${template?.id} ('${template?.name}') is missing slide_data. Skipping.`,
         );
         return;
       }
 
       store.templateLegacyFlags.set(
         template.id,
-        Boolean(template.isLegacy),
+        Boolean(template.is_legacy),
       );
 
-      const slideObject = JSON.parse(JSON.stringify(template.slideData));
+      const slideObject = JSON.parse(JSON.stringify(template.slide_data));
       slideObject.templateId = template.id;
       slideObject.templateOriginalName = template.name;
       slideObject.name = template.name;
@@ -154,8 +154,8 @@ export async function populateStoreFromTemplates({
       slideObject.tagIds = templateTags.map((tag) => tag.id);
       slideObject.tagNames = templateTags.map((tag) => tag.name || "");
 
-      slideObject.previewWidth = template.previewWidth;
-      slideObject.previewHeight = template.previewHeight;
+      slideObject.preview_width = template.preview_width;
+      slideObject.preview_height = template.preview_height;
 
       if (!slideObject.duration) slideObject.duration = 5;
       if (!slideObject.elements) slideObject.elements = [];

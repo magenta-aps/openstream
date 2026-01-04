@@ -58,8 +58,8 @@ let sortBy = "name";
 let sortDir = "asc";
 
 function getAspectRatioInfo(slideshow) {
-  const width = slideshow.previewWidth || slideshow.preview_width || 0;
-  const height = slideshow.previewHeight || slideshow.preview_height || 0;
+  const width = slideshow.preview_width || 0;
+  const height = slideshow.preview_height || 0;
   const widthInt = parseInt(width, 10);
   const heightInt = parseInt(height, 10);
   if (widthInt > 0 && heightInt > 0) {
@@ -507,8 +507,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const bodyData = {
       name,
       mode,
-      previewWidth: selectedAspectRatio.width,
-      previewHeight: selectedAspectRatio.height,
+      preview_width: selectedAspectRatio.width,
+      preview_height: selectedAspectRatio.height,
     };
     if (category_id) {
       bodyData.category_id = category_id;
@@ -686,10 +686,10 @@ function applySearchFilterSort() {
         valB = b.category?.name?.toLowerCase() || "";
       } else if (sortBy === "aspect_ratio") {
         // We want a stable sort by numeric ratio (width/height) if available, otherwise fallback to string
-        const aW = a.previewWidth || a.preview_width || 0;
-        const aH = a.previewHeight || a.preview_height || 0;
-        const bW = b.previewWidth || b.preview_width || 0;
-        const bH = b.previewHeight || b.preview_height || 0;
+        const aW = a.preview_width || 0;
+        const aH = a.preview_height || 0;
+        const bW = b.preview_width || 0;
+        const bH = b.preview_height || 0;
         const aRatio = aW && aH ? aW / aH : 0;
         const bRatio = bW && bH ? bW / bH : 0;
         valA = String(aRatio).toLowerCase();
@@ -765,7 +765,7 @@ function renderSlideshowsTable(slideshows) {
     const row = slideshowsTableBody.insertRow();
 
     const nameCell = row.insertCell();
-    const legacyBadge = ss.isLegacy
+    const legacyBadge = ss.is_legacy
       ? `<span class='legacy-grid-badge badge bg-warning text-dark ms-2'>${gettext("Legacy grid")}</span>`
       : "";
     nameCell.innerHTML = `
@@ -855,7 +855,7 @@ async function duplicateSlideshow(id) {
 
     delete slideshowData.branch;
     delete slideshowData.created_by;
-    delete slideshowData.isLegacy;
+    delete slideshowData.is_legacy;
 
     await genericFetch(
       `${BASE_URL}/api/manage_content/?branch_id=${selectedBranchID}`,

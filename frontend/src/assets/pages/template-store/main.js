@@ -642,27 +642,27 @@ async function handleGetTemplate(template) {
 }
 
 function buildOrganisationTemplatePayload(template) {
-  const slideData = cloneSlideData(template.slideData);
+  const slideData = cloneSlideData(template.slide_data);
   if (!slideData) {
     return null;
   }
 
-  const previewWidth = template.previewWidth ?? slideData.previewWidth ?? null;
-  const previewHeight = template.previewHeight ?? slideData.previewHeight ?? null;
+  const previewWidth = template.preview_width ?? slideData.preview_width ?? null;
+  const previewHeight = template.preview_height ?? slideData.preview_height ?? null;
 
   if (previewWidth) {
-    slideData.previewWidth = previewWidth;
+    slideData.preview_width = previewWidth;
   }
   if (previewHeight) {
-    slideData.previewHeight = previewHeight;
+    slideData.preview_height = previewHeight;
   }
 
   return {
     name: template.name || gettext("Untitled template"),
-    slideData,
+    slide_data: slideData,
     aspect_ratio:
       template.aspect_ratio || deriveAspectRatioFromDimensions(previewWidth, previewHeight),
-    isLegacy: Boolean(template.isLegacy),
+    is_legacy: Boolean(template.is_legacy),
   };
 }
 
