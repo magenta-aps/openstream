@@ -470,7 +470,8 @@ class ScheduledContentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate(self, data):
-        from datetime import datetime, timedelta
+        from django.core.exceptions import ValidationError
+        from app.services import validate_scheduled_content
 
         # Validate that exactly one of slideshow or playlist is set.
         if self.instance:
@@ -508,101 +509,16 @@ class ScheduledContentSerializer(serializers.ModelSerializer):
             start_time = make_aware_if_needed(start_time)
             end_time = make_aware_if_needed(end_time)
 
-            # Rule 1: Check for any existing override content in the same slot.
-            # This prevents adding ANY content (override or not) if an override is already there.
-
-            # Check for overlapping scheduled content that is an override
-            existing_override_scheduled = ScheduledContent.objects.filter(
-                display_website_group=group,
-                start_time__lt=end_time,
-                end_time__gt=start_time,
-                combine_with_default=False,
-            )
-            if self.instance:
-                existing_override_scheduled = existing_override_scheduled.exclude(
-                    pk=self.instance.pk
+            try:
+                validate_scheduled_content(
+                    start_time,
+                    end_time,
+                    group,
+                    combine_with_default,
+                    instance_id=self.instance.pk if self.instance else None,
                 )
-
-            if existing_override_scheduled.exists():
-                conflict = existing_override_scheduled.first()
-                content_name = conflict.slideshow or conflict.playlist
-                raise serializers.ValidationError(
-                    f"Cannot schedule content as an override is already present: '{content_name}'."
-                )
-
-            # Check for overlapping recurring content that is an override
-            active_recurring_qs = RecurringScheduledContent.objects.filter(
-                display_website_group=group,
-                active_from__lte=end_time.date(),
-                combine_with_default=False,
-            ).filter(
-                Q(active_until__isnull=True) | Q(active_until__gte=start_time.date())
-            )
-
-            current_date = start_time.date()
-            while current_date <= end_time.date():
-                conflicts = active_recurring_qs.filter(weekday=current_date.weekday())
-                for recurring in conflicts:
-                    recurring_start = make_aware_if_needed(
-                        datetime.combine(current_date, recurring.start_time)
-                    )
-                    recurring_end = make_aware_if_needed(
-                        datetime.combine(current_date, recurring.end_time)
-                    )
-                    if recurring_start < end_time and recurring_end > start_time:
-                        content_name = recurring.slideshow or recurring.playlist
-                        raise serializers.ValidationError(
-                            f"Cannot schedule content as a recurring override is already present: '{content_name}'."
-                        )
-                current_date += timedelta(days=1)
-
-            # Rule 2: If the new content is an override, check it doesn't conflict with ANYTHING.
-            if not combine_with_default:
-                # Check for any overlapping scheduled content
-                all_overlapping_scheduled = ScheduledContent.objects.filter(
-                    display_website_group=group,
-                    start_time__lt=end_time,
-                    end_time__gt=start_time,
-                )
-                if self.instance:
-                    all_overlapping_scheduled = all_overlapping_scheduled.exclude(
-                        pk=self.instance.pk
-                    )
-
-                if all_overlapping_scheduled.exists():
-                    conflict = all_overlapping_scheduled.first()
-                    content_name = conflict.slideshow or conflict.playlist
-                    raise serializers.ValidationError(
-                        f"Cannot schedule an override as other content is already present: '{content_name}'."
-                    )
-
-                # Check for any overlapping recurring content
-                all_active_recurring_qs = RecurringScheduledContent.objects.filter(
-                    display_website_group=group,
-                    active_from__lte=end_time.date(),
-                ).filter(
-                    Q(active_until__isnull=True)
-                    | Q(active_until__gte=start_time.date())
-                )
-
-                current_date = start_time.date()
-                while current_date <= end_time.date():
-                    conflicts = all_active_recurring_qs.filter(
-                        weekday=current_date.weekday()
-                    )
-                    for recurring in conflicts:
-                        recurring_start = make_aware_if_needed(
-                            datetime.combine(current_date, recurring.start_time)
-                        )
-                        recurring_end = make_aware_if_needed(
-                            datetime.combine(current_date, recurring.end_time)
-                        )
-                        if recurring_start < end_time and recurring_end > start_time:
-                            content_name = recurring.slideshow or recurring.playlist
-                            raise serializers.ValidationError(
-                                f"Cannot schedule an override as other recurring content is already present: '{content_name}'."
-                            )
-                    current_date += timedelta(days=1)
+            except ValidationError as e:
+                raise serializers.ValidationError(e.message)
 
         return data
 
@@ -637,6 +553,9 @@ class RecurringScheduledContentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate(self, data):
+        from django.core.exceptions import ValidationError
+        from app.services import validate_recurring_content
+
         # Validate that exactly one of slideshow or playlist is set.
         if self.instance:
             slideshow = data.get("slideshow", self.instance.slideshow)
@@ -653,132 +572,42 @@ class RecurringScheduledContentSerializer(serializers.ModelSerializer):
             )
 
         # Additional validation for recurring content
-        weekday = data.get("weekday")
-        start_time = data.get("start_time")
-        end_time = data.get("end_time")
-        group = data.get("display_website_group")
-        active_from = data.get("active_from")
-        active_until = data.get("active_until")
-        combine_with_default = data.get("combine_with_default", True)
+        weekday = data.get("weekday", self.instance.weekday if self.instance else None)
+        start_time = data.get(
+            "start_time", self.instance.start_time if self.instance else None
+        )
+        end_time = data.get(
+            "end_time", self.instance.end_time if self.instance else None
+        )
+        group = data.get(
+            "display_website_group",
+            self.instance.display_website_group if self.instance else None,
+        )
+        active_from = data.get(
+            "active_from", self.instance.active_from if self.instance else None
+        )
+        active_until = data.get(
+            "active_until", self.instance.active_until if self.instance else None
+        )
+        combine_with_default = data.get(
+            "combine_with_default",
+            self.instance.combine_with_default if self.instance else True,
+        )
 
         if weekday is not None and start_time and end_time and group and active_from:
-            # Rule 1: Check for any existing override content in the same slot.
-            # This prevents adding ANY content (override or not) if an override is already there.
-
-            # Check for existing override recurring content
-            existing_override_recurring = (
-                RecurringScheduledContent.objects.filter(
-                    display_website_group=group,
-                    weekday=weekday,
-                    start_time__lt=end_time,
-                    end_time__gt=start_time,
-                    combine_with_default=False,
+            try:
+                validate_recurring_content(
+                    weekday,
+                    start_time,
+                    end_time,
+                    active_from,
+                    active_until,
+                    group,
+                    combine_with_default,
+                    instance_id=self.instance.pk if self.instance else None,
                 )
-                .filter(
-                    active_from__lte=(
-                        active_until
-                        or (datetime.now().date() + timedelta(days=365 * 5))
-                    )
-                )
-                .filter(Q(active_until__isnull=True) | Q(active_until__gte=active_from))
-            )
-            if self.instance:
-                existing_override_recurring = existing_override_recurring.exclude(
-                    pk=self.instance.pk
-                )
-
-            if existing_override_recurring.exists():
-                conflict = existing_override_recurring.first()
-                content_name = conflict.slideshow or conflict.playlist
-                raise serializers.ValidationError(
-                    f"Cannot schedule content as a recurring override is already present: '{content_name}'."
-                )
-
-            # Check for existing override scheduled content
-            # We need to check every day in the recurring event's range
-            current_date = active_from
-            end_date = active_until or (
-                current_date + timedelta(days=365 * 5)
-            )  # Check 5 years into future if no end date
-
-            while current_date <= end_date:
-                if current_date.weekday() == weekday:
-                    day_start = make_aware_if_needed(
-                        datetime.combine(current_date, start_time)
-                    )
-                    day_end = make_aware_if_needed(
-                        datetime.combine(current_date, end_time)
-                    )
-
-                    conflicts = ScheduledContent.objects.filter(
-                        display_website_group=group,
-                        start_time__lt=day_end,
-                        end_time__gt=day_start,
-                        combine_with_default=False,
-                    )
-                    if conflicts.exists():
-                        conflict = conflicts.first()
-                        content_name = conflict.slideshow or conflict.playlist
-                        raise serializers.ValidationError(
-                            f"Cannot schedule content as an override is already present: '{content_name}' on {current_date.strftime('%Y-%m-%d')}."
-                        )
-                current_date += timedelta(days=1)
-
-            # Rule 2: If the new content is an override, check it doesn't conflict with ANYTHING.
-            if not combine_with_default:
-                # Check for any overlapping recurring content
-                all_overlapping_recurring = (
-                    RecurringScheduledContent.objects.filter(
-                        display_website_group=group,
-                        weekday=weekday,
-                        start_time__lt=end_time,
-                        end_time__gt=start_time,
-                    )
-                    .filter(
-                        active_from__lte=(
-                            active_until
-                            or (datetime.now().date() + timedelta(days=365 * 5))
-                        )
-                    )
-                    .filter(
-                        Q(active_until__isnull=True) | Q(active_until__gte=active_from)
-                    )
-                )
-                if self.instance:
-                    all_overlapping_recurring = all_overlapping_recurring.exclude(
-                        pk=self.instance.pk
-                    )
-
-                if all_overlapping_recurring.exists():
-                    conflict = all_overlapping_recurring.first()
-                    content_name = conflict.slideshow or conflict.playlist
-                    raise serializers.ValidationError(
-                        f"Cannot schedule an override as other recurring content is already present: '{content_name}'."
-                    )
-
-                # Check for any overlapping scheduled content
-                current_date = active_from
-                while current_date <= end_date:
-                    if current_date.weekday() == weekday:
-                        day_start = make_aware_if_needed(
-                            datetime.combine(current_date, start_time)
-                        )
-                        day_end = make_aware_if_needed(
-                            datetime.combine(current_date, end_time)
-                        )
-
-                        conflicts = ScheduledContent.objects.filter(
-                            display_website_group=group,
-                            start_time__lt=day_end,
-                            end_time__gt=day_start,
-                        )
-                        if conflicts.exists():
-                            conflict = conflicts.first()
-                            content_name = conflict.slideshow or conflict.playlist
-                            raise serializers.ValidationError(
-                                f"Cannot schedule an override as other content is already present: '{content_name}' on {current_date.strftime('%Y-%m-%d')}."
-                            )
-                    current_date += timedelta(days=1)
+            except ValidationError as e:
+                raise serializers.ValidationError(e.message)
 
         return data
 

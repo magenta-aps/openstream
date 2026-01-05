@@ -741,6 +741,8 @@ class ScheduledContent(ContentValidationMixin, models.Model):
     )
 
     def clean(self):
+        from .services import validate_scheduled_content
+
         # 1. Run Shared Validation (Content Source & Aspect Ratios)
         self.clean_content_and_ratios()
 
@@ -750,22 +752,13 @@ class ScheduledContent(ContentValidationMixin, models.Model):
                 "Start and End times are required when scheduling content."
             )
 
-        # Check for overlapping overrides
-        overlapping_override_qs = (
-            ScheduledContent.objects.filter(
-                display_website_group=self.display_website_group,
-                combine_with_default=False,
-            )
-            .exclude(pk=self.pk)
-            .filter(
-                start_time__lt=self.end_time,
-                end_time__gt=self.start_time,
-            )
+        validate_scheduled_content(
+            self.start_time,
+            self.end_time,
+            self.display_website_group,
+            self.combine_with_default,
+            instance_id=self.pk,
         )
-        if overlapping_override_qs.exists():
-            raise ValidationError(
-                "Can't schedule overrides and combine on the same date."
-            )
 
         super().clean()
 
@@ -828,6 +821,8 @@ class RecurringScheduledContent(ContentValidationMixin, models.Model):
     )
 
     def clean(self):
+        from .services import validate_recurring_content
+
         # 1. Run Shared Validation (Content Source & Aspect Ratios)
         self.clean_content_and_ratios()
 
@@ -837,6 +832,17 @@ class RecurringScheduledContent(ContentValidationMixin, models.Model):
 
         if self.active_until and self.active_from > self.active_until:
             raise ValidationError("Active from date must be before active until date.")
+
+        validate_recurring_content(
+            self.weekday,
+            self.start_time,
+            self.end_time,
+            self.active_from,
+            self.active_until,
+            self.display_website_group,
+            self.combine_with_default,
+            instance_id=self.pk,
+        )
 
         super().clean()
 
