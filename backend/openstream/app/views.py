@@ -1407,14 +1407,14 @@ class GetActiveContentAPIView(APIView):
         if not dwg:
             return Response({"detail": "No display_website_group found."}, status=404)
 
-        now = datetime.now()
-        current_weekday = now.weekday()
-        current_time = now.time()
-        current_date = now.date()
+        tz_now = timezone.now()
+        current_weekday = tz_now.weekday()
+        current_time = tz_now.time()
+        current_date = tz_now.date()
 
         # --- Query all scheduled content records active at this time ---
         scheduled_qs = ScheduledContent.objects.filter(
-            display_website_group=dwg, start_time__lte=now, end_time__gte=now
+            display_website_group=dwg, start_time__lte=tz_now, end_time__gte=tz_now
         ).order_by("start_time")
 
         # --- Query recurring scheduled content active at this time ---
@@ -1555,10 +1555,10 @@ class BranchActiveContentAPIView(APIView):
                 return Response({"detail": "Not allowed."}, status=403)
 
         # Aggregate active items across all display website groups for this branch
-        now = datetime.now()
-        current_weekday = now.weekday()
-        current_time = now.time()
-        current_date = now.date()
+        tz_now = timezone.now()
+        current_weekday = tz_now.weekday()
+        current_time = tz_now.time()
+        current_date = tz_now.date()
 
         items = []
         grouped = []  # new: list of { display_website_group: name, items: [...] }
@@ -1567,7 +1567,9 @@ class BranchActiveContentAPIView(APIView):
         for dwg in groups:
             # scheduled
             scheduled_qs = ScheduledContent.objects.filter(
-                display_website_group=dwg, start_time__lte=now, end_time__gte=now
+                display_website_group=dwg,
+                start_time__lte=tz_now,
+                end_time__gte=tz_now,
             ).order_by("start_time")
             # recurring
             recurring_qs = (
@@ -2021,9 +2023,7 @@ class DocumentAPIView(APIView):
 
         if category:
             try:
-                category = Category.objects.get(
-                    id=category, organisation=organisation
-                )
+                category = Category.objects.get(id=category, organisation=organisation)
             except Category.DoesNotExist:
                 return Response(
                     {"error": "Category not found in your organisation."},
