@@ -2020,7 +2020,15 @@ class DocumentAPIView(APIView):
         tags = Tag.objects.filter(id__in=tag_ids, organisation=organisation)
 
         if category:
-            category = Category.objects.get(id=category)
+            try:
+                category = Category.objects.get(
+                    id=category, organisation=organisation
+                )
+            except Category.DoesNotExist:
+                return Response(
+                    {"error": "Category not found in your organisation."},
+                    status=400,
+                )
 
         if not title or not uploaded_file:
             return Response({"error": "Title and file are required"}, status=400)
@@ -2063,18 +2071,22 @@ class DocumentAPIView(APIView):
             branch = get_branch_from_request(request)
         except ValueError as e:
             return Response({"detail": str(e)}, status=403)
-        doc = get_object_or_404(Document, id=document_id)
-        if branch != doc.branch:
-            return Response(
-                {"error": "You can only edit your own media files"}, status=401
-            )
+        doc = get_object_or_404(Document, id=document_id, branch=branch)
 
         title = request.data.get("title")
         tag_ids = request.data.getlist("tags[]") or []
         category = request.data.get("category", None)
 
         if category:
-            category = Category.objects.get(id=category)
+            try:
+                category = Category.objects.get(
+                    id=category, organisation=branch.suborganisation.organisation
+                )
+            except Category.DoesNotExist:
+                return Response(
+                    {"error": "Category not found in your organisation."},
+                    status=400,
+                )
 
         if not title:
             return Response({"error": "Title is required"}, status=400)
@@ -2110,17 +2122,9 @@ class DocumentAPIView(APIView):
             branch = get_branch_from_request(request)
         except ValueError as e:
             return Response({"detail": str(e)}, status=403)
-        doc = Document.objects.get(id=document_id)
-        if not doc:
-            return Response({"error": "Document not found"}, status=404)
-        # Users can only delete their own media files
-        if doc.branch == branch:
-            doc.delete()
-            return Response({"message": "Document deleted"}, status=204)
-        else:
-            return Response(
-                {"error": "You can only delete your own media files"}, status=401
-            )
+        doc = get_object_or_404(Document, id=document_id, branch=branch)
+        doc.delete()
+        return Response({"message": "Document deleted"}, status=204)
 
 
 class DocumentFileView(APIView):
@@ -4141,14 +4145,13 @@ class CustomFontAPIView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-            # If uploaded_file not provided, expect client to send font_url in body
-            serializer = CustomFontSerializer(
-                data=data, context={"organisation": organisation}
-            )
-            if serializer.is_valid():
-                # Assign the font to the specified organization
-                serializer.save(organisation=organisation)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Build serializer (covers both uploaded and URL-only flows)
+        serializer = CustomFontSerializer(
+            data=data, context={"organisation": organisation}
+        )
+        if serializer.is_valid():
+            serializer.save(organisation=organisation)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         # If serializer invalid and we saved a file, attempt to clean up the saved file
         if uploaded_file and saved_path:
