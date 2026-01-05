@@ -5,27 +5,18 @@ from django.utils import timezone
 from django.utils.text import slugify
 import logging
 import secrets
-import string
-import time
 import json
-import requests
 import dateutil.parser
-import unicodedata
-from zoneinfo import ZoneInfo
-import pytz
-import pandas as pd
-import re
-from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from django.core.cache import cache
 import copy
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError, FieldError
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.core.signing import SignatureExpired, BadSignature, TimestampSigner
-from django.db.models import Q, Max
+from django.db.models import Q
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.http import FileResponse, Http404
@@ -66,7 +57,6 @@ from app.models import (
 from app.serializers import (
     CustomTokenObtainPairSerializer,
     OrganisationSerializer,
-    OrganisationAPIAccessSerializer,
     OrganisationMembershipSerializer,
     SubOrganisationSerializer,
     BranchSerializer,
@@ -107,17 +97,20 @@ from app.permissions import (
     get_branch_from_request,
     user_can_access_branch,
     user_is_super_admin,
-    user_is_org_admin,
-    user_is_org_admin_or_super_admin,
-    get_org_from_user,
     user_is_admin_in_org,
     check_api_access,
     get_organisation_from_identifier,
+    user_belongs_to_organisation,
+    get_org_from_user,
+    get_branch_and_authenticate,
+    handle_branch_request,
+    CanAccessBranch,
+    HasAPIKeyOrIsAuthenticated,
+    HasBranchAPIKeyOrCanAccessBranch,
+    CanManageBranchAPIKey,
 )
 from app.utils import (
-    CacheHandler,
     _normalize_text,
-    update_if_minutes_elapsed,
 )
 from app.services import (
     DDB_EVENT_API_URLS,
@@ -125,9 +118,6 @@ from app.services import (
     fetch_cached_ddb_events,
     get_cached_ddb_categories,
     fetch_speedadmin_data,
-    fetch_winkas_bookings,
-    fetch_winkas_resources,
-    refresh_winkas_token,
     winkas_cache,
     fetch_kmd_data,
     kmd_location_names,
@@ -206,15 +196,9 @@ class SubOrganisationListCreateAPIView(APIView):
             return Response(serializer.errors, status=400)
 
         org_obj = serializer.validated_data["organisation"]
-        org_id = org_obj.id
 
-        is_authorized = (
-            user_is_super_admin(request.user)
-            or OrganisationMembership.objects.filter(
-                user=request.user, organisation_id=org_id, role="org_admin"
-            ).exists()
-        )
-        if not is_authorized:
+        # Check permissions using helper function
+        if not user_is_admin_in_org(request.user, org_obj):
             return Response(
                 {
                     "error": "You must be org_admin for this organisation or super_admin."
@@ -294,16 +278,12 @@ class SubOrganisationNameAPIView(APIView):
     def get(self, request, pk):
         suborg = get_object_or_404(SubOrganisation, pk=pk)
 
+        # Check if user can access this suborg
         if user_is_super_admin(request.user):
             return Response({"name": suborg.name}, status=200)
 
         if OrganisationMembership.objects.filter(
-            user=request.user, organisation=suborg.organisation, role="org_admin"
-        ).exists():
-            return Response({"name": suborg.name}, status=200)
-
-        if OrganisationMembership.objects.filter(
-            user=request.user, suborganisation=suborg
+            user=request.user, organisation=suborg.organisation
         ).exists():
             return Response({"name": suborg.name}, status=200)
 
@@ -311,14 +291,11 @@ class SubOrganisationNameAPIView(APIView):
 
 
 class BranchNameAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanAccessBranch]
 
     def get(self, request, pk):
         branch = get_object_or_404(Branch, pk=pk)
-
-        if not user_can_access_branch(request.user, branch):
-            return Response({"detail": "Not allowed."}, status=403)
-
+        # Permission class has already validated access
         return Response({"name": branch.name}, status=200)
 
 
@@ -457,16 +434,13 @@ class BranchDetailAPIView(APIView):
 class SlideshowCRUDView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @handle_branch_request
+    def get(self, request, branch):
         """
         Retrieve 1 or more manage_content for a given branch_id.
         Use ?id=<slideshow_id> to fetch a single slideshow.
         Set ?includeSlideshowData=false to exclude the JSON data.
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
 
         slideshow_id = request.query_params.get("id")
         include_data = (
@@ -484,11 +458,8 @@ class SlideshowCRUDView(APIView):
             ser = SlideshowSerializer(slideshows, many=True, context=context)
             return Response(ser.data)
 
-    def post(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
+    @handle_branch_request
+    def post(self, request, branch):
         tags = request.data.get("tags")
         if tags:
             request.data["tag_ids"] = [
@@ -500,12 +471,8 @@ class SlideshowCRUDView(APIView):
             return Response(SlideshowSerializer(slideshow).data, status=201)
         return Response(serializer.errors, status=400)
 
-    def patch(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def patch(self, request, branch, pk):
         slideshow = get_object_or_404(Slideshow, pk=pk, branch=branch)
         serializer = SlideshowSerializer(slideshow, data=request.data, partial=True)
         if serializer.is_valid():
@@ -513,19 +480,15 @@ class SlideshowCRUDView(APIView):
             return Response(SlideshowSerializer(updated).data)
         return Response(serializer.errors, status=400)
 
-    def delete(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def delete(self, request, branch, pk):
         slideshow = get_object_or_404(Slideshow, pk=pk, branch=branch)
         slideshow.delete()
         return Response(status=204)
 
 
 class WayfindingCRUDView(APIView):
-    permission_classes = []  # We handle auth manually
+    permission_classes = [HasBranchAPIKeyOrCanAccessBranch]
 
     def get(self, request, pk=None):
         """
@@ -541,21 +504,9 @@ class WayfindingCRUDView(APIView):
             request.query_params.get("includeWayfindingData", "true").lower() == "true"
         )
 
-        api_key_value = request.headers.get("X-API-KEY")
-
-        if api_key_value:
-            key_obj = SlideshowPlayerAPIKey.objects.filter(
-                key=api_key_value, is_active=True
-            ).first()
-            if not key_obj:
-                return Response({"detail": "Invalid or inactive API key."}, status=403)
-            if not key_obj.branch:
-                return Response(
-                    {"detail": "API key must be bound to a branch."},
-                    status=403,
-                )
-
-            branch = key_obj.branch
+        # Get branch - permission class has already validated access
+        if hasattr(request, "api_key_obj"):
+            branch = request.api_key_obj.branch
             requested_branch_id = request.query_params.get("branch_id")
             if requested_branch_id and str(branch.id) != str(requested_branch_id):
                 return Response(
@@ -563,9 +514,6 @@ class WayfindingCRUDView(APIView):
                     status=403,
                 )
         else:
-            if not request.user or not request.user.is_authenticated:
-                return Response({"detail": "Authentication required."}, status=401)
-
             try:
                 branch = get_branch_from_request(request)
             except ValueError as e:
@@ -582,14 +530,10 @@ class WayfindingCRUDView(APIView):
             ser = WayfindingSerializer(wayfinding_objects, many=True, context=context)
             return Response(ser.data)
 
-    def post(self, request):
+    @handle_branch_request
+    def post(self, request, branch):
         if not request.user or not request.user.is_authenticated:
             return Response({"detail": "Authentication required."}, status=401)
-
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
 
         serializer = WayfindingSerializer(data=request.data)
         if serializer.is_valid():
@@ -597,14 +541,10 @@ class WayfindingCRUDView(APIView):
             return Response(WayfindingSerializer(wayfinding).data, status=201)
         return Response(serializer.errors, status=400)
 
-    def patch(self, request, pk):
+    @handle_branch_request
+    def patch(self, request, branch, pk):
         if not request.user or not request.user.is_authenticated:
             return Response({"detail": "Authentication required."}, status=401)
-
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
 
         wayfinding = get_object_or_404(Wayfinding, pk=pk, branch=branch)
         serializer = WayfindingSerializer(wayfinding, data=request.data, partial=True)
@@ -614,8 +554,11 @@ class WayfindingCRUDView(APIView):
         return Response(serializer.errors, status=400)
 
     def delete(self, request, pk):
-        if not request.user or not request.user.is_authenticated:
-            return Response({"detail": "Authentication required."}, status=401)
+        # Only authenticated users (not API keys) can delete
+        if hasattr(request, "api_key_obj"):
+            return Response(
+                {"detail": "API keys cannot delete wayfinding."}, status=403
+            )
 
         try:
             branch = get_branch_from_request(request)
@@ -630,11 +573,8 @@ class WayfindingCRUDView(APIView):
 class SlideshowPlaylistAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
+    @handle_branch_request
+    def get(self, request, branch):
 
         playlist_id = request.query_params.get("id")
         include_slides = (
@@ -651,24 +591,16 @@ class SlideshowPlaylistAPIView(APIView):
             ser = SlideshowPlaylistSerializer(playlists, many=True, context=context)
             return Response(ser.data)
 
-    def post(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def post(self, request, branch):
         serializer = SlideshowPlaylistSerializer(data=request.data)
         if serializer.is_valid():
             sp = serializer.save(branch=branch, created_by=request.user)
             return Response(SlideshowPlaylistSerializer(sp).data, status=201)
         return Response(serializer.errors, status=400)
 
-    def put(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def put(self, request, branch, pk):
         sp = get_object_or_404(SlideshowPlaylist, pk=pk, branch=branch)
         serializer = SlideshowPlaylistSerializer(sp, data=request.data)
         if serializer.is_valid():
@@ -676,12 +608,8 @@ class SlideshowPlaylistAPIView(APIView):
             return Response(SlideshowPlaylistSerializer(updated).data)
         return Response(serializer.errors, status=400)
 
-    def delete(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def delete(self, request, branch, pk):
         sp = get_object_or_404(SlideshowPlaylist, pk=pk, branch=branch)
         sp.delete()
         return Response(status=204)
@@ -942,11 +870,8 @@ class LatestEditedPlaylistsAPIView(APIView):
 class DisplayWebsiteAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
+    @handle_branch_request
+    def get(self, request, branch, pk=None):
 
         if pk:
             dw = get_object_or_404(DisplayWebsite, pk=pk, branch=branch)
@@ -957,24 +882,16 @@ class DisplayWebsiteAPIView(APIView):
             ser = DisplayWebsiteSerializer(websites, many=True)
             return Response(ser.data)
 
-    def post(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def post(self, request, branch):
         ser = DisplayWebsiteSerializer(data=request.data)
         if ser.is_valid():
             dw = ser.save(branch=branch)
             return Response(DisplayWebsiteSerializer(dw).data, status=201)
         return Response(ser.errors, status=400)
 
-    def patch(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def patch(self, request, branch, pk):
         dw = get_object_or_404(DisplayWebsite, pk=pk, branch=branch)
         ser = DisplayWebsiteSerializer(dw, data=request.data, partial=True)
         if ser.is_valid():
@@ -982,12 +899,8 @@ class DisplayWebsiteAPIView(APIView):
             return Response(DisplayWebsiteSerializer(updated).data)
         return Response(ser.errors, status=400)
 
-    def delete(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def delete(self, request, branch, pk):
         dw = get_object_or_404(DisplayWebsite, pk=pk, branch=branch)
         dw.delete()
         return Response(status=204)
@@ -996,11 +909,8 @@ class DisplayWebsiteAPIView(APIView):
 class DisplayWebsiteGroupAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
+    @handle_branch_request
+    def get(self, request, branch, pk=None):
 
         if pk:
             dwg = get_object_or_404(DisplayWebsiteGroup, pk=pk, branch=branch)
@@ -1011,24 +921,16 @@ class DisplayWebsiteGroupAPIView(APIView):
             ser = DisplayWebsiteGroupSerializer(groups, many=True)
             return Response(ser.data)
 
-    def post(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def post(self, request, branch):
         ser = DisplayWebsiteGroupSerializer(data=request.data)
         if ser.is_valid():
             dwg = ser.save(branch=branch)
             return Response(DisplayWebsiteGroupSerializer(dwg).data, status=201)
         return Response(ser.errors, status=400)
 
-    def patch(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def patch(self, request, branch, pk):
         dwg = get_object_or_404(DisplayWebsiteGroup, pk=pk, branch=branch)
         ser = DisplayWebsiteGroupSerializer(dwg, data=request.data, partial=True)
         if ser.is_valid():
@@ -1036,12 +938,8 @@ class DisplayWebsiteGroupAPIView(APIView):
             return Response(DisplayWebsiteGroupSerializer(updated).data)
         return Response(ser.errors, status=400)
 
-    def delete(self, request, pk):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def delete(self, request, branch, pk):
         dwg = get_object_or_404(DisplayWebsiteGroup, pk=pk, branch=branch)
         dwg.delete()
         return Response(status=204)
@@ -1213,7 +1111,7 @@ class RecurringScheduledContentAPIView(APIView):
 
 
 class BranchAPIKeyView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanManageBranchAPIKey]
 
     def get(self, request):
         try:
@@ -1221,25 +1119,7 @@ class BranchAPIKeyView(APIView):
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
-        # Check that the user is either an org admin, suborg admin for this branch, or super_admin
-        is_super_admin = user_is_super_admin(request.user)
-
-        is_org_admin = OrganisationMembership.objects.filter(
-            user=request.user,
-            organisation=branch.suborganisation.organisation,
-            role="org_admin",
-        ).exists()
-
-        is_suborg_admin = OrganisationMembership.objects.filter(
-            user=request.user,
-            suborganisation=branch.suborganisation,
-            role="suborg_admin",
-        ).exists()
-
-        if not (is_super_admin or is_org_admin or is_suborg_admin):
-            return Response(
-                {"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN
-            )
+        # Permission already checked by CanManageBranchAPIKey
 
         # Access the API key directly via the branch's one-to-one relation
         try:
@@ -1261,7 +1141,7 @@ class BranchAPIKeyView(APIView):
 
 
 class GetActiveContentAPIView(APIView):
-    permission_classes = []  # We handle both user & API-key auth ourselves
+    permission_classes = [HasAPIKeyOrIsAuthenticated]
 
     def wrap_slideshow_as_playlist_item(self, slideshow_data, position=0):
         """
@@ -1311,28 +1191,21 @@ class GetActiveContentAPIView(APIView):
 
         dw = get_object_or_404(DisplayWebsite, id=display_website_id)
 
-        # 1) Check for API key auth if provided.
-        api_key_value = request.headers.get("X-API-KEY")
-        if api_key_value:
-            key_obj = SlideshowPlayerAPIKey.objects.filter(
-                key=api_key_value, is_active=True
-            ).first()
-            if not key_obj:
-                return Response({"detail": "Invalid or inactive API key."}, status=403)
-            # Reject organisation-scoped keys to prevent cross-branch reads; require branch-bound keys here.
-            if not key_obj.branch:
+        # Permission class has already validated authentication
+        # Now validate branch access
+        if hasattr(request, "api_key_obj"):
+            # For API key auth, verify branch-bound key matches the display website's branch
+            if not request.api_key_obj.branch:
                 return Response(
                     {"detail": "API key must be bound to a branch."},
                     status=403,
                 )
-            # If branch-limited, verify branch match.
-            if key_obj.branch and key_obj.branch != dw.branch:
+            if request.api_key_obj.branch != dw.branch:
                 return Response(
                     {"detail": "API key not valid for this branch."}, status=403
                 )
         else:
-            if not request.user or not request.user.is_authenticated:
-                return Response({"detail": "Authentication required."}, status=401)
+            # For user auth, check branch access
             if not user_can_access_branch(request.user, dw.branch):
                 return Response({"detail": "Not allowed."}, status=403)
 
@@ -1457,35 +1330,9 @@ class BranchActiveContentAPIView(APIView):
         return []
 
     def get(self, request):
-        branch_id = request.query_params.get("branch_id")
-        if not branch_id:
-            return Response({"detail": "branch_id is required."}, status=400)
-
-        branch = get_object_or_404(Branch, id=branch_id)
-
-        # API key auth if provided
-        api_key_value = request.headers.get("X-API-KEY")
-        if api_key_value:
-            key_obj = SlideshowPlayerAPIKey.objects.filter(
-                key=api_key_value, is_active=True
-            ).first()
-            if not key_obj:
-                return Response({"detail": "Invalid or inactive API key."}, status=403)
-            if not key_obj.branch:
-                return Response(
-                    {"detail": "API key must be bound to a branch."},
-                    status=403,
-                )
-            if key_obj.branch and key_obj.branch != branch:
-                return Response(
-                    {"detail": "API key not valid for this branch."}, status=403
-                )
-        else:
-            # user auth
-            if not request.user or not request.user.is_authenticated:
-                return Response({"detail": "Authentication required."}, status=401)
-            if not user_can_access_branch(request.user, branch):
-                return Response({"detail": "Not allowed."}, status=403)
+        branch, error = get_branch_and_authenticate(request, "branch_id")
+        if error:
+            return error
 
         tz_now = timezone.now()
         current_weekday = tz_now.weekday()
@@ -1670,35 +1517,9 @@ class BranchUpcomingContentAPIView(APIView):
         return (candidate_start_dt, candidate_end_dt)
 
     def get(self, request):
-        branch_id = request.query_params.get("branch_id")
-        if not branch_id:
-            return Response({"detail": "branch_id is required."}, status=400)
-
-        branch = get_object_or_404(Branch, id=branch_id)
-
-        # API key auth if provided
-        api_key_value = request.headers.get("X-API-KEY")
-        if api_key_value:
-            key_obj = SlideshowPlayerAPIKey.objects.filter(
-                key=api_key_value, is_active=True
-            ).first()
-            if not key_obj:
-                return Response({"detail": "Invalid or inactive API key."}, status=403)
-            if not key_obj.branch:
-                return Response(
-                    {"detail": "API key must be bound to a branch."},
-                    status=403,
-                )
-            if key_obj.branch and key_obj.branch != branch:
-                return Response(
-                    {"detail": "API key not valid for this branch."}, status=403
-                )
-        else:
-            # user auth
-            if not request.user or not request.user.is_authenticated:
-                return Response({"detail": "Authentication required."}, status=401)
-            if not user_can_access_branch(request.user, branch):
-                return Response({"detail": "Not allowed."}, status=403)
+        branch, error = get_branch_and_authenticate(request, "branch_id")
+        if error:
+            return error
 
         now_dt = timezone.now()
 
@@ -1901,12 +1722,9 @@ class DocumentListView(APIView):
 class DocumentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, document_id):
+    @handle_branch_request
+    def get(self, request, branch, document_id):
         """Return metadata for a single document that belongs to the caller's organisation."""
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
 
         organisation = branch.suborganisation.organisation
         doc = get_object_or_404(
@@ -1920,16 +1738,13 @@ class DocumentAPIView(APIView):
         )
         return Response(serializer.data, status=200)
 
-    def post(self, request):
+    @handle_branch_request
+    def post(self, request, branch):
         """
         Upload a new document to a branch.
         Expects 'title' and 'file' in request, plus branch_id in data or query.
         Category and tag_names are optional
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
 
         title = request.data.get("title")
         uploaded_file = request.FILES.get("file")
@@ -2441,15 +2256,64 @@ class MembershipAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Get memberships for a specific user.
+        Requires ?user=<user_id> parameter.
+
+        Authorization:
+        - Super admins can query any user's memberships
+        - Org admins can query memberships for users in their organizations
+        - Regular users can only query their own memberships
+        """
         user_id = request.query_params.get("user")
-        if user_id:
-            memberships = OrganisationMembership.objects.filter(user_id=user_id)
-            ser = UserMembershipDetailSerializer(memberships, many=True)
-            return Response(ser.data, status=200)
+        if not user_id:
+            return Response(
+                {"detail": "user parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Convert user_id to int for comparison
+        try:
+            target_user_id = int(user_id)
+        except ValueError:
+            return Response(
+                {"detail": "Invalid user_id format."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check authorization
+        if user_is_super_admin(request.user):
+            # Super admins can query any user's memberships
+            memberships = OrganisationMembership.objects.filter(user_id=target_user_id)
+        elif request.user.id == target_user_id:
+            # Users can always query their own memberships
+            memberships = OrganisationMembership.objects.filter(user_id=target_user_id)
         else:
-            all_mships = OrganisationMembership.objects.all()
-            ser = UserMembershipDetailSerializer(all_mships, many=True)
-            return Response(ser.data, status=200)
+            # Check if requesting user is org_admin in any of the target user's organizations
+            target_user_org_ids = OrganisationMembership.objects.filter(
+                user_id=target_user_id
+            ).values_list("organisation_id", flat=True)
+
+            requesting_user_admin_org_ids = OrganisationMembership.objects.filter(
+                user=request.user, role="org_admin"
+            ).values_list("organisation_id", flat=True)
+
+            # Check if there's any overlap
+            common_orgs = set(target_user_org_ids) & set(requesting_user_admin_org_ids)
+
+            if not common_orgs:
+                return Response(
+                    {"detail": "Not authorized to view this user's memberships."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Only return memberships in organizations where the requesting user is org_admin
+            memberships = OrganisationMembership.objects.filter(
+                user_id=target_user_id, organisation_id__in=common_orgs
+            )
+
+        ser = UserMembershipDetailSerializer(memberships, many=True)
+        return Response(ser.data, status=200)
 
     def post(self, request):
         data = request.data.copy()
