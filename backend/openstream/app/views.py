@@ -6,8 +6,9 @@ from django.utils.text import slugify
 import logging
 import secrets
 import json
+import os
 import dateutil.parser
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse, urljoin
 from django.core.cache import cache
 import copy
 from django.contrib.auth import update_session_auth_hash
@@ -16,6 +17,8 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.core.signing import SignatureExpired, BadSignature, TimestampSigner
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
@@ -1940,12 +1943,9 @@ class DocumentFileTokenView(APIView):
                 branch__suborganisation__organisation=branch.suborganisation.organisation,
             )
 
-            from django.conf import settings as _dj_settings
-            from urllib.parse import urljoin as _urljoin
-
-            media_url = getattr(_dj_settings, "MEDIA_URL", "")
+            media_url = getattr(settings, "MEDIA_URL", "")
             if media_url and media_url.startswith("http"):
-                file_url = _urljoin(media_url, doc.file.name)
+                file_url = urljoin(media_url, doc.file.name)
             else:
                 file_url = request.build_absolute_uri(doc.file.url)
             return Response({"file_url": file_url}, status=200)
@@ -2008,12 +2008,9 @@ class DocumentFileTokenView(APIView):
                 branch__suborganisation__organisation=dw.branch.suborganisation.organisation,
             )
 
-            from django.conf import settings as _dj_settings
-            from urllib.parse import urljoin as _urljoin
-
-            media_url = getattr(_dj_settings, "MEDIA_URL", "")
+            media_url = getattr(settings, "MEDIA_URL", "")
             if media_url and media_url.startswith("http"):
-                file_url = _urljoin(media_url, doc.file.name)
+                file_url = urljoin(media_url, doc.file.name)
             else:
                 file_url = request.build_absolute_uri(doc.file.url)
             return Response({"file_url": file_url}, status=200)
@@ -3859,10 +3856,6 @@ class CustomFontAPIView(APIView):
 
         if uploaded_file:
             # Validate extension
-            from django.core.files.storage import default_storage
-            from django.core.files.base import ContentFile
-            import os
-
             filename = uploaded_file.name
             ext = os.path.splitext(filename)[1].lower()
             if ext not in allowed_extensions:
@@ -3886,11 +3879,8 @@ class CustomFontAPIView(APIView):
                 )
                 # Prefer using MEDIA_URL (which may point to MINIO_PUBLIC_URL) for
                 # public-facing URLs so we don't return internal presigned URLs.
-                from django.conf import settings as _dj_settings
-                from urllib.parse import urljoin as _urljoin
-
-                if getattr(_dj_settings, "MEDIA_URL", "").startswith("http"):
-                    font_url = _urljoin(_dj_settings.MEDIA_URL, saved_path)
+                if getattr(settings, "MEDIA_URL", "").startswith("http"):
+                    font_url = urljoin(settings.MEDIA_URL, saved_path)
                 else:
                     font_url = request.build_absolute_uri(
                         default_storage.url(saved_path)
@@ -3969,10 +3959,6 @@ class CustomFontAPIView(APIView):
 
         if uploaded_file:
             # Validate extension
-            from django.core.files.storage import default_storage
-            from django.core.files.base import ContentFile
-            import os
-
             filename = uploaded_file.name
             ext = os.path.splitext(filename)[1].lower()
             if ext not in allowed_extensions:
@@ -3994,11 +3980,8 @@ class CustomFontAPIView(APIView):
                 saved_path = default_storage.save(
                     storage_path, ContentFile(uploaded_file.read())
                 )
-                from django.conf import settings as _dj_settings
-                from urllib.parse import urljoin as _urljoin
-
-                if getattr(_dj_settings, "MEDIA_URL", "").startswith("http"):
-                    font_url = _urljoin(_dj_settings.MEDIA_URL, saved_path)
+                if getattr(settings, "MEDIA_URL", "").startswith("http"):
+                    font_url = urljoin(settings.MEDIA_URL, saved_path)
                 else:
                     font_url = request.build_absolute_uri(
                         default_storage.url(saved_path)
