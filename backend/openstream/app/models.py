@@ -7,12 +7,8 @@ import logging
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.files.storage import FileSystemStorage
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
@@ -675,7 +671,33 @@ class DisplayWebsite(models.Model):
         return self.name
 
 
-class ScheduledContent(models.Model):
+class ContentValidationMixin:
+    """Mixin to validate content selection and aspect ratios."""
+
+    def clean_content_and_ratios(self):
+        # 1. Validate exactly one content source
+        if (self.slideshow is None and self.playlist is None) or \
+           (self.slideshow is not None and self.playlist is not None):
+            raise ValidationError("Exactly one of slideshow or playlist must be set.")
+
+        # 2. Validate Aspect Ratios
+        if self.display_website_group:
+            group_ratio = self.display_website_group.aspect_ratio
+
+            if self.slideshow and self.slideshow.aspect_ratio != group_ratio:
+                raise ValidationError(
+                    f"Slideshow aspect ratio ({self.slideshow.aspect_ratio}) "
+                    f"does not match group ({group_ratio})."
+                )
+
+            if self.playlist and self.playlist.aspect_ratio != group_ratio:
+                raise ValidationError(
+                    f"Playlist aspect ratio ({self.playlist.aspect_ratio}) "
+                    f"does not match group ({group_ratio})."
+                )
+
+
+class ScheduledContent(ContentValidationMixin, models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     combine_with_default = models.BooleanField(default=False)
@@ -699,39 +721,16 @@ class ScheduledContent(models.Model):
     )
 
     def clean(self):
-        # Ensure start and end times are provided.
+        # 1. Run Shared Validation (Content Source & Aspect Ratios)
+        self.clean_content_and_ratios()
+
+        # 2. Run ScheduledContent Specific Validation
         if self.start_time is None or self.end_time is None:
             raise ValidationError(
                 "Start and End times are required when scheduling content."
             )
 
-        # Validate that exactly one of slideshow or playlist is set.
-        if (self.slideshow is None and self.playlist is None) or (
-            self.slideshow is not None and self.playlist is not None
-        ):
-            raise ValidationError("Exactly one of slideshow or playlist must be set.")
-
-        # Validate aspect ratio compatibility with the display group
-        if self.display_website_group:
-            group_aspect_ratio = self.display_website_group.aspect_ratio
-
-            if self.slideshow:
-                slideshow_aspect_ratio = self.slideshow.aspect_ratio
-                if slideshow_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-            if self.playlist:
-                playlist_aspect_ratio = self.playlist.aspect_ratio
-                if playlist_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Playlist aspect ratio ({playlist_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-        # New validation:
-        # Check if there is any scheduled content for the same group that overlaps this instance's time period
-        # and that has combine_with_default=False. This prevents mixing override and combine entries.
+        # Check for overlapping overrides
         overlapping_override_qs = (
             ScheduledContent.objects.filter(
                 display_website_group=self.display_website_group,
@@ -759,7 +758,7 @@ class ScheduledContent(models.Model):
         return f"Scheduled Content for {content}"
 
 
-class RecurringScheduledContent(models.Model):
+class RecurringScheduledContent(ContentValidationMixin, models.Model):
     """
     Model for recurring scheduled content that repeats weekly on specific days
     """
@@ -809,35 +808,13 @@ class RecurringScheduledContent(models.Model):
     )
 
     def clean(self):
-        # Validate that exactly one of slideshow or playlist is set.
-        if (self.slideshow is None and self.playlist is None) or (
-            self.slideshow is not None and self.playlist is not None
-        ):
-            raise ValidationError("Exactly one of slideshow or playlist must be set.")
+        # 1. Run Shared Validation (Content Source & Aspect Ratios)
+        self.clean_content_and_ratios()
 
-        # Validate aspect ratio compatibility with the display group
-        if self.display_website_group:
-            group_aspect_ratio = self.display_website_group.aspect_ratio
-
-            if self.slideshow:
-                slideshow_aspect_ratio = self.slideshow.aspect_ratio
-                if slideshow_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-            if self.playlist:
-                playlist_aspect_ratio = self.playlist.aspect_ratio
-                if playlist_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Playlist aspect ratio ({playlist_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-        # Validate that start time is before end time
+        # 2. Run RecurringContent Specific Validation
         if self.start_time >= self.end_time:
             raise ValidationError("Start time must be before end time.")
 
-        # Validate active date range
         if self.active_until and self.active_from > self.active_until:
             raise ValidationError("Active from date must be before active until date.")
 
@@ -1083,49 +1060,6 @@ class SlideshowPlayerAPIKey(models.Model):
 
     def __str__(self):
         return f"{self.branch} - {self.key}"
-
-
-@receiver(post_save, sender=Branch)
-def create_slideshow_player_api_key(sender, instance, created, **kwargs):
-    if created:
-        SlideshowPlayerAPIKey.objects.create(branch=instance)
-
-
-# Keep parent slideshow.updated_at in sync when Slides change
-@receiver(post_save)
-def touch_slideshow_on_slide_save(sender, instance, created, **kwargs):
-    # Only act for the Slide model
-    if sender.__name__ != "Slide":
-        return
-    try:
-        if instance.slideshow_id:
-            Slideshow.objects.filter(pk=instance.slideshow_id).update(
-                updated_at=timezone.now()
-            )
-    except Exception:
-        pass
-
-
-@receiver(post_save)
-def touch_playlist_on_item_save(sender, instance, created, **kwargs):
-    # Also ensure playlist items saved via API/update touch playlist (fallback)
-    if sender.__name__ != "SlideshowPlaylistItem":
-        return
-    try:
-        if instance.slideshow_playlist_id:
-            SlideshowPlaylist.objects.filter(pk=instance.slideshow_playlist_id).update(
-                updated_at=timezone.now()
-            )
-    except Exception:
-        pass
-
-
-@receiver(post_save)
-def touch_slideshow_on_slide_delete(sender, instance, **kwargs):
-    # Insensitive: Django's post_delete would be ideal but to avoid importing post_delete we'll
-    # rely on callers using delete() which we've overridden on SlideshowPlaylistItem earlier.
-    return
-
 
 class SlideTemplate(models.Model):
     organisation = models.ForeignKey(
