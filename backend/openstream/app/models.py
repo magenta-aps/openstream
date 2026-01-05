@@ -80,24 +80,18 @@ class Organisation(models.Model):
 
 
 class OrganisationAPIAccess(models.Model):
-    """
-    Controls which external APIs an organisation has access to.
-    Multiple objects can be created for the same organisation
-    to grant access to multiple APIs.
-    """
-
-    API_CHOICES = [
-        ("winkas", "WinKAS"),
-        ("kmd", "KMD"),
-        ("speedadmin", "SpeedAdmin"),
-    ]
+    # Modern TextChoices enum
+    class ApiService(models.TextChoices):
+        WINKAS = "winkas", "WinKAS"
+        KMD = "kmd", "KMD"
+        SPEEDADMIN = "speedadmin", "SpeedAdmin"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="api_access"
     )
     api_name = models.CharField(
         max_length=20,
-        choices=API_CHOICES,
+        choices=ApiService.choices, # Use the class here
         help_text="The external API this organisation has access to",
     )
     is_active = models.BooleanField(
@@ -159,17 +153,16 @@ class BranchURLCollectionItem(models.Model):
         return f"{self.branch} - {self.url}"
 
 
-ROLE_CHOICES = (
-    ("super_admin", "Super Admin"),
-    ("org_admin", "Organisation Admin"),
-    ("org_user", "Organisation User"),
-    ("suborg_admin", "Suborganisation Admin"),
-    ("branch_admin", "Branch Admin"),
-    ("employee", "Employee"),
-)
-
 
 class OrganisationMembership(models.Model):
+    class Role(models.TextChoices):
+        SUPER_ADMIN = "super_admin", _("Super Admin")
+        ORG_ADMIN = "org_admin", _("Organisation Admin")
+        ORG_USER = "org_user", _("Organisation User")
+        SUBORG_ADMIN = "suborg_admin", _("Suborganisation Admin")
+        BRANCH_ADMIN = "branch_admin", _("Branch Admin")
+        EMPLOYEE = "employee", _("Employee")
+
     user = models.ForeignKey(
         User, related_name="organisation_memberships", on_delete=models.CASCADE
     )
@@ -177,7 +170,7 @@ class OrganisationMembership(models.Model):
         Organisation,
         related_name="memberships",
         on_delete=models.CASCADE,
-        null=True,  # Allow null for super_admins
+        null=True,
         blank=True,
     )
     suborganisation = models.ForeignKey(
@@ -194,65 +187,56 @@ class OrganisationMembership(models.Model):
         null=True,
         blank=True,
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=Role.choices)
 
     class Meta:
         unique_together = ("user", "organisation", "suborganisation", "branch")
 
     def clean(self):
-        # Super Admin: organisation can be null, others must have it
-        if self.role == "super_admin":
-            if self.suborganisation or self.branch:
-                raise ValidationError("super_admin must not have suborg or branch.")
-        else:
-            if self.organisation is None:
-                raise ValidationError(f"{self.role} must specify an organisation.")
+        # Validation logic broken down into readable steps
+        self._validate_super_admin()
+        self._validate_hierarchy_consistency()
+        self._validate_role_requirements()
+        super().clean()
 
-        # Branch and suborg consistency
+    def _validate_super_admin(self):
+        """Super Admin cannot have suborg/branch; others must have organisation."""
+        if self.role == self.Role.SUPER_ADMIN:
+            if self.suborganisation or self.branch:
+                raise ValidationError("Super Admin must not have suborg or branch.")
+        elif self.organisation is None:
+            raise ValidationError(f"{self.get_role_display()} must specify an organisation.")
+
+    def _validate_hierarchy_consistency(self):
+        """Ensure Branch belongs to the Suborganisation."""
         if self.branch and (
             not self.suborganisation
             or self.branch.suborganisation != self.suborganisation
         ):
-            raise ValidationError(
-                "Branch must belong to the specified suborganisation."
-            )
+            raise ValidationError("Branch must belong to the specified suborganisation.")
 
-        if self.role == "org_admin":
+    def _validate_role_requirements(self):
+        """Ensure specific roles have specific hierarchy fields set."""
+        if self.role == self.Role.ORG_ADMIN:
             if self.suborganisation or self.branch:
-                raise ValidationError("org_admin cannot specify suborg or branch.")
+                raise ValidationError("Org Admin cannot specify suborg or branch.")
 
-        elif self.role == "suborg_admin":
+        elif self.role == self.Role.SUBORG_ADMIN:
             if not self.suborganisation or self.branch:
-                raise ValidationError(
-                    "suborg_admin must specify suborganisation but no branch."
-                )
+                raise ValidationError("Suborg Admin must specify suborganisation but no branch.")
 
-        elif self.role == "branch_admin":
+        elif self.role == self.Role.BRANCH_ADMIN:
             if not self.suborganisation or not self.branch:
-                raise ValidationError(
-                    "branch_admin must specify suborganisation and branch."
-                )
+                raise ValidationError("Branch Admin must specify suborganisation and branch.")
 
-        elif self.role == "employee":
+        elif self.role == self.Role.EMPLOYEE:
             if not self.suborganisation or not self.branch:
-                raise ValidationError(
-                    "employee must specify both suborganisation and branch."
-                )
-
-        super().clean()
+                raise ValidationError("Employee must specify both suborganisation and branch.")
 
     def __str__(self):
-        if self.role == "super_admin":
+        if self.role == self.Role.SUPER_ADMIN:
             return f"[SUPER ADMIN] {self.user.username}"
-        elif self.role == "org_admin":
-            return f"[ORG ADMIN] {self.user.username} for {self.organisation.name}"
-        elif self.role == "suborg_admin":
-            return f"[SUBORG ADMIN] {self.user.username} in {self.suborganisation}"
-        elif self.role == "branch_admin":
-            return f"[BRANCH ADMIN] {self.user.username} in {self.branch}"
-        else:
-            return f"[EMPLOYEE] {self.user.username} in {self.branch}"
-
+        return f"[{self.get_role_display().upper()}] {self.user.username}"
 
 ###############################################################################
 # Category & Tag Models
