@@ -1900,7 +1900,12 @@ class DocumentFileView(APIView):
             )
             response["Content-Disposition"] = f'inline; filename="{doc.file.name}"'
             return response
-        except Exception:
+        except Exception as e:
+            logger.error(
+                f"Error retrieving file for document {document_id}: {str(e)}",
+                exc_info=True,
+                extra={"document_id": document_id, "branch_id": branch_id},
+            )
             raise Http404("File not found")
 
 
