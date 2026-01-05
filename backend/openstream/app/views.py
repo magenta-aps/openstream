@@ -84,13 +84,13 @@ from app.serializers import (
     ShowUsernameAndEmailSerializer,
     ShowAllUserInfoSerializer,
     ChangePasswordSerializer,
-    SubOrganisationWithRoleSerializer,  # optional
+    SubOrganisationWithRoleSerializer,
     UserMembershipDetailSerializer,
     CategorySerializer,
     TagSerializer,
     SlideTemplateSerializer,
     GlobalSlideTemplateSerializer,
-    BranchURLCollectionItemSerializer,  # optional
+    BranchURLCollectionItemSerializer,
     CustomColorSerializer,
     CustomFontSerializer,
     TextFormattingSettingsSerializer,
@@ -140,11 +140,6 @@ from app.services import (
 )
 
 
-###############################################################################
-# SubOrganisation CRUD
-###############################################################################
-
-
 class SubOrganisationListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -167,7 +162,6 @@ class SubOrganisationListCreateAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # If user is org_admin or super_admin => see all suborgs of that org
         is_org_admin_or_super = (
             user_is_super_admin(request.user)
             or OrganisationMembership.objects.filter(
@@ -178,7 +172,6 @@ class SubOrganisationListCreateAPIView(APIView):
         if is_org_admin_or_super:
             suborgs = SubOrganisation.objects.filter(organisation=organisation)
         else:
-            # suborg_admin => only suborgs in which they have 'suborg_admin'
             suborgs = SubOrganisation.objects.filter(
                 organisation=organisation,
                 memberships__user=request.user,
@@ -215,7 +208,6 @@ class SubOrganisationListCreateAPIView(APIView):
         org_obj = serializer.validated_data["organisation"]
         org_id = org_obj.id
 
-        # Must be org_admin of that org or super_admin
         is_authorized = (
             user_is_super_admin(request.user)
             or OrganisationMembership.objects.filter(
@@ -251,7 +243,6 @@ class SubOrganisationDetailAPIView(APIView):
 
         serializer = SubOrganisationSerializer(suborg, data=request.data, partial=True)
         if serializer.is_valid():
-            # Disallow changing organisation
             if "organisation" in serializer.validated_data:
                 return Response({"error": "Cannot change organisation."}, status=400)
 
@@ -261,7 +252,6 @@ class SubOrganisationDetailAPIView(APIView):
 
     def delete(self, request, pk):
         suborg = get_object_or_404(SubOrganisation, pk=pk)
-        # Must be org_admin of that suborg's organisation or super_admin
         is_authorized = (
             user_is_super_admin(request.user)
             or OrganisationMembership.objects.filter(
@@ -279,11 +269,6 @@ class SubOrganisationDetailAPIView(APIView):
         return Response(status=204)
 
 
-###############################################################################
-# Simple name lookup endpoints
-###############################################################################
-
-
 class OrganisationNameAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -292,7 +277,6 @@ class OrganisationNameAPIView(APIView):
         if not org:
             raise Http404("Organization not found.")
 
-        # Allow if user is super_admin or member of the organisation
         if not (
             user_is_super_admin(request.user)
             or OrganisationMembership.objects.filter(
@@ -310,7 +294,6 @@ class SubOrganisationNameAPIView(APIView):
     def get(self, request, pk):
         suborg = get_object_or_404(SubOrganisation, pk=pk)
 
-        # Allow super_admin, org_admin for parent org, or any membership tied to the suborganisation
         if user_is_super_admin(request.user):
             return Response({"name": suborg.name}, status=200)
 
@@ -333,16 +316,10 @@ class BranchNameAPIView(APIView):
     def get(self, request, pk):
         branch = get_object_or_404(Branch, pk=pk)
 
-        # Use existing helper to determine access
         if not user_can_access_branch(request.user, branch):
             return Response({"detail": "Not allowed."}, status=403)
 
         return Response({"name": branch.name}, status=200)
-
-
-###############################################################################
-# Branch CRUD
-###############################################################################
 
 
 class BranchListCreateAPIView(APIView):
@@ -360,13 +337,11 @@ class BranchListCreateAPIView(APIView):
         if branch_id:
             try:
                 initial_branch = get_object_or_404(Branch, id=branch_id)
-                # Ensure user has access to the initial branch to justify getting org branches
                 if not user_can_access_branch(request.user, initial_branch):
                     return Response(
                         {"detail": "User cannot access the specified branch."},
                         status=status.HTTP_403_FORBIDDEN,
                     )
-                # Fetch all branches from the same organisation
                 organisation = initial_branch.suborganisation.organisation
                 branches = Branch.objects.filter(
                     suborganisation__organisation=organisation
@@ -385,16 +360,12 @@ class BranchListCreateAPIView(APIView):
                 )
 
         elif suborg_id:
-            # Existing logic for fetching by suborg_id
             try:
                 suborg = get_object_or_404(SubOrganisation, id=suborg_id)
-                # Check if user can manage the suborg (or adjust permission as needed)
                 if not user_can_manage_suborg(request.user, suborg):
-                    # Allow any user attached to the suborg to list branches
                     if not OrganisationMembership.objects.filter(
                         user=request.user, suborganisation=suborg
                     ).exists():
-                        # Check if user is org_admin for the parent org
                         if not OrganisationMembership.objects.filter(
                             user=request.user,
                             organisation=suborg.organisation,
@@ -483,11 +454,6 @@ class BranchDetailAPIView(APIView):
         return Response(status=204)
 
 
-###############################################################################
-# Slideshow CRUD (Branch-based)
-###############################################################################
-
-
 class SlideshowCRUDView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -523,13 +489,11 @@ class SlideshowCRUDView(APIView):
             branch = get_branch_from_request(request)
         except ValueError as e:
             return Response({"detail": str(e)}, status=403)
-        print("Request data when creating new:", request.data)
         tags = request.data.get("tags")
         if tags:
             request.data["tag_ids"] = [
                 tag["id"] if isinstance(tag, dict) else tag for tag in tags
             ]
-        print("After 'cleaning':", request.data)
         serializer = SlideshowSerializer(data=request.data)
         if serializer.is_valid():
             slideshow = serializer.save(branch=branch, created_by=request.user)
@@ -560,11 +524,6 @@ class SlideshowCRUDView(APIView):
         return Response(status=204)
 
 
-###############################################################################
-# Wayfinding Endpoints
-###############################################################################
-
-
 class WayfindingCRUDView(APIView):
     permission_classes = []  # We handle auth manually
 
@@ -582,18 +541,14 @@ class WayfindingCRUDView(APIView):
             request.query_params.get("includeWayfindingData", "true").lower() == "true"
         )
 
-        # --- Authentication Section ---
         api_key_value = request.headers.get("X-API-KEY")
 
         if api_key_value:
-            # API key authentication
             key_obj = SlideshowPlayerAPIKey.objects.filter(
                 key=api_key_value, is_active=True
             ).first()
             if not key_obj:
                 return Response({"detail": "Invalid or inactive API key."}, status=403)
-
-            # Require branch-bound API keys and ensure the branch matches if provided.
             if not key_obj.branch:
                 return Response(
                     {"detail": "API key must be bound to a branch."},
@@ -608,7 +563,6 @@ class WayfindingCRUDView(APIView):
                     status=403,
                 )
         else:
-            # User authentication
             if not request.user or not request.user.is_authenticated:
                 return Response({"detail": "Authentication required."}, status=401)
 
@@ -629,7 +583,6 @@ class WayfindingCRUDView(APIView):
             return Response(ser.data)
 
     def post(self, request):
-        # POST still requires user authentication
         if not request.user or not request.user.is_authenticated:
             return Response({"detail": "Authentication required."}, status=401)
 
@@ -645,7 +598,6 @@ class WayfindingCRUDView(APIView):
         return Response(serializer.errors, status=400)
 
     def patch(self, request, pk):
-        # PATCH still requires user authentication
         if not request.user or not request.user.is_authenticated:
             return Response({"detail": "Authentication required."}, status=401)
 
@@ -662,7 +614,6 @@ class WayfindingCRUDView(APIView):
         return Response(serializer.errors, status=400)
 
     def delete(self, request, pk):
-        # DELETE still requires user authentication
         if not request.user or not request.user.is_authenticated:
             return Response({"detail": "Authentication required."}, status=401)
 
@@ -674,11 +625,6 @@ class WayfindingCRUDView(APIView):
         wayfinding = get_object_or_404(Wayfinding, pk=pk, branch=branch)
         wayfinding.delete()
         return Response(status=204)
-
-
-###############################################################################
-# Slideshow Playlist Endpoints
-###############################################################################
 
 
 class SlideshowPlaylistAPIView(APIView):
@@ -847,16 +793,6 @@ class SlideshowPlaylistItemAPIView(APIView):
         return Response(status=204)
 
 
-###############################################################################
-# Display Website & DisplayWebsiteGroup
-###############################################################################
-
-
-###############################################################################
-# Latest-edited endpoints
-###############################################################################
-
-
 class LatestEditedSlideshowsAPIView(APIView):
     """Return slideshows for a branch ordered by their latest slide.updated_at (descending).
 
@@ -956,8 +892,6 @@ class LatestEditedPlaylistsAPIView(APIView):
 
         page_size = 20
 
-        # Annotate playlists with latest updated_at of slides referenced by their items
-        # Use the SlideshowPlaylist.updated_at field (set via auto_now) for last-edited.
         qs = SlideshowPlaylist.objects.filter(branch=branch).order_by(
             "-updated_at", "-id"
         )
@@ -1278,11 +1212,6 @@ class RecurringScheduledContentAPIView(APIView):
         return Response(status=204)
 
 
-###############################################################################
-# Active Content
-###############################################################################
-
-
 class BranchAPIKeyView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1402,13 +1331,11 @@ class GetActiveContentAPIView(APIView):
                     {"detail": "API key not valid for this branch."}, status=403
                 )
         else:
-            # 2) Otherwise, use user-based authentication.
             if not request.user or not request.user.is_authenticated:
                 return Response({"detail": "Authentication required."}, status=401)
             if not user_can_access_branch(request.user, dw.branch):
                 return Response({"detail": "Not allowed."}, status=403)
 
-        # Retrieve the display website group.
         dwg = dw.display_website_group
         if not dwg:
             return Response({"detail": "No display_website_group found."}, status=404)
@@ -1418,12 +1345,10 @@ class GetActiveContentAPIView(APIView):
         current_time = tz_now.time()
         current_date = tz_now.date()
 
-        # --- Query all scheduled content records active at this time ---
         scheduled_qs = ScheduledContent.objects.filter(
             display_website_group=dwg, start_time__lte=tz_now, end_time__gte=tz_now
         ).order_by("start_time")
 
-        # --- Query recurring scheduled content active at this time ---
         recurring_qs = (
             RecurringScheduledContent.objects.filter(
                 display_website_group=dwg,
@@ -1439,7 +1364,6 @@ class GetActiveContentAPIView(APIView):
         scheduled_items = []
         combine_with_default = False
 
-        # Iterate over all scheduled content records.
         for sc in scheduled_qs:
             if sc.slideshow is not None:
                 scheduled_items += self.get_playlist_items(sc.slideshow, "slideshow")
@@ -1465,7 +1389,6 @@ class GetActiveContentAPIView(APIView):
 
         if scheduled_items:
             if combine_with_default:
-                # Retrieve default items from both default slideshow and default playlist.
                 default_items = []
                 if (
                     hasattr(dwg, "default_slideshow")
@@ -1516,7 +1439,6 @@ class BranchActiveContentAPIView(APIView):
     permission_classes = []  # we handle auth internally
 
     def get_playlist_items(self, content, content_type):
-        # reuse logic from GetActiveContentAPIView
         if content_type == "slideshow":
             return [
                 {
@@ -1565,7 +1487,6 @@ class BranchActiveContentAPIView(APIView):
             if not user_can_access_branch(request.user, branch):
                 return Response({"detail": "Not allowed."}, status=403)
 
-        # Aggregate active items across all display website groups for this branch
         tz_now = timezone.now()
         current_weekday = tz_now.weekday()
         current_time = tz_now.time()
@@ -1576,13 +1497,11 @@ class BranchActiveContentAPIView(APIView):
 
         groups = DisplayWebsiteGroup.objects.filter(branch=branch)
         for dwg in groups:
-            # scheduled
             scheduled_qs = ScheduledContent.objects.filter(
                 display_website_group=dwg,
                 start_time__lte=tz_now,
                 end_time__gte=tz_now,
             ).order_by("start_time")
-            # recurring
             recurring_qs = (
                 RecurringScheduledContent.objects.filter(
                     display_website_group=dwg,
@@ -1641,20 +1560,15 @@ class BranchActiveContentAPIView(APIView):
                 else:
                     merged = scheduled_items
 
-                # Attach the display website group name to each item so callers
-                # (e.g. dashboard) can show which group the item belongs to.
                 for _it in merged:
                     try:
                         _it["display_website_group"] = dwg.name
                     except Exception:
-                        # Be defensive: if item is not a dict, skip
                         pass
 
-                # Add grouped entry for this display group
                 grouped.append({"display_website_group": dwg.name, "items": merged})
                 items += merged
             else:
-                # fallback to default
                 default_items = []
                 if (
                     hasattr(dwg, "default_slideshow")
@@ -1677,7 +1591,6 @@ class BranchActiveContentAPIView(APIView):
                     except Exception:
                         pass
 
-                # Add grouped entry for this display group (defaults)
                 grouped.append(
                     {"display_website_group": dwg.name, "items": default_items}
                 )
@@ -1706,7 +1619,6 @@ class BranchActiveContentAPIView(APIView):
                 page_obj.previous_page_number() if page_obj.has_previous() else None
             ),
             "results": page_obj.object_list,
-            # grouped by display_website_group: list of { display_website_group, items }
             "grouped": grouped,
         }
 
@@ -1729,11 +1641,9 @@ class BranchUpcomingContentAPIView(APIView):
         """
         today = now_dt.date()
         start_date = max(today, rsc.active_from)
-        # find the first weekday >= start_date that matches rsc.weekday
         days_ahead = (rsc.weekday - start_date.weekday() + 7) % 7
         candidate = start_date + timedelta(days=days_ahead)
 
-        # If candidate is today and the start_time is earlier than now, skip to next week
         candidate_start_dt = datetime.combine(candidate, rsc.start_time)
         # make timezone-aware if needed
         if timezone.is_naive(candidate_start_dt):
@@ -1876,11 +1786,6 @@ class BranchUpcomingContentAPIView(APIView):
         return Response({"results": upcoming_sorted}, status=200)
 
 
-###############################################################################
-# Document Upload & Viewing
-###############################################################################
-
-
 class DocumentListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1908,8 +1813,6 @@ class DocumentListView(APIView):
 
         # JSON body input
         data = request.data
-
-        print(data)
 
         title = data.get("title")
         if title:
@@ -2133,7 +2036,6 @@ class DocumentAPIView(APIView):
             return Response({"message": message}, status=400)
 
     def delete(self, request, document_id):
-        print("Request:", request)
         try:
             branch = get_branch_from_request(request)
         except ValueError as e:
@@ -2207,9 +2109,6 @@ class DocumentFileTokenView(APIView):
     def get(self, request, document_id):
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
-            # -------------------------------------------------------
-            # (1) Bearer token path (skip DisplayWebsite logic)
-            # -------------------------------------------------------
             bearer_token = auth_header[len("Bearer ") :].strip()
             if not bearer_token:
                 return Response({"detail": "Empty Bearer token."}, status=400)
@@ -2237,9 +2136,6 @@ class DocumentFileTokenView(APIView):
             return Response({"file_url": file_url}, status=200)
 
         else:
-            # ----------------------------------------------------------
-            # (2) No Bearer => check X-API-KEY or user-based auth + dw
-            # ----------------------------------------------------------
             display_website_id = request.query_params.get("id")
             if not display_website_id:
                 return Response(
@@ -2249,7 +2145,6 @@ class DocumentFileTokenView(APIView):
 
             dw = get_object_or_404(DisplayWebsite, id=display_website_id)
 
-            # 2a) Check API key
             api_key_value = request.headers.get("X-API-KEY")
             if api_key_value:
                 key_obj = SlideshowPlayerAPIKey.objects.filter(
@@ -2286,14 +2181,12 @@ class DocumentFileTokenView(APIView):
                             status=403,
                         )
             else:
-                # 2b) Fallback to user-based auth
                 if not request.user or not request.user.is_authenticated:
                     return Response({"detail": "Authentication required."}, status=401)
 
                 if not user_can_access_branch(request.user, dw.branch):
                     return Response({"detail": "Not allowed."}, status=403)
 
-            # Now fetch the Document in that organisation
             doc = get_object_or_404(
                 Document,
                 id=document_id,
@@ -2311,11 +2204,6 @@ class DocumentFileTokenView(APIView):
             return Response({"file_url": file_url}, status=200)
 
 
-###############################################################################
-# Token Validation
-###############################################################################
-
-
 class ValidateTokenView(APIView):
     """
     Validates the provided JWT token.
@@ -2325,14 +2213,7 @@ class ValidateTokenView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # If the request reaches here, the token is valid because
-        # IsAuthenticated permission passed.
         return Response({"detail": "Token is valid"}, status=status.HTTP_200_OK)
-
-
-###############################################################################
-# Organisation Management
-###############################################################################
 
 
 class OrganisationAPIView(APIView):
