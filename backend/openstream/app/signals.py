@@ -1,7 +1,14 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Branch, SlideshowPlayerAPIKey, Slideshow, SlideshowPlaylist, SlideshowPlaylistItem
+from .models import (
+    Branch,
+    SlideshowPlayerAPIKey,
+    Slideshow,
+    SlideshowPlaylist,
+    SlideshowPlaylistItem,
+)
+
 
 @receiver(post_save, sender=Branch)
 def create_slideshow_player_api_key(sender, instance, created, **kwargs):

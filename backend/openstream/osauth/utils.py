@@ -38,7 +38,7 @@ def sync_keycloak_realm_roles_org_memberships(
     """
     # Fix: Use the new Role enum values instead of the old ROLE_CHOICES tuple
     valid_roles = set(OrganisationMembership.Role.values)
-    
+
     # Filter out any Keycloak roles that don't match our defined local roles
     filtered_roles = [r for r in realm_roles if r in valid_roles]
 
@@ -51,7 +51,7 @@ def sync_keycloak_realm_roles_org_memberships(
 
     new_memberships = [m for m, created in memberships_result if created]
     existing_memberships = [m for m, created in memberships_result if not created]
-    
+
     return new_memberships, existing_memberships
 
 
@@ -71,7 +71,7 @@ def sync_keycloak_privilege_list_org_memberships(
         )
         if role in privilege_list
     ]
-    
+
     return sync_keycloak_realm_roles_org_memberships(
         organisation,
         user,
@@ -105,7 +105,9 @@ def parse_kc_sso_privilege_list(privilege_list: str) -> Dict[str, str]:
         return {}
 
 
-def configure_keycloak_session(django_user: User, keycloak_token: TokenResponse) -> Dict[str, Any]:
+def configure_keycloak_session(
+    django_user: User, keycloak_token: TokenResponse
+) -> Dict[str, Any]:
     """
     Sets up the local session and generates JWT tokens for the frontend.
     """
@@ -114,7 +116,7 @@ def configure_keycloak_session(django_user: User, keycloak_token: TokenResponse)
     access = str(refresh.access_token)
 
     # Cleanup old user keycloak sessions & create a new one
-    # Note: Depending on requirements, you might want to keep history, 
+    # Note: Depending on requirements, you might want to keep history,
     # but strictly following your original logic, we delete old ones.
     KeycloakSession.objects.filter(user=django_user).delete()
 

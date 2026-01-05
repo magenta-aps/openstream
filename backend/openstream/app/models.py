@@ -94,7 +94,7 @@ class OrganisationAPIAccess(models.Model):
     )
     api_name = models.CharField(
         max_length=20,
-        choices=ApiService.choices, # Use the class here
+        choices=ApiService.choices,  # Use the class here
         help_text="The external API this organisation has access to",
     )
     is_active = models.BooleanField(
@@ -156,7 +156,6 @@ class BranchURLCollectionItem(models.Model):
         return f"{self.branch} - {self.url}"
 
 
-
 class OrganisationMembership(models.Model):
     class Role(models.TextChoices):
         SUPER_ADMIN = "super_admin", _("Super Admin")
@@ -208,7 +207,9 @@ class OrganisationMembership(models.Model):
             if self.suborganisation or self.branch:
                 raise ValidationError("Super Admin must not have suborg or branch.")
         elif self.organisation is None:
-            raise ValidationError(f"{self.get_role_display()} must specify an organisation.")
+            raise ValidationError(
+                f"{self.get_role_display()} must specify an organisation."
+            )
 
     def _validate_hierarchy_consistency(self):
         """Ensure Branch belongs to the Suborganisation."""
@@ -216,7 +217,9 @@ class OrganisationMembership(models.Model):
             not self.suborganisation
             or self.branch.suborganisation != self.suborganisation
         ):
-            raise ValidationError("Branch must belong to the specified suborganisation.")
+            raise ValidationError(
+                "Branch must belong to the specified suborganisation."
+            )
 
     def _validate_role_requirements(self):
         """Ensure specific roles have specific hierarchy fields set."""
@@ -226,20 +229,27 @@ class OrganisationMembership(models.Model):
 
         elif self.role == self.Role.SUBORG_ADMIN:
             if not self.suborganisation or self.branch:
-                raise ValidationError("Suborg Admin must specify suborganisation but no branch.")
+                raise ValidationError(
+                    "Suborg Admin must specify suborganisation but no branch."
+                )
 
         elif self.role == self.Role.BRANCH_ADMIN:
             if not self.suborganisation or not self.branch:
-                raise ValidationError("Branch Admin must specify suborganisation and branch.")
+                raise ValidationError(
+                    "Branch Admin must specify suborganisation and branch."
+                )
 
         elif self.role == self.Role.EMPLOYEE:
             if not self.suborganisation or not self.branch:
-                raise ValidationError("Employee must specify both suborganisation and branch.")
+                raise ValidationError(
+                    "Employee must specify both suborganisation and branch."
+                )
 
     def __str__(self):
         if self.role == self.Role.SUPER_ADMIN:
             return f"[SUPER ADMIN] {self.user.username}"
         return f"[{self.get_role_display().upper()}] {self.user.username}"
+
 
 ###############################################################################
 # Category & Tag Models
@@ -664,8 +674,9 @@ class ContentValidationMixin:
 
     def clean_content_and_ratios(self):
         # 1. Validate exactly one content source
-        if (self.slideshow is None and self.playlist is None) or \
-           (self.slideshow is not None and self.playlist is not None):
+        if (self.slideshow is None and self.playlist is None) or (
+            self.slideshow is not None and self.playlist is not None
+        ):
             raise ValidationError("Exactly one of slideshow or playlist must be set.")
 
         # 2. Validate Aspect Ratios
@@ -1083,6 +1094,7 @@ class SlideshowPlayerAPIKey(models.Model):
     def __str__(self):
         return f"{self.branch} - {self.key}"
 
+
 class SlideTemplate(models.Model):
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="slide_templates"
@@ -1192,7 +1204,7 @@ class RegisteredSlideTypes(models.Model):
         choices=SlideType.choices,
         help_text="Slide type that matches the frontend slide type system",
     )
-    
+
     name = models.CharField(
         blank=True,
         null=True,
