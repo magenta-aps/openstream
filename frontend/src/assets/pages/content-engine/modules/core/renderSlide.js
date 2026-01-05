@@ -573,9 +573,12 @@ async function _startSlideshowPlayer() {
         
 
       if (data.items && data.items.length > 0) {
-        store.emulatedWidth = data.items[0].slideshow.previewWidth;
-        store.emulatedHeight = data.items[0].slideshow.previewHeight;
-        store.slideshowMode = data.items[0].slideshow.mode;
+        const firstSlideshow = data.items[0].slideshow;
+        store.emulatedWidth =
+          firstSlideshow.preview_width || firstSlideshow.previewWidth;
+        store.emulatedHeight =
+          firstSlideshow.preview_height || firstSlideshow.previewHeight;
+        store.slideshowMode = firstSlideshow.mode;
       } else if (data.slideshow_data) {
         store.slideshowMode = data.slideshow_data.mode;
       }
