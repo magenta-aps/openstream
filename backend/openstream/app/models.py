@@ -245,6 +245,10 @@ class OrganisationMembership(models.Model):
                     "Employee must specify both suborganisation and branch."
                 )
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         if self.role == self.Role.SUPER_ADMIN:
             return f"[SUPER ADMIN] {self.user.username}"
@@ -425,6 +429,20 @@ class Wayfinding(models.Model):
 ###############################################################################
 
 
+class AspectRatioValidatorMixin:
+    """Mixin to validate aspect ratio compatibility."""
+
+    def validate_aspect_ratio_match(
+        self, source_ratio, target_ratio, error_message=None
+    ):
+        if source_ratio != target_ratio:
+            if not error_message:
+                error_message = _(
+                    f"Aspect ratio ({source_ratio}) does not match target aspect ratio ({target_ratio})."
+                )
+            raise ValidationError(error_message)
+
+
 class SlideshowPlaylist(models.Model):
     name = models.CharField(max_length=255)
     branch = models.ForeignKey(
@@ -458,7 +476,7 @@ class SlideshowPlaylist(models.Model):
         return self.name
 
 
-class SlideshowPlaylistItem(models.Model):
+class SlideshowPlaylistItem(AspectRatioValidatorMixin, models.Model):
     slideshow_playlist = models.ForeignKey(
         SlideshowPlaylist, on_delete=models.CASCADE, related_name="items"
     )
@@ -484,14 +502,13 @@ class SlideshowPlaylistItem(models.Model):
 
         # Ensure slideshow aspect ratio matches playlist aspect ratio
         if self.slideshow and self.slideshow_playlist:
-            slideshow_aspect_ratio = self.slideshow.aspect_ratio
-            playlist_aspect_ratio = self.slideshow_playlist.aspect_ratio
-            if slideshow_aspect_ratio != playlist_aspect_ratio:
-                raise ValidationError(
-                    _(
-                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match playlist aspect ratio ({playlist_aspect_ratio}). Only slideshows with matching aspect ratios can be added to this playlist."
-                    )
-                )
+            self.validate_aspect_ratio_match(
+                self.slideshow.aspect_ratio,
+                self.slideshow_playlist.aspect_ratio,
+                _(
+                    f"Slideshow aspect ratio ({self.slideshow.aspect_ratio}) does not match playlist aspect ratio ({self.slideshow_playlist.aspect_ratio}). Only slideshows with matching aspect ratios can be added to this playlist."
+                ),
+            )
 
         super().clean()
 
@@ -502,6 +519,10 @@ class SlideshowPlaylistItem(models.Model):
         with transaction.atomic():
             # If no position is specified, automatically set the next available position.
             if self.position is None:
+                # Lock the playlist to prevent concurrent additions
+                _ = SlideshowPlaylist.objects.select_for_update().get(
+                    pk=self.slideshow_playlist_id
+                )
                 max_position = (
                     SlideshowPlaylistItem.objects.filter(
                         slideshow_playlist=self.slideshow_playlist
@@ -537,7 +558,7 @@ class SlideshowPlaylistItem(models.Model):
 ###############################################################################
 
 
-class DisplayWebsiteGroup(models.Model):
+class DisplayWebsiteGroup(AspectRatioValidatorMixin, models.Model):
     name = models.CharField(max_length=255)
     branch = models.ForeignKey(
         Branch,
@@ -579,18 +600,18 @@ class DisplayWebsiteGroup(models.Model):
 
         # Validate aspect ratio compatibility with default content
         if self.default_slideshow:
-            slideshow_aspect_ratio = self.default_slideshow.aspect_ratio
-            if slideshow_aspect_ratio != self.aspect_ratio:
-                raise ValidationError(
-                    f"Default slideshow aspect ratio ({slideshow_aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio})."
-                )
+            self.validate_aspect_ratio_match(
+                self.default_slideshow.aspect_ratio,
+                self.aspect_ratio,
+                f"Default slideshow aspect ratio ({self.default_slideshow.aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio}).",
+            )
 
         if self.default_playlist:
-            playlist_aspect_ratio = self.default_playlist.aspect_ratio
-            if playlist_aspect_ratio != self.aspect_ratio:
-                raise ValidationError(
-                    f"Default playlist aspect ratio ({playlist_aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio})."
-                )
+            self.validate_aspect_ratio_match(
+                self.default_playlist.aspect_ratio,
+                self.aspect_ratio,
+                f"Default playlist aspect ratio ({self.default_playlist.aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio}).",
+            )
 
     def save(self, *args, **kwargs):
         self.clean()  # Validate before saving
@@ -600,7 +621,7 @@ class DisplayWebsiteGroup(models.Model):
         return self.name
 
 
-class DisplayWebsite(models.Model):
+class DisplayWebsite(AspectRatioValidatorMixin, models.Model):
     name = models.CharField(max_length=255)
     # Optional UID provided by external management systems to uniquely
     # identify a screen across hostname changes. Not required.
@@ -629,31 +650,31 @@ class DisplayWebsite(models.Model):
 
     def clean(self):
         # Validate that the display's aspect ratio matches the group's aspect ratio
-        if (
-            self.display_website_group
-            and self.display_website_group.aspect_ratio != self.aspect_ratio
-        ):
-            raise ValidationError(
-                f"Display aspect ratio ({self.aspect_ratio}) does not match group aspect ratio ({self.display_website_group.aspect_ratio}). Only displays with matching aspect ratios can be added to this group."
+        if self.display_website_group:
+            self.validate_aspect_ratio_match(
+                self.aspect_ratio,
+                self.display_website_group.aspect_ratio,
+                f"Display aspect ratio ({self.aspect_ratio}) does not match group aspect ratio ({self.display_website_group.aspect_ratio}). Only displays with matching aspect ratios can be added to this group.",
             )
-            # Ensure uid is globally unique within the same organisation
-            if self.uid:
-                org = None
-                if getattr(self.branch, "suborganisation", None):
-                    org = getattr(self.branch.suborganisation, "organisation", None)
-                # If we have an organisation, search for same uid within that organisation
-                if org:
-                    if (
-                        DisplayWebsite.objects.filter(
-                            uid=self.uid, branch__suborganisation__organisation=org
-                        )
-                        .exclude(pk=self.pk)
-                        .exists()
-                    ):
-                        raise ValidationError(
-                            f"UID '{self.uid}' must be unique within the same organisation."
-                        )
-            super().clean()
+
+        # Ensure uid is globally unique within the same organisation
+        if self.uid:
+            org = None
+            if getattr(self.branch, "suborganisation", None):
+                org = getattr(self.branch.suborganisation, "organisation", None)
+            # If we have an organisation, search for same uid within that organisation
+            if org:
+                if (
+                    DisplayWebsite.objects.filter(
+                        uid=self.uid, branch__suborganisation__organisation=org
+                    )
+                    .exclude(pk=self.pk)
+                    .exists()
+                ):
+                    raise ValidationError(
+                        f"UID '{self.uid}' must be unique within the same organisation."
+                    )
+        super().clean()
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -749,7 +770,7 @@ class ScheduledContent(ContentValidationMixin, models.Model):
         super().clean()
 
     def save(self, *args, **kwargs):
-        self.clean()  # Validate before saving
+        self.full_clean()  # Validate before saving
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -851,6 +872,12 @@ class Document(models.Model):
         WEBM = "WebM"
         OTHER = "Other"
 
+    class ProcessingStatus(models.TextChoices):
+        PENDING = "PENDING", _("Pending")
+        PROCESSING = "PROCESSING", _("Processing")
+        COMPLETED = "COMPLETED", _("Completed")
+        FAILED = "FAILED", _("Failed")
+
     VALID_EXTENSIONS = {
         ".pdf": FileType.PDF,
         ".png": FileType.PNG,
@@ -865,6 +892,12 @@ class Document(models.Model):
 
     file_type = models.CharField(
         max_length=10, choices=FileType.choices, editable=False, default=FileType.OTHER
+    )
+    processing_status = models.CharField(
+        max_length=20,
+        choices=ProcessingStatus.choices,
+        default=ProcessingStatus.COMPLETED,
+        help_text=_("Status of background processing (e.g. PDF conversion)."),
     )
 
     title = models.CharField(max_length=255)
@@ -917,6 +950,9 @@ class Document(models.Model):
             if content_hash:
                 self.file.name = create_hashed_filename(self.file.name, content_hash)
 
+            # Set status to PENDING for PDFs
+            self.processing_status = self.ProcessingStatus.PENDING
+
         # 4. Handle Video and Generic Files (Hashing only)
         # We group MP4, WEBM, and 'Other' logic as they just need hashing
         else:
@@ -924,50 +960,16 @@ class Document(models.Model):
             if content_hash:
                 self.file.name = create_hashed_filename(self.file.name, content_hash)
 
-        super().save(*args, **kwargs)
+            # Non-PDFs are completed immediately
+            self.processing_status = self.ProcessingStatus.COMPLETED
 
-        # Trigger background conversion if it was a PDF
-        if detected_type == self.FileType.PDF:
-            transaction.on_commit(
-                lambda: threading.Thread(
-                    target=convert_document_pdf, args=(self.pk,)
-                ).start()
-            )
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         # Delete the file from storage
         if self.file:
             self.file.delete(save=False)
         super().delete(*args, **kwargs)
-
-
-def convert_document_pdf(doc_id):
-    try:
-        doc = Document.objects.get(pk=doc_id)
-        # Re-open the file to ensure we have a file handle
-        doc.file.open()
-
-        png_file = convert_pdf_to_png(doc.file)
-        if png_file:
-            # We are updating an existing record.
-            # Note: The original file is still on storage.
-            # We might want to delete it, but let's focus on replacing the reference.
-            old_file_name = doc.file.name
-
-            doc.file = png_file
-            content_hash = generate_content_hash(doc.file)
-            doc.file.name = create_hashed_filename(doc.file.name, content_hash)
-            doc.file_type = Document.FileType.PNG
-            doc.save()
-
-            # Optional: Delete the old PDF file from storage if needed.
-            # Since we don't have easy access to storage backend delete here without knowing the backend,
-            # we rely on django-cleanup or manual cleanup if configured.
-            # But we can try to delete the old file if it was local.
-            # For now, we just update the record.
-
-    except Exception as e:
-        logger.error(f"Background conversion failed for document {doc_id}: {e}")
 
 
 ###############################################################################
@@ -1004,6 +1006,10 @@ class CustomColor(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             if self.position in (None, 0) and self.organisation_id:
+                # Lock the organisation
+                _ = Organisation.objects.select_for_update().get(
+                    pk=self.organisation_id
+                )
                 max_position = (
                     CustomColor.objects.filter(organisation=self.organisation)
                     .exclude(pk=self.pk)
@@ -1050,6 +1056,10 @@ class CustomFont(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             if self.position in (None, 0) and self.organisation_id:
+                # Lock the organisation
+                _ = Organisation.objects.select_for_update().get(
+                    pk=self.organisation_id
+                )
                 max_position = (
                     CustomFont.objects.filter(organisation=self.organisation)
                     .exclude(pk=self.pk)

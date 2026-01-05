@@ -107,3 +107,34 @@ def convert_pdf_to_png(pdf_file):
     except Exception as e:
         logger.error(f"PDF to PNG conversion failed: {e}")
         return None
+
+
+def convert_document_pdf(doc_id):
+    from .models import Document
+
+    try:
+        doc = Document.objects.get(pk=doc_id)
+        # Re-open the file to ensure we have a file handle
+        doc.file.open()
+
+        png_file = convert_pdf_to_png(doc.file)
+        if png_file:
+            # We are updating an existing record.
+            # Note: The original file is still on storage.
+            # We might want to delete it, but let's focus on replacing the reference.
+            old_file_name = doc.file.name
+
+            doc.file = png_file
+            content_hash = generate_content_hash(doc.file)
+            doc.file.name = create_hashed_filename(doc.file.name, content_hash)
+            doc.file_type = Document.FileType.PNG
+            doc.save()
+
+            # Optional: Delete the old PDF file from storage if needed.
+            # Since we don't have easy access to storage backend delete here without knowing the backend,
+            # we rely on django-cleanup or manual cleanup if configured.
+            # But we can try to delete the old file if it was local.
+            # For now, we just update the record.
+
+    except Exception as e:
+        logger.error(f"Background conversion failed for document {doc_id}: {e}")
