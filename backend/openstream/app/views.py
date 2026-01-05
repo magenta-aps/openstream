@@ -593,20 +593,20 @@ class WayfindingCRUDView(APIView):
             if not key_obj:
                 return Response({"detail": "Invalid or inactive API key."}, status=403)
 
-            # For API key access, get branch from the key or use branch_id param
-            if key_obj.branch:
-                branch = key_obj.branch
-            else:
-                # If API key is not branch-limited, require branch_id parameter
-                branch_id = request.query_params.get("branch_id")
-                if not branch_id:
-                    return Response(
-                        {
-                            "detail": "branch_id is required when using non-branch-limited API key."
-                        },
-                        status=400,
-                    )
-                branch = get_object_or_404(Branch, id=branch_id)
+            # Require branch-bound API keys and ensure the branch matches if provided.
+            if not key_obj.branch:
+                return Response(
+                    {"detail": "API key must be bound to a branch."},
+                    status=403,
+                )
+
+            branch = key_obj.branch
+            requested_branch_id = request.query_params.get("branch_id")
+            if requested_branch_id and str(branch.id) != str(requested_branch_id):
+                return Response(
+                    {"detail": "API key not valid for this branch."},
+                    status=403,
+                )
         else:
             # User authentication
             if not request.user or not request.user.is_authenticated:
@@ -1390,6 +1390,12 @@ class GetActiveContentAPIView(APIView):
             ).first()
             if not key_obj:
                 return Response({"detail": "Invalid or inactive API key."}, status=403)
+            # Reject organisation-scoped keys to prevent cross-branch reads; require branch-bound keys here.
+            if not key_obj.branch:
+                return Response(
+                    {"detail": "API key must be bound to a branch."},
+                    status=403,
+                )
             # If branch-limited, verify branch match.
             if key_obj.branch and key_obj.branch != dw.branch:
                 return Response(
@@ -1543,6 +1549,11 @@ class BranchActiveContentAPIView(APIView):
             ).first()
             if not key_obj:
                 return Response({"detail": "Invalid or inactive API key."}, status=403)
+            if not key_obj.branch:
+                return Response(
+                    {"detail": "API key must be bound to a branch."},
+                    status=403,
+                )
             if key_obj.branch and key_obj.branch != branch:
                 return Response(
                     {"detail": "API key not valid for this branch."}, status=403
@@ -1763,6 +1774,11 @@ class BranchUpcomingContentAPIView(APIView):
             ).first()
             if not key_obj:
                 return Response({"detail": "Invalid or inactive API key."}, status=403)
+            if not key_obj.branch:
+                return Response(
+                    {"detail": "API key must be bound to a branch."},
+                    status=403,
+                )
             if key_obj.branch and key_obj.branch != branch:
                 return Response(
                     {"detail": "API key not valid for this branch."}, status=403
