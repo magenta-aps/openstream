@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+
 import threading
 from django.db.models.signals import post_save
 from django.dispatch import receiver

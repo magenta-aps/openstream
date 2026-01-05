@@ -364,9 +364,9 @@ export async function saveCurrentTemplateData() {
 
   const payload = {
     name: currentSlideObject.name,
-    slideData: slideDataToSave,
-    previewWidth: store.emulatedWidth,
-    previewHeight: store.emulatedHeight,
+    slide_data: slideDataToSave,
+    preview_width: store.emulatedWidth,
+    preview_height: store.emulatedHeight,
     aspect_ratio: currentSlideObject.aspect_ratio || DEFAULT_ASPECT_RATIO,
   };
 
@@ -674,9 +674,9 @@ export async function duplicateTemplateOnBackend(templateId) {
 
       // Step 2: apply the customised data from the original suborg template
       const patchPayload = {
-        slideData: originalTemplate.slideData,
-        previewWidth: originalTemplate.previewWidth,
-        previewHeight: originalTemplate.previewHeight,
+        slide_data: originalTemplate.slide_data,
+        preview_width: originalTemplate.preview_width,
+        preview_height: originalTemplate.preview_height,
         aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
       };
 
@@ -741,9 +741,9 @@ export async function duplicateTemplateOnBackend(templateId) {
       const originalTemplate = await getResp.json();
       const duplicatePayload = {
         name: gettext("Copy of ") + originalTemplate.name,
-        slideData: originalTemplate.slideData,
-        previewWidth: originalTemplate.previewWidth,
-        previewHeight: originalTemplate.previewHeight,
+        slide_data: originalTemplate.slide_data,
+        preview_width: originalTemplate.preview_width,
+        preview_height: originalTemplate.preview_height,
         aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
         thumbnail_url: originalTemplate.thumbnail_url || null,
       };
