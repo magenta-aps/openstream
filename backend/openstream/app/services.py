@@ -16,6 +16,7 @@ import time
 import re
 import pandas as pd
 import pytz
+import feedparser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from .utils import (
@@ -267,11 +268,11 @@ def validate_recurring_content(
                 content_name = sc.slideshow or sc.playlist
                 if not combine_with_default:
                     raise ValidationError(
-                        f"Cannot schedule an override as other content is already present: '{content_name}' on {current_occurrence}."
+                        f"Cannot schedule an override as other content is present: '{content_name}' on {current_occurrence}."
                     )
                 else:
                     raise ValidationError(
-                        f"Cannot schedule content as an override is already present: '{content_name}' on {current_occurrence}."
+                        f"Cannot schedule content as an override is present: '{content_name}' on {current_occurrence}."
                     )
 
             current_occurrence += timedelta(days=7)
@@ -529,30 +530,15 @@ def get_cached_ddb_categories(kommune, events=None):
 # SpeedAdmin Services
 ###############################################################################
 
-speedadmin_school_data = []
-speedadmin_school_names = []
-speedadmin_last_update_at = 0
 SPEEDADMIN_API_URL = "https://speedadmin.dk/api/v1/bookings"  # Placeholder URL
 
 
 def fetch_speedadmin_data():
-    global speedadmin_school_data, speedadmin_school_names, speedadmin_last_update_at
-
     # This is a placeholder implementation based on what was in views.py
     # In a real implementation, this would fetch from the API
-    # For now, we just update the timestamp to avoid constant refreshing
-    speedadmin_last_update_at = time.time()
 
-    # If there was actual fetching logic in views.py, it should be here.
-    # Since I don't see the full implementation in the snippets provided,
-    # I'm assuming there might be more logic or it's using a library.
-    # If it's just using global variables that are populated elsewhere,
-    # we need to ensure that mechanism is preserved or refactored.
-
-    # Assuming there's some logic to populate these:
-    # speedadmin_school_data = ...
-    # speedadmin_school_names = ...
-    pass
+    # Return empty data and names for now
+    return [], []
 
 
 ###############################################################################
@@ -770,13 +756,12 @@ def load_kmd_location_data():
 KMD_API_URL = (
     "https://booking-ltk.kmd.dk/kmd_webapi/api/Monitor/GetFilteredAccessControlRecords?"
 )
-kmd_last_update_at = {
-    "Engelsborghallerne": {"ID": "EBH", "last_update": 0},
-    "Lyngby Idrætsby": {"ID": "LST", "last_update": 0},
-    "Lundtoftehallen": {"ID": "LH", "last_update": 0},
-    "Virumhallerne": {"ID": "VH", "last_update": 0},
+KMD_FACILITIES = {
+    "Engelsborghallerne": "EBH",
+    "Lyngby Idrætsby": "LST",
+    "Lundtoftehallen": "LH",
+    "Virumhallerne": "VH",
 }
-kmd_locations_data = {}
 kmd_location_names = load_kmd_location_data()
 
 
@@ -793,10 +778,8 @@ def clean_kmd_displayname(location_name):
 
 def fetch_kmd_data(facility=""):
     """Fetch KMD data for a specific facility"""
-    global kmd_locations_data, kmd_last_update_at
-
-    if facility and facility not in kmd_location_names:
-        return False
+    if facility and facility not in KMD_FACILITIES:
+        return None
 
     try:
         headers = {"Content-Type": "application/json"}
@@ -804,10 +787,11 @@ def fetch_kmd_data(facility=""):
 
         # Get API key from settings
         kmd_api_key = getattr(settings, "KMD_API_KEY", "")
+        facility_id = KMD_FACILITIES[facility]
 
         response = requests.get(
             KMD_API_URL
-            + f"facility={kmd_last_update_at[facility]['ID']}&dateTimeFrom={today_date}&dateTimeTo={today_date}&authenticationCode={kmd_api_key}",
+            + f"facility={facility_id}&dateTimeFrom={today_date}&dateTimeTo={today_date}&authenticationCode={kmd_api_key}",
             headers=headers,
         )
 
@@ -816,11 +800,7 @@ def fetch_kmd_data(facility=""):
             data = response.json()
             data = data["AccessControlRecords"]["OccasionRecords"]
 
-            # Update the timestamp
-            kmd_last_update_at[facility]["last_update"] = time.time()
-
-            if facility in kmd_locations_data:
-                kmd_locations_data[facility].clear()
+            result_data = []
 
             for item in data:
                 EO_booking = datetime.strptime(item["TomKlo"], "%H:%M").time()
@@ -831,8 +811,6 @@ def fetch_kmd_data(facility=""):
                 # Skip any data without facility name and any that's already passed
                 if item["FacilityName"] and EO_booking > current_time:
                     item["FacilityName"] = item["FacilityName"].strip()
-                    if item["FacilityName"] not in kmd_locations_data:
-                        kmd_locations_data[item["FacilityName"]] = []
 
                     extracted_data = {
                         "FacilityName": item["FacilityName"].strip(),
@@ -846,20 +824,178 @@ def fetch_kmd_data(facility=""):
                         "TomKlo": item["TomKlo"],
                     }
 
-                    kmd_locations_data[item["FacilityName"]].append(extracted_data)
+                    result_data.append(extracted_data)
 
             # Sort by start time
-            for location in kmd_locations_data:
-                kmd_locations_data[location].sort(key=lambda x: x["FomKlo"])
+            result_data.sort(key=lambda x: x["FomKlo"])
+
+            # Group by FacilityName
+            grouped_data = {}
+            for item in result_data:
+                fname = item["FacilityName"]
+                if fname not in grouped_data:
+                    grouped_data[fname] = []
+                grouped_data[fname].append(item)
 
             print("Successfully refetched the KMD data")
-            return True
+            return grouped_data
         else:
             message = (
                 f"error: Failed to fetch data. status_code: {response.status_code}"
             )
             print(message)
-            return False
+            return None
     except Exception as e:
         print(f"Error fetching KMD data: {e}")
-        return False
+        return None
+
+
+###############################################################################
+# DR Services
+###############################################################################
+
+# RSS feed URLs
+DR_FEED = {
+    "Indland": "https://www.dr.dk/nyheder/service/feeds/indland",
+    "Udland": "https://www.dr.dk/nyheder/service/feeds/udland",
+    "Penge": "https://www.dr.dk/nyheder/service/feeds/penge",
+    "Politik": "https://www.dr.dk/nyheder/service/feeds/politik",
+    "Sporten": "https://www.dr.dk/nyheder/service/feeds/sporten",
+    "Seneste sport": "https://www.dr.dk/nyheder/service/feeds/senestesport",
+    "Viden": "https://www.dr.dk/nyheder/service/feeds/viden",
+    "Kultur": "https://www.dr.dk/nyheder/service/feeds/kultur",
+    "Musik": "https://www.dr.dk/nyheder/service/feeds/musik",
+    "Mit liv": "https://www.dr.dk/nyheder/service/feeds/mitliv",
+    "Mad": "https://www.dr.dk/nyheder/service/feeds/mad",
+    "Vejret": "https://www.dr.dk/nyheder/service/feeds/vejret",
+    "Alle nyheder": "https://www.dr.dk/nyheder/service/feeds/allenyheder",
+}
+
+
+def fetch_rss_data():
+    news_data = []
+    try:
+        for category, url in DR_FEED.items():
+            try:
+                feed = feedparser.parse(url)
+                feed_items = []
+                for entry in feed.entries:
+                    # Extract image URL from media content
+                    image_url = ""
+                    if hasattr(entry, "media_content") and entry.media_content:
+                        # feedparser stores media:content as media_content list
+                        image_url = (
+                            entry.media_content[0].get("url", "")
+                            if entry.media_content
+                            else ""
+                        )
+                    elif hasattr(entry, "links"):
+                        # Sometimes images are in links with type image/*
+                        for link in entry.links:
+                            if link.get("type", "").startswith("image/"):
+                                image_url = link.get("href", "")
+                                break
+
+                    feed_items.append(
+                        {
+                            "title": entry.title,
+                            "link": entry.link,
+                            "published": (
+                                entry.published if hasattr(entry, "published") else ""
+                            ),
+                            "summary": (
+                                entry.summary if hasattr(entry, "summary") else ""
+                            ),
+                            "image": image_url,
+                        }
+                    )
+
+                # Group items by feed/category as expected by frontend
+                news_data.append({"name": category, "items": feed_items})
+            except Exception as e:
+                news_data.append(
+                    {
+                        "name": category,
+                        "items": [],
+                        "error": f"Failed to fetch {category}: {str(e)}",
+                    }
+                )
+    except Exception as e:
+        news_data = [
+            {"name": "Error", "items": [], "error": f"Unexpected error: {str(e)}"}
+        ]
+    return news_data
+
+
+DMI_WEATHER_LOCATIONS = {
+    # Sjælland
+    "København": {"latitude": 55.6140, "longitude": 12.6454},  # Københavns Lufthavn
+    "Lyngby-Taarbæk": {"latitude": 55.7655, "longitude": 12.5110},
+    "Roskilde": {"latitude": 55.5868, "longitude": 12.1363},  # Roskilde Lufthavn
+    "Hørsholm": {"latitude": 55.8765, "longitude": 12.4121},  # Sjælsmark
+    "Hillerød": {
+        "latitude": 55.9276,
+        "longitude": 12.3008,
+    },  # Hillerød Centralrenseanlæg
+    "Næstved": {"latitude": 55.2502, "longitude": 11.7690},  # Næstved Maglegårdsvej
+    "Slagelse": {"latitude": 55.4024, "longitude": 11.3546},  # Slagelse Pumpestation
+    # Jylland
+    "Aarhus": {"latitude": 56.3083, "longitude": 10.6254},  # Århus Lufthavn
+    "Aalborg": {"latitude": 57.0963, "longitude": 9.8505},  # Flyvestation Ålborg
+    "Esbjerg": {"latitude": 55.5281, "longitude": 8.5631},  # Esbjerg Lufthavn
+    "Randers": {"latitude": 56.4537, "longitude": 10.0698},  # Randers Centralrenseanlæg
+    "Kolding": {"latitude": 55.4715, "longitude": 9.4844},  # Kolding
+    "Horsens": {"latitude": 55.8680, "longitude": 9.7869},  # Horsens/Bygholm
+    "Vejle": {"latitude": 55.7022, "longitude": 9.5390},  # Vejle Centralrenseanlæg
+    "Herning": {"latitude": 56.1364, "longitude": 8.9766},  # Høgild
+    "Silkeborg": {"latitude": 56.1998, "longitude": 9.5779},  # Silkeborg Forsyning
+    "Fredericia": {"latitude": 55.5518, "longitude": 9.7217},  # Fredericia
+}
+
+
+def fetch_weather_data(location):
+    try:
+        weather_api_url = f"https://api.open-meteo.com/v1/forecast?latitude={DMI_WEATHER_LOCATIONS[location]['latitude']}&longitude={DMI_WEATHER_LOCATIONS[location]['longitude']}&current=temperature_2m,precipitation,cloud_cover,relative_humidity_2m&models=dmi_seamless"
+
+        response = requests.get(weather_api_url)
+
+        if response.status_code != 200:
+            return {"error": f"HTTP error {response.status_code}"}
+
+        data = response.json()
+
+        # Extract relevant data with .get() to prevent KeyErrors
+        temperature = data.get("current", {}).get("temperature_2m", "N/A")
+        precipitation = data.get("current", {}).get("precipitation", 0)
+        cloud_cover = data.get("current", {}).get("cloud_cover", 0)
+
+        def get_precipitation_text(precip):
+            if precip < 0.1:
+                return ""
+            elif precip < 5:
+                return "💦"
+            else:
+                return ""
+
+        def get_cloud_cover_text(cloud_cover):
+            if cloud_cover < 10:
+                return "☀️"
+            elif cloud_cover < 50:
+                return "⛅"
+            elif cloud_cover < 80:
+                return "☁️"
+            else:
+                return ""
+
+        return {
+            "temperature": temperature,
+            "precipitationText": get_precipitation_text(precipitation),
+            "cloudCoverText": get_cloud_cover_text(cloud_cover),
+        }
+
+    except requests.RequestException as e:
+        return {"error": f"Request error: {str(e)}"}
+    except KeyError as e:
+        return {"error": f"Missing key in response: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Unexpected error: {str(e)}"}

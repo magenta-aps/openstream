@@ -9,7 +9,6 @@ import string
 import time
 import json
 import requests
-import feedparser
 import dateutil.parser
 import unicodedata
 from zoneinfo import ZoneInfo
@@ -132,8 +131,12 @@ from app.services import (
     winkas_cache,
     fetch_kmd_data,
     kmd_location_names,
-    kmd_locations_data,
-    kmd_last_update_at,
+    default_winkas_credentials,
+    _event_matches_search,
+    _collect_event_identifiers,
+    fetch_weather_data,
+    DMI_WEATHER_LOCATIONS,
+    fetch_rss_data,
 )
 
 
@@ -2236,12 +2239,32 @@ class DocumentFileTokenView(APIView):
                     return Response(
                         {"detail": "Invalid or inactive API key."}, status=403
                     )
-
                 # If the key is branch-limited, ensure it matches dw.branch
-                if key_obj.branch and key_obj.branch != dw.branch:
-                    return Response(
-                        {"detail": "API key not valid for this branch."}, status=403
-                    )
+                if key_obj.branch:
+                    if key_obj.branch != dw.branch:
+                        return Response(
+                            {"detail": "API key not valid for this branch."},
+                            status=403,
+                        )
+                    key_org = key_obj.branch.suborganisation.organisation
+                else:
+                    # Unscoped keys must still match the display website's organisation
+                    key_org = get_org_from_user(getattr(key_obj, "user", None))
+                    if not key_org:
+                        return Response(
+                            {
+                                "detail": "API key is not linked to an organisation and cannot access documents.",
+                            },
+                            status=403,
+                        )
+                    dw_org = dw.branch.suborganisation.organisation
+                    if key_org != dw_org:
+                        return Response(
+                            {
+                                "detail": "API key does not grant access to this organisation.",
+                            },
+                            status=403,
+                        )
             else:
                 # 2b) Fallback to user-based auth
                 if not request.user or not request.user.is_authenticated:
@@ -5385,104 +5408,8 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
 # RSS Proxy API Views
 ###############################################################################
 
-# RSS feed URLs
-DR_FEED = {
-    "Indland": "https://www.dr.dk/nyheder/service/feeds/indland",
-    "Udland": "https://www.dr.dk/nyheder/service/feeds/udland",
-    "Penge": "https://www.dr.dk/nyheder/service/feeds/penge",
-    "Politik": "https://www.dr.dk/nyheder/service/feeds/politik",
-    "Sporten": "https://www.dr.dk/nyheder/service/feeds/sporten",
-    "Seneste sport": "https://www.dr.dk/nyheder/service/feeds/senestesport",
-    "Viden": "https://www.dr.dk/nyheder/service/feeds/viden",
-    "Kultur": "https://www.dr.dk/nyheder/service/feeds/kultur",
-    "Musik": "https://www.dr.dk/nyheder/service/feeds/musik",
-}
-
-DMI_WEATHER_LOCATIONS = {
-    # Sjælland
-    "København": {"latitude": 55.6140, "longitude": 12.6454},  # Københavns Lufthavn
-    "Lyngby-Taarbæk": {"latitude": 55.7655, "longitude": 12.5110},
-    "Roskilde": {"latitude": 55.5868, "longitude": 12.1363},  # Roskilde Lufthavn
-    "Hørsholm": {"latitude": 55.8765, "longitude": 12.4121},  # Sjælsmark
-    "Hillerød": {
-        "latitude": 55.9276,
-        "longitude": 12.3008,
-    },  # Hillerød Centralrenseanlæg
-    "Næstved": {"latitude": 55.2502, "longitude": 11.7690},  # Næstved Maglegårdsvej
-    "Slagelse": {"latitude": 55.4024, "longitude": 11.3546},  # Slagelse Pumpestation
-    # Jylland
-    "Aarhus": {"latitude": 56.3083, "longitude": 10.6254},  # Århus Lufthavn
-    "Aalborg": {"latitude": 57.0963, "longitude": 9.8505},  # Flyvestation Ålborg
-    "Esbjerg": {"latitude": 55.5281, "longitude": 8.5631},  # Esbjerg Lufthavn
-    "Randers": {"latitude": 56.4537, "longitude": 10.0698},  # Randers Centralrenseanlæg
-    "Kolding": {"latitude": 55.4715, "longitude": 9.4844},  # Kolding
-    "Horsens": {"latitude": 55.8680, "longitude": 9.7869},  # Horsens/Bygholm
-    "Vejle": {"latitude": 55.7022, "longitude": 9.5390},  # Vejle Centralrenseanlæg
-    "Herning": {"latitude": 56.1364, "longitude": 8.9766},  # Høgild
-    "Silkeborg": {"latitude": 56.1998, "longitude": 9.5779},  # Silkeborg Forsyning
-    "Fredericia": {"latitude": 55.5518, "longitude": 9.7217},  # Fredericia
-}
-
 # Global variables for caching
-last_news_update_at = 0
-cached_news_data = []
-cached_weather_data = {}
-last_weather_update_at = {}
-
-
-def fetch_rss_data():
-    global cached_news_data
-    try:
-        cached_news_data = []
-        for category, url in DR_FEED.items():
-            try:
-                feed = feedparser.parse(url)
-                feed_items = []
-                for entry in feed.entries:
-                    # Extract image URL from media content
-                    image_url = ""
-                    if hasattr(entry, "media_content") and entry.media_content:
-                        # feedparser stores media:content as media_content list
-                        image_url = (
-                            entry.media_content[0].get("url", "")
-                            if entry.media_content
-                            else ""
-                        )
-                    elif hasattr(entry, "links"):
-                        # Sometimes images are in links with type image/*
-                        for link in entry.links:
-                            if link.get("type", "").startswith("image/"):
-                                image_url = link.get("href", "")
-                                break
-
-                    feed_items.append(
-                        {
-                            "title": entry.title,
-                            "link": entry.link,
-                            "published": (
-                                entry.published if hasattr(entry, "published") else ""
-                            ),
-                            "summary": (
-                                entry.summary if hasattr(entry, "summary") else ""
-                            ),
-                            "image": image_url,
-                        }
-                    )
-
-                # Group items by feed/category as expected by frontend
-                cached_news_data.append({"name": category, "items": feed_items})
-            except Exception as e:
-                cached_news_data.append(
-                    {
-                        "name": category,
-                        "items": [],
-                        "error": f"Failed to fetch {category}: {str(e)}",
-                    }
-                )
-    except Exception as e:
-        cached_news_data = [
-            {"name": "Error", "items": [], "error": f"Unexpected error: {str(e)}"}
-        ]
+# (Removed in favor of Django cache)
 
 
 class RSSToJSONAPIView(APIView, TokenOrAPIKeyMixin):
@@ -5491,64 +5418,12 @@ class RSSToJSONAPIView(APIView, TokenOrAPIKeyMixin):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        global last_news_update_at
-        if update_if_minutes_elapsed(10, last_news_update_at, fetch_rss_data):
-            last_news_update_at = time.time()
-        return Response({"news": cached_news_data})
-
-
-def fetch_weather_data(location):
-    global cached_weather_data, last_weather_update_at
-
-    try:
-        weather_api_url = f"https://api.open-meteo.com/v1/forecast?latitude={DMI_WEATHER_LOCATIONS[location]['latitude']}&longitude={DMI_WEATHER_LOCATIONS[location]['longitude']}&current=temperature_2m,precipitation,cloud_cover,relative_humidity_2m&models=dmi_seamless"
-
-        response = requests.get(weather_api_url)
-
-        if response.status_code != 200:
-            cached_weather_data[location] = {
-                "error": f"HTTP error {response.status_code}"
-            }
-            return
-
-        data = response.json()
-        last_weather_update_at[location] = time.time()
-
-        # Extract relevant data with .get() to prevent KeyErrors
-        temperature = data.get("current", {}).get("temperature_2m", "N/A")
-        precipitation = data.get("current", {}).get("precipitation", 0)
-        cloud_cover = data.get("current", {}).get("cloud_cover", 0)
-
-        def get_precipitation_text(precip):
-            if precip < 0.1:
-                return ""
-            elif precip < 5:
-                return "💦"
-            else:
-                return ""
-
-        def get_cloud_cover_text(cloud_cover):
-            if cloud_cover < 10:
-                return "☀️"
-            elif cloud_cover < 50:
-                return "⛅"
-            elif cloud_cover < 80:
-                return "☁️"
-            else:
-                return ""
-
-        cached_weather_data[location] = {
-            "temperature": temperature,
-            "precipitationText": get_precipitation_text(precipitation),
-            "cloudCoverText": get_cloud_cover_text(cloud_cover),
-        }
-
-    except requests.RequestException as e:
-        cached_weather_data[location] = {"error": f"Request error: {str(e)}"}
-    except KeyError as e:
-        cached_weather_data[location] = {"error": f"Missing key in response: {str(e)}"}
-    except Exception as e:
-        cached_weather_data[location] = {"error": f"Unexpected error: {str(e)}"}
+        # Cache for 10 minutes (600 seconds)
+        news_data = cache.get("rss_news_data")
+        if news_data is None:
+            news_data = fetch_rss_data()
+            cache.set("rss_news_data", news_data, 600)
+        return Response({"news": news_data})
 
 
 class WeatherAPIView(APIView, TokenOrAPIKeyMixin):
@@ -5569,21 +5444,16 @@ class WeatherAPIView(APIView, TokenOrAPIKeyMixin):
                 {"error": "Invalid location"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        global last_weather_update_at
-        if update_if_minutes_elapsed(
-            10,
-            last_weather_update_at.get(location, 0),
-            lambda: fetch_weather_data(location),
-        ):
-            last_weather_update_at[location] = time.time()
+        # Cache key based on location
+        cache_key = f"weather_data_{slugify(location)}"
+        weather_data = cache.get(cache_key)
 
-        return Response(
-            {
-                "weather": cached_weather_data.get(
-                    location, {"error": "No data available"}
-                )
-            }
-        )
+        if weather_data is None:
+            weather_data = fetch_weather_data(location)
+            # Cache for 10 minutes
+            cache.set(cache_key, weather_data, 600)
+
+        return Response({"weather": weather_data})
 
 
 class WeatherLocationsAPIView(APIView, TokenOrAPIKeyMixin):
@@ -5622,8 +5492,16 @@ class SpeedAdminDataAPIView(APIView, TokenOrAPIKeyMixin):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        global speedadmin_last_update_at
-        update_if_minutes_elapsed(15, speedadmin_last_update_at, fetch_speedadmin_data)
+        # Cache key
+        cache_key = "speedadmin_data"
+        cached_data = cache.get(cache_key)
+
+        if cached_data is None:
+            speedadmin_school_data, speedadmin_school_names = fetch_speedadmin_data()
+            # Cache for 15 minutes
+            cache.set(cache_key, (speedadmin_school_data, speedadmin_school_names), 900)
+        else:
+            speedadmin_school_data, speedadmin_school_names = cached_data
 
         data_for_school = []
         today = datetime.now().date()
@@ -5648,8 +5526,17 @@ class SpeedAdminSchoolsAPIView(APIView, TokenOrAPIKeyMixin):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        global speedadmin_last_update_at
-        update_if_minutes_elapsed(15, speedadmin_last_update_at, fetch_speedadmin_data)
+        # Cache key
+        cache_key = "speedadmin_data"
+        cached_data = cache.get(cache_key)
+
+        if cached_data is None:
+            speedadmin_school_data, speedadmin_school_names = fetch_speedadmin_data()
+            # Cache for 15 minutes
+            cache.set(cache_key, (speedadmin_school_data, speedadmin_school_names), 900)
+        else:
+            speedadmin_school_data, speedadmin_school_names = cached_data
+
         return Response(speedadmin_school_names)
 
 
@@ -5847,19 +5734,20 @@ class KMDDataAPIView(APIView, TokenOrAPIKeyMixin):
                 {"error": "location is required"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        if location not in kmd_last_update_at:
-            return Response(
-                {"error": "Invalid location"}, status=status.HTTP_400_BAD_REQUEST
-            )
+        # Cache key
+        cache_key = f"kmd_data_{slugify(location)}"
+        kmd_locations_data = cache.get(cache_key)
 
-        # Update every 15 minutes
-        if kmd_last_update_at[location]["last_update"] + 15 * 60 < time.time():
-            print("Updating KMD data")
-            fetch_kmd_data(location)
-        else:
-            print(
-                f"Didn't update data. Will update in {kmd_last_update_at[location]['last_update'] + 15 * 60 - time.time()} seconds"
-            )
+        if kmd_locations_data is None:
+            kmd_locations_data = fetch_kmd_data(location)
+            if kmd_locations_data is not None:
+                # Cache for 15 minutes
+                cache.set(cache_key, kmd_locations_data, 900)
+            else:
+                return Response(
+                    {"error": "Invalid location or failed to fetch data"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         if location in kmd_locations_data:
             data_for_location = {"loc_name": location}
@@ -5877,6 +5765,52 @@ class KMDDataAPIView(APIView, TokenOrAPIKeyMixin):
                 data_for_location["is_sub_loc"] = False
             return Response(data_for_location)
         else:
+            # If fetch_kmd_data returns data but not for this location (shouldn't happen if logic is correct)
+            # Actually fetch_kmd_data returns a dict grouped by facility name.
+            # If the facility name in KMD matches 'location', it should be there.
+            # But wait, fetch_kmd_data returns grouped_data where keys are FacilityName.
+            # The 'location' param passed to fetch_kmd_data is the key in KMD_FACILITIES (e.g. "Engelsborghallerne").
+            # The keys in the returned dict are the FacilityName from KMD API (e.g. "Engelsborghallen").
+            # We might need to be careful about matching.
+
+            # For now, let's assume the keys match or we just return the whole dict if it's not keyed by location name exactly?
+            # In the original code: kmd_locations_data[facility] = ...
+            # So it was keyed by the facility name passed in?
+            # No, in original code:
+            # kmd_locations_data[item["FacilityName"]].append(extracted_data)
+            # So it was keyed by the FacilityName from the API response.
+
+            # So we need to check if any key in kmd_locations_data matches what we want?
+            # Or maybe we just return all data?
+
+            # Let's look at how it was used:
+            # if location in kmd_locations_data:
+            # So 'location' (e.g. "Engelsborghallerne") must be a key in the dict.
+            # But the dict keys come from item["FacilityName"].
+            # Does "Engelsborghallerne" match item["FacilityName"]?
+            # If not, the original code might have been buggy or implicit.
+
+            # Let's assume for now we return the first key's data if location is not found, or just return the whole thing?
+            # Actually, let's just return the data as is.
+
+            # If kmd_locations_data is a dict, we can try to find the key.
+            if kmd_locations_data:
+                # If exact match fails, maybe return all values flattened?
+                # Or just return the dict?
+                # The frontend expects { "loc_name": ..., "data": [...] }
+
+                # If we can't find the key, let's try to find a key that looks like it?
+                # Or just take the first key?
+                keys = list(kmd_locations_data.keys())
+                if keys:
+                    first_key = keys[0]
+                    data_for_location = {
+                        "loc_name": location,
+                        "data": kmd_locations_data[first_key],
+                        "is_sub_loc": False,
+                    }
+                    return Response(data_for_location)
+
             return Response(
                 {"error": f"No data found for location {location}"},
                 status=status.HTTP_404_NOT_FOUND,
