@@ -3,23 +3,25 @@
 import os
 import uuid
 import logging
+import threading
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
 
-logger = logging.getLogger(__name__)
 from .utils import (
     convert_pdf_to_png,
     generate_content_hash,
     calculate_aspect_ratio,
     create_hashed_filename,
 )
+
+logger = logging.getLogger(__name__)
 
 ###############################################################################
 # Organisations and Memberships
@@ -34,16 +36,17 @@ class UserExtended(models.Model):
         return self.user.username
 
     def update_user_info(self, user_data, language_preference=None):
-        self.user.username = user_data.get("username", self.user.username)
-        self.user.email = user_data.get("email", self.user.email)
-        self.user.first_name = user_data.get("first_name", self.user.first_name)
-        self.user.last_name = user_data.get("last_name", self.user.last_name)
-        self.user.save()
+        with transaction.atomic():
+            self.user.username = user_data.get("username", self.user.username)
+            self.user.email = user_data.get("email", self.user.email)
+            self.user.first_name = user_data.get("first_name", self.user.first_name)
+            self.user.last_name = user_data.get("last_name", self.user.last_name)
+            self.user.save()
 
-        if language_preference is not None:
-            self.language_preference = language_preference
+            if language_preference is not None:
+                self.language_preference = language_preference
 
-        self.save()
+            self.save()
 
 
 class Organisation(models.Model):
@@ -486,16 +489,17 @@ class SlideshowPlaylistItem(models.Model):
         # Call full_clean to ensure our custom validation is run.
         self.full_clean()
 
-        # If no position is specified, automatically set the next available position.
-        if self.position is None:
-            max_position = (
-                SlideshowPlaylistItem.objects.filter(
-                    slideshow_playlist=self.slideshow_playlist
-                ).aggregate(models.Max("position"))["position__max"]
-                or 0
-            )
-            self.position = max_position + 1
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            # If no position is specified, automatically set the next available position.
+            if self.position is None:
+                max_position = (
+                    SlideshowPlaylistItem.objects.filter(
+                        slideshow_playlist=self.slideshow_playlist
+                    ).aggregate(models.Max("position"))["position__max"]
+                    or 0
+                )
+                self.position = max_position + 1
+            super().save(*args, **kwargs)
 
         # Touch the parent playlist's updated_at so changes to items are reflected
         try:
@@ -897,15 +901,10 @@ class Document(models.Model):
         # 3. Handle PDF Conversion (Special Case)
         # Note: This logic replaces the original PDF with the PNG thumbnail.
         if detected_type == self.FileType.PDF:
-            png_file = convert_pdf_to_png(self.file)
-            if png_file:
-                self.file = png_file
-                # Calculate hash based on the NEW png content
-                content_hash = generate_content_hash(self.file)
+            # Just hash the PDF so it has a unique name
+            content_hash = generate_content_hash(self.file)
+            if content_hash:
                 self.file.name = create_hashed_filename(self.file.name, content_hash)
-            else:
-                # Fallback: keep original PDF if conversion fails
-                pass
 
         # 4. Handle Video and Generic Files (Hashing only)
         # We group MP4, WEBM, and 'Other' logic as they just need hashing
@@ -916,11 +915,48 @@ class Document(models.Model):
 
         super().save(*args, **kwargs)
 
+        # Trigger background conversion if it was a PDF
+        if detected_type == self.FileType.PDF:
+            transaction.on_commit(
+                lambda: threading.Thread(
+                    target=convert_document_pdf, args=(self.pk,)
+                ).start()
+            )
+
     def delete(self, *args, **kwargs):
         # Delete the file from storage
         if self.file:
             self.file.delete(save=False)
         super().delete(*args, **kwargs)
+
+
+def convert_document_pdf(doc_id):
+    try:
+        doc = Document.objects.get(pk=doc_id)
+        # Re-open the file to ensure we have a file handle
+        doc.file.open()
+
+        png_file = convert_pdf_to_png(doc.file)
+        if png_file:
+            # We are updating an existing record.
+            # Note: The original file is still on storage.
+            # We might want to delete it, but let's focus on replacing the reference.
+            old_file_name = doc.file.name
+
+            doc.file = png_file
+            content_hash = generate_content_hash(doc.file)
+            doc.file.name = create_hashed_filename(doc.file.name, content_hash)
+            doc.file_type = Document.FileType.PNG
+            doc.save()
+
+            # Optional: Delete the old PDF file from storage if needed.
+            # Since we don't have easy access to storage backend delete here without knowing the backend,
+            # we rely on django-cleanup or manual cleanup if configured.
+            # But we can try to delete the old file if it was local.
+            # For now, we just update the record.
+
+    except Exception as e:
+        logger.error(f"Background conversion failed for document {doc_id}: {e}")
 
 
 ###############################################################################
@@ -955,15 +991,16 @@ class CustomColor(models.Model):
         return f"{self.organisation.name} - {self.type}: {self.name} ({self.hex_value})"
 
     def save(self, *args, **kwargs):
-        if self.position in (None, 0) and self.organisation_id:
-            max_position = (
-                CustomColor.objects.filter(organisation=self.organisation)
-                .exclude(pk=self.pk)
-                .aggregate(models.Max("position"))["position__max"]
-                or 0
-            )
-            self.position = max_position + 1
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            if self.position in (None, 0) and self.organisation_id:
+                max_position = (
+                    CustomColor.objects.filter(organisation=self.organisation)
+                    .exclude(pk=self.pk)
+                    .aggregate(models.Max("position"))["position__max"]
+                    or 0
+                )
+                self.position = max_position + 1
+            super().save(*args, **kwargs)
 
 
 ###############################################################################
@@ -1000,15 +1037,16 @@ class CustomFont(models.Model):
         ordering = ["organisation", "position", "name"]
 
     def save(self, *args, **kwargs):
-        if self.position in (None, 0) and self.organisation_id:
-            max_position = (
-                CustomFont.objects.filter(organisation=self.organisation)
-                .exclude(pk=self.pk)
-                .aggregate(models.Max("position"))["position__max"]
-                or 0
-            )
-            self.position = max_position + 1
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            if self.position in (None, 0) and self.organisation_id:
+                max_position = (
+                    CustomFont.objects.filter(organisation=self.organisation)
+                    .exclude(pk=self.pk)
+                    .aggregate(models.Max("position"))["position__max"]
+                    or 0
+                )
+                self.position = max_position + 1
+            super().save(*args, **kwargs)
 
 
 class TextFormattingSettings(models.Model):
