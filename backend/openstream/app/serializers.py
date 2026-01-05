@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from app.utils import make_aware_if_needed
 from app.models import (
     # Organisation & membership
     Organisation,
@@ -62,13 +63,6 @@ def has_sufficient_roles(
         # raise PermissionDenied("You are not allowed to create tags.")
         return False
     return True
-
-
-def make_aware_if_needed(dt):
-    """Make a datetime object timezone-aware if it's naive."""
-    if timezone.is_naive(dt):
-        return timezone.make_aware(dt, timezone.get_current_timezone())
-    return dt
 
 
 ###############################################################################

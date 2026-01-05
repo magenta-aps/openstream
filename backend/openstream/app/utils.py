@@ -4,6 +4,14 @@ import logging
 import fitz  # PyMuPDF
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils import timezone
+
+
+def make_aware_if_needed(dt):
+    """Make a datetime object timezone-aware if it's naive."""
+    if timezone.is_naive(dt):
+        return timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
 
 
 def calculate_aspect_ratio(width, height):

@@ -3,11 +3,7 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.apps import apps
-
-def make_aware_if_needed(dt):
-    if timezone.is_naive(dt):
-        return timezone.make_aware(dt, timezone.get_current_timezone())
-    return dt
+from .utils import make_aware_if_needed
 
 def _check_overlap(start1, end1, start2, end2):
     """Check if two time ranges overlap."""
@@ -81,6 +77,9 @@ def validate_scheduled_content(
     else:
         # We are not an override, conflict only with recurring OVERRIDES
         relevant_recurring = relevant_recurring.filter(combine_with_default=False)
+
+    # Force evaluation to a list to avoid repeated DB hits
+    relevant_recurring = list(relevant_recurring)
 
     # Now iterate through the relevant recurring events and check for precise overlap
     # Since start_time and end_time can span multiple days, we iterate through the days of the scheduled content
