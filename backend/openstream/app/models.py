@@ -1134,26 +1134,27 @@ class RegisteredSlideTypes(models.Model):
     the frontend slide type system.
     """
 
-    SLIDE_TYPE_CHOICES = [
-        (1, "DDB Events API"),
-        (3, "Newsfeed with Image"),
-        (4, "Dreambroker"),
-        (5, "Newsticker"),
-        (6, "Speed Admin"),
-        (7, "Clock"),
-        (8, "DR Streams"),
-        (9, "KMD Foreningsportalen"),
-        (10, "Frontdesk LTK Borgerservice"),
-        (11, "WinKAS"),
-    ]
+    class SlideType(models.IntegerChoices):
+        DDB_EVENTS_API = 1, "DDB Events API"
+        NEWSFEED_IMAGE = 3, "Newsfeed with Image"
+        DREAMBROKER = 4, "Dreambroker"
+        NEWSTICKER = 5, "Newsticker"
+        SPEED_ADMIN = 6, "Speed Admin"
+        CLOCK = 7, "Clock"
+        DR_STREAMS = 8, "DR Streams"
+        KMD_FORENING = 9, "KMD Foreningsportalen"
+        FRONTDESK = 10, "Frontdesk LTK Borgerservice"
+        WINKAS = 11, "WinKAS"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="registered_slide_types"
     )
+
     slide_type_id = models.IntegerField(
-        choices=SLIDE_TYPE_CHOICES,
+        choices=SlideType.choices,
         help_text="Slide type that matches the frontend slide type system",
     )
+    
     name = models.CharField(
         blank=True,
         null=True,
