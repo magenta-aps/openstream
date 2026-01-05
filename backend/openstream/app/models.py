@@ -2,17 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 import os
 import uuid
-import tempfile
-import subprocess
 import logging
-from io import BytesIO
-import hashlib
 
-import fitz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MinLengthValidator, MinValueValidator
