@@ -51,13 +51,15 @@ async function fetchCustomColors() {
       const defaultColors = baseColors.filter((color) => color.id < 0);
 
       // Map the fetched data to include name, hexValue, and type.
-      const customColors = colors.map((color) => ({
-        id: color.id,
-        name: color.name,
-        hexValue: color.hexValue,
-        type: color.type,
-        position: typeof color.position === "number" ? color.position : null,
-      }));
+      const customColors = colors
+        .map((color) => ({
+          id: color.id,
+          name: color.name,
+          hexValue: color.hex_value ?? color.hexValue ?? null,
+          type: color.type,
+          position: typeof color.position === "number" ? color.position : null,
+        }))
+        .filter((color) => Boolean(color.hexValue));
 
       customColors.sort((a, b) => {
         const posA =

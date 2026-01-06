@@ -567,15 +567,21 @@ class CanAccessBranch(BasePermission):
 
         # Check for pk if this is a detail view on Branch
         pk = view.kwargs.get("pk")
-        if pk and hasattr(view, "get_object"):
-            try:
-                obj = view.get_object()
+        if pk:
+            if hasattr(view, "get_object"):
+                try:
+                    obj = view.get_object()
+                except Exception:
+                    obj = None
                 if isinstance(obj, Branch):
                     return obj
                 if hasattr(obj, "branch"):
                     return obj.branch
-            except Exception:
-                pass
+
+            try:
+                return Branch.objects.get(id=pk)
+            except Branch.DoesNotExist:
+                return None
 
         return None
 
