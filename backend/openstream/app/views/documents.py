@@ -36,14 +36,9 @@ from app.permissions import (
 class DocumentListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    @handle_branch_request
+    def post(self, request, branch):
         # Returns a filtered and paginated list of media files
-        try:
-            # Use the passed branch ID to check permissions.
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
         # Get the organisation from the branch.
         organisation = branch.suborganisation.organisation
 
@@ -221,14 +216,11 @@ class DocumentAPIView(APIView):
             message = str(e)
             return Response({"message": message}, status=400)
 
-    def put(self, request, document_id):
+    @handle_branch_request
+    def patch(self, request, branch, document_id):
         """
         Update an existing document.
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
         doc = get_object_or_404(Document, id=document_id, branch=branch)
 
         title = request.data.get("title")
@@ -274,11 +266,8 @@ class DocumentAPIView(APIView):
             message = str(e)
             return Response({"message": message}, status=400)
 
-    def delete(self, request, document_id):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
+    @handle_branch_request
+    def delete(self, request, branch, document_id):
         doc = get_object_or_404(Document, id=document_id, branch=branch)
         doc.delete()
         return Response({"message": "Document deleted"}, status=204)

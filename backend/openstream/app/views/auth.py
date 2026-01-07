@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 from app.permissions import (
     get_branch_from_request,
+    handle_branch_request,
     CanManageBranchAPIKey,
 )
 
@@ -330,12 +331,8 @@ OpenStream Team
 class BranchAPIKeyView(APIView):
     permission_classes = [IsAuthenticated, CanManageBranchAPIKey]
 
-    def get(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
+    @handle_branch_request
+    def get(self, request, branch):
         # Permission already checked by CanManageBranchAPIKey
 
         # Access the API key directly via the branch's one-to-one relation

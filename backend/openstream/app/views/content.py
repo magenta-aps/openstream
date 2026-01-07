@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: AGPL-3.0-only
 import logging
 from django.core.paginator import Paginator
 from django.contrib.admin.models import LogEntry
@@ -260,12 +262,8 @@ class LatestEditedSlideshowsAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def get(self, request, branch):
         try:
             page = int(request.query_params.get("page", 1))
         except ValueError:
@@ -334,12 +332,8 @@ class LatestEditedPlaylistsAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
-
+    @handle_branch_request
+    def get(self, request, branch):
         try:
             page = int(request.query_params.get("page", 1))
         except ValueError:
@@ -420,13 +414,14 @@ class WayfindingCRUDView(APIView):
                     {"detail": "API key not valid for this branch."},
                     status=403,
                 )
+            context = {"include_wayfinding_data": include_data}
         else:
             try:
                 branch = get_branch_from_request(request)
             except ValueError as e:
                 return Response({"detail": str(e)}, status=403)
 
-        context = {"include_wayfinding_data": include_data}
+            context = {"include_wayfinding_data": include_data}
 
         if wayfinding_id:
             wayfinding = get_object_or_404(Wayfinding, pk=wayfinding_id, branch=branch)
@@ -460,17 +455,13 @@ class WayfindingCRUDView(APIView):
             return Response(WayfindingSerializer(updated).data)
         return Response(serializer.errors, status=400)
 
-    def delete(self, request, pk):
+    @handle_branch_request
+    def delete(self, request, branch, pk):
         # Only authenticated users (not API keys) can delete
         if hasattr(request, "api_key_obj"):
             return Response(
                 {"detail": "API keys cannot delete wayfinding."}, status=403
             )
-
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=403)
 
         wayfinding = get_object_or_404(Wayfinding, pk=pk, branch=branch)
         wayfinding.delete()

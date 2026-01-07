@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 from app.permissions import (
     get_branch_from_request,
+    handle_branch_request,
     user_is_super_admin,
     user_is_admin_in_org,
     get_organisation_from_identifier,
@@ -130,10 +131,12 @@ class CategoryAPIView(APIView):
             )
 
         data = request.data.copy()
+        # Replace string organisation_id with integer PK for serializer
+        data["organisation_id"] = organisation.id
         serializer = CategorySerializer(data=data)
         if serializer.is_valid():
-            # Assign the category to the specified organization
-            new_category = serializer.save(organisation=organisation)
+            # Organisation will be set via the serializer's organisation_id field
+            new_category = serializer.save()
             return Response(CategorySerializer(new_category).data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -167,6 +170,8 @@ class CategoryAPIView(APIView):
 
         category = get_object_or_404(Category, pk=pk, organisation=organisation)
         data = request.data.copy()
+        # Replace string organisation_id with integer PK for serializer
+        data["organisation_id"] = organisation.id
         # Prevent changing the organisation
         if "organisation" in data and data["organisation"] != category.organisation.id:
             return Response(
@@ -209,6 +214,8 @@ class CategoryAPIView(APIView):
 
         category = get_object_or_404(Category, pk=pk, organisation=organisation)
         data = request.data.copy()
+        # Replace string organisation_id with integer PK for serializer
+        data["organisation_id"] = organisation.id
         # Prevent changing the organisation
         if "organisation" in data and data["organisation"] != category.organisation.id:
             return Response(
@@ -325,10 +332,12 @@ class TagListCreateAPIView(APIView):
             )
 
         data = request.data.copy()
+        # Replace string organisation_id with integer PK for serializer
+        data["organisation_id"] = organisation.id
         serializer = TagSerializer(data=data)
         if serializer.is_valid():
-            # Assign the tag to the specified organization
-            new_tag = serializer.save(organisation=organisation)
+            # Organisation will be set via the serializer's organisation_id field
+            new_tag = serializer.save()
             return Response(TagSerializer(new_tag).data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -401,7 +410,10 @@ class TagDetailAPIView(APIView):
             )
 
         tag = get_object_or_404(Tag, pk=pk, organisation=organisation)
-        serializer = TagSerializer(tag, data=request.data, partial=True)
+        data = request.data.copy()
+        # Replace string organisation_id with integer PK for serializer
+        data["organisation_id"] = organisation.id
+        serializer = TagSerializer(tag, data=data, partial=True)
         if serializer.is_valid():
             updated_tag = serializer.save()
             return Response(TagSerializer(updated_tag).data, status=200)
@@ -487,16 +499,12 @@ class TagListAPIView(APIView):
 class BranchURLCollectionItemAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
+    @handle_branch_request
+    def get(self, request, branch, pk=None):
         """
         GET without pk: Returns list of URL collection items for the authenticated branch.
         GET with pk: Returns a specific URL collection item.
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
         if pk:
             item = get_object_or_404(BranchURLCollectionItem, pk=pk, branch=branch)
             serializer = BranchURLCollectionItemSerializer(item)
@@ -505,15 +513,11 @@ class BranchURLCollectionItemAPIView(APIView):
             serializer = BranchURLCollectionItemSerializer(items, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    @handle_branch_request
+    def post(self, request, branch):
         """
         Create a new BranchURLCollectionItem for the authenticated branch.
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
         # Clone the request data so we can set the branch explicitly
         data = request.data.copy()
         serializer = BranchURLCollectionItemSerializer(data=data)
@@ -526,15 +530,11 @@ class BranchURLCollectionItemAPIView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, pk):
+    @handle_branch_request
+    def patch(self, request, branch, pk):
         """
         Partially update an existing BranchURLCollectionItem.
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
         item = get_object_or_404(BranchURLCollectionItem, pk=pk, branch=branch)
         serializer = BranchURLCollectionItemSerializer(
             item, data=request.data, partial=True
@@ -547,15 +547,12 @@ class BranchURLCollectionItemAPIView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+    @handle_branch_request
+    def delete(self, request, branch, pk):
         """
-        Delete an existing BranchURLCollectionItem.
+                Delete an existing BOg han arbejde videre på noget i går med det så tror Heini selv arbejder på at få sat det op nu, når han laver OpenStream opgaver altså
+        ranchURLCollectionItem.
         """
-        try:
-            branch = get_branch_from_request(request)
-        except ValueError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
         item = get_object_or_404(BranchURLCollectionItem, pk=pk, branch=branch)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
