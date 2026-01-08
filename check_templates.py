@@ -5,12 +5,15 @@ import os
 import django
 import sys
 
-sys.path.append('/home/louis/openstreamadminsite/backend')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+sys.path.append("/home/louis/openstreamadminsite/backend")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 django.setup()
 
 from openstream.app.models import SlideTemplate, GlobalSlideTemplate
-from openstream.app.serializers import SlideTemplateSerializer, GlobalSlideTemplateSerializer
+from openstream.app.serializers import (
+    SlideTemplateSerializer,
+    GlobalSlideTemplateSerializer,
+)
 import json
 
 print("Checking SlideTemplates...")
@@ -21,12 +24,14 @@ if templates.exists():
     t = templates.first()
     print(f"First template: {t.name}")
     print(f"slide_data keys: {t.slide_data.keys() if t.slide_data else 'None'}")
-    
+
     serializer = SlideTemplateSerializer(t)
     print("Serialized data keys:")
     print(serializer.data.keys())
-    if 'slide_data' in serializer.data:
-        print(f"Serialized slide_data keys: {serializer.data['slide_data'].keys() if serializer.data['slide_data'] else 'None'}")
+    if "slide_data" in serializer.data:
+        print(
+            f"Serialized slide_data keys: {serializer.data['slide_data'].keys() if serializer.data['slide_data'] else 'None'}"
+        )
     else:
         print("slide_data NOT in serialized data")
 
@@ -38,7 +43,7 @@ if global_templates.exists():
     t = global_templates.first()
     print(f"First global template: {t.name}")
     print(f"slide_data keys: {t.slide_data.keys() if t.slide_data else 'None'}")
-    
+
     serializer = GlobalSlideTemplateSerializer(t)
     print("Serialized data keys:")
     print(serializer.data.keys())

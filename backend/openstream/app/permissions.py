@@ -24,6 +24,16 @@ def user_is_org_admin(user):
     return OrganisationMembership.objects.filter(user=user, role="org_admin").exists()
 
 
+def has_sufficient_roles(user, roles=None):
+    """Return True if the user's primary membership matches any role in roles."""
+
+    if roles is None:
+        roles = ["org_admin", "suborg_admin"]
+
+    membership = OrganisationMembership.objects.filter(user=user).first()
+    return bool(membership and membership.role in roles)
+
+
 def user_is_org_admin_or_super_admin(user):
     """Check if user is either org_admin or super_admin"""
     return OrganisationMembership.objects.filter(

@@ -21,7 +21,7 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 ###############################################################################
-# Organisations and Memberships
+# Users
 ###############################################################################
 
 
@@ -44,6 +44,11 @@ class UserExtended(models.Model):
                 self.language_preference = language_preference
 
             self.save()
+
+
+###############################################################################
+# Organisation
+###############################################################################
 
 
 class Organisation(models.Model):
@@ -77,37 +82,6 @@ class Organisation(models.Model):
         self.uri_name = self._generate_unique_uri_name(desired_slug)
 
         super().save(*args, **kwargs)
-
-
-class OrganisationAPIAccess(models.Model):
-    # Modern TextChoices enum
-    class ApiService(models.TextChoices):
-        WINKAS = "winkas", "WinKAS"
-        KMD = "kmd", "KMD"
-        SPEEDADMIN = "speedadmin", "SpeedAdmin"
-
-    organisation = models.ForeignKey(
-        Organisation, on_delete=models.CASCADE, related_name="api_access"
-    )
-    api_name = models.CharField(
-        max_length=20,
-        choices=ApiService.choices,  # Use the class here
-        help_text="The external API this organisation has access to",
-    )
-    is_active = models.BooleanField(
-        default=True, help_text="Whether this API access is currently active"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ("organisation", "api_name")
-        verbose_name = "Organisation API Access"
-        verbose_name_plural = "Organisation API Access"
-
-    def __str__(self):
-        status = "Active" if self.is_active else "Inactive"
-        return f"{self.organisation.name} - {self.get_api_name_display()} ({status})"
 
 
 class SubOrganisation(models.Model):
@@ -253,7 +227,7 @@ class OrganisationMembership(models.Model):
 
 
 ###############################################################################
-# Category & Tag Models
+# Content
 ###############################################################################
 
 
@@ -277,17 +251,6 @@ class Category(models.Model):
                 name="unique_category_name_per_organisation",
             )
         ]
-
-
-class DocumentCategory(models.Model):
-    """
-    Much like Category, but reserved for documents
-    """
-
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
 
 
 class Tag(models.Model):
@@ -388,30 +351,79 @@ class Slideshow(models.Model):
         return calculate_aspect_ratio(self.preview_width, self.preview_height)
 
 
-###############################################################################
-# Wayfinding
-###############################################################################
-
-
-class Wayfinding(models.Model):
-    name = models.CharField(max_length=255)
-
-    branch = models.ForeignKey(
-        Branch,
+class SlideTemplate(models.Model):
+    organisation = models.ForeignKey(
+        Organisation, on_delete=models.CASCADE, related_name="slide_templates"
+    )
+    suborganisation = models.ForeignKey(
+        SubOrganisation,
         on_delete=models.CASCADE,
-        related_name="wayfinding_systems",
+        related_name="slide_templates",
         null=True,
         blank=True,
+        help_text="If set, this template is only available to branches in this suborganisation",
     )
-    created_by = models.ForeignKey(
-        User,
+    parent_template = models.ForeignKey(
+        "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="wayfinding_created",
+        related_name="suborg_copies",
+        help_text="If this is a suborg template, reference to the global template it was created from",
     )
-    wayfinding_data = models.JSONField(default=dict, blank=True, null=True)
-    # Track when this wayfinding system was last edited (auto-updated on save)
+
+    name = models.CharField(max_length=255)
+    slide_data = models.JSONField(default=dict, blank=True, null=True)
+    is_legacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="slide_templates",
+    )
+    tags = models.ManyToManyField(Tag, blank=True, related_name="slide_templates")
+
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
+    )
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class GlobalSlideTemplate(models.Model):
+    """Org-less template managed centrally by the application team."""
+
+    name = models.CharField(max_length=255)
+    slide_data = models.JSONField(default=dict, blank=True, null=True)
+    thumbnail_url = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Base64 encoded data URL representing the template thumbnail",
+    )
+    preview_width = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    preview_height = models.IntegerField(
+        validators=[MinValueValidator(1)], default=1080
+    )
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
+    )
+    is_legacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -551,8 +563,36 @@ class SlideshowPlaylistItem(AspectRatioValidatorMixin, models.Model):
 
 
 ###############################################################################
-# Display Website / Scheduled Content
+# Screens
 ###############################################################################
+
+
+class Wayfinding(models.Model):
+    name = models.CharField(max_length=255)
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="wayfinding_systems",
+        null=True,
+        blank=True,
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="wayfinding_created",
+    )
+    wayfinding_data = models.JSONField(default=dict, blank=True, null=True)
+    # Track when this wayfinding system was last edited (auto-updated on save)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
 class DisplayWebsiteGroup(AspectRatioValidatorMixin, models.Model):
@@ -685,6 +725,11 @@ class DisplayWebsite(AspectRatioValidatorMixin, models.Model):
 
     def __str__(self):
         return self.name
+
+
+###############################################################################
+# Scheduling
+###############################################################################
 
 
 class ContentValidationMixin:
@@ -859,8 +904,17 @@ class RecurringScheduledContent(ContentValidationMixin, models.Model):
 
 
 ###############################################################################
-# Document Model
+# Documents
 ###############################################################################
+
+
+class DocumentCategory(models.Model):
+    """Document-specific category that mirrors frontend documents view."""
+
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Document(models.Model):
@@ -976,7 +1030,7 @@ class Document(models.Model):
 
 
 ###############################################################################
-# Custom Colors
+# Assets
 ###############################################################################
 
 
@@ -1021,11 +1075,6 @@ class CustomColor(models.Model):
                 )
                 self.position = max_position + 1
             super().save(*args, **kwargs)
-
-
-###############################################################################
-# Custom Fonts
-###############################################################################
 
 
 class CustomFont(models.Model):
@@ -1089,7 +1138,7 @@ class TextFormattingSettings(models.Model):
 
 
 ###############################################################################
-# API Keys
+# Auth
 ###############################################################################
 
 
@@ -1108,86 +1157,39 @@ class SlideshowPlayerAPIKey(models.Model):
         return f"{self.branch} - {self.key}"
 
 
-class SlideTemplate(models.Model):
+###############################################################################
+# Integrations
+###############################################################################
+
+
+class OrganisationAPIAccess(models.Model):
+    class ApiService(models.TextChoices):
+        WINKAS = "winkas", "WinKAS"
+        KMD = "kmd", "KMD"
+        SPEEDADMIN = "speedadmin", "SpeedAdmin"
+
     organisation = models.ForeignKey(
-        Organisation, on_delete=models.CASCADE, related_name="slide_templates"
+        Organisation, on_delete=models.CASCADE, related_name="api_access"
     )
-    suborganisation = models.ForeignKey(
-        SubOrganisation,
-        on_delete=models.CASCADE,
-        related_name="slide_templates",
-        null=True,
-        blank=True,
-        help_text="If set, this template is only available to branches in this suborganisation",
+    api_name = models.CharField(
+        max_length=20,
+        choices=ApiService.choices,
+        help_text="The external API this organisation has access to",
     )
-    parent_template = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="suborg_copies",
-        help_text="If this is a suborg template, reference to the global template it was created from",
-    )
-
-    name = models.CharField(max_length=255)
-    slide_data = models.JSONField(default=dict, blank=True, null=True)
-    is_legacy = models.BooleanField(
-        default=False,
-        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="slide_templates",
-    )
-    tags = models.ManyToManyField(Tag, blank=True, related_name="slide_templates")
-
-    aspect_ratio = models.CharField(
-        max_length=10,
-        default="16:9",
-        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
-    )
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-
-class GlobalSlideTemplate(models.Model):
-    """Org-less template managed centrally by the application team."""
-
-    name = models.CharField(max_length=255)
-    slide_data = models.JSONField(default=dict, blank=True, null=True)
-    thumbnail_url = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Base64 encoded data URL representing the template thumbnail",
-    )
-    preview_width = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
-    preview_height = models.IntegerField(
-        validators=[MinValueValidator(1)], default=1080
-    )
-    aspect_ratio = models.CharField(
-        max_length=10,
-        default="16:9",
-        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
-    )
-    is_legacy = models.BooleanField(
-        default=False,
-        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    is_active = models.BooleanField(
+        default=True, help_text="Whether this API access is currently active"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]
+        unique_together = ("organisation", "api_name")
+        verbose_name = "Organisation API Access"
+        verbose_name_plural = "Organisation API Access"
 
     def __str__(self):
-        return self.name
+        status = "Active" if self.is_active else "Inactive"
+        return f"{self.organisation.name} - {self.get_api_name_display()} ({status})"
 
 
 class RegisteredSlideTypes(models.Model):
