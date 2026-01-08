@@ -59,96 +59,106 @@ export function loadSlide(
   targetContainer = ".preview-slide",
   completeReload = false,
   forceCompleteReload = false,
+  options = {},
 ) {
+  const isPreviewMode = options.previewMode === true;
   // Save current snap settings to the slide we're switching FROM
   // Use lastSlideIndex if available, otherwise use currentSlideIndex
-  const previousSlideIndex = store.lastSlideIndex !== null && store.lastSlideIndex !== undefined 
-    ? store.lastSlideIndex 
-    : store.currentSlideIndex;
-    
-  if (previousSlideIndex > -1 && store.slides[previousSlideIndex]) {
-    const previousSlide = store.slides[previousSlideIndex];
-    if (store.dragSnapSettings) {
-      previousSlide.savedSnapSettings = {
-        unit: store.dragSnapSettings.unit,
-        amount: store.dragSnapSettings.amount,
-        isAuto: store.dragSnapSettings.isAuto || false,
-        snapEnabled: store.dragSnapSettings.snapEnabled !== false,
-        savedUnit: store.dragSnapSettings.savedUnit,
-        savedAmount: store.dragSnapSettings.savedAmount,
+  if (!isPreviewMode) {
+    const previousSlideIndex =
+      store.lastSlideIndex !== null && store.lastSlideIndex !== undefined
+        ? store.lastSlideIndex
+        : store.currentSlideIndex;
+
+    if (previousSlideIndex > -1 && store.slides[previousSlideIndex]) {
+      const previousSlide = store.slides[previousSlideIndex];
+      if (store.dragSnapSettings) {
+        previousSlide.savedSnapSettings = {
+          unit: store.dragSnapSettings.unit,
+          amount: store.dragSnapSettings.amount,
+          isAuto: store.dragSnapSettings.isAuto || false,
+          snapEnabled: store.dragSnapSettings.snapEnabled !== false,
+          savedUnit: store.dragSnapSettings.savedUnit,
+          savedAmount: store.dragSnapSettings.savedAmount,
+        };
+      }
+    }
+
+    syncGridToCurrentSlide(slide);
+
+    // Restore snap settings from the slide being loaded
+    const defaultSnapSettings = getDefaultSnapSettings(
+      store.emulatedWidth,
+      store.emulatedHeight,
+    );
+
+    let appliedSnapSettings = defaultSnapSettings;
+
+    if (slide && slide.savedSnapSettings) {
+      appliedSnapSettings = {
+        ...slide.savedSnapSettings,
+        appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
+        snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
+        savedUnit: slide.savedSnapSettings.savedUnit,
+        savedAmount: slide.savedSnapSettings.savedAmount,
+      };
+    } else if (store.dragSnapSettings?.snapEnabled === false) {
+      appliedSnapSettings = {
+        ...defaultSnapSettings,
+        snapEnabled: false,
+        savedUnit: store.dragSnapSettings.savedUnit || defaultSnapSettings.unit,
+        savedAmount:
+          store.dragSnapSettings.savedAmount || defaultSnapSettings.amount,
       };
     }
+
+    store.dragSnapSettings = appliedSnapSettings;
+    updateSnapControlsUI();
   }
-
-  syncGridToCurrentSlide(slide);
-
-  // Restore snap settings from the slide being loaded
-  const defaultSnapSettings = getDefaultSnapSettings(
-    store.emulatedWidth,
-    store.emulatedHeight,
-  );
-
-  let appliedSnapSettings = defaultSnapSettings;
-
-  if (slide && slide.savedSnapSettings) {
-    appliedSnapSettings = {
-      ...slide.savedSnapSettings,
-      appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
-      snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
-      savedUnit: slide.savedSnapSettings.savedUnit,
-      savedAmount: slide.savedSnapSettings.savedAmount,
-    };
-  } else if (store.dragSnapSettings?.snapEnabled === false) {
-    appliedSnapSettings = {
-      ...defaultSnapSettings,
-      snapEnabled: false,
-      savedUnit: store.dragSnapSettings.savedUnit || defaultSnapSettings.unit,
-      savedAmount:
-        store.dragSnapSettings.savedAmount || defaultSnapSettings.amount,
-    };
-  }
-
-  store.dragSnapSettings = appliedSnapSettings;
-  updateSnapControlsUI();
   // Sanitize all slides to ensure unique IDs and correct indices
-  const slideIdSet = new Set();
-  const elementIdSet = new Set();
-  let maxSlideId = 0;
-  let maxElementId = 0;
+  if (!isPreviewMode) {
+    const slideIdSet = new Set();
+    const elementIdSet = new Set();
+    let maxSlideId = 0;
+    let maxElementId = 0;
 
-  store.slides.forEach((s) => {
-    if (s.id > maxSlideId) maxSlideId = s.id;
-    if (s.elements) {
-      s.elements.forEach((element) => {
-        if (element.id > maxElementId) maxElementId = element.id;
-      });
-    }
-  });
+    store.slides.forEach((s) => {
+      if (s.id > maxSlideId) maxSlideId = s.id;
+      if (s.elements) {
+        s.elements.forEach((element) => {
+          if (element.id > maxElementId) maxElementId = element.id;
+        });
+      }
+    });
 
-  store.slideIdCounter = Math.max(store.slideIdCounter || 1, maxSlideId + 1);
-  store.elementIdCounter = Math.max(
-    store.elementIdCounter || 1,
-    maxElementId + 1,
-  );
+    store.slideIdCounter = Math.max(
+      store.slideIdCounter || 1,
+      maxSlideId + 1,
+    );
+    store.elementIdCounter = Math.max(
+      store.elementIdCounter || 1,
+      maxElementId + 1,
+    );
 
-  store.slides.forEach((s, index) => {
-    // Sanitize slide ID
-    if (slideIdSet.has(s.id)) {
-      s.id = store.slideIdCounter++;
-    }
-    slideIdSet.add(s.id);
+    store.slides.forEach((s, index) => {
+      // Sanitize slide ID
+      if (slideIdSet.has(s.id)) {
+        s.id = store.slideIdCounter++;
+      }
+      slideIdSet.add(s.id);
 
-    // Sanitize element IDs and update originSlideIndex
-    if (s.elements) {
-      s.elements.forEach((element) => {
-        if (elementIdSet.has(element.id)) {
-          element.id = store.elementIdCounter++;
-        }
-        elementIdSet.add(element.id);
-        element.originSlideIndex = index;
-      });
-    }
-  });
+      // Sanitize element IDs and update originSlideIndex
+      if (s.elements) {
+        s.elements.forEach((element) => {
+          if (elementIdSet.has(element.id)) {
+            element.id = store.elementIdCounter++;
+          }
+          elementIdSet.add(element.id);
+          element.originSlideIndex = index;
+        });
+      }
+    });
+  }
 
   const noContentPlaceHolder = document.querySelector(
     ".no-content-placeholder",
@@ -335,48 +345,55 @@ export function loadSlide(
     slide.elements = [];
   }
 
+  const shouldRenderPersistentInline = isPreviewMode;
+
   slide.elements.forEach((el) => {
-    if (!el.isPersistent) {
-      _renderSlideElement(el, false, gridContainer);
+    if (el.isPersistent && !shouldRenderPersistentInline) {
+      return;
     }
+    _renderSlideElement(el, false, gridContainer);
   });
 
-  // Render persistent elements from all slides, plus unpinned elements on their origin slide
-  store.slides.forEach((s, slideIndex) => {
-    // Defensive check: ensure each slide has elements array
-    if (!s.elements) {
-      s.elements = [];
-    }
-    s.elements.forEach((el) => {
-      if (el.isPersistent) {
-        // Render persistent elements on all slides
-        _renderSlideElement(el, false, gridContainer);
-      } else if (
-        typeof el.originSlideIndex === "number" &&
-        el.originSlideIndex === store.currentSlideIndex &&
-        slideIndex !== store.currentSlideIndex
-      ) {
-        // Render unpinned elements only on their origin slide (when they're from other slides)
-        _renderSlideElement(el, false, gridContainer);
+  if (!isPreviewMode) {
+    // Render persistent elements from all slides, plus unpinned elements on their origin slide
+    store.slides.forEach((s, slideIndex) => {
+      // Defensive check: ensure each slide has elements array
+      if (!s.elements) {
+        s.elements = [];
       }
+      s.elements.forEach((el) => {
+        if (el.isPersistent) {
+          // Render persistent elements on all slides
+          _renderSlideElement(el, false, gridContainer);
+        } else if (
+          typeof el.originSlideIndex === "number" &&
+          el.originSlideIndex === store.currentSlideIndex &&
+          slideIndex !== store.currentSlideIndex
+        ) {
+          // Render unpinned elements only on their origin slide (when they're from other slides)
+          _renderSlideElement(el, false, gridContainer);
+        }
+      });
     });
-  });
-
-  store.lastSlideIndex = store.currentSlideIndex;
-
-  if (typeof document !== "undefined") {
-    document.dispatchEvent(
-      new CustomEvent("content-engine:active-slide-changed", {
-        detail: {
-          slideIndex: store.currentSlideIndex,
-          slideId: slide?.id ?? null,
-        },
-      }),
-    );
   }
 
-  // Add lock indicators to locked elements in template editor mode
-  addLockIndicatorsToElements();
+  if (!isPreviewMode) {
+    store.lastSlideIndex = store.currentSlideIndex;
+
+    if (typeof document !== "undefined") {
+      document.dispatchEvent(
+        new CustomEvent("content-engine:active-slide-changed", {
+          detail: {
+            slideIndex: store.currentSlideIndex,
+            slideId: slide?.id ?? null,
+          },
+        }),
+      );
+    }
+
+    // Add lock indicators to locked elements in template editor mode
+    addLockIndicatorsToElements();
+  }
 }
 
 export function renderPersistentElements() {

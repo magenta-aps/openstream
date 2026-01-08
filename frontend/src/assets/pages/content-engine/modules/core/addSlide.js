@@ -425,7 +425,9 @@ function loadUnifiedTemplatePreview(template) {
 
   // Load the slide content into the specific previewSlide div
   // Pass the unique ID selector as the target
-  loadSlide(template.slide_data, "#template-slide-preview", true); // Force complete reload for preview
+  loadSlide(template.slide_data, "#template-slide-preview", true, true, {
+    previewMode: true,
+  }); // Render in isolated preview mode
 
   // Scale the content based on the wrapper container
   scaleSlide(wrapper);
