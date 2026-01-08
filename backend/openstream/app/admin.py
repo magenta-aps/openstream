@@ -5,31 +5,35 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from app.models import (
+    UserExtended,
     Organisation,
-    OrganisationAPIAccess,
     SubOrganisation,
     Branch,
+    BranchURLCollectionItem,
     OrganisationMembership,
-    UserExtended,
     Category,
     Tag,
     Slideshow,
+    SlideTemplate,
+    GlobalSlideTemplate,
     SlideshowPlaylist,
     SlideshowPlaylistItem,
     Wayfinding,
-    DisplayWebsite,
     DisplayWebsiteGroup,
+    DisplayWebsite,
     ScheduledContent,
     RecurringScheduledContent,
     Document,
-    SlideTemplate,
-    GlobalSlideTemplate,
-    BranchURLCollectionItem,
     CustomColor,
     CustomFont,
     SlideshowPlayerAPIKey,
+    OrganisationAPIAccess,
     RegisteredSlideTypes,
 )
+
+###############################################################################
+# Users
+###############################################################################
 
 
 class UserExtendedInline(admin.StackedInline):
@@ -38,9 +42,12 @@ class UserExtendedInline(admin.StackedInline):
     verbose_name_plural = "User Extended"
 
 
-@admin.register(BranchURLCollectionItem)
-class BranchURLCollectionItemAdmin(admin.ModelAdmin):
-    list_display = ("branch", "url")
+class CustomUserAdmin(UserAdmin):
+    inlines = [UserExtendedInline]
+
+
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
 
 
 @admin.register(UserExtended)
@@ -48,50 +55,8 @@ class UserExtendedAdmin(admin.ModelAdmin):
     list_display = ("user", "language_preference")
 
 
-@admin.register(SlideTemplate)
-class SlideTemplateAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "organisation", "category")
-    list_filter = ("organisation", "category", "tags")
-    search_fields = ("name",)
-    filter_horizontal = ("tags",)
-
-
-@admin.register(GlobalSlideTemplate)
-class GlobalSlideTemplateAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "aspect_ratio", "is_legacy", "updated_at")
-    list_filter = ("aspect_ratio", "is_legacy")
-    search_fields = ("name",)
-
-
-# Extend the built-in UserAdmin to show the inline
-class CustomUserAdmin(UserAdmin):
-    inlines = [UserExtendedInline]
-
-
-# Unregister the default User admin and re-register with our custom admin
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
-
-
 ###############################################################################
-# Category & Tag Admin
-###############################################################################
-
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name")
-    search_fields = ("name",)
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("id", "name")
-    search_fields = ("name",)
-
-
-###############################################################################
-# Organisation / SubOrganisation / Branch
+# Organisation
 ###############################################################################
 
 
@@ -99,22 +64,6 @@ class TagAdmin(admin.ModelAdmin):
 class OrganisationAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
     search_fields = ("name",)
-
-
-@admin.register(OrganisationAPIAccess)
-class OrganisationAPIAccessAdmin(admin.ModelAdmin):
-    list_display = ("organisation", "api_name", "is_active", "created_at", "updated_at")
-    list_filter = ("api_name", "is_active", "created_at")
-    search_fields = ("organisation__name",)
-    readonly_fields = ("created_at", "updated_at")
-
-    fieldsets = (
-        (None, {"fields": ("organisation", "api_name", "is_active")}),
-        (
-            "Timestamps",
-            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
-        ),
-    )
 
 
 @admin.register(SubOrganisation)
@@ -131,6 +80,11 @@ class BranchAdmin(admin.ModelAdmin):
     list_filter = ("suborganisation",)
 
 
+@admin.register(BranchURLCollectionItem)
+class BranchURLCollectionItemAdmin(admin.ModelAdmin):
+    list_display = ("branch", "url")
+
+
 @admin.register(OrganisationMembership)
 class OrganisationMembershipAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "organisation", "suborganisation", "branch", "role")
@@ -139,7 +93,24 @@ class OrganisationMembershipAdmin(admin.ModelAdmin):
 
 
 ###############################################################################
-# Slideshow & Playlist
+# Content
+###############################################################################
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+    search_fields = ("name",)
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+    search_fields = ("name",)
+
+
+###############################################################################
+# Slideshow
 ###############################################################################
 
 
@@ -161,6 +132,26 @@ class SlideshowAdmin(admin.ModelAdmin):
     filter_horizontal = ("tags",)
 
 
+@admin.register(SlideTemplate)
+class SlideTemplateAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "organisation", "category")
+    list_filter = ("organisation", "category", "tags")
+    search_fields = ("name",)
+    filter_horizontal = ("tags",)
+
+
+@admin.register(GlobalSlideTemplate)
+class GlobalSlideTemplateAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "aspect_ratio", "is_legacy", "updated_at")
+    list_filter = ("aspect_ratio", "is_legacy")
+    search_fields = ("name",)
+
+
+###############################################################################
+# Playlist
+###############################################################################
+
+
 @admin.register(SlideshowPlaylist)
 class SlideshowPlaylistAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "branch", "created_by")
@@ -173,6 +164,11 @@ class SlideshowPlaylistItemAdmin(admin.ModelAdmin):
     list_display = ("id", "slideshow_playlist", "slideshow", "position")
     list_filter = ("slideshow_playlist",)
     search_fields = ("slideshow_playlist__name", "slideshow__name")
+
+
+###############################################################################
+# Screens
+###############################################################################
 
 
 @admin.register(Wayfinding)
@@ -188,9 +184,21 @@ class WayfindingAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
-###############################################################################
-# Display & Scheduling
-###############################################################################
+@admin.register(DisplayWebsiteGroup)
+class DisplayWebsiteGroupAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "branch", "default_content_display")
+    list_filter = ("branch",)
+    search_fields = ("name",)
+
+    def default_content_display(self, obj):
+        """Describe which default content is set."""
+        if obj.default_slideshow:
+            return f"Slideshow: {obj.default_slideshow.name}"
+        if obj.default_playlist:
+            return f"Playlist: {obj.default_playlist.name}"
+        return "None"
+
+    default_content_display.short_description = "Default Content"
 
 
 @admin.register(DisplayWebsite)
@@ -225,23 +233,9 @@ class DisplayWebsiteAdmin(admin.ModelAdmin):
     get_organisation.admin_order_field = "branch__suborganisation__organisation"
 
 
-@admin.register(DisplayWebsiteGroup)
-class DisplayWebsiteGroupAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "branch", "default_content_display")
-    list_filter = ("branch",)
-    search_fields = ("name",)
-
-    def default_content_display(self, obj):
-        """
-        Returns a string describing which default content is set.
-        """
-        if obj.default_slideshow:
-            return f"Slideshow: {obj.default_slideshow.name}"
-        elif obj.default_playlist:
-            return f"Playlist: {obj.default_playlist.name}"
-        return "None"
-
-    default_content_display.short_description = "Default Content"
+###############################################################################
+# Scheduling
+###############################################################################
 
 
 @admin.register(ScheduledContent)
@@ -257,12 +251,10 @@ class ScheduledContentAdmin(admin.ModelAdmin):
     search_fields = ("display_website_group__name",)
 
     def scheduled_content_display(self, obj):
-        """
-        Returns a string describing which scheduled content is set.
-        """
+        """Describe which scheduled content is set."""
         if obj.slideshow:
             return f"Slideshow: {obj.slideshow.name}"
-        elif obj.playlist:
+        if obj.playlist:
             return f"Playlist: {obj.playlist.name}"
         return "None"
 
@@ -285,12 +277,10 @@ class RecurringScheduledContentAdmin(admin.ModelAdmin):
     search_fields = ("display_website_group__name",)
 
     def recurring_content_display(self, obj):
-        """
-        Returns a string describing which recurring content is set.
-        """
+        """Describe which recurring content is set."""
         if obj.slideshow:
             return f"Slideshow: {obj.slideshow.name}"
-        elif obj.playlist:
+        if obj.playlist:
             return f"Playlist: {obj.playlist.name}"
         return "None"
 
@@ -315,7 +305,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
 
 ###############################################################################
-# Custom Colors Admin
+# Assets
 ###############################################################################
 
 
@@ -325,11 +315,6 @@ class CustomColorAdmin(admin.ModelAdmin):
     list_filter = ("organisation", "type")
     search_fields = ("name", "hex_value", "organisation__name")
     ordering = ("organisation", "type", "name")
-
-
-###############################################################################
-# Custom Fonts Admin
-###############################################################################
 
 
 @admin.register(CustomFont)
@@ -345,7 +330,7 @@ class CustomFontAdmin(admin.ModelAdmin):
 
 
 ###############################################################################
-# API Keys
+# Auth
 ###############################################################################
 
 
@@ -357,8 +342,24 @@ class SlideshowPlayerAPIKeyAdmin(admin.ModelAdmin):
 
 
 ###############################################################################
-# Registered Slide Types Admin
+# Integrations
 ###############################################################################
+
+
+@admin.register(OrganisationAPIAccess)
+class OrganisationAPIAccessAdmin(admin.ModelAdmin):
+    list_display = ("organisation", "api_name", "is_active", "created_at", "updated_at")
+    list_filter = ("api_name", "is_active", "created_at")
+    search_fields = ("organisation__name",)
+    readonly_fields = ("created_at", "updated_at")
+
+    fieldsets = (
+        (None, {"fields": ("organisation", "api_name", "is_active")}),
+        (
+            "Timestamps",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
 
 
 @admin.register(RegisteredSlideTypes)
@@ -378,7 +379,7 @@ class RegisteredSlideTypesAdmin(admin.ModelAdmin):
     fields = ("organisation", "slide_type_id")
 
     def get_slide_type_name(self, obj):
-        """Display the human-readable name of the slide type"""
+        """Display the human-readable name of the slide type."""
         return obj.get_slide_type_id_display()
 
     get_slide_type_name.short_description = "Slide Type Name"
