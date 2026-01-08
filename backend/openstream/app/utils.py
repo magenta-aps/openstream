@@ -13,6 +13,9 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone
 
 
+logger = logging.getLogger(__name__)
+
+
 def make_aware_if_needed(dt):
     """Make a datetime object timezone-aware if it's naive."""
     if timezone.is_naive(dt):
@@ -57,9 +60,6 @@ def calculate_aspect_ratio(width, height):
 
     # For uncommon ratios, return the simplified form
     return f"{simplified_width}:{simplified_height}"
-
-
-logger = logging.getLogger(__name__)
 
 
 def generate_content_hash(file_obj, chunk_size=8192):
