@@ -10,9 +10,7 @@ from django.contrib.auth.models import User
 from .models import (
     Branch,
     SlideshowPlayerAPIKey,
-    Slideshow,
     SlideshowPlaylist,
-    SlideshowPlaylistItem,
     UserExtended,
     Document,
 )

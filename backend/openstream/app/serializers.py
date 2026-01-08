@@ -8,9 +8,6 @@ import binascii
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
-from django.utils import timezone
-from datetime import datetime, timedelta
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 

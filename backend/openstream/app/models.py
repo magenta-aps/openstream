@@ -3,9 +3,7 @@
 import os
 import uuid
 import logging
-import threading
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, MinValueValidator
@@ -15,7 +13,6 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utils import (
-    convert_pdf_to_png,
     generate_content_hash,
     calculate_aspect_ratio,
     create_hashed_filename,

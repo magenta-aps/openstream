@@ -24,7 +24,6 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 from app.permissions import (
-    get_branch_from_request,
     handle_branch_request,
     CanManageBranchAPIKey,
 )

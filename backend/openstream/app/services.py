@@ -1,10 +1,9 @@
 ## SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 ## SPDX-License-Identifier: AGPL-3.0-only
 
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.apps import apps
 from django.core.cache import cache
 from django.conf import settings
@@ -12,7 +11,6 @@ from rest_framework import status
 import json
 import requests
 import logging
-import time
 import re
 import pandas as pd
 import pytz
@@ -23,7 +21,6 @@ from .utils import (
     make_aware_if_needed,
     _normalize_text,
     CacheHandler,
-    update_if_minutes_elapsed,
 )
 
 logger = logging.getLogger(__name__)
