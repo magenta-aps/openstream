@@ -321,8 +321,22 @@ function sortAndRenderTemplates() {
         aVal = (a.category ? a.category.name : "").toLowerCase();
         bVal = (b.category ? b.category.name : "").toLowerCase();
       } else if (currentSort.column === "tags") {
-        aVal = a.tags ? a.tags.join(", ").toLowerCase() : "";
-        bVal = b.tags ? b.tags.join(", ").toLowerCase() : "";
+        const normalizeTags = (template) => {
+          if (!Array.isArray(template.tags)) {
+            return "";
+          }
+          return template.tags
+            .map((tag) => {
+              if (typeof tag === "string") {
+                return tag;
+              }
+              return tag?.name || "";
+            })
+            .filter(Boolean)
+            .join(", ");
+        };
+        aVal = normalizeTags(a).toLowerCase();
+        bVal = normalizeTags(b).toLowerCase();
       }
       if (aVal < bVal) return currentSort.order === "asc" ? -1 : 1;
       if (aVal > bVal) return currentSort.order === "asc" ? 1 : -1;

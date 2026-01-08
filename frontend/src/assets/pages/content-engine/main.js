@@ -202,9 +202,12 @@ if (queryParams.mode === "template_editor") {
   makeActiveInNav(templateNavHref);
   const navbar = document.getElementById("navbar");
 
-  document
-    .getElementById("settings-and-play-btn-container")
-    .classList.add("d-none");
+  const settingsAndPlayContainer = document.getElementById(
+    "settings-and-play-btn-container",
+  );
+  if (settingsAndPlayContainer) {
+    settingsAndPlayContainer.classList.add("d-none");
+  }
 
   if (navbar) {
     navbar.style.display = "block";
@@ -312,7 +315,12 @@ if (queryParams.mode === "template_editor") {
 if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
   disableAspectRatioControls();
-  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+  const settingsAndPlayBtnContainer = document.getElementById(
+    "settings-and-play-btn-container",
+  );
+  if (settingsAndPlayBtnContainer) {
+    settingsAndPlayBtnContainer.classList.add("d-none");
+  }
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";

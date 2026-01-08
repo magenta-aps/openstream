@@ -527,8 +527,14 @@ export function initSlideshowPlayerMode() {
   // Emulated size becomes full window
   store.emulatedWidth = window.innerWidth;
   store.emulatedHeight = window.innerHeight;
-  document.querySelector(".preview-container").style.background = "unset";
-  document.querySelector(".slide-right-sidebar").classList.add("d-none")
+  const previewContainer = document.querySelector(".preview-container");
+  if (previewContainer) {
+    previewContainer.style.background = "unset";
+  }
+  const slideRightSidebar = document.querySelector(".slide-right-sidebar");
+  if (slideRightSidebar) {
+    slideRightSidebar.classList.add("d-none");
+  }
   _startSlideshowPlayer();
 }
 
