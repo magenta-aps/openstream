@@ -25,6 +25,9 @@ export function initDeleteElement() {
         return;
       }
 
+      e.preventDefault();
+      e.stopPropagation();
+
       if (deleteLock) {
         return;
       }

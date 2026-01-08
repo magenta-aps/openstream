@@ -14,6 +14,38 @@ class VideoCacheManager {
     this.fetchPromises = new Map(); // videoId -> Promise (to avoid duplicate fetches)
   }
 
+  _buildAuthHeaders() {
+    const headers = { "Content-Type": "application/json" };
+    if (queryParams.apiKey) {
+      headers["X-API-KEY"] = queryParams.apiKey;
+    } else if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  async fetchTokenizedFileUrl(videoId) {
+    const headers = this._buildAuthHeaders();
+    const response = await fetch(
+      `${BASE_URL}/api/documents/file-token/${videoId}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
+      {
+        method: "GET",
+        headers,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get video token: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.file_url) {
+      throw new Error("No file URL in token response");
+    }
+
+    return data.file_url;
+  }
+
   // Get video URL, either from cache or fetch it
   async getVideoUrl(videoId) {
     // Return cached blob URL if available
@@ -43,34 +75,10 @@ class VideoCacheManager {
   // Fetch video and create blob URL
   async fetchAndCacheVideo(videoId) {
     try {
-      // First get the tokenized URL
-      const apiKey = queryParams.apiKey;
-      const headers = { "Content-Type": "application/json" };
-      if (apiKey) {
-        headers["X-API-KEY"] = apiKey;
-      } else if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const tokenResponse = await fetch(
-        `${BASE_URL}/api/documents/file-token/${videoId}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
-        {
-          method: "GET",
-          headers,
-        },
-      );
-
-      if (!tokenResponse.ok) {
-        throw new Error(`Failed to get video token: ${tokenResponse.status}`);
-      }
-
-      const tokenData = await tokenResponse.json();
-      if (!tokenData.file_url) {
-        throw new Error("No file URL in token response");
-      }
+      const fileUrl = await this.fetchTokenizedFileUrl(videoId);
 
       // Fetch the actual video file
-      const videoResponse = await fetch(tokenData.file_url);
+      const videoResponse = await fetch(fileUrl);
       if (!videoResponse.ok) {
         throw new Error(`Failed to fetch video: ${videoResponse.status}`);
       }
@@ -92,27 +100,8 @@ class VideoCacheManager {
 
   // Fallback to tokenized URL if blob caching fails
   async getFallbackUrl(videoId) {
-    const apiKey = queryParams.apiKey;
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) {
-      headers["X-API-KEY"] = apiKey;
-    } else if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
     try {
-      const response = await fetch(
-        `${BASE_URL}/api/documents/file-token/${videoId}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
-        {
-          method: "GET",
-          headers,
-        },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.file_url;
-      }
+      return await this.fetchTokenizedFileUrl(videoId);
     } catch (error) {
       console.error("Fallback URL fetch failed:", error);
     }
@@ -147,6 +136,66 @@ class VideoCacheManager {
     console.log(
       `Video pre-caching completed. Cached ${this.cache.size} videos.`,
     );
+  }
+
+  async attachVideoToElement(videoElement, videoId) {
+    if (!videoElement || !videoId) {
+      return;
+    }
+
+    const sourceKey = String(videoId);
+    videoElement.dataset.videoSourceId = sourceKey;
+
+    try {
+      const directUrl = await this.fetchTokenizedFileUrl(videoId);
+      if (directUrl && videoElement.dataset.videoSourceId === sourceKey) {
+        videoElement.src = directUrl;
+      }
+    } catch (error) {
+      console.error(`Failed to fetch direct video URL for ${videoId}:`, error);
+    }
+
+    try {
+      const cachedUrl = await this.getVideoUrl(videoId);
+      if (!cachedUrl) {
+        return;
+      }
+      if (videoElement.dataset.videoSourceId !== sourceKey) {
+        return;
+      }
+      if (cachedUrl === videoElement.src) {
+        return;
+      }
+
+      const resumeTime = videoElement.currentTime || 0;
+      const wasPaused = videoElement.paused;
+      const wasMuted = videoElement.muted;
+
+      const handleLoaded = () => {
+        if (!Number.isNaN(resumeTime)) {
+          try {
+            videoElement.currentTime = resumeTime;
+          } catch (err) {
+            console.warn("Failed to restore video playback position", err);
+          }
+        }
+        videoElement.muted = wasMuted;
+        if (!wasPaused) {
+          videoElement
+            .play()
+            .catch((err) =>
+              console.warn("Failed to resume cached video playback", err),
+            );
+        }
+      };
+
+      videoElement.addEventListener("loadeddata", handleLoaded, {
+        once: true,
+      });
+      videoElement.src = cachedUrl;
+    } catch (error) {
+      console.warn(`Failed to upgrade video ${videoId} to cached version`, error);
+    }
   }
 
   // Clear cache and revoke blob URLs to free memory
