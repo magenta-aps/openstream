@@ -54,6 +54,7 @@ let calendar = null;
 let selectedGroupIds = [];
 let ungroupedDisplays = [];
 let currentView = "calendar";
+let draggedItem = null;
 let registrationUrlModal;
 let addGroupModal,
   editGroupModal,
