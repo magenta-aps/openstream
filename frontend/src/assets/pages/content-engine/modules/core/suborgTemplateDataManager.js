@@ -431,11 +431,11 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
       setResolutionFromAspectRatio(aspectRatio);
 
-      // Fallback to previewWidth/Height if needed
+      // Fallback to preview dimensions if needed
       if (!store.emulatedWidth || !store.emulatedHeight) {
-        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
-          syncGridToCurrentSlide(currentTemplateSlide);
+        store.emulatedWidth = currentTemplateSlide.preview_width || 1920;
+        store.emulatedHeight = currentTemplateSlide.preview_height || 1080;
+        syncGridToCurrentSlide(currentTemplateSlide);
       }
 
         syncGridToCurrentSlide(currentTemplateSlide);

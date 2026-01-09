@@ -294,8 +294,8 @@ function renderTemplatePreview(modal, template) {
 
   const slideObject = {
     ...template.slide_data,
-    previewWidth: template.preview_width || 1920,
-    previewHeight: template.preview_height || 1080,
+    preview_width: template.preview_width || 1920,
+    preview_height: template.preview_height || 1080,
   };
 
   loadSlide(slideObject, "#suborg-template-preview", true);

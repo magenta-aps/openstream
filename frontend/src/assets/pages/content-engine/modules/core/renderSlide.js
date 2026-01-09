@@ -597,10 +597,8 @@ async function _startSlideshowPlayer() {
 
       if (data.items && data.items.length > 0) {
         const firstSlideshow = data.items[0].slideshow;
-        store.emulatedWidth =
-          firstSlideshow.preview_width || firstSlideshow.previewWidth;
-        store.emulatedHeight =
-          firstSlideshow.preview_height || firstSlideshow.previewHeight;
+        store.emulatedWidth = firstSlideshow.preview_width ?? 1920;
+        store.emulatedHeight = firstSlideshow.preview_height ?? 1080;
         store.slideshowMode = firstSlideshow.mode;
       } else if (data.slideshow_data) {
         store.slideshowMode = data.slideshow_data.mode;
