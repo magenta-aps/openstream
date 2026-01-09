@@ -2574,6 +2574,11 @@ function toggleView() {
     currentView = "calendar";
     calendarContainer.style.display = "block";
     listContainer.style.display = "none";
+    if (calendar) {
+      // FullCalendar needs an explicit re-render after being hidden
+      calendar.render();
+      calendar.updateSize();
+    }
   }
 
   // Update the dropdown to reflect the current view
