@@ -54,6 +54,8 @@ import {
 } from "../config/gridConfig.js";
 import { updateSnapControlsUI } from "../utils/statusBar.js";
 
+let backgroundFetchSequence = 0;
+
 export function loadSlide(
   slide,
   targetContainer = ".preview-slide",
@@ -193,6 +195,13 @@ export function loadSlide(
     zoomWrapper.style.backgroundColor = slide.backgroundColor;
   }
 
+  // Cancel any pending background fetch tied to this wrapper before starting a new one
+  if (zoomWrapper._backgroundFetchController) {
+    zoomWrapper._backgroundFetchController.abort();
+    delete zoomWrapper._backgroundFetchController;
+    delete zoomWrapper._backgroundRequestId;
+  }
+
   // Apply background image styles to zoomWrapper if they exist
   if (slide.backgroundImage) {
     const apiKey = queryParams.apiKey;
@@ -205,24 +214,41 @@ export function loadSlide(
     } else {
       throw new Error(gettext("No API Key or Authorization token found."));
     }
+
+    const backgroundFetchController = new AbortController();
+    const backgroundRequestId = `${++backgroundFetchSequence}`;
+    zoomWrapper._backgroundFetchController = backgroundFetchController;
+    zoomWrapper._backgroundRequestId = backgroundRequestId;
     // Fetch and apply logic remains here, targeting zoomWrapper
     fetch(
       `${BASE_URL}/api/documents/file-token/${slide.backgroundImage}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}`,
       {
         method: "GET",
         headers,
+        signal: backgroundFetchController.signal,
       },
     )
       .then((r) => r.json())
       .then((data) => {
+        if (
+          backgroundFetchController.signal.aborted ||
+          zoomWrapper._backgroundRequestId !== backgroundRequestId
+        ) {
+          return;
+        }
         zoomWrapper.style.backgroundImage = `url(${data.file_url})`;
         zoomWrapper.style.backgroundSize = slide.backgroundSize || "contain";
         zoomWrapper.style.backgroundRepeat =
           slide.backgroundRepeat || "no-repeat";
         zoomWrapper.style.backgroundPosition =
           slide.backgroundPosition || "center";
+        delete zoomWrapper._backgroundFetchController;
+        delete zoomWrapper._backgroundRequestId;
       })
       .catch((err) => {
+        if (err.name === "AbortError") {
+          return;
+        }
         console.error("Failed to load background image:", err);
         // Potentially set background color on zoomWrapper as fallback?
       });
