@@ -123,19 +123,19 @@ export async function populateStoreFromTemplates({
     store.templateLegacyFlags.clear();
 
     templates.forEach((template) => {
-      if (!template?.slideData) {
+      if (!template?.slide_data) {
         console.warn(
-          `Template ID ${template?.id} ('${template?.name}') is missing slideData. Skipping.`,
+          `Template ID ${template?.id} ('${template?.name}') is missing slide_data. Skipping.`,
         );
         return;
       }
 
       store.templateLegacyFlags.set(
         template.id,
-        Boolean(template.isLegacy),
+        Boolean(template.is_legacy),
       );
 
-      const slideObject = JSON.parse(JSON.stringify(template.slideData));
+      const slideObject = JSON.parse(JSON.stringify(template.slide_data));
       slideObject.templateId = template.id;
       slideObject.templateOriginalName = template.name;
       slideObject.name = template.name;
@@ -154,8 +154,8 @@ export async function populateStoreFromTemplates({
       slideObject.tagIds = templateTags.map((tag) => tag.id);
       slideObject.tagNames = templateTags.map((tag) => tag.name || "");
 
-      slideObject.previewWidth = template.previewWidth;
-      slideObject.previewHeight = template.previewHeight;
+      slideObject.preview_width = template.preview_width;
+      slideObject.preview_height = template.preview_height;
 
       if (!slideObject.duration) slideObject.duration = 5;
       if (!slideObject.elements) slideObject.elements = [];
@@ -227,8 +227,8 @@ export async function populateStoreFromTemplates({
       setResolutionFromAspectRatio(aspectRatio);
 
       if (!store.emulatedWidth || !store.emulatedHeight) {
-        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
+        store.emulatedWidth = currentTemplateSlide.preview_width || 1920;
+        store.emulatedHeight = currentTemplateSlide.preview_height || 1080;
         syncGridToCurrentSlide(currentTemplateSlide);
       }
 
@@ -327,8 +327,8 @@ export async function saveCurrentTemplateData() {
   let slideDataToSave = { ...currentSlideObject };
   delete slideDataToSave.templateId;
   delete slideDataToSave.templateOriginalName;
-  delete slideDataToSave.previewWidth;
-  delete slideDataToSave.previewHeight;
+  delete slideDataToSave.preview_width;
+  delete slideDataToSave.preview_height;
   delete slideDataToSave.categoryId;
   delete slideDataToSave.tagIds;
   delete slideDataToSave.aspect_ratio;
@@ -364,9 +364,9 @@ export async function saveCurrentTemplateData() {
 
   const payload = {
     name: currentSlideObject.name,
-    slideData: slideDataToSave,
-    previewWidth: store.emulatedWidth,
-    previewHeight: store.emulatedHeight,
+    slide_data: slideDataToSave,
+    preview_width: store.emulatedWidth,
+    preview_height: store.emulatedHeight,
     aspect_ratio: currentSlideObject.aspect_ratio || DEFAULT_ASPECT_RATIO,
   };
 
@@ -410,18 +410,18 @@ export async function saveCurrentTemplateData() {
     const updatedTemplateFromServer = await resp.json();
 
     currentSlideObject.templateOriginalName = updatedTemplateFromServer.name;
-    currentSlideObject.previewWidth = updatedTemplateFromServer.previewWidth;
-    currentSlideObject.previewHeight = updatedTemplateFromServer.previewHeight;
-        currentSlideObject.aspect_ratio =
-          updatedTemplateFromServer.aspect_ratio || DEFAULT_ASPECT_RATIO;
+    currentSlideObject.preview_width = updatedTemplateFromServer.preview_width;
+    currentSlideObject.preview_height = updatedTemplateFromServer.preview_height;
+    currentSlideObject.aspect_ratio =
+      updatedTemplateFromServer.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
-        if (updatedTemplateFromServer?.id) {
-          ensureTemplateLegacyMap();
-          store.templateLegacyFlags.set(
-            updatedTemplateFromServer.id,
-            Boolean(updatedTemplateFromServer.isLegacy),
-          );
-        }
+    if (updatedTemplateFromServer?.id) {
+      ensureTemplateLegacyMap();
+      store.templateLegacyFlags.set(
+        updatedTemplateFromServer.id,
+        Boolean(updatedTemplateFromServer.isLegacy),
+      );
+    }
 
     if (isGlobalTemplateContext) {
       currentSlideObject.thumbnail_url =
@@ -674,9 +674,9 @@ export async function duplicateTemplateOnBackend(templateId) {
 
       // Step 2: apply the customised data from the original suborg template
       const patchPayload = {
-        slideData: originalTemplate.slideData,
-        previewWidth: originalTemplate.previewWidth,
-        previewHeight: originalTemplate.previewHeight,
+        slide_data: originalTemplate.slide_data,
+        preview_width: originalTemplate.preview_width,
+        preview_height: originalTemplate.preview_height,
         aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
       };
 
@@ -741,9 +741,9 @@ export async function duplicateTemplateOnBackend(templateId) {
       const originalTemplate = await getResp.json();
       const duplicatePayload = {
         name: gettext("Copy of ") + originalTemplate.name,
-        slideData: originalTemplate.slideData,
-        previewWidth: originalTemplate.previewWidth,
-        previewHeight: originalTemplate.previewHeight,
+        slide_data: originalTemplate.slide_data,
+        preview_width: originalTemplate.preview_width,
+        preview_height: originalTemplate.preview_height,
         aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
         thumbnail_url: originalTemplate.thumbnail_url || null,
       };
@@ -794,9 +794,9 @@ export async function duplicateTemplateOnBackend(templateId) {
 
     const duplicatePayload = {
       name: gettext("Copy of ") + originalTemplate.name,
-      slideData: originalTemplate.slideData,
-      previewWidth: originalTemplate.previewWidth,
-      previewHeight: originalTemplate.previewHeight,
+      slide_data: originalTemplate.slide_data,
+      preview_width: originalTemplate.preview_width,
+      preview_height: originalTemplate.preview_height,
       aspect_ratio: originalTemplate.aspect_ratio || DEFAULT_ASPECT_RATIO,
       category_id: originalTemplate.category_id,
       tags: originalTemplate.tags || [],

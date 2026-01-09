@@ -92,11 +92,11 @@ export function syncGridConfigWithCSS() {
   applyGridStateToCSS();
 }
 
-export function applyGridMode({ isLegacy, width, height }) {
+export function applyGridMode({ is_legacy, width, height }) {
   const normalizedWidth = Number(width);
   const normalizedHeight = Number(height);
   if (
-    !isLegacy &&
+    !is_legacy &&
     Number.isFinite(normalizedWidth) &&
     Number.isFinite(normalizedHeight) &&
     normalizedWidth > 0 &&
@@ -113,6 +113,9 @@ export function applyGridMode({ isLegacy, width, height }) {
 function resolveLegacyFlag(slide) {
   if (slide?.templateId && store.templateLegacyFlags?.has(slide.templateId)) {
     return Boolean(store.templateLegacyFlags.get(slide.templateId));
+  }
+  if (typeof slide?.is_legacy === "boolean") {
+    return slide.is_legacy;
   }
   if (typeof slide?.isLegacy === "boolean") {
     return slide.isLegacy;
@@ -187,7 +190,7 @@ export function syncGridToCurrentSlide(slideOverride = null) {
   const isLegacy = resolveLegacyFlag(slide);
   store.legacyGridEnabled = isLegacy;
   applyGridMode({
-    isLegacy,
+    is_legacy: isLegacy,
     width: store.emulatedWidth,
     height: store.emulatedHeight,
   });

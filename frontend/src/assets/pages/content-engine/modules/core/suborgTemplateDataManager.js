@@ -93,7 +93,7 @@ async function getParentTemplateSnapSettings(template) {
 
     const parentTemplate = await resp.json();
     const snap = normalizeSnapSettings(
-      parentTemplate?.slideData?.savedSnapSettings,
+      parentTemplate?.slide_data?.savedSnapSettings,
     );
     parentSnapSettingsCache.set(parentId, snap);
     return snap;
@@ -301,18 +301,18 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
       );
 
       for (const template of suborgOnlyTemplates) {
-        if (!template.slideData) {
+        if (!template.slide_data) {
           console.warn(
-            `Template ID ${template.id} ('${template.name}') is missing slideData. Skipping.`,
+            `Template ID ${template.id} ('${template.name}') is missing slide_data. Skipping.`,
           );
           continue;
         }
         store.templateLegacyFlags.set(
           template.id,
-          Boolean(template.isLegacy),
+          Boolean(template.is_legacy),
         );
 
-        const slideObject = JSON.parse(JSON.stringify(template.slideData));
+        const slideObject = JSON.parse(JSON.stringify(template.slide_data));
 
         slideObject.templateId = template.id;
         slideObject.templateOriginalName = template.name;
@@ -342,8 +342,8 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         slideObject.tagIds = templateTags.map((tag) => tag.id);
         slideObject.tagNames = templateTags.map((tag) => tag.name || "");
 
-        slideObject.previewWidth = template.previewWidth;
-        slideObject.previewHeight = template.previewHeight;
+        slideObject.preview_width = template.preview_width;
+        slideObject.preview_height = template.preview_height;
 
         if (!slideObject.duration) slideObject.duration = 5;
         if (!slideObject.elements || !Array.isArray(slideObject.elements)) {
@@ -431,11 +431,11 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
         currentTemplateSlide.aspect_ratio || DEFAULT_ASPECT_RATIO;
       setResolutionFromAspectRatio(aspectRatio);
 
-      // Fallback to previewWidth/Height if needed
+      // Fallback to preview dimensions if needed
       if (!store.emulatedWidth || !store.emulatedHeight) {
-        store.emulatedWidth = currentTemplateSlide.previewWidth || 1920;
-        store.emulatedHeight = currentTemplateSlide.previewHeight || 1080;
-          syncGridToCurrentSlide(currentTemplateSlide);
+        store.emulatedWidth = currentTemplateSlide.preview_width || 1920;
+        store.emulatedHeight = currentTemplateSlide.preview_height || 1080;
+        syncGridToCurrentSlide(currentTemplateSlide);
       }
 
         syncGridToCurrentSlide(currentTemplateSlide);

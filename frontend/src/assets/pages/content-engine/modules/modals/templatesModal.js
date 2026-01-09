@@ -177,11 +177,15 @@ function applyTemplateMetadataLocally(
     DEFAULT_ASPECT_RATIO;
   targetSlide.aspect_ratio = nextAspect;
 
-  if (typeof serverData?.previewWidth === "number") {
-    targetSlide.previewWidth = serverData.previewWidth;
+  if (typeof serverData?.preview_width === "number") {
+    targetSlide.preview_width = serverData.preview_width;
+  } else if (typeof metadataUpdate.preview_width === "number") {
+    targetSlide.preview_width = metadataUpdate.preview_width;
   }
-  if (typeof serverData?.previewHeight === "number") {
-    targetSlide.previewHeight = serverData.previewHeight;
+  if (typeof serverData?.preview_height === "number") {
+    targetSlide.preview_height = serverData.preview_height;
+  } else if (typeof metadataUpdate.preview_height === "number") {
+    targetSlide.preview_height = metadataUpdate.preview_height;
   }
 
   updateSlideSelector();
@@ -718,7 +722,7 @@ if (confirmBtn) {
     ensureTemplateAspectRatioOption(aspectRatio);
 
     // Map common aspect ratios to sensible preview resolutions.
-    // This ensures the server receives previewWidth/previewHeight matching
+    // This ensures the server receives preview_width/preview_height matching
     // the chosen aspect ratio instead of the currently selected template's values.
     if (canEditAspectRatio && aspectRatio) {
       const resolution = getResolutionForAspectRatio(aspectRatio);
@@ -752,8 +756,8 @@ if (confirmBtn) {
 
       if (isGlobalTemplate) {
         payload.thumbnail_url = globalTemplateThumbnailValue;
-        payload.previewWidth = selectedResolution.width;
-        payload.previewHeight = selectedResolution.height;
+        payload.preview_width = selectedResolution.width;
+        payload.preview_height = selectedResolution.height;
         apiEndpoint = `${BASE_URL}/api/global-templates/${store.editingTemplateId}/`;
       } else {
         payload.category_id = categoryId ? parseInt(categoryId) : null;
@@ -854,10 +858,10 @@ if (confirmBtn) {
         category_id: categoryId ? parseInt(categoryId) : null,
         tag_ids: tagValues.map((t) => parseInt(t)),
         aspect_ratio: aspectRatio,
-        slideData: slideData,
+        slide_data: slideData,
         // Prefer the resolution derived from the selected aspect ratio.
-        previewWidth: selectedResolution.width || store.emulatedWidth || 1920,
-        previewHeight:
+        preview_width: selectedResolution.width || store.emulatedWidth || 1920,
+        preview_height:
           selectedResolution.height || store.emulatedHeight || 1080,
         // organisation_id is part of the URL for POST
       };

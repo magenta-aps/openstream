@@ -52,7 +52,7 @@ export async function fetchSlideshow(slideshowId) {
     const resumePersistedNotifications = suspendPersistedStateNotifications();
     try {
       const data = await resp.json();
-      const isLegacySlideshow = Boolean(data.isLegacy);
+      const isLegacySlideshow = Boolean(data.is_legacy);
       store.activeSlideshowIsLegacy = isLegacySlideshow;
       store.legacyGridEnabled = isLegacySlideshow;
       store.slideshowMode = data.mode;
@@ -61,9 +61,9 @@ export async function fetchSlideshow(slideshowId) {
       );
 
       // Set preview dimensions if they exist in the data (regardless of slides)
-      if (data.previewHeight && data.previewWidth) {
-        store.emulatedWidth = data.previewWidth;
-        store.emulatedHeight = data.previewHeight;
+      if (data.preview_height && data.preview_width) {
+        store.emulatedWidth = data.preview_width;
+        store.emulatedHeight = data.preview_height;
       }
       syncGridToCurrentSlide();
 
@@ -169,6 +169,7 @@ export async function fetchSlideshow(slideshowId) {
   } catch (err) {
     console.error("Error fetching slideshow data:", err);
     showToast(`Failed to load slideshow: ${err.message}`, "Error");
+    throw err;
   }
 }
 
@@ -272,8 +273,8 @@ export async function saveSlideshow(slideshowId) {
     : store.slides;
 
   const payload = {
-    ...(store.emulatedHeight && { previewHeight: store.emulatedHeight }),
-    ...(store.emulatedWidth && { previewWidth: store.emulatedWidth }),
+    ...(store.emulatedHeight && { preview_height: store.emulatedHeight }),
+    ...(store.emulatedWidth && { preview_width: store.emulatedWidth }),
     slideshow_data: { slides: slidesForPayload },
   };
 

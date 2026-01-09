@@ -2,76 +2,26 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 import os
 import uuid
-import tempfile
-import subprocess
 import logging
-from io import BytesIO
-import hashlib
 
-import fitz
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MinLengthValidator, MinValueValidator
-from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
 
+from .utils import (
+    generate_content_hash,
+    calculate_aspect_ratio,
+    create_hashed_filename,
+)
+
 logger = logging.getLogger(__name__)
 
-
 ###############################################################################
-# Utility Functions
-###############################################################################
-
-
-def calculate_aspect_ratio(width, height):
-    """
-    Calculate aspect ratio from width and height and return as a standardized string.
-    Common aspect ratios are simplified to their standard format.
-    """
-    from math import gcd
-
-    if not width or not height or width <= 0 or height <= 0:
-        return "16:9"  # Default fallback
-
-    # Calculate GCD to simplify the ratio
-    common_divisor = gcd(int(width), int(height))
-    simplified_width = int(width) // common_divisor
-    simplified_height = int(height) // common_divisor
-
-    # Map common ratios to their standard representation
-    ratio_map = {
-        (16, 9): "16:9",
-        (4, 3): "4:3",
-        (21, 9): "21:9",
-        (9, 16): "9:16",
-        (3, 4): "3:4",
-        (9, 21): "9:21",
-        (64, 27): "21:9",  # 2.37:1 mapped to 21:9
-        (37, 20): "1.85:1",  # Common cinema ratio
-        (239, 100): "2.39:1",  # Common widescreen ratio
-        (185, 100): "1.85:1",
-        (1, 1): "1:1",  # Square
-    }
-
-    # Check if this matches a common ratio
-    ratio_key = (simplified_width, simplified_height)
-    if ratio_key in ratio_map:
-        return ratio_map[ratio_key]
-
-    # For uncommon ratios, return the simplified form
-    return f"{simplified_width}:{simplified_height}"
-
-
-###############################################################################
-# Organisations and Memberships
+# Users
 ###############################################################################
 
 
@@ -83,16 +33,22 @@ class UserExtended(models.Model):
         return self.user.username
 
     def update_user_info(self, user_data, language_preference=None):
-        self.user.username = user_data.get("username", self.user.username)
-        self.user.email = user_data.get("email", self.user.email)
-        self.user.first_name = user_data.get("first_name", self.user.first_name)
-        self.user.last_name = user_data.get("last_name", self.user.last_name)
-        self.user.save()
+        with transaction.atomic():
+            self.user.username = user_data.get("username", self.user.username)
+            self.user.email = user_data.get("email", self.user.email)
+            self.user.first_name = user_data.get("first_name", self.user.first_name)
+            self.user.last_name = user_data.get("last_name", self.user.last_name)
+            self.user.save()
 
-        if language_preference is not None:
-            self.language_preference = language_preference
+            if language_preference is not None:
+                self.language_preference = language_preference
 
-        self.save()
+            self.save()
+
+
+###############################################################################
+# Organisation
+###############################################################################
 
 
 class Organisation(models.Model):
@@ -126,43 +82,6 @@ class Organisation(models.Model):
         self.uri_name = self._generate_unique_uri_name(desired_slug)
 
         super().save(*args, **kwargs)
-
-
-class OrganisationAPIAccess(models.Model):
-    """
-    Controls which external APIs an organisation has access to.
-    Multiple objects can be created for the same organisation
-    to grant access to multiple APIs.
-    """
-
-    API_CHOICES = [
-        ("winkas", "WinKAS"),
-        ("kmd", "KMD"),
-        ("speedadmin", "SpeedAdmin"),
-    ]
-
-    organisation = models.ForeignKey(
-        Organisation, on_delete=models.CASCADE, related_name="api_access"
-    )
-    api_name = models.CharField(
-        max_length=20,
-        choices=API_CHOICES,
-        help_text="The external API this organisation has access to",
-    )
-    is_active = models.BooleanField(
-        default=True, help_text="Whether this API access is currently active"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ("organisation", "api_name")
-        verbose_name = "Organisation API Access"
-        verbose_name_plural = "Organisation API Access"
-
-    def __str__(self):
-        status = "Active" if self.is_active else "Inactive"
-        return f"{self.organisation.name} - {self.get_api_name_display()} ({status})"
 
 
 class SubOrganisation(models.Model):
@@ -208,17 +127,15 @@ class BranchURLCollectionItem(models.Model):
         return f"{self.branch} - {self.url}"
 
 
-ROLE_CHOICES = (
-    ("super_admin", "Super Admin"),
-    ("org_admin", "Organisation Admin"),
-    ("org_user", "Organisation User"),
-    ("suborg_admin", "Suborganisation Admin"),
-    ("branch_admin", "Branch Admin"),
-    ("employee", "Employee"),
-)
-
-
 class OrganisationMembership(models.Model):
+    class Role(models.TextChoices):
+        SUPER_ADMIN = "super_admin", _("Super Admin")
+        ORG_ADMIN = "org_admin", _("Organisation Admin")
+        ORG_USER = "org_user", _("Organisation User")
+        SUBORG_ADMIN = "suborg_admin", _("Suborganisation Admin")
+        BRANCH_ADMIN = "branch_admin", _("Branch Admin")
+        EMPLOYEE = "employee", _("Employee")
+
     user = models.ForeignKey(
         User, related_name="organisation_memberships", on_delete=models.CASCADE
     )
@@ -226,7 +143,7 @@ class OrganisationMembership(models.Model):
         Organisation,
         related_name="memberships",
         on_delete=models.CASCADE,
-        null=True,  # Allow null for super_admins
+        null=True,
         blank=True,
     )
     suborganisation = models.ForeignKey(
@@ -243,21 +160,30 @@ class OrganisationMembership(models.Model):
         null=True,
         blank=True,
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=Role.choices)
 
     class Meta:
         unique_together = ("user", "organisation", "suborganisation", "branch")
 
     def clean(self):
-        # Super Admin: organisation can be null, others must have it
-        if self.role == "super_admin":
-            if self.suborganisation or self.branch:
-                raise ValidationError("super_admin must not have suborg or branch.")
-        else:
-            if self.organisation is None:
-                raise ValidationError(f"{self.role} must specify an organisation.")
+        # Validation logic broken down into readable steps
+        self._validate_super_admin()
+        self._validate_hierarchy_consistency()
+        self._validate_role_requirements()
+        super().clean()
 
-        # Branch and suborg consistency
+    def _validate_super_admin(self):
+        """Super Admin cannot have suborg/branch; others must have organisation."""
+        if self.role == self.Role.SUPER_ADMIN:
+            if self.suborganisation or self.branch:
+                raise ValidationError("Super Admin must not have suborg or branch.")
+        elif self.organisation is None:
+            raise ValidationError(
+                f"{self.get_role_display()} must specify an organisation."
+            )
+
+    def _validate_hierarchy_consistency(self):
+        """Ensure Branch belongs to the Suborganisation."""
         if self.branch and (
             not self.suborganisation
             or self.branch.suborganisation != self.suborganisation
@@ -266,45 +192,42 @@ class OrganisationMembership(models.Model):
                 "Branch must belong to the specified suborganisation."
             )
 
-        if self.role == "org_admin":
+    def _validate_role_requirements(self):
+        """Ensure specific roles have specific hierarchy fields set."""
+        if self.role == self.Role.ORG_ADMIN:
             if self.suborganisation or self.branch:
-                raise ValidationError("org_admin cannot specify suborg or branch.")
+                raise ValidationError("Org Admin cannot specify suborg or branch.")
 
-        elif self.role == "suborg_admin":
+        elif self.role == self.Role.SUBORG_ADMIN:
             if not self.suborganisation or self.branch:
                 raise ValidationError(
-                    "suborg_admin must specify suborganisation but no branch."
+                    "Suborg Admin must specify suborganisation but no branch."
                 )
 
-        elif self.role == "branch_admin":
+        elif self.role == self.Role.BRANCH_ADMIN:
             if not self.suborganisation or not self.branch:
                 raise ValidationError(
-                    "branch_admin must specify suborganisation and branch."
+                    "Branch Admin must specify suborganisation and branch."
                 )
 
-        elif self.role == "employee":
+        elif self.role == self.Role.EMPLOYEE:
             if not self.suborganisation or not self.branch:
                 raise ValidationError(
-                    "employee must specify both suborganisation and branch."
+                    "Employee must specify both suborganisation and branch."
                 )
 
-        super().clean()
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        if self.role == "super_admin":
+        if self.role == self.Role.SUPER_ADMIN:
             return f"[SUPER ADMIN] {self.user.username}"
-        elif self.role == "org_admin":
-            return f"[ORG ADMIN] {self.user.username} for {self.organisation.name}"
-        elif self.role == "suborg_admin":
-            return f"[SUBORG ADMIN] {self.user.username} in {self.suborganisation}"
-        elif self.role == "branch_admin":
-            return f"[BRANCH ADMIN] {self.user.username} in {self.branch}"
-        else:
-            return f"[EMPLOYEE] {self.user.username} in {self.branch}"
+        return f"[{self.get_role_display().upper()}] {self.user.username}"
 
 
 ###############################################################################
-# Category & Tag Models
+# Content
 ###############################################################################
 
 
@@ -328,17 +251,6 @@ class Category(models.Model):
                 name="unique_category_name_per_organisation",
             )
         ]
-
-
-class DocumentCategory(models.Model):
-    """
-    Much like Category, but reserved for documents
-    """
-
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
 
 
 class Tag(models.Model):
@@ -414,11 +326,13 @@ class Slideshow(models.Model):
         blank=True,
         related_name="slideshows_created",
     )
-    previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
-    previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
-    isCustomDimensions = models.BooleanField(default=True)
+    preview_width = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    preview_height = models.IntegerField(
+        validators=[MinValueValidator(1)], default=1080
+    )
+    is_custom_dimensions = models.BooleanField(default=True)
     slideshow_data = models.JSONField(default=dict, blank=True, null=True)
-    isLegacy = models.BooleanField(
+    is_legacy = models.BooleanField(
         default=False,
         help_text="Set to True for older manage_content that must stay on the fixed 200x200 grid",
     )
@@ -433,34 +347,83 @@ class Slideshow(models.Model):
 
     @property
     def aspect_ratio(self):
-        """Calculate and return the aspect ratio based on previewWidth and previewHeight."""
-        return calculate_aspect_ratio(self.previewWidth, self.previewHeight)
+        """Calculate and return the aspect ratio based on preview_width and preview_height."""
+        return calculate_aspect_ratio(self.preview_width, self.preview_height)
 
 
-###############################################################################
-# Wayfinding
-###############################################################################
-
-
-class Wayfinding(models.Model):
-    name = models.CharField(max_length=255)
-
-    branch = models.ForeignKey(
-        Branch,
+class SlideTemplate(models.Model):
+    organisation = models.ForeignKey(
+        Organisation, on_delete=models.CASCADE, related_name="slide_templates"
+    )
+    suborganisation = models.ForeignKey(
+        SubOrganisation,
         on_delete=models.CASCADE,
-        related_name="wayfinding_systems",
+        related_name="slide_templates",
         null=True,
         blank=True,
+        help_text="If set, this template is only available to branches in this suborganisation",
     )
-    created_by = models.ForeignKey(
-        User,
+    parent_template = models.ForeignKey(
+        "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="wayfinding_created",
+        related_name="suborg_copies",
+        help_text="If this is a suborg template, reference to the global template it was created from",
     )
-    wayfinding_data = models.JSONField(default=dict, blank=True, null=True)
-    # Track when this wayfinding system was last edited (auto-updated on save)
+
+    name = models.CharField(max_length=255)
+    slide_data = models.JSONField(default=dict, blank=True, null=True)
+    is_legacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="slide_templates",
+    )
+    tags = models.ManyToManyField(Tag, blank=True, related_name="slide_templates")
+
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
+    )
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class GlobalSlideTemplate(models.Model):
+    """Org-less template managed centrally by the application team."""
+
+    name = models.CharField(max_length=255)
+    slide_data = models.JSONField(default=dict, blank=True, null=True)
+    thumbnail_url = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Base64 encoded data URL representing the template thumbnail",
+    )
+    preview_width = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
+    preview_height = models.IntegerField(
+        validators=[MinValueValidator(1)], default=1080
+    )
+    aspect_ratio = models.CharField(
+        max_length=10,
+        default="16:9",
+        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
+    )
+    is_legacy = models.BooleanField(
+        default=False,
+        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -473,6 +436,20 @@ class Wayfinding(models.Model):
 ###############################################################################
 # Playlist
 ###############################################################################
+
+
+class AspectRatioValidatorMixin:
+    """Mixin to validate aspect ratio compatibility."""
+
+    def validate_aspect_ratio_match(
+        self, source_ratio, target_ratio, error_message=None
+    ):
+        if source_ratio != target_ratio:
+            if not error_message:
+                error_message = _(
+                    f"Aspect ratio ({source_ratio}) does not match target aspect ratio ({target_ratio})."
+                )
+            raise ValidationError(error_message)
 
 
 class SlideshowPlaylist(models.Model):
@@ -508,7 +485,7 @@ class SlideshowPlaylist(models.Model):
         return self.name
 
 
-class SlideshowPlaylistItem(models.Model):
+class SlideshowPlaylistItem(AspectRatioValidatorMixin, models.Model):
     slideshow_playlist = models.ForeignKey(
         SlideshowPlaylist, on_delete=models.CASCADE, related_name="items"
     )
@@ -534,14 +511,13 @@ class SlideshowPlaylistItem(models.Model):
 
         # Ensure slideshow aspect ratio matches playlist aspect ratio
         if self.slideshow and self.slideshow_playlist:
-            slideshow_aspect_ratio = self.slideshow.aspect_ratio
-            playlist_aspect_ratio = self.slideshow_playlist.aspect_ratio
-            if slideshow_aspect_ratio != playlist_aspect_ratio:
-                raise ValidationError(
-                    _(
-                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match playlist aspect ratio ({playlist_aspect_ratio}). Only slideshows with matching aspect ratios can be added to this playlist."
-                    )
-                )
+            self.validate_aspect_ratio_match(
+                self.slideshow.aspect_ratio,
+                self.slideshow_playlist.aspect_ratio,
+                _(
+                    f"Slideshow aspect ratio ({self.slideshow.aspect_ratio}) does not match playlist aspect ratio ({self.slideshow_playlist.aspect_ratio}). Only slideshows with matching aspect ratios can be added to this playlist."
+                ),
+            )
 
         super().clean()
 
@@ -549,16 +525,21 @@ class SlideshowPlaylistItem(models.Model):
         # Call full_clean to ensure our custom validation is run.
         self.full_clean()
 
-        # If no position is specified, automatically set the next available position.
-        if self.position is None:
-            max_position = (
-                SlideshowPlaylistItem.objects.filter(
-                    slideshow_playlist=self.slideshow_playlist
-                ).aggregate(models.Max("position"))["position__max"]
-                or 0
-            )
-            self.position = max_position + 1
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            # If no position is specified, automatically set the next available position.
+            if self.position is None:
+                # Lock the playlist to prevent concurrent additions
+                _ = SlideshowPlaylist.objects.select_for_update().get(
+                    pk=self.slideshow_playlist_id
+                )
+                max_position = (
+                    SlideshowPlaylistItem.objects.filter(
+                        slideshow_playlist=self.slideshow_playlist
+                    ).aggregate(models.Max("position"))["position__max"]
+                    or 0
+                )
+                self.position = max_position + 1
+            super().save(*args, **kwargs)
 
         # Touch the parent playlist's updated_at so changes to items are reflected
         try:
@@ -582,11 +563,39 @@ class SlideshowPlaylistItem(models.Model):
 
 
 ###############################################################################
-# Display Website / Scheduled Content
+# Screens
 ###############################################################################
 
 
-class DisplayWebsiteGroup(models.Model):
+class Wayfinding(models.Model):
+    name = models.CharField(max_length=255)
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="wayfinding_systems",
+        null=True,
+        blank=True,
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="wayfinding_created",
+    )
+    wayfinding_data = models.JSONField(default=dict, blank=True, null=True)
+    # Track when this wayfinding system was last edited (auto-updated on save)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class DisplayWebsiteGroup(AspectRatioValidatorMixin, models.Model):
     name = models.CharField(max_length=255)
     branch = models.ForeignKey(
         Branch,
@@ -628,18 +637,18 @@ class DisplayWebsiteGroup(models.Model):
 
         # Validate aspect ratio compatibility with default content
         if self.default_slideshow:
-            slideshow_aspect_ratio = self.default_slideshow.aspect_ratio
-            if slideshow_aspect_ratio != self.aspect_ratio:
-                raise ValidationError(
-                    f"Default slideshow aspect ratio ({slideshow_aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio})."
-                )
+            self.validate_aspect_ratio_match(
+                self.default_slideshow.aspect_ratio,
+                self.aspect_ratio,
+                f"Default slideshow aspect ratio ({self.default_slideshow.aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio}).",
+            )
 
         if self.default_playlist:
-            playlist_aspect_ratio = self.default_playlist.aspect_ratio
-            if playlist_aspect_ratio != self.aspect_ratio:
-                raise ValidationError(
-                    f"Default playlist aspect ratio ({playlist_aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio})."
-                )
+            self.validate_aspect_ratio_match(
+                self.default_playlist.aspect_ratio,
+                self.aspect_ratio,
+                f"Default playlist aspect ratio ({self.default_playlist.aspect_ratio}) does not match group aspect ratio ({self.aspect_ratio}).",
+            )
 
     def save(self, *args, **kwargs):
         self.clean()  # Validate before saving
@@ -649,7 +658,7 @@ class DisplayWebsiteGroup(models.Model):
         return self.name
 
 
-class DisplayWebsite(models.Model):
+class DisplayWebsite(AspectRatioValidatorMixin, models.Model):
     name = models.CharField(max_length=255)
     # Optional UID provided by external management systems to uniquely
     # identify a screen across hostname changes. Not required.
@@ -678,31 +687,31 @@ class DisplayWebsite(models.Model):
 
     def clean(self):
         # Validate that the display's aspect ratio matches the group's aspect ratio
-        if (
-            self.display_website_group
-            and self.display_website_group.aspect_ratio != self.aspect_ratio
-        ):
-            raise ValidationError(
-                f"Display aspect ratio ({self.aspect_ratio}) does not match group aspect ratio ({self.display_website_group.aspect_ratio}). Only displays with matching aspect ratios can be added to this group."
+        if self.display_website_group:
+            self.validate_aspect_ratio_match(
+                self.aspect_ratio,
+                self.display_website_group.aspect_ratio,
+                f"Display aspect ratio ({self.aspect_ratio}) does not match group aspect ratio ({self.display_website_group.aspect_ratio}). Only displays with matching aspect ratios can be added to this group.",
             )
-            # Ensure uid is globally unique within the same organisation
-            if self.uid:
-                org = None
-                if getattr(self.branch, "suborganisation", None):
-                    org = getattr(self.branch.suborganisation, "organisation", None)
-                # If we have an organisation, search for same uid within that organisation
-                if org:
-                    if (
-                        DisplayWebsite.objects.filter(
-                            uid=self.uid, branch__suborganisation__organisation=org
-                        )
-                        .exclude(pk=self.pk)
-                        .exists()
-                    ):
-                        raise ValidationError(
-                            f"UID '{self.uid}' must be unique within the same organisation."
-                        )
-            super().clean()
+
+        # Ensure uid is globally unique within the same organisation
+        if self.uid:
+            org = None
+            if getattr(self.branch, "suborganisation", None):
+                org = getattr(self.branch.suborganisation, "organisation", None)
+            # If we have an organisation, search for same uid within that organisation
+            if org:
+                if (
+                    DisplayWebsite.objects.filter(
+                        uid=self.uid, branch__suborganisation__organisation=org
+                    )
+                    .exclude(pk=self.pk)
+                    .exists()
+                ):
+                    raise ValidationError(
+                        f"UID '{self.uid}' must be unique within the same organisation."
+                    )
+        super().clean()
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -718,7 +727,39 @@ class DisplayWebsite(models.Model):
         return self.name
 
 
-class ScheduledContent(models.Model):
+###############################################################################
+# Scheduling
+###############################################################################
+
+
+class ContentValidationMixin:
+    """Mixin to validate content selection and aspect ratios."""
+
+    def clean_content_and_ratios(self):
+        # 1. Validate exactly one content source
+        if (self.slideshow is None and self.playlist is None) or (
+            self.slideshow is not None and self.playlist is not None
+        ):
+            raise ValidationError("Exactly one of slideshow or playlist must be set.")
+
+        # 2. Validate Aspect Ratios
+        if self.display_website_group:
+            group_ratio = self.display_website_group.aspect_ratio
+
+            if self.slideshow and self.slideshow.aspect_ratio != group_ratio:
+                raise ValidationError(
+                    f"Slideshow aspect ratio ({self.slideshow.aspect_ratio}) "
+                    f"does not match group ({group_ratio})."
+                )
+
+            if self.playlist and self.playlist.aspect_ratio != group_ratio:
+                raise ValidationError(
+                    f"Playlist aspect ratio ({self.playlist.aspect_ratio}) "
+                    f"does not match group ({group_ratio})."
+                )
+
+
+class ScheduledContent(ContentValidationMixin, models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     combine_with_default = models.BooleanField(default=False)
@@ -742,59 +783,29 @@ class ScheduledContent(models.Model):
     )
 
     def clean(self):
-        # Ensure start and end times are provided.
+        from .services import validate_scheduled_content
+
+        # 1. Run Shared Validation (Content Source & Aspect Ratios)
+        self.clean_content_and_ratios()
+
+        # 2. Run ScheduledContent Specific Validation
         if self.start_time is None or self.end_time is None:
             raise ValidationError(
                 "Start and End times are required when scheduling content."
             )
 
-        # Validate that exactly one of slideshow or playlist is set.
-        if (self.slideshow is None and self.playlist is None) or (
-            self.slideshow is not None and self.playlist is not None
-        ):
-            raise ValidationError("Exactly one of slideshow or playlist must be set.")
-
-        # Validate aspect ratio compatibility with the display group
-        if self.display_website_group:
-            group_aspect_ratio = self.display_website_group.aspect_ratio
-
-            if self.slideshow:
-                slideshow_aspect_ratio = self.slideshow.aspect_ratio
-                if slideshow_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-            if self.playlist:
-                playlist_aspect_ratio = self.playlist.aspect_ratio
-                if playlist_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Playlist aspect ratio ({playlist_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-        # New validation:
-        # Check if there is any scheduled content for the same group that overlaps this instance's time period
-        # and that has combine_with_default=False. This prevents mixing override and combine entries.
-        overlapping_override_qs = (
-            ScheduledContent.objects.filter(
-                display_website_group=self.display_website_group,
-                combine_with_default=False,
-            )
-            .exclude(pk=self.pk)
-            .filter(
-                start_time__lt=self.end_time,
-                end_time__gt=self.start_time,
-            )
+        validate_scheduled_content(
+            self.start_time,
+            self.end_time,
+            self.display_website_group,
+            self.combine_with_default,
+            instance_id=self.pk,
         )
-        if overlapping_override_qs.exists():
-            raise ValidationError(
-                "Can't schedule overrides and combine on the same date."
-            )
 
         super().clean()
 
     def save(self, *args, **kwargs):
-        self.clean()  # Validate before saving
+        self.full_clean()  # Validate before saving
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -802,7 +813,7 @@ class ScheduledContent(models.Model):
         return f"Scheduled Content for {content}"
 
 
-class RecurringScheduledContent(models.Model):
+class RecurringScheduledContent(ContentValidationMixin, models.Model):
     """
     Model for recurring scheduled content that repeats weekly on specific days
     """
@@ -852,37 +863,28 @@ class RecurringScheduledContent(models.Model):
     )
 
     def clean(self):
-        # Validate that exactly one of slideshow or playlist is set.
-        if (self.slideshow is None and self.playlist is None) or (
-            self.slideshow is not None and self.playlist is not None
-        ):
-            raise ValidationError("Exactly one of slideshow or playlist must be set.")
+        from .services import validate_recurring_content
 
-        # Validate aspect ratio compatibility with the display group
-        if self.display_website_group:
-            group_aspect_ratio = self.display_website_group.aspect_ratio
+        # 1. Run Shared Validation (Content Source & Aspect Ratios)
+        self.clean_content_and_ratios()
 
-            if self.slideshow:
-                slideshow_aspect_ratio = self.slideshow.aspect_ratio
-                if slideshow_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Slideshow aspect ratio ({slideshow_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-            if self.playlist:
-                playlist_aspect_ratio = self.playlist.aspect_ratio
-                if playlist_aspect_ratio != group_aspect_ratio:
-                    raise ValidationError(
-                        f"Playlist aspect ratio ({playlist_aspect_ratio}) does not match display group aspect ratio ({group_aspect_ratio})."
-                    )
-
-        # Validate that start time is before end time
+        # 2. Run RecurringContent Specific Validation
         if self.start_time >= self.end_time:
             raise ValidationError("Start time must be before end time.")
 
-        # Validate active date range
         if self.active_until and self.active_from > self.active_until:
             raise ValidationError("Active from date must be before active until date.")
+
+        validate_recurring_content(
+            self.weekday,
+            self.start_time,
+            self.end_time,
+            self.active_from,
+            self.active_until,
+            self.display_website_group,
+            self.combine_with_default,
+            instance_id=self.pk,
+        )
 
         super().clean()
 
@@ -902,8 +904,17 @@ class RecurringScheduledContent(models.Model):
 
 
 ###############################################################################
-# Document Model
+# Documents
 ###############################################################################
+
+
+class DocumentCategory(models.Model):
+    """Document-specific category that mirrors frontend documents view."""
+
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Document(models.Model):
@@ -917,6 +928,12 @@ class Document(models.Model):
         WEBP = "WebP"
         WEBM = "WebM"
         OTHER = "Other"
+
+    class ProcessingStatus(models.TextChoices):
+        PENDING = "PENDING", _("Pending")
+        PROCESSING = "PROCESSING", _("Processing")
+        COMPLETED = "COMPLETED", _("Completed")
+        FAILED = "FAILED", _("Failed")
 
     VALID_EXTENSIONS = {
         ".pdf": FileType.PDF,
@@ -932,6 +949,12 @@ class Document(models.Model):
 
     file_type = models.CharField(
         max_length=10, choices=FileType.choices, editable=False, default=FileType.OTHER
+    )
+    processing_status = models.CharField(
+        max_length=20,
+        choices=ProcessingStatus.choices,
+        default=ProcessingStatus.COMPLETED,
+        help_text=_("Status of background processing (e.g. PDF conversion)."),
     )
 
     title = models.CharField(max_length=255)
@@ -960,118 +983,42 @@ class Document(models.Model):
         return ext
 
     def save(self, *args, **kwargs):
-        ext = self.clean()
+        # 1. Validation and Setup
+        ext = self.clean()  # Returns extension, raises ValidationError if invalid
         detected_type = self.VALID_EXTENSIONS[ext]
+        self.file_type = detected_type
 
-        # If this is an existing instance and the file attribute hasn't changed
-        # we should skip all file-processing and storage operations. This avoids
-        # unnecessary reads/writes to S3/MinIO which can mutate object ACLs.
+        # 2. Skip processing if this is an update and file hasn't changed
         if self.pk:
             try:
-                orig = type(self).objects.get(pk=self.pk)
-                # If both original and current refer to the same storage name,
-                # assume no file update was intended and just persist metadata.
-                if (
-                    getattr(orig, "file", None)
-                    and getattr(self, "file", None)
-                    and orig.file.name == self.file.name
-                ):
-                    # Preserve file_type if already present, else use detected
+                orig = Document.objects.get(pk=self.pk)
+                if orig.file == self.file:
+                    # Keep original type if exists, else update it
                     self.file_type = orig.file_type or detected_type
                     return super().save(*args, **kwargs)
-            except type(self).DoesNotExist:
-                # New object race — continue with normal save flow
-                pass
+            except Document.DoesNotExist:
+                pass  # Proceed as new object
 
-        # Helper to produce a filename suffixed with a short content hash
-        def _name_with_hash(filename, content_bytes):
-            base, extension = os.path.splitext(filename)
-            h = hashlib.sha256(content_bytes).hexdigest()[:12]
-            return f"{base}-{h}{extension}"
-
-        # If it's a PDF, convert before saving and use the converted image bytes for hashing
+        # 3. Handle PDF Conversion (Special Case)
+        # Note: This logic replaces the original PDF with the PNG thumbnail.
         if detected_type == self.FileType.PDF:
-            try:
-                # Read PDF bytes
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                pdf_bytes = self.file.read()
-            except Exception:
-                pdf_bytes = b""
+            # Just hash the PDF so it has a unique name
+            content_hash = generate_content_hash(self.file)
+            if content_hash:
+                self.file.name = create_hashed_filename(self.file.name, content_hash)
 
-            # Convert first page to image
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            page = doc.load_page(0)
-            pix = page.get_pixmap()
-            img_bytes = BytesIO(pix.tobytes("png"))
+            # Set status to PENDING for PDFs
+            self.processing_status = self.ProcessingStatus.PENDING
 
-            # Create a PNG filename based on original name with hash
-            original_png_name = os.path.splitext(self.file.name)[0] + ".png"
-            new_name = _name_with_hash(original_png_name, img_bytes.getvalue())
-            img_bytes.seek(0)
-            self.file = InMemoryUploadedFile(
-                file=img_bytes,
-                field_name="file",
-                name=new_name,
-                content_type="image/png",
-                size=img_bytes.getbuffer().nbytes,
-                charset=None,
-            )
-
-        # If it's a video, just save it directly (no compression) but rename to include content hash
-        elif detected_type in [self.FileType.MP4, self.FileType.WEBM]:
-            try:
-                logger.info(f"Uploading video file directly: {self.file.name}")
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                try:
-                    content_bytes = self.file.read()
-                    try:
-                        self.file.seek(0)
-                    except Exception:
-                        pass
-                    if content_bytes:
-                        self.file.name = _name_with_hash(self.file.name, content_bytes)
-                except Exception:
-                    # If reading fails, proceed without renaming
-                    pass
-
-                detected_type = (
-                    self.FileType.MP4
-                    if detected_type == self.FileType.MP4
-                    else self.FileType.WEBM
-                )
-                logger.info(
-                    f"Video upload completed successfully for: {self.file.name}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"Video upload failed for {getattr(self.file,'name',None)}: {str(e)}"
-                )
-                pass
-
-        # For other file types (images, etc.) ensure we suffix the filename with its content hash
+        # 4. Handle Video and Generic Files (Hashing only)
+        # We group MP4, WEBM, and 'Other' logic as they just need hashing
         else:
-            try:
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                content = self.file.read()
-                try:
-                    self.file.seek(0)
-                except Exception:
-                    pass
-                if content and getattr(self.file, "name", None):
-                    self.file.name = _name_with_hash(self.file.name, content)
-            except Exception:
-                pass
+            content_hash = generate_content_hash(self.file)
+            if content_hash:
+                self.file.name = create_hashed_filename(self.file.name, content_hash)
 
-        self.file_type = detected_type
+            # Non-PDFs are completed immediately
+            self.processing_status = self.ProcessingStatus.COMPLETED
 
         super().save(*args, **kwargs)
 
@@ -1083,14 +1030,14 @@ class Document(models.Model):
 
 
 ###############################################################################
-# Custom Colors
+# Assets
 ###############################################################################
 
 
 class CustomColor(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    hexValue = models.CharField(max_length=7)  # e.g., '#RRGGBB'
+    hex_value = models.CharField(max_length=7)  # e.g., '#RRGGBB'
     type = models.CharField(
         max_length=50,
         choices=[
@@ -1111,23 +1058,23 @@ class CustomColor(models.Model):
         ordering = ["organisation", "position", "name"]
 
     def __str__(self):
-        return f"{self.organisation.name} - {self.type}: {self.name} ({self.hexValue})"
+        return f"{self.organisation.name} - {self.type}: {self.name} ({self.hex_value})"
 
     def save(self, *args, **kwargs):
-        if self.position in (None, 0) and self.organisation_id:
-            max_position = (
-                CustomColor.objects.filter(organisation=self.organisation)
-                .exclude(pk=self.pk)
-                .aggregate(models.Max("position"))["position__max"]
-                or 0
-            )
-            self.position = max_position + 1
-        super().save(*args, **kwargs)
-
-
-###############################################################################
-# Custom Fonts
-###############################################################################
+        with transaction.atomic():
+            if self.position in (None, 0) and self.organisation_id:
+                # Lock the organisation
+                _ = Organisation.objects.select_for_update().get(
+                    pk=self.organisation_id
+                )
+                max_position = (
+                    CustomColor.objects.filter(organisation=self.organisation)
+                    .exclude(pk=self.pk)
+                    .aggregate(models.Max("position"))["position__max"]
+                    or 0
+                )
+                self.position = max_position + 1
+            super().save(*args, **kwargs)
 
 
 class CustomFont(models.Model):
@@ -1159,15 +1106,20 @@ class CustomFont(models.Model):
         ordering = ["organisation", "position", "name"]
 
     def save(self, *args, **kwargs):
-        if self.position in (None, 0) and self.organisation_id:
-            max_position = (
-                CustomFont.objects.filter(organisation=self.organisation)
-                .exclude(pk=self.pk)
-                .aggregate(models.Max("position"))["position__max"]
-                or 0
-            )
-            self.position = max_position + 1
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            if self.position in (None, 0) and self.organisation_id:
+                # Lock the organisation
+                _ = Organisation.objects.select_for_update().get(
+                    pk=self.organisation_id
+                )
+                max_position = (
+                    CustomFont.objects.filter(organisation=self.organisation)
+                    .exclude(pk=self.pk)
+                    .aggregate(models.Max("position"))["position__max"]
+                    or 0
+                )
+                self.position = max_position + 1
+            super().save(*args, **kwargs)
 
 
 class TextFormattingSettings(models.Model):
@@ -1186,7 +1138,7 @@ class TextFormattingSettings(models.Model):
 
 
 ###############################################################################
-# API Keys
+# Auth
 ###############################################################################
 
 
@@ -1205,126 +1157,39 @@ class SlideshowPlayerAPIKey(models.Model):
         return f"{self.branch} - {self.key}"
 
 
-@receiver(post_save, sender=Branch)
-def create_slideshow_player_api_key(sender, instance, created, **kwargs):
-    if created:
-        SlideshowPlayerAPIKey.objects.create(branch=instance)
+###############################################################################
+# Integrations
+###############################################################################
 
 
-# Keep parent slideshow.updated_at in sync when Slides change
-@receiver(post_save)
-def touch_slideshow_on_slide_save(sender, instance, created, **kwargs):
-    # Only act for the Slide model
-    if sender.__name__ != "Slide":
-        return
-    try:
-        if instance.slideshow_id:
-            Slideshow.objects.filter(pk=instance.slideshow_id).update(
-                updated_at=timezone.now()
-            )
-    except Exception:
-        pass
+class OrganisationAPIAccess(models.Model):
+    class ApiService(models.TextChoices):
+        WINKAS = "winkas", "WinKAS"
+        KMD = "kmd", "KMD"
+        SPEEDADMIN = "speedadmin", "SpeedAdmin"
 
-
-@receiver(post_save)
-def touch_playlist_on_item_save(sender, instance, created, **kwargs):
-    # Also ensure playlist items saved via API/update touch playlist (fallback)
-    if sender.__name__ != "SlideshowPlaylistItem":
-        return
-    try:
-        if instance.slideshow_playlist_id:
-            SlideshowPlaylist.objects.filter(pk=instance.slideshow_playlist_id).update(
-                updated_at=timezone.now()
-            )
-    except Exception:
-        pass
-
-
-@receiver(post_save)
-def touch_slideshow_on_slide_delete(sender, instance, **kwargs):
-    # Insensitive: Django's post_delete would be ideal but to avoid importing post_delete we'll
-    # rely on callers using delete() which we've overridden on SlideshowPlaylistItem earlier.
-    return
-
-
-class SlideTemplate(models.Model):
     organisation = models.ForeignKey(
-        Organisation, on_delete=models.CASCADE, related_name="slide_templates"
+        Organisation, on_delete=models.CASCADE, related_name="api_access"
     )
-    suborganisation = models.ForeignKey(
-        SubOrganisation,
-        on_delete=models.CASCADE,
-        related_name="slide_templates",
-        null=True,
-        blank=True,
-        help_text="If set, this template is only available to branches in this suborganisation",
+    api_name = models.CharField(
+        max_length=20,
+        choices=ApiService.choices,
+        help_text="The external API this organisation has access to",
     )
-    parent_template = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="suborg_copies",
-        help_text="If this is a suborg template, reference to the global template it was created from",
-    )
-
-    name = models.CharField(max_length=255)
-    slideData = models.JSONField(default=dict, blank=True, null=True)
-    isLegacy = models.BooleanField(
-        default=False,
-        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="slide_templates",
-    )
-    tags = models.ManyToManyField(Tag, blank=True, related_name="slide_templates")
-
-    aspect_ratio = models.CharField(
-        max_length=10,
-        default="16:9",
-        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
-    )
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-
-class GlobalSlideTemplate(models.Model):
-    """Org-less template managed centrally by the application team."""
-
-    name = models.CharField(max_length=255)
-    slideData = models.JSONField(default=dict, blank=True, null=True)
-    thumbnail_url = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Base64 encoded data URL representing the template thumbnail",
-    )
-    previewWidth = models.IntegerField(validators=[MinValueValidator(1)], default=1920)
-    previewHeight = models.IntegerField(validators=[MinValueValidator(1)], default=1080)
-    aspect_ratio = models.CharField(
-        max_length=10,
-        default="16:9",
-        help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
-    )
-    isLegacy = models.BooleanField(
-        default=False,
-        help_text="Legacy templates stay on the fixed 200x200 grid instead of per-pixel cells",
+    is_active = models.BooleanField(
+        default=True, help_text="Whether this API access is currently active"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]
+        unique_together = ("organisation", "api_name")
+        verbose_name = "Organisation API Access"
+        verbose_name_plural = "Organisation API Access"
 
     def __str__(self):
-        return self.name
+        status = "Active" if self.is_active else "Inactive"
+        return f"{self.organisation.name} - {self.get_api_name_display()} ({status})"
 
 
 class RegisteredSlideTypes(models.Model):
@@ -1334,26 +1199,27 @@ class RegisteredSlideTypes(models.Model):
     the frontend slide type system.
     """
 
-    SLIDE_TYPE_CHOICES = [
-        (1, "DDB Events API"),
-        (3, "Newsfeed with Image"),
-        (4, "Dreambroker"),
-        (5, "Newsticker"),
-        (6, "Speed Admin"),
-        (7, "Clock"),
-        (8, "DR Streams"),
-        (9, "KMD Foreningsportalen"),
-        (10, "Frontdesk LTK Borgerservice"),
-        (11, "WinKAS"),
-    ]
+    class SlideType(models.IntegerChoices):
+        DDB_EVENTS_API = 1, "DDB Events API"
+        NEWSFEED_IMAGE = 3, "Newsfeed with Image"
+        DREAMBROKER = 4, "Dreambroker"
+        NEWSTICKER = 5, "Newsticker"
+        SPEED_ADMIN = 6, "Speed Admin"
+        CLOCK = 7, "Clock"
+        DR_STREAMS = 8, "DR Streams"
+        KMD_FORENING = 9, "KMD Foreningsportalen"
+        FRONTDESK = 10, "Frontdesk LTK Borgerservice"
+        WINKAS = 11, "WinKAS"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="registered_slide_types"
     )
+
     slide_type_id = models.IntegerField(
-        choices=SLIDE_TYPE_CHOICES,
+        choices=SlideType.choices,
         help_text="Slide type that matches the frontend slide type system",
     )
+
     name = models.CharField(
         blank=True,
         null=True,

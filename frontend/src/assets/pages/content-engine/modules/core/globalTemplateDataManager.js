@@ -173,9 +173,9 @@ export async function createGlobalTemplate(options = {}) {
 
   const payload = {
     name: newTemplateName,
-    slideData,
-    previewWidth,
-    previewHeight,
+    slide_data: slideData,
+    preview_width: previewWidth,
+    preview_height: previewHeight,
     aspect_ratio: aspectRatio,
     thumbnail_url: null,
   };

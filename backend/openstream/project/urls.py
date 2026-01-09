@@ -7,107 +7,181 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from osauth.views import AuthCodeAPIView, SignInViewAPIView, SignOutAPIView
 
-# DRF API Views
-from app.views import (
-    CustomTokenObtainPairView,
-    # Using the unified CategoryAPIView instead of the separate views
-    LatestEditedSlideshowsAPIView,
-    LatestEditedPlaylistsAPIView,
-    OrganisationAPIView,
-    RegisteredSlideTypesAPIView,
+# DRF API Views grouped by module
+from app.views.assets import (
+    BranchURLCollectionItemAPIView,
     CategoryAPIView,
-    TagListCreateAPIView,
+    CustomColorAPIView,
+    CustomFontAPIView,
+    RegisteredSlideTypesAPIView,
     TagDetailAPIView,
-    # Removed SlideAPIView, SlideTemplateAPIView
+    TagListAPIView,
+    TagListCreateAPIView,
+    TextFormattingSettingsAPIView,
+)
+from app.views.auth import (
+    BranchAPIKeyView,
+    ChangePasswordAPIView,
+    ConfirmPasswordResetView,
+    CustomTokenObtainPairView,
+    FrontdeskAPIKey,
+    GetUsernameFromTokenView,
+    ResetPasswordView,
+    SendLoginEmailView,
+    UserAPIKeyView,
+    ValidateTokenView,
+)
+from app.views.content import (
+    GlobalSlideTemplateAPIView,
+    GlobalSlideTemplatePermissionAPIView,
+    LatestEditedPlaylistsAPIView,
+    LatestEditedSlideshowsAPIView,
+    SlideTemplateAPIView,
     SlideshowCRUDView,
     SlideshowPlaylistAPIView,
     SlideshowPlaylistItemAPIView,
+    SuborgTemplateAPIView,
     WayfindingCRUDView,
-    DisplayWebsiteAPIView,
-    DisplayWebsiteGroupAPIView,
-    ScheduledContentAPIView,
-    RecurringScheduledContentAPIView,
-    GetActiveContentAPIView,
+)
+from app.views.documents import (
+    DocumentAPIView,
+    DocumentFileTokenView,
+    DocumentFileView,
+    DocumentListView,
+)
+from app.views.integrations import (
+    DDBEventAPIView,
+    DDBEventOptionsAPIView,
+    DDBProxyAPIView,
+    KMDDataAPIView,
+    KMDLocationsAPIView,
+    RSSToJSONAPIView,
+    SpeedAdminDataAPIView,
+    SpeedAdminSchoolsAPIView,
+    WeatherAPIView,
+    WeatherLocationsAPIView,
+    WinKASBookingsAPIView,
+    WinKASLocationsAPIView,
+)
+from app.views.organisation import (
+    BranchDetailAPIView,
+    BranchListCreateAPIView,
+    BranchNameAPIView,
+    OrganisationAPIView,
+    OrganisationNameAPIView,
+    SubOrganisationDetailAPIView,
+    SubOrganisationListCreateAPIView,
+    SubOrganisationNameAPIView,
+    UserSuborganisationsAPIView,
+)
+from app.views.scheduling import (
     BranchActiveContentAPIView,
     BranchUpcomingContentAPIView,
-    DocumentFileView,
-    DocumentFileTokenView,
-    DocumentAPIView,
+    DisplayWebsiteAPIView,
+    DisplayWebsiteGroupAPIView,
+    GetActiveContentAPIView,
+    RecurringScheduledContentAPIView,
+    ScheduledContentAPIView,
+)
+from app.views.screens import (
+    CheckScreenGroupAPIView,
+    CreateScreenAPIView,
+    RegisterScreenAPIView,
+)
+from app.views.users import (
+    CreateUserAPIView,
     MembershipAPIView,
     MembershipDetailAPIView,
-    UserSuborganisationsAPIView,
-    CreateUserAPIView,
     OrganisationUsersListAPIView,
-    UserDetailAPIView,
-    SubOrganisationListCreateAPIView,
-    SubOrganisationDetailAPIView,
     ShowAllUserInfoView,
     ShowUsernameAndEmailView,
     UpdateUserAPIView,
-    ChangePasswordAPIView,
-    BranchListCreateAPIView,
-    BranchDetailAPIView,
-    OrganisationNameAPIView,
-    SubOrganisationNameAPIView,
-    BranchNameAPIView,
-    BranchAPIKeyView,
-    SlideTemplateAPIView,
-    SuborgTemplateAPIView,
-    GlobalSlideTemplateAPIView,
-    GlobalSlideTemplatePermissionAPIView,
-    FrontdeskAPIKey,
-    BranchURLCollectionItemAPIView,
-    DocumentListView,
-    TagListAPIView,
-    ValidateTokenView,
-    CustomColorAPIView,
-    CustomFontAPIView,
-    TextFormattingSettingsAPIView,
+    UserDetailAPIView,
     UserLanguagePreferenceView,
-    SendLoginEmailView,
-    ResetPasswordView,
-    ConfirmPasswordResetView,
-    RegisterScreenAPIView,
-    CreateScreenAPIView,
-    CheckScreenGroupAPIView,
-    GetUsernameFromTokenView,
-    UserAPIKeyView,
-    # Converted from Django Ninja APIs
-    DDBProxyAPIView,
-    DDBEventOptionsAPIView,
-    DDBEventAPIView,
-    RSSToJSONAPIView,
-    WeatherAPIView,
-    WeatherLocationsAPIView,
-    SpeedAdminDataAPIView,
-    SpeedAdminSchoolsAPIView,
-    WinKASLocationsAPIView,
-    WinKASBookingsAPIView,
-    KMDDataAPIView,
-    KMDLocationsAPIView,
 )
 
 
 urlpatterns = [
-    # Root path - backend API only, no frontend views
     ###############################################################################
-    # DRF API Endpoints: Categories & Tags
+    # Admin & developer tooling
     ###############################################################################
-    path(
-        "api/categories/",
-        CategoryAPIView.as_view(),
-        name="category-list-create",
-    ),
+    path("admin/", admin.site.urls),
+    path("__reload__/", include("django_browser_reload.urls")),
+    ###############################################################################
+    # Assets (app.views.assets)
+    ###############################################################################
+    path("api/categories/", CategoryAPIView.as_view(), name="category-list-create"),
     path(
         "api/categories/<int:pk>/",
         CategoryAPIView.as_view(),
         name="category-detail",
     ),
     path("api/tags/", TagListCreateAPIView.as_view(), name="tag-list-create"),
-    path("api/tags/list/", TagListAPIView.as_view(), name="tag-list"),
     path("api/tags/<int:pk>/", TagDetailAPIView.as_view(), name="tag-detail"),
+    path("api/tags/list/", TagListAPIView.as_view(), name="tag-list"),
+    path(
+        "api/organisations/slide-types/",
+        RegisteredSlideTypesAPIView.as_view(),
+        name="organisation_slide_types",
+    ),
+    path(
+        "api/branch-url-items/",
+        BranchURLCollectionItemAPIView.as_view(),
+        name="branch_url_items_list_create",
+    ),
+    path(
+        "api/branch-url-items/<int:pk>/",
+        BranchURLCollectionItemAPIView.as_view(),
+        name="branch_url_item_detail_crud",
+    ),
+    path("api/custom-colors/", CustomColorAPIView.as_view(), name="custom_colors_list"),
+    path(
+        "api/custom-colors/<int:pk>/",
+        CustomColorAPIView.as_view(),
+        name="custom_colors_detail",
+    ),
+    path("api/fonts/", CustomFontAPIView.as_view(), name="fonts_list_create"),
+    path("api/fonts/<int:pk>/", CustomFontAPIView.as_view(), name="font_detail_crud"),
+    path(
+        "api/text-formatting-settings/",
+        TextFormattingSettingsAPIView.as_view(),
+        name="text_formatting_settings",
+    ),
     ###############################################################################
-    # DRF API Endpoints: Slideshows
+    # Auth (app.views.auth + osauth.views)
+    ###############################################################################
+    path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/token/validate/", ValidateTokenView.as_view(), name="token_validate"),
+    path("api/get-username/", GetUsernameFromTokenView.as_view(), name="get-username"),
+    path("api/get-user-api-key/", UserAPIKeyView.as_view(), name="get_user_apikey"),
+    path("api/branch-api-key", BranchAPIKeyView.as_view(), name="branch_api_key"),
+    path(
+        "api/frontdesk_ltk_borgerservice_api_key",
+        FrontdeskAPIKey.as_view(),
+        name="frontdesk_api_key",
+    ),
+    path(
+        "api/send-login-email/",
+        SendLoginEmailView.as_view(),
+        name="send_login_email",
+    ),
+    path(
+        "api/user/change-password/",
+        ChangePasswordAPIView.as_view(),
+        name="change-password",
+    ),
+    path("api/reset-password/", ResetPasswordView.as_view(), name="reset_password"),
+    path(
+        "api/confirm-password-reset/",
+        ConfirmPasswordResetView.as_view(),
+        name="confirm_password_reset",
+    ),
+    path("auth/signin/", SignInViewAPIView.as_view(), name="osauth_signin"),
+    path("auth/code/", AuthCodeAPIView.as_view(), name="osauth_code"),
+    path("auth/signout/api", SignOutAPIView.as_view(), name="osauth_signout_api"),
+    ###############################################################################
+    # Content (app.views.content)
     ###############################################################################
     path("api/manage_content/", SlideshowCRUDView.as_view(), name="slideshow_crud"),
     path(
@@ -115,18 +189,6 @@ urlpatterns = [
         SlideshowCRUDView.as_view(),
         name="slideshow_detail_crud",
     ),
-    ###############################################################################
-    # DRF API Endpoints: Wayfinding
-    ###############################################################################
-    path("api/wayfinding/", WayfindingCRUDView.as_view(), name="wayfinding_crud"),
-    path(
-        "api/wayfinding/<int:pk>/",
-        WayfindingCRUDView.as_view(),
-        name="wayfinding_detail_crud",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Playlists and Playlist Items
-    ###############################################################################
     path(
         "api/slideshow-playlists/",
         SlideshowPlaylistAPIView.as_view(),
@@ -147,208 +209,11 @@ urlpatterns = [
         SlideshowPlaylistItemAPIView.as_view(),
         name="slideshow_sequence_item_detail_crud",
     ),
-    ###############################################################################
-    # DRF API Endpoints: Display Websites & Groups
-    ###############################################################################
+    path("api/wayfinding/", WayfindingCRUDView.as_view(), name="wayfinding_crud"),
     path(
-        "api/display-websites/",
-        DisplayWebsiteAPIView.as_view(),
-        name="display_website_crud",
-    ),
-    path(
-        "api/display-websites/<int:pk>/",
-        DisplayWebsiteAPIView.as_view(),
-        name="display_website_detail_crud",
-    ),
-    path(
-        "api/display-website-groups/",
-        DisplayWebsiteGroupAPIView.as_view(),
-        name="display_website_groups_crud",
-    ),
-    path(
-        "api/display-website-groups/<int:pk>/",
-        DisplayWebsiteGroupAPIView.as_view(),
-        name="display_website_groups_crud",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Scheduled Content
-    ###############################################################################
-    path(
-        "api/scheduled-contents/",
-        ScheduledContentAPIView.as_view(),
-        name="scheduled_contents_crud",
-    ),
-    path(
-        "api/scheduled-contents/<int:pk>/",
-        ScheduledContentAPIView.as_view(),
-        name="scheduled_contents_crud_detail",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Recurring Scheduled Content
-    ###############################################################################
-    path(
-        "api/recurring-scheduled-contents/",
-        RecurringScheduledContentAPIView.as_view(),
-        name="recurring_scheduled_contents_crud",
-    ),
-    path(
-        "api/recurring-scheduled-contents/<int:pk>/",
-        RecurringScheduledContentAPIView.as_view(),
-        name="recurring_scheduled_contents_crud_detail",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Documents
-    ###############################################################################
-    path("api/documents/", DocumentAPIView.as_view(), name="document-api"),
-    path("api/documents/list/", DocumentListView.as_view(), name="document-api"),
-    path(
-        "api/documents/<int:document_id>/",
-        DocumentAPIView.as_view(),
-        name="document-api",
-    ),
-    path("api/documents/images/", DocumentAPIView.as_view(), name="document-images"),
-    path(
-        "api/documents/file-token/<int:document_id>/",
-        DocumentFileTokenView.as_view(),
-        name="document-file-token",
-    ),
-    path(
-        "api/documents/file/<int:document_id>/",
-        DocumentFileView.as_view(),
-        name="document-file",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Memberships, Users & Suborganisations
-    ###############################################################################
-    # Organisations
-    path("api/organisations/", OrganisationAPIView.as_view(), name="organisation_list"),
-    path(
-        "api/organisations/slide-types/",
-        RegisteredSlideTypesAPIView.as_view(),
-        name="organisation_slide_types",
-    ),
-    # Memberships
-    path(
-        "api/memberships/", MembershipAPIView.as_view(), name="membership_list_create"
-    ),
-    path(
-        "api/memberships/<int:pk>/",
-        MembershipDetailAPIView.as_view(),
-        name="membership_detail",
-    ),
-    # Users
-    path("api/users/", CreateUserAPIView.as_view(), name="create_user"),
-    path(
-        "api/organisations/<str:org_identifier>/users/",
-        OrganisationUsersListAPIView.as_view(),
-        name="org_users",
-    ),
-    path("api/users/<int:pk>/", UserDetailAPIView.as_view(), name="user_detail"),
-    # User Info
-    path("api/user/allinfo/", ShowAllUserInfoView.as_view(), name="user_all_details"),
-    path("api/user/info/", ShowUsernameAndEmailView.as_view(), name="user_detail"),
-    path("api/user/update/", UpdateUserAPIView.as_view(), name="update_user_detail"),
-    path(
-        "api/user/change-password/",
-        ChangePasswordAPIView.as_view(),
-        name="change-password",
-    ),
-    path(
-        "api/user-language-preference/",
-        UserLanguagePreferenceView.as_view(),
-        name="user_language_preference",
-    ),
-    # Suborganisations
-    path(
-        "api/suborganisations/",
-        SubOrganisationListCreateAPIView.as_view(),
-        name="suborg_list_create",
-    ),
-    path(
-        "api/suborganisations/<int:pk>/",
-        SubOrganisationDetailAPIView.as_view(),
-        name="suborg_detail",
-    ),
-    # Additional user-related endpoints
-    path(
-        "api/user/suborganisations/",
-        UserSuborganisationsAPIView.as_view(),
-        name="user_suborganisations",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Authentication & API Keys
-    ###############################################################################
-    path("api/token/validate/", ValidateTokenView.as_view(), name="token_validate"),
-    path("api/get-user-api-key/", UserAPIKeyView.as_view(), name="get_user_apikey"),
-    path("api/get-username/", GetUsernameFromTokenView.as_view(), name="get-username"),
-    path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("api/branch-api-key", BranchAPIKeyView.as_view(), name="branch_api_key"),
-    ###############################################################################
-    # DRF API Endpoints: Active Content
-    ###############################################################################
-    path(
-        "api/display-website/get-active-content",
-        GetActiveContentAPIView.as_view(),
-        name="get_active_content",
-    ),
-    path(
-        "api/branch/get-active-content/",
-        BranchActiveContentAPIView.as_view(),
-        name="branch_get_active_content",
-    ),
-    path(
-        "api/branch/get-upcoming-content/",
-        BranchUpcomingContentAPIView.as_view(),
-        name="branch_get_upcoming_content",
-    ),
-    # Latest edited slideshows & playlists for dashboard
-    path(
-        "api/branch/latest-edited-slideshows/",
-        LatestEditedSlideshowsAPIView.as_view(),
-        name="branch_latest_edited_slideshows",
-    ),
-    path(
-        "api/branch/latest-edited-playlists/",
-        LatestEditedPlaylistsAPIView.as_view(),
-        name="branch_latest_edited_playlists",
-    ),
-    ###############################################################################
-    # Django Admin
-    ###############################################################################
-    path("admin/", admin.site.urls),
-    path("__reload__/", include("django_browser_reload.urls")),
-    ###############################################################################
-    # Screen Registration API
-    ###############################################################################
-    path(
-        "api/register-screen/",
-        RegisterScreenAPIView.as_view(),
-        name="register_screen_api",
-    ),
-    path("api/create-screen/", CreateScreenAPIView.as_view(), name="create_screen_api"),
-    path(
-        "api/check-screen-group/",
-        CheckScreenGroupAPIView.as_view(),
-        name="check_screen_group_api",
-    ),
-    path(
-        "api/branches/", BranchListCreateAPIView.as_view(), name="branches_list_create"
-    ),
-    path("api/branches/<int:pk>/", BranchDetailAPIView.as_view(), name="branch_detail"),
-    # Name lookup endpoints
-    path(
-        "api/organisations/<str:identifier>/name/",
-        OrganisationNameAPIView.as_view(),
-        name="organisation_name",
-    ),
-    path(
-        "api/suborganisations/<int:pk>/name/",
-        SubOrganisationNameAPIView.as_view(),
-        name="suborganisation_name",
-    ),
-    path(
-        "api/branches/<int:pk>/name/", BranchNameAPIView.as_view(), name="branch_name"
+        "api/wayfinding/<int:pk>/",
+        WayfindingCRUDView.as_view(),
+        name="wayfinding_detail_crud",
     ),
     path(
         "api/slide-templates/",
@@ -386,82 +251,42 @@ urlpatterns = [
         name="global_templates_detail",
     ),
     path(
-        "api/frontdesk_ltk_borgerservice_api_key",
-        FrontdeskAPIKey.as_view(),
-        name="frontdesk_api_key",
+        "api/branch/latest-edited-slideshows/",
+        LatestEditedSlideshowsAPIView.as_view(),
+        name="branch_latest_edited_slideshows",
     ),
     path(
-        "api/branch-url-items/",
-        BranchURLCollectionItemAPIView.as_view(),
-        name="branch_url_items_list_create",
-    ),
-    path(
-        "api/branch-url-items/<int:pk>/",
-        BranchURLCollectionItemAPIView.as_view(),
-        name="branch_url_item_detail_crud",
+        "api/branch/latest-edited-playlists/",
+        LatestEditedPlaylistsAPIView.as_view(),
+        name="branch_latest_edited_playlists",
     ),
     ###############################################################################
-    # DRF API Endpoints: Custom Colors
+    # Documents (app.views.documents)
     ###############################################################################
+    path("api/documents/", DocumentAPIView.as_view(), name="document-api"),
+    path("api/documents/list/", DocumentListView.as_view(), name="document-api"),
     path(
-        "api/custom-colors/",
-        CustomColorAPIView.as_view(),
-        name="custom_colors_list",
+        "api/documents/<int:document_id>/",
+        DocumentAPIView.as_view(),
+        name="document-api",
+    ),
+    path("api/documents/images/", DocumentAPIView.as_view(), name="document-images"),
+    path(
+        "api/documents/file-token/<int:document_id>/",
+        DocumentFileTokenView.as_view(),
+        name="document-file-token",
     ),
     path(
-        "api/custom-colors/<int:pk>/",
-        CustomColorAPIView.as_view(),
-        name="custom_colors_detail",
-    ),
-    ###############################################################################
-    # DRF API Endpoints: Custom Fonts
-    ###############################################################################
-    path(
-        "api/fonts/",
-        CustomFontAPIView.as_view(),
-        name="fonts_list_create",
-    ),
-    path(
-        "api/fonts/<int:pk>/",
-        CustomFontAPIView.as_view(),
-        name="font_detail_crud",
-    ),
-    path(
-        "api/text-formatting-settings/",
-        TextFormattingSettingsAPIView.as_view(),
-        name="text_formatting_settings",
-    ),
-    path(
-        "api/user-language-preference/",
-        UserLanguagePreferenceView.as_view(),
-        name="user_language_preference",
+        "api/documents/file/<int:document_id>/",
+        DocumentFileView.as_view(),
+        name="document-file",
     ),
     ###############################################################################
-    # DRF API Endpoints: Email
+    # Integrations (app.views.integrations)
     ###############################################################################
-    path(
-        "api/send-login-email/",
-        SendLoginEmailView.as_view(),
-        name="send_login_email",
-    ),
-    path(
-        "api/reset-password/",
-        ResetPasswordView.as_view(),
-        name="reset_password",
-    ),
-    path(
-        "api/confirm-password-reset/",
-        ConfirmPasswordResetView.as_view(),
-        name="confirm_password_reset",
-    ),
-    ###############################################################################
-    # Converted Ninja API Endpoints
-    ###############################################################################
-    # DDB (Danish Digital Library) API endpoints
     path("api/ddb/proxy/", DDBProxyAPIView.as_view(), name="ddb_proxy"),
     path("api/ddb/options/", DDBEventOptionsAPIView.as_view(), name="ddb_options"),
     path("api/ddb/events/", DDBEventAPIView.as_view(), name="ddb_events"),
-    # RSS Proxy API endpoints
     path("api/rss/rss-to-json/", RSSToJSONAPIView.as_view(), name="rss_to_json"),
     path("api/rss/weather/", WeatherAPIView.as_view(), name="weather_data"),
     path(
@@ -469,29 +294,166 @@ urlpatterns = [
         WeatherLocationsAPIView.as_view(),
         name="weather_locations",
     ),
-    # SpeedAdmin API endpoints
     path("api/speedadmin/", SpeedAdminDataAPIView.as_view(), name="speedadmin_data"),
     path(
         "api/speedadmin/schools/",
         SpeedAdminSchoolsAPIView.as_view(),
         name="speedadmin_schools",
     ),
-    # WinKAS API endpoints
     path(
         "api/winkas/locations/",
         WinKASLocationsAPIView.as_view(),
         name="winkas_locations",
     ),
     path(
-        "api/winkas/bookings/", WinKASBookingsAPIView.as_view(), name="winkas_bookings"
+        "api/winkas/bookings/",
+        WinKASBookingsAPIView.as_view(),
+        name="winkas_bookings",
     ),
-    # KMD API endpoints
     path("api/kmd/", KMDDataAPIView.as_view(), name="kmd_data"),
     path("api/kmd/locations/", KMDLocationsAPIView.as_view(), name="kmd_locations"),
     ###############################################################################
-    # Authentication endpoints
+    # Organisation (app.views.organisation)
     ###############################################################################
-    path("auth/signin/", SignInViewAPIView.as_view(), name="osauth_signin"),
-    path("auth/code/", AuthCodeAPIView.as_view(), name="osauth_code"),
-    path("auth/signout/api", SignOutAPIView.as_view(), name="osauth_signout_api"),
+    path("api/organisations/", OrganisationAPIView.as_view(), name="organisation_list"),
+    path(
+        "api/organisations/<str:identifier>/name/",
+        OrganisationNameAPIView.as_view(),
+        name="organisation_name",
+    ),
+    path(
+        "api/suborganisations/",
+        SubOrganisationListCreateAPIView.as_view(),
+        name="suborg_list_create",
+    ),
+    path(
+        "api/suborganisations/<int:pk>/",
+        SubOrganisationDetailAPIView.as_view(),
+        name="suborg_detail",
+    ),
+    path(
+        "api/suborganisations/<int:pk>/name/",
+        SubOrganisationNameAPIView.as_view(),
+        name="suborganisation_name",
+    ),
+    path(
+        "api/branches/",
+        BranchListCreateAPIView.as_view(),
+        name="branches_list_create",
+    ),
+    path(
+        "api/branches/<int:pk>/",
+        BranchDetailAPIView.as_view(),
+        name="branch_detail",
+    ),
+    path(
+        "api/branches/<int:pk>/name/",
+        BranchNameAPIView.as_view(),
+        name="branch_name",
+    ),
+    path(
+        "api/user/suborganisations/",
+        UserSuborganisationsAPIView.as_view(),
+        name="user_suborganisations",
+    ),
+    ###############################################################################
+    # Scheduling (app.views.scheduling)
+    ###############################################################################
+    path(
+        "api/display-websites/",
+        DisplayWebsiteAPIView.as_view(),
+        name="display_website_crud",
+    ),
+    path(
+        "api/display-websites/<int:pk>/",
+        DisplayWebsiteAPIView.as_view(),
+        name="display_website_detail_crud",
+    ),
+    path(
+        "api/display-website-groups/",
+        DisplayWebsiteGroupAPIView.as_view(),
+        name="display_website_groups_crud",
+    ),
+    path(
+        "api/display-website-groups/<int:pk>/",
+        DisplayWebsiteGroupAPIView.as_view(),
+        name="display_website_groups_crud",
+    ),
+    path(
+        "api/scheduled-contents/",
+        ScheduledContentAPIView.as_view(),
+        name="scheduled_contents_crud",
+    ),
+    path(
+        "api/scheduled-contents/<int:pk>/",
+        ScheduledContentAPIView.as_view(),
+        name="scheduled_contents_crud_detail",
+    ),
+    path(
+        "api/recurring-scheduled-contents/",
+        RecurringScheduledContentAPIView.as_view(),
+        name="recurring_scheduled_contents_crud",
+    ),
+    path(
+        "api/recurring-scheduled-contents/<int:pk>/",
+        RecurringScheduledContentAPIView.as_view(),
+        name="recurring_scheduled_contents_crud_detail",
+    ),
+    path(
+        "api/display-website/get-active-content",
+        GetActiveContentAPIView.as_view(),
+        name="get_active_content",
+    ),
+    path(
+        "api/branch/get-active-content/",
+        BranchActiveContentAPIView.as_view(),
+        name="branch_get_active_content",
+    ),
+    path(
+        "api/branch/get-upcoming-content/",
+        BranchUpcomingContentAPIView.as_view(),
+        name="branch_get_upcoming_content",
+    ),
+    ###############################################################################
+    # Screens (app.views.screens)
+    ###############################################################################
+    path(
+        "api/register-screen/",
+        RegisterScreenAPIView.as_view(),
+        name="register_screen_api",
+    ),
+    path("api/create-screen/", CreateScreenAPIView.as_view(), name="create_screen_api"),
+    path(
+        "api/check-screen-group/",
+        CheckScreenGroupAPIView.as_view(),
+        name="check_screen_group_api",
+    ),
+    ###############################################################################
+    # Users (app.views.users)
+    ###############################################################################
+    path("api/users/", CreateUserAPIView.as_view(), name="create_user"),
+    path("api/users/<int:pk>/", UserDetailAPIView.as_view(), name="user_detail"),
+    path("api/user/allinfo/", ShowAllUserInfoView.as_view(), name="user_all_details"),
+    path("api/user/info/", ShowUsernameAndEmailView.as_view(), name="user_detail"),
+    path("api/user/update/", UpdateUserAPIView.as_view(), name="update_user_detail"),
+    path(
+        "api/organisations/<str:org_identifier>/users/",
+        OrganisationUsersListAPIView.as_view(),
+        name="org_users",
+    ),
+    path(
+        "api/memberships/",
+        MembershipAPIView.as_view(),
+        name="membership_list_create",
+    ),
+    path(
+        "api/memberships/<int:pk>/",
+        MembershipDetailAPIView.as_view(),
+        name="membership_detail",
+    ),
+    path(
+        "api/user-language-preference/",
+        UserLanguagePreferenceView.as_view(),
+        name="user_language_preference",
+    ),
 ]

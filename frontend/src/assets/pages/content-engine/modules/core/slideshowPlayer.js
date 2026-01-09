@@ -12,7 +12,8 @@ import { enterPlayerMode, exitPlayerMode } from "./playerMode.js";
 export async function playSlideshow(showInfoBox = true) {
   // Pre-cache videos for offline support
   console.log("Pre-caching videos for slideshow...");
-  await videoCacheManager.preCacheVideos(store.slides);
+  // Kick off caching in the background so playback can start immediately
+  void videoCacheManager.preCacheVideos(store.slides);
 
   document.querySelectorAll(".persistent-indicator").forEach((el) => {
     el.style.visibility = "hidden";
@@ -197,14 +198,9 @@ export async function playSlideshow(showInfoBox = true) {
         // Load slide first, then set up countdown
         store.currentSlideIndex = index;
 
-        if (firstRun) {
-          loadSlide(slide, undefined, true, true);
-          firstRun = false;
-        }
-
-        if (!firstRun) {
-          loadSlide(slide, undefined, true);
-        }
+        const forceCompleteReload = firstRun;
+        loadSlide(slide, undefined, true, forceCompleteReload);
+        firstRun = false;
 
         // Small delay to ensure elements are rendered, then scale
         await new Promise((r) => setTimeout(r, 100));

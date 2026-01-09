@@ -163,6 +163,39 @@ const disableAspectRatioControls = () => {
   }
 };
 
+const renderEditorLoadError = (primaryText, detailText = "") => {
+  const previewContainer =
+    document.querySelector(".preview-column .preview-container") ||
+    document.querySelector(".preview-container");
+
+  if (previewContainer) {
+    previewContainer.innerHTML = "";
+
+    const alert = document.createElement("div");
+    alert.className = "alert alert-danger text-center mt-5";
+    alert.setAttribute("role", "alert");
+
+    const heading = document.createElement("p");
+    heading.className = "fw-semibold mb-2";
+    heading.textContent = primaryText;
+    alert.appendChild(heading);
+
+    const detailMessage = document.createElement("p");
+    detailMessage.className = "mb-0 text-muted";
+    detailMessage.textContent =
+      detailText || gettext("Please refresh the page and try again.");
+    alert.appendChild(detailMessage);
+
+    previewContainer.appendChild(alert);
+  }
+
+  const toolbar = document.getElementById("contentEngineToolbar");
+  if (toolbar) {
+    toolbar.classList.add("opacity-50", "pe-none");
+    toolbar.setAttribute("aria-disabled", "true");
+  }
+};
+
 const isGlobalTemplateScope = queryParams.template_scope === "global";
 
 if (isGlobalTemplateScope) {
@@ -184,15 +217,26 @@ if (queryParams.mode === "edit") {
   } catch (e) {
     console.warn("exitPlayerMode failed or no player state:", e);
   }
-  await fetchSlideshow(queryParams.id)
-    .then(() => {
-      initAutoSave(queryParams.id);
-    })
-    .catch((err) => console.error(err));
-  initAddSlide();
-  // init slide elements sidebar UI
-  initSlideElementsSidebar();
-  initCommonEditorFeatures();
+  let slideshowLoaded = false;
+
+  try {
+    await fetchSlideshow(queryParams.id);
+    initAutoSave(queryParams.id);
+    slideshowLoaded = true;
+  } catch (err) {
+    console.error(gettext("Failed to initialize slideshow editor:"), err);
+    renderEditorLoadError(
+      gettext("We couldn't load this slideshow."),
+      err && err.message ? err.message : "",
+    );
+  }
+
+  if (slideshowLoaded) {
+    initAddSlide();
+    // init slide elements sidebar UI
+    initSlideElementsSidebar();
+    initCommonEditorFeatures();
+  }
 }
 
 if (queryParams.mode === "template_editor") {
@@ -202,9 +246,12 @@ if (queryParams.mode === "template_editor") {
   makeActiveInNav(templateNavHref);
   const navbar = document.getElementById("navbar");
 
-  document
-    .getElementById("settings-and-play-btn-container")
-    .classList.add("d-none");
+  const settingsAndPlayContainer = document.getElementById(
+    "settings-and-play-btn-container",
+  );
+  if (settingsAndPlayContainer) {
+    settingsAndPlayContainer.classList.add("d-none");
+  }
 
   if (navbar) {
     navbar.style.display = "block";
@@ -312,7 +359,12 @@ if (queryParams.mode === "template_editor") {
 if (queryParams.mode === "suborg_templates") {
   makeActiveInNav("/select-sub-org");
   disableAspectRatioControls();
-  document.getElementById("settings-and-play-btn-container").classList.add("d-none");
+  const settingsAndPlayBtnContainer = document.getElementById(
+    "settings-and-play-btn-container",
+  );
+  if (settingsAndPlayBtnContainer) {
+    settingsAndPlayBtnContainer.classList.add("d-none");
+  }
   const navbar = document.getElementById("navbar");
   if (navbar) {
     navbar.style.display = "block";

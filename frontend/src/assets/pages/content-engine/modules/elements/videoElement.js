@@ -1,12 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
-import {
-  parentOrgID,
-  queryParams,
-  selectedBranchID,
-  showToast,
-  token,
-} from "../../../../utils/utils.js";
+import { queryParams, showToast } from "../../../../utils/utils.js";
 import { selectElement } from "../core/elementSelector.js";
 import { loadSlide } from "../core/renderSlide.js";
 import { store } from "../core/slideStore.js";
@@ -14,7 +8,6 @@ import { pushCurrentSlideState } from "../core/undoRedo.js";
 import { getNewZIndex } from "../utils/domUtils.js";
 import { displayMediaModal } from "../modals/mediaModal.js";
 import { GridUtils } from "../config/gridConfig.js";
-import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
 import { videoCacheManager } from "../core/videoCacheManager.js";
 const videoExtensionsList = ["mp4", "webm", "gif"];
@@ -30,43 +23,14 @@ function addVideoElementToSlide(videoId) {
     const video =
       window.selectedElementForUpdate.container.querySelector("video");
     if (video) {
-      // Fetch tokenized URL for the updated video
-      fetch(
-        `${BASE_URL}/api/documents/file-token/${videoId}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}&organisation_id=${parentOrgID}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      videoCacheManager.attachVideoToElement(video, videoId);
+      video.addEventListener(
+        "loadeddata",
+        () => {
+          video.play().catch((e) => console.warn("Video play failed:", e));
         },
-      )
-        .then((resp) => resp.json())
-        .then(async (data) => {
-          if (data.file_url) {
-            // Use video cache manager for better offline support
-            try {
-              const videoUrl = await videoCacheManager.getVideoUrl(
-                window.selectedElementForUpdate.element.content,
-              );
-              video.src = videoUrl;
-
-              // Ensure video plays after loading
-              video.addEventListener(
-                "loadeddata",
-                () => {
-                  video
-                    .play()
-                    .catch((e) => console.warn("Video play failed:", e));
-                },
-                { once: true },
-              );
-            } catch (error) {
-              console.error("Failed to get cached video URL:", error);
-              // Fallback to direct URL
-              video.src = data.file_url;
-            }
-          } else {
-            console.error("Failed to get video URL:", data);
-          }
-        })
-        .catch((err) => console.error("Failed to load video:", err));
+        { once: true },
+      );
     }
     window.selectedElementForUpdate = null;
   } else {
@@ -160,17 +124,7 @@ export function _renderVideo(el, container) {
   video.muted = el.muted !== false;
 
   if (el.content) {
-    // Use video cache manager for better offline support
-    videoCacheManager
-      .getVideoUrl(el.content)
-      .then((videoUrl) => {
-        if (videoUrl) {
-          video.src = videoUrl;
-        } else {
-          console.error("Failed to get video URL for element:", el.id);
-        }
-      })
-      .catch((err) => console.error("Failed to load video:", err));
+    videoCacheManager.attachVideoToElement(video, el.content);
   } else {
     console.warn("Video element has no content ID:", el.id);
   }

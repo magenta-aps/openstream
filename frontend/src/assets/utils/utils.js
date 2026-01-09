@@ -220,8 +220,24 @@ export function searchItems(query, dataset, miniSearcher) {
   }
 }
 
+const HTML_ESCAPE_MAP = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
 export function autoHyphenate(text) {
-  return text.split("").join("&shy;");
+  if (text === undefined || text === null) {
+    return "";
+  }
+
+  const stringValue = typeof text === "string" ? text : String(text);
+  const SOFT_HYPHEN = "\u00AD";
+  const hyphenated = stringValue.split("").join(SOFT_HYPHEN);
+
+  return hyphenated.replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char]);
 }
 
 export async function genericFetch(

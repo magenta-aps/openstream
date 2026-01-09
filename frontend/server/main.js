@@ -30,8 +30,7 @@ const injectContext = (html, context) => {
         `window.OPENSTREAM_CONTEXT = ${serializeForInlineScript(payload)};`,
         'if (window.OPENSTREAM_CONTEXT.orgName) window.ORG_NAME = window.OPENSTREAM_CONTEXT.orgName;',
         'if (window.OPENSTREAM_CONTEXT.subOrg) window.SUB_ORG = window.OPENSTREAM_CONTEXT.subOrg;',
-        'if (window.OPENSTREAM_CONTEXT.branch) window.BRANCH = window.OPENSTREAM_CONTEXT.branch;',
-        'console.log("org name: " + (window.ORG_NAME || "none") + ", sub org: " + (window.SUB_ORG || "none") + ", branch: " + (window.BRANCH || "none"));'
+        'if (window.OPENSTREAM_CONTEXT.branch) window.BRANCH = window.OPENSTREAM_CONTEXT.branch;'
     ].join('')
 
     const script = `<script>${scriptContent}</script>`
@@ -53,7 +52,17 @@ const isAssetRequest = (pathname) => {
     return ext !== '.html'
 }
 
-const decodeSegment = (segment) => decodeURIComponent(segment)
+const INVALID_SEGMENT_ERROR = 'INVALID_SEGMENT'
+
+const decodeSegment = (segment) => {
+    try {
+        return decodeURIComponent(segment)
+    } catch {
+        const error = new Error('Invalid path segment encoding')
+        error.code = INVALID_SEGMENT_ERROR
+        throw error
+    }
+}
 
 const parsePageContext = (pathname) => {
     const segments = pathname.split('/').filter(Boolean)
@@ -149,17 +158,50 @@ const start = async () => {
             }
 
             const rawOrgName = page
-            const orgName = decodeSegment(rawOrgName)
 
-            // Redirect to organisation sign-in page
-            if (orgName) {
-                const queryIndex = req.originalUrl.indexOf('?')
-                const queryString = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : ''
-                return res.redirect(302, `/${encodeURIComponent(orgName)}/sign-in${queryString}`)
+            try {
+                const orgName = decodeSegment(rawOrgName)
+
+                // Redirect to organisation sign-in page
+                if (orgName) {
+                    const queryIndex = req.originalUrl.indexOf('?')
+                    const queryString = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : ''
+                    return res.redirect(302, `/${encodeURIComponent(orgName)}/sign-in${queryString}`)
+                }
+            } catch (error) {
+                if (error.code === INVALID_SEGMENT_ERROR) {
+                    return res.status(400).send('Invalid path encoding')
+                }
+
+                return next(error)
             }
         }
 
-        const pageContext = parsePageContext(pathname)
+        if (segments.length === 2 && segments[0] === 'slide-types' && !segments[1].includes('.')) {
+            try {
+                const slug = decodeSegment(segments[1])
+                req.pageContext = { orgName: null, page: `slide-types/${slug}` }
+                return next()
+            } catch (error) {
+                if (error.code === INVALID_SEGMENT_ERROR) {
+                    return res.status(400).send('Invalid path encoding')
+                }
+
+                return next(error)
+            }
+        }
+
+        let pageContext
+
+        try {
+            pageContext = parsePageContext(pathname)
+        } catch (error) {
+            if (error.code === INVALID_SEGMENT_ERROR) {
+                return res.status(400).send('Invalid path encoding')
+            }
+
+            return next(error)
+        }
 
         if (pageContext) {
             req.pageContext = pageContext

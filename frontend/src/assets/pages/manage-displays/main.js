@@ -25,12 +25,6 @@ import {
   getAspectRatioDefinition,
 } from "../../utils/availableAspectRatios";
 
-// Initialize translations
-(async () => {
-  await fetchUserLangugage();
-  translateHTML();
-})();
-
 makeActiveInNav("/manage-displays");
 updateNavbarBranchName();
 updateNavbarUsername();
@@ -50,18 +44,18 @@ const calendarLocale = document.documentElement.lang || "da";
 // -------------------------
 // GLOBAL STATE & MODALS
 // -------------------------
-let groupsData = []; // Fetched from /api/display-website-groups/
-let displaysData = []; // Fetched from /api/display-websites/
-let scheduledEvents = []; // Fetched from /api/scheduled-contents/ (using multiple group IDs)
-let recurringEvents = []; // Fetched from /api/recurring-scheduled-contents/
-let slideshowPlaylists = []; // Fetched from /api/slideshow-playlists/
+let groupsData = [];
+let displaysData = [];
+let scheduledEvents = [];
+let recurringEvents = [];
+let slideshowPlaylists = [];
 let slideshows = [];
 let calendar = null;
-let selectedGroupIds = []; // All groups are selected by default on first load
+let selectedGroupIds = [];
 let ungroupedDisplays = [];
-let currentView = "calendar"; // 'calendar' or 'list'
-let draggedItem = null; // For tracking dragged display items
-
+let currentView = "calendar";
+let draggedItem = null;
+let registrationUrlModal;
 let addGroupModal,
   editGroupModal,
   editDisplayModal,
@@ -69,6 +63,7 @@ let addGroupModal,
   editScheduledModal,
   addRecurringScheduledModal,
   editRecurringScheduledModal;
+let apiKey = null;
 
 const combineToggleCreate = document.getElementById("combineWithDefaultToggle");
 const combineToggleEdit = document.getElementById(
@@ -90,7 +85,7 @@ const combineInputMappings = [
   },
 ];
 
-let apiKey = null;
+
 async function fetchAPIKey() {
   try {
     // Fetch the API key from your endpoint.
@@ -115,8 +110,6 @@ async function fetchAPIKey() {
     alert(gettext("Error fetching registration URL."));
   }
 }
-
-fetchAPIKey();
 
 function ensureAspectRatioOption(selectElement, ratioValue) {
   if (!selectElement || !ratioValue) {
@@ -190,7 +183,6 @@ function setAspectRatioSelectValue(selectElement, ratioValue) {
   ensureAspectRatioOption(selectElement, resolvedValue);
   selectElement.value = resolvedValue;
 }
-
 [
   {
     element: document.getElementById("addGroupAspectRatio"),
@@ -282,9 +274,6 @@ async function deleteDisplay() {
   );
 }
 
-// -------------------------
-// UTILITY FUNCTIONS
-// -------------------------
 function getDistinctColor(id) {
   const hue = (id * 137) % 360;
   return `hsl(${hue}, 70%, 50%)`;
@@ -336,9 +325,6 @@ function populateSlideshowPlaylistDropdown(
   populateDropdown(dropdownId, filteredPlaylists, placeholder, selectedValue);
 }
 
-// -------------------------
-// API CALL FUNCTIONS
-// -------------------------
 async function loadGroups() {
   try {
     const res = await fetch(
@@ -651,8 +637,6 @@ function copyDisplayUrl() {
     });
 }
 
-// copyRegistrationUrl implemented later with aspect_ratio support and improved UX
-
 async function saveDisplayChanges() {
   const displayIdEl = document.getElementById("editDisplayId");
   const displayNameEl = document.getElementById("editDisplayName");
@@ -743,10 +727,6 @@ async function loadSlideshowPlaylists() {
   }
 }
 
-/**
- * Load scheduled events from the backend for the toggled groups.
- * Uses the new "ids" parameter (a comma‑separated list).
- */
 async function loadScheduledEvents() {
   if (selectedGroupIds.length === 0) {
     scheduledEvents = [];
@@ -770,9 +750,6 @@ async function loadScheduledEvents() {
   }
 }
 
-/**
- * Load recurring scheduled events from the backend for the toggled groups.
- */
 async function loadRecurringScheduledEvents() {
   if (selectedGroupIds.length === 0) {
     recurringEvents = [];
@@ -1127,11 +1104,6 @@ async function checkForNewDisplays() {
   }
 }
 
-// Inside the DOMContentLoaded event listener, after the initial refreshData() call
-
-// Start polling for new displays every 10 seconds (10000 milliseconds)
-setInterval(checkForNewDisplays, 10000);
-
 async function loadSlideshows() {
   try {
     const res = await fetch(
@@ -1151,89 +1123,63 @@ async function loadSlideshows() {
 }
 
 async function copyAPIKey() {
-  try {
-    // Fetch the API key from your endpoint.
-    const response = await fetch(
-      `${BASE_URL}/api/branch-api-key?branch_id=${selectedBranchID}`,
-      {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+  // Build the full registration URL. Adjust the base URL if needed.
+  let registrationUrl = `${window.location.origin}/connect-screen?apiKey=${apiKey}`;
+  const selector = document.getElementById("registrationAspectRatio");
+  if (selector && selector.value) {
+    registrationUrl += `&aspect_ratio=${encodeURIComponent(selector.value)}`;
+  }
 
-    if (!response.ok) {
-      console.error("Failed to fetch API key:", response.statusText);
-      alert(gettext("Failed to fetch API key."));
-      document.getElementById("copy-api-key-btn").style.display = "none";
-      return;
-    }
+  // Set the URL into the modal's input.
+  const regUrlInputEl = document.getElementById("registrationUrlInput");
+  if (regUrlInputEl) {
+    regUrlInputEl.value = registrationUrl;
+  }
 
-    const data = await response.json();
-    const apiKey = data.api_key;
+  // Also set the API key into the dedicated API key field (read-only)
+  const regApiKeyInputEl = document.getElementById("registrationApiKeyInput");
+  if (regApiKeyInputEl) {
+    regApiKeyInputEl.value = apiKey || "";
+  }
 
-    // Build the full registration URL. Adjust the base URL if needed.
-    let registrationUrl = `${window.location.origin}/connect-screen?apiKey=${apiKey}`;
-    const selector = document.getElementById("registrationAspectRatio");
-    if (selector && selector.value) {
-      registrationUrl += `&aspect_ratio=${encodeURIComponent(selector.value)}`;
-    }
-
-    // Set the URL into the modal's input.
-    const regUrlInputEl = document.getElementById("registrationUrlInput");
-    if (regUrlInputEl) {
-      regUrlInputEl.value = registrationUrl;
-    }
-
-    // Also set the API key into the dedicated API key field (read-only)
-    const regApiKeyInputEl = document.getElementById("registrationApiKeyInput");
-    if (regApiKeyInputEl) {
-      regApiKeyInputEl.value = apiKey || "";
-    }
-
-    // If the user changes the aspect ratio in the modal, update the input live.
-    const aspectSelector = document.getElementById("registrationAspectRatio");
-    const updateRegistrationUrlInput = () => {
-      const inputEl = document.getElementById("registrationUrlInput");
-      if (!inputEl) return;
-      let url = inputEl.value || "";
-      try {
-        const u = new URL(url);
-        // remove any existing aspect_ratio param
-        u.searchParams.delete("aspect_ratio");
-        if (aspectSelector && aspectSelector.value) {
-          u.searchParams.set("aspect_ratio", aspectSelector.value);
-        }
-        inputEl.value = u.toString();
-      } catch (e) {
-        // fallback: simple append/remove
-        url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
-        url = url.replace(/[?&]$/, "");
-        if (aspectSelector && aspectSelector.value) {
-          url +=
-            (url.includes("?") ? "&" : "?") +
-            `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
-        }
-        inputEl.value = url;
+  // If the user changes the aspect ratio in the modal, update the input live.
+  const aspectSelector = document.getElementById("registrationAspectRatio");
+  const updateRegistrationUrlInput = () => {
+    const inputEl = document.getElementById("registrationUrlInput");
+    if (!inputEl) return;
+    let url = inputEl.value || "";
+    try {
+      const u = new URL(url);
+      // remove any existing aspect_ratio param
+      u.searchParams.delete("aspect_ratio");
+      if (aspectSelector && aspectSelector.value) {
+        u.searchParams.set("aspect_ratio", aspectSelector.value);
       }
-    };
-
-    if (aspectSelector) {
-      // Make sure we don't attach multiple listeners if modal opened repeatedly
-      aspectSelector.removeEventListener("change", updateRegistrationUrlInput);
-      aspectSelector.addEventListener("change", updateRegistrationUrlInput);
+      inputEl.value = u.toString();
+    } catch (e) {
+      // fallback: simple append/remove
+      url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
+      url = url.replace(/[?&]$/, "");
+      if (aspectSelector && aspectSelector.value) {
+        url +=
+          (url.includes("?") ? "&" : "?") +
+          `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
+      }
+      inputEl.value = url;
     }
+  };
 
-    // Show the modal.
-    if (registrationUrlModal) {
-      registrationUrlModal.show();
-    }
-  } catch (error) {
-    console.error("Error fetching registration URL:", error);
-    alert(gettext("Error fetching registration URL."));
+  if (aspectSelector) {
+    // Make sure we don't attach multiple listeners if modal opened repeatedly
+    aspectSelector.removeEventListener("change", updateRegistrationUrlInput);
+    aspectSelector.addEventListener("change", updateRegistrationUrlInput);
+  }
+
+  // Show the modal.
+  if (registrationUrlModal) {
+    registrationUrlModal.show();
   }
 }
-
-let registrationUrlModal;
 
 function initEventListeners() {
   // Button event listeners
@@ -1593,7 +1539,6 @@ function copyRegistrationUrl() {
   }
 }
 
-// Helper functions to refresh scheduled content dropdowns based on selected group's aspect ratio
 function refreshScheduledContentDropdowns() {
   const groupId = document.getElementById("scheduledGroup")?.value;
   const slideshowSelect = document.getElementById("scheduledSlideshowSelect");
@@ -1876,68 +1821,6 @@ function refreshEditRecurringScheduledContentDropdowns() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", async function () {
-  initSignOutButton();
-  // Wait a bit to ensure all elements are fully rendered
-  await new Promise((resolve) => setTimeout(resolve, 100));
-
-  // Initialize modals with safety checks
-  const registrationUrlEl = document.getElementById("registrationUrlModal");
-  if (registrationUrlEl) {
-    registrationUrlModal = new bootstrap.Modal(registrationUrlEl);
-  }
-
-  const addGroupEl = document.getElementById("addGroupModal");
-  if (addGroupEl) {
-    addGroupModal = new bootstrap.Modal(addGroupEl);
-  }
-
-  const editGroupEl = document.getElementById("editGroupModal");
-  if (editGroupEl) {
-    editGroupModal = new bootstrap.Modal(editGroupEl);
-  }
-
-  const editDisplayEl = document.getElementById("editDisplayModal");
-  if (editDisplayEl) {
-    editDisplayModal = new bootstrap.Modal(editDisplayEl);
-  }
-
-  const addScheduledEl = document.getElementById("addScheduledModal");
-  if (addScheduledEl) {
-    addScheduledModal = new bootstrap.Modal(addScheduledEl);
-  }
-
-  const editScheduledEl = document.getElementById("editScheduledModal");
-  if (editScheduledEl) {
-    editScheduledModal = new bootstrap.Modal(editScheduledEl);
-  }
-
-  const addRecurringScheduledEl = document.getElementById(
-    "addRecurringScheduledModal",
-  );
-  if (addRecurringScheduledEl) {
-    addRecurringScheduledModal = new bootstrap.Modal(addRecurringScheduledEl);
-  }
-
-  const editRecurringScheduledEl = document.getElementById(
-    "editRecurringScheduledModal",
-  );
-  if (editRecurringScheduledEl) {
-    editRecurringScheduledModal = new bootstrap.Modal(editRecurringScheduledEl);
-  }
-
-  // Set minimum dates for all date inputs to prevent past dates
-  setMinimumDatesForInputs();
-
-  // Initialize all event listeners
-  initEventListeners();
-
-  // Load all data and initialize UI and calendar
-  await refreshData();
-  initCalendar();
-  initOrgUrlRouting();
-});
-
 function populateDropdown(
   dropdownId,
   items,
@@ -2011,10 +1894,6 @@ function populateSlideshowsDropdown(
   populateDropdown(dropdownId, filteredSlideshows, placeholder, selectedValue);
 }
 
-/**
- * Refresh all data (groups, displays, scheduled events, playlists)
- * then update the sidebar and calendar.
- */
 async function refreshData() {
   await Promise.all([
     loadGroups(),
@@ -2028,9 +1907,6 @@ async function refreshData() {
   renderUngroupedDisplays(); // <-- Add this line to render ungrouped displays
 }
 
-// -------------------------
-// RENDERING FUNCTIONS
-// -------------------------
 function renderGroups() {
   const groupsContainer = document.getElementById("groupsContainer");
   groupsContainer.innerHTML = "";
@@ -2258,7 +2134,7 @@ function renderGroups() {
           if (targetGroup) {
             showToast(
               gettext(
-                    `Cannot move display "${display.name}" (${display.aspect_ratio || DEFAULT_ASPECT_RATIO}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO}). Aspect ratios must match.`,
+                `Cannot move display "${display.name}" (${display.aspect_ratio || DEFAULT_ASPECT_RATIO}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO}). Aspect ratios must match.`,
               ),
               "Error",
             );
@@ -2311,9 +2187,6 @@ function toggleGroup(iconEl) {
   }
 }
 
-// -------------------------
-// CALENDAR FUNCTIONS
-// -------------------------
 async function initCalendar() {
   const calendarEl = document.getElementById("calendar");
 
@@ -2340,7 +2213,7 @@ async function initCalendar() {
       customButtons: {
         viewSelectorButton: {
           text: "",
-          click: () => {}, // We'll handle this with Bootstrap dropdown
+          click: () => { }, // We'll handle this with Bootstrap dropdown
         },
         addScheduledButton: {
           text: "",
@@ -2463,20 +2336,17 @@ async function initCalendar() {
             : `<div style="line-height: 1.2;">${arg.event.title}</div>`;
 
         const html = `
-          <div class="fc-custom-event-block" style="${backgroundStyle} color: white; border-radius: 15px; border: 1.5px solid ${
-            isRecurring ? "#fff" : "white"
+          <div class="fc-custom-event-block" style="${backgroundStyle} color: white; border-radius: 15px; border: 1.5px solid ${isRecurring ? "#fff" : "white"
           }; position: relative;">
-              ${
-                !arg.isStart
-                  ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
-                  : ""
-              }
+              ${!arg.isStart
+            ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
+            : ""
+          }
               ${arg.isStart ? `${formattedTitle}` : `${continuationTitle}`}
-              ${
-                !arg.isEnd
-                  ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
-                  : ""
-              }
+              ${!arg.isEnd
+            ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
+            : ""
+          }
           </div>
       `;
         return { html: html };
@@ -2705,6 +2575,11 @@ function toggleView() {
     currentView = "calendar";
     calendarContainer.style.display = "block";
     listContainer.style.display = "none";
+    if (calendar) {
+      // FullCalendar needs an explicit re-render after being hidden
+      calendar.render();
+      calendar.updateSize();
+    }
   }
 
   // Update the dropdown to reflect the current view
@@ -2868,11 +2743,11 @@ function renderListView() {
     dateHeader.className = "list-date-header";
     dateHeader.innerHTML = `
       <h5 class="mb-0">${date.toLocaleDateString(calendarLocale, {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })}</h5>
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}</h5>
     `;
     eventsContainer.appendChild(dateHeader);
 
@@ -2978,13 +2853,12 @@ function createListEventElement(event) {
   const multiDayIndicator = isMultiDay
     ? `<span class="badge bg-primary me-1">
       <span class="material-symbols-outlined">date_range</span> 
-      ${
-        isFirstDay
-          ? gettext("Starts")
-          : isLastDay
-            ? gettext("Ends")
-            : gettext("Continues")
-      }
+      ${isFirstDay
+      ? gettext("Starts")
+      : isLastDay
+        ? gettext("Ends")
+        : gettext("Continues")
+    }
     </span>`
     : "";
 
@@ -2994,8 +2868,7 @@ function createListEventElement(event) {
     : "border-left: 4px solid";
 
   eventDiv.innerHTML = `
-    <div class="list-event-content" style="${borderStyle} ${
-      event.backgroundColor
+    <div class="list-event-content" style="${borderStyle} ${event.backgroundColor
     };">
       <div class="list-event-header">
         <div class="list-event-title">
@@ -3011,13 +2884,12 @@ function createListEventElement(event) {
         </div>
         <div class="list-event-badges">
           ${multiDayIndicator}
-          ${
-            isRecurring
-              ? `<span class="badge bg-secondary me-1"><span class="material-symbols-outlined">autorenew</span> ${gettext(
-                  "Recurring",
-                )}</span>`
-              : ""
-          }
+          ${isRecurring
+      ? `<span class="badge bg-secondary me-1"><span class="material-symbols-outlined">autorenew</span> ${gettext(
+        "Recurring",
+      )}</span>`
+      : ""
+    }
         </div>
       </div>
     </div>
@@ -3096,9 +2968,8 @@ function generateRecurringInstances(recurringEvent, startDate, endDate) {
         gettext("Recurring Event");
 
       const instance = {
-        id: `recurring_${recurringEvent.id}_${
-          currentDate.toISOString().split("T")[0]
-        }`,
+        id: `recurring_${recurringEvent.id}_${currentDate.toISOString().split("T")[0]
+          }`,
         recurring_id: recurringEvent.id,
         title: `${groupName}\n${contentTitle}`,
         start_time: startDateTime.toISOString(),
@@ -3214,9 +3085,6 @@ async function refreshCalendarEvents() {
   }
 }
 
-// -------------------------
-// SCHEDULED CONTENT CRUD FUNCTIONS
-// -------------------------
 async function saveScheduledContent() {
   const groupId = document.getElementById("scheduledGroup").value;
   const start = document.getElementById("scheduledStart").value;
@@ -3495,32 +3363,6 @@ async function updateScheduledContent() {
   }
 }
 
-document.getElementsByName("editScheduledContentType").forEach((elem) => {
-  elem.addEventListener("change", function () {
-    if (this.value === "slideshow") {
-      document.getElementById("editScheduledSlideshowContainer").style.display =
-        "block";
-      document.getElementById("editScheduledPlaylistContainer").style.display =
-        "none";
-      populateSlideshowsDropdown(
-        "editScheduledSlideshowSelect",
-        null,
-        gettext("Select Content"),
-      );
-    } else {
-      document.getElementById("editScheduledSlideshowContainer").style.display =
-        "none";
-      document.getElementById("editScheduledPlaylistContainer").style.display =
-        "block";
-      populateSlideshowPlaylistDropdown(
-        "editScheduledPlaylistSelect",
-        null,
-        gettext("Select a playlist"),
-      );
-    }
-  });
-});
-
 async function deleteScheduledContent() {
   const eventId = document.getElementById("editEventId").value;
   showConfirmModal(
@@ -3546,10 +3388,6 @@ async function deleteScheduledContent() {
     },
   );
 }
-
-// -------------------------
-// RECURRING SCHEDULED CONTENT FUNCTIONS
-// -------------------------
 
 function openAddRecurringScheduledModal() {
   // Set minimum dates before opening modal
@@ -3938,8 +3776,6 @@ async function deleteRecurringScheduledContent() {
   );
 }
 
-// Toggle all groups: if at least one group is collapsed, then expand them all;
-// otherwise collapse all.
 function toggleExpandAll() {
   const groups = document.querySelectorAll(".group");
   // Determine if there is at least one collapsed group.
@@ -3977,8 +3813,6 @@ function updateSelectAllCheckbox() {
   master.checked = allSelected; // keep UI in sync
 }
 
-// Toggle the check state for all groups: if all groups are selected, then unselect them;
-// otherwise select all.
 function toggleCheckAll() {
   const groups = document.querySelectorAll(".group");
   if (!groups || groups.length === 0) {
@@ -4038,10 +3872,6 @@ function toggleCheckAll() {
 
   refreshCalendarEvents();
 }
-
-// -------------------------
-// DATE VALIDATION FUNCTIONS
-// -------------------------
 
 function setMinimumDatesForInputs() {
   const today = new Date();
@@ -4174,10 +4004,6 @@ function setupDateTimeValidation() {
   }
 }
 
-// -------------------------
-// INITIALIZATION ON DOMContentLoaded
-// -------------------------
-
 function populateSlidesWrapper(options) {
   populateDropdown(
     options.dropdownId,
@@ -4216,3 +4042,98 @@ function syncDefaultToggleAndGroup() {
     }
   });
 }
+
+// Init
+document.addEventListener("DOMContentLoaded", async function () {
+
+  await fetchUserLangugage();
+  translateHTML();
+
+  await fetchAPIKey();
+
+  initSignOutButton();
+  // Wait a bit to ensure all elements are fully rendered
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // Initialize modals with safety checks
+  const registrationUrlEl = document.getElementById("registrationUrlModal");
+  if (registrationUrlEl) {
+    registrationUrlModal = new bootstrap.Modal(registrationUrlEl);
+  }
+
+  const addGroupEl = document.getElementById("addGroupModal");
+  if (addGroupEl) {
+    addGroupModal = new bootstrap.Modal(addGroupEl);
+  }
+
+  const editGroupEl = document.getElementById("editGroupModal");
+  if (editGroupEl) {
+    editGroupModal = new bootstrap.Modal(editGroupEl);
+  }
+
+  const editDisplayEl = document.getElementById("editDisplayModal");
+  if (editDisplayEl) {
+    editDisplayModal = new bootstrap.Modal(editDisplayEl);
+  }
+
+  const addScheduledEl = document.getElementById("addScheduledModal");
+  if (addScheduledEl) {
+    addScheduledModal = new bootstrap.Modal(addScheduledEl);
+  }
+
+  const editScheduledEl = document.getElementById("editScheduledModal");
+  if (editScheduledEl) {
+    editScheduledModal = new bootstrap.Modal(editScheduledEl);
+  }
+
+  const addRecurringScheduledEl = document.getElementById(
+    "addRecurringScheduledModal",
+  );
+  if (addRecurringScheduledEl) {
+    addRecurringScheduledModal = new bootstrap.Modal(addRecurringScheduledEl);
+  }
+
+  const editRecurringScheduledEl = document.getElementById(
+    "editRecurringScheduledModal",
+  );
+  if (editRecurringScheduledEl) {
+    editRecurringScheduledModal = new bootstrap.Modal(editRecurringScheduledEl);
+  }
+
+  setMinimumDatesForInputs();
+
+  initEventListeners();
+
+  await refreshData();
+  initCalendar();
+  initOrgUrlRouting();
+
+  setInterval(checkForNewDisplays, 10000);
+
+  document.getElementsByName("editScheduledContentType").forEach((elem) => {
+    elem.addEventListener("change", function () {
+      if (this.value === "slideshow") {
+        document.getElementById("editScheduledSlideshowContainer").style.display =
+          "block";
+        document.getElementById("editScheduledPlaylistContainer").style.display =
+          "none";
+        populateSlideshowsDropdown(
+          "editScheduledSlideshowSelect",
+          null,
+          gettext("Select Content"),
+        );
+      } else {
+        document.getElementById("editScheduledSlideshowContainer").style.display =
+          "none";
+        document.getElementById("editScheduledPlaylistContainer").style.display =
+          "block";
+        populateSlideshowPlaylistDropdown(
+          "editScheduledPlaylistSelect",
+          null,
+          gettext("Select a playlist"),
+        );
+      }
+    });
+  });
+  document.getElementById("toggleExpand").checked = true;
+});

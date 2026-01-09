@@ -11,7 +11,7 @@ export function pushCurrentSlideState() {
   if (!slide.redoStack) slide.redoStack = [];
   const snapshot = JSON.parse(JSON.stringify(slide.elements));
   slide.undoStack.push(snapshot);
-  if (slide.undoStack.length > 10) {
+  if (slide.undoStack.length > 50) {
     slide.undoStack.shift();
   }
   slide.redoStack = [];

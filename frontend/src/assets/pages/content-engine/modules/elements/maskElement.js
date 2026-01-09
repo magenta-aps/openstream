@@ -625,21 +625,17 @@ function applyVideoContent(element, mediaLayer) {
     return;
   }
 
-  videoCacheManager
-    .getVideoUrl(expectedId)
-    .then((url) => {
-      if (!url) {
-        return fetchDocumentUrl(expectedId);
+  videoCacheManager.attachVideoToElement(video, expectedId);
+  video.addEventListener(
+    "loadeddata",
+    () => {
+      if (!video.isConnected) {
+        return;
       }
-      return url;
-    })
-    .then((url) => {
-      if (!url || !video.isConnected) return;
-      if (element.contentMediaId !== expectedId) return;
-      video.src = url;
       video.play().catch(() => {});
-    })
-    .catch((err) => console.error("Failed to load masked video", err));
+    },
+    { once: true },
+  );
 }
 
 function applyContent(element, mediaLayer) {

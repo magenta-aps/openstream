@@ -5,6 +5,7 @@ import { pushCurrentSlideState } from "../core/undoRedo.js";
 import { loadSlide } from "../core/renderSlide.js";
 import { selectElement } from "../core/elementSelector.js";
 import { getNewZIndex } from "../utils/domUtils.js";
+import { GridUtils } from "../config/gridConfig.js";
 import {
   token,
   selectedBranchID,

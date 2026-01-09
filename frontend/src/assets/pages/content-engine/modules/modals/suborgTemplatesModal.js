@@ -50,6 +50,23 @@ let filteredTemplates = [];
 let selectedTemplate = null;
 let currentSort = { column: "name", order: "asc" };
 
+// Ensure a template is active so the preview renders immediately once the modal is visible.
+function ensureInitialTemplateSelection(modal) {
+  if (!modal) {
+    return;
+  }
+
+  if (selectedTemplate) {
+    selectTemplate(selectedTemplate, modal);
+    return;
+  }
+
+  if (filteredTemplates.length > 0) {
+    selectTemplate(filteredTemplates[0], modal);
+  }
+}
+
+
 function buildTemplateSearchIndex(templates) {
   templateMiniSearcher.removeAll();
   if (Array.isArray(templates) && templates.length > 0) {
@@ -205,7 +222,7 @@ function updateTemplateInfo(modal, template) {
     return;
   }
 
-  const gridModeLabel = template.isLegacy
+  const gridModeLabel = template.is_legacy
     ? gettext("Legacy grid (200×200)")
     : gettext("Per-pixel grid");
   const categoryLabel = template.category
@@ -276,9 +293,9 @@ function renderTemplatePreview(modal, template) {
   }
 
   const slideObject = {
-    ...template.slideData,
-    previewWidth: template.previewWidth || 1920,
-    previewHeight: template.previewHeight || 1080,
+    ...template.slide_data,
+    preview_width: template.preview_width || 1920,
+    preview_height: template.preview_height || 1080,
   };
 
   loadSlide(slideObject, "#suborg-template-preview", true);
@@ -708,6 +725,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   `;
 
   initializeTemplateInteractions(modal, globalTemplates);
+  ensureInitialTemplateSelection(modal);
 
   // Handle create button
   const createBtn = modal.querySelector("#createSuborgTemplateBtn");
@@ -764,6 +782,13 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       selectedTemplate = null;
     });
     modal.dataset.restoreHandlerAttached = "true";
+  }
+
+  if (!modal.dataset.initialPreviewHandlerAttached) {
+    modal.addEventListener("shown.bs.modal", () => {
+      setTimeout(() => ensureInitialTemplateSelection(modal), 50);
+    });
+    modal.dataset.initialPreviewHandlerAttached = "true";
   }
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modal);

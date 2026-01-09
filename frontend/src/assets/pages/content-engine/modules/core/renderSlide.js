@@ -54,101 +54,113 @@ import {
 } from "../config/gridConfig.js";
 import { updateSnapControlsUI } from "../utils/statusBar.js";
 
+let backgroundFetchSequence = 0;
+
 export function loadSlide(
   slide,
   targetContainer = ".preview-slide",
   completeReload = false,
   forceCompleteReload = false,
+  options = {},
 ) {
+  const isPreviewMode = options.previewMode === true;
   // Save current snap settings to the slide we're switching FROM
   // Use lastSlideIndex if available, otherwise use currentSlideIndex
-  const previousSlideIndex = store.lastSlideIndex !== null && store.lastSlideIndex !== undefined 
-    ? store.lastSlideIndex 
-    : store.currentSlideIndex;
-    
-  if (previousSlideIndex > -1 && store.slides[previousSlideIndex]) {
-    const previousSlide = store.slides[previousSlideIndex];
-    if (store.dragSnapSettings) {
-      previousSlide.savedSnapSettings = {
-        unit: store.dragSnapSettings.unit,
-        amount: store.dragSnapSettings.amount,
-        isAuto: store.dragSnapSettings.isAuto || false,
-        snapEnabled: store.dragSnapSettings.snapEnabled !== false,
-        savedUnit: store.dragSnapSettings.savedUnit,
-        savedAmount: store.dragSnapSettings.savedAmount,
+  if (!isPreviewMode) {
+    const previousSlideIndex =
+      store.lastSlideIndex !== null && store.lastSlideIndex !== undefined
+        ? store.lastSlideIndex
+        : store.currentSlideIndex;
+
+    if (previousSlideIndex > -1 && store.slides[previousSlideIndex]) {
+      const previousSlide = store.slides[previousSlideIndex];
+      if (store.dragSnapSettings) {
+        previousSlide.savedSnapSettings = {
+          unit: store.dragSnapSettings.unit,
+          amount: store.dragSnapSettings.amount,
+          isAuto: store.dragSnapSettings.isAuto || false,
+          snapEnabled: store.dragSnapSettings.snapEnabled !== false,
+          savedUnit: store.dragSnapSettings.savedUnit,
+          savedAmount: store.dragSnapSettings.savedAmount,
+        };
+      }
+    }
+
+    syncGridToCurrentSlide(slide);
+
+    // Restore snap settings from the slide being loaded
+    const defaultSnapSettings = getDefaultSnapSettings(
+      store.emulatedWidth,
+      store.emulatedHeight,
+    );
+
+    let appliedSnapSettings = defaultSnapSettings;
+
+    if (slide && slide.savedSnapSettings) {
+      appliedSnapSettings = {
+        ...slide.savedSnapSettings,
+        appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
+        snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
+        savedUnit: slide.savedSnapSettings.savedUnit,
+        savedAmount: slide.savedSnapSettings.savedAmount,
+      };
+    } else if (store.dragSnapSettings?.snapEnabled === false) {
+      appliedSnapSettings = {
+        ...defaultSnapSettings,
+        snapEnabled: false,
+        savedUnit: store.dragSnapSettings.savedUnit || defaultSnapSettings.unit,
+        savedAmount:
+          store.dragSnapSettings.savedAmount || defaultSnapSettings.amount,
       };
     }
+
+    store.dragSnapSettings = appliedSnapSettings;
+    updateSnapControlsUI();
   }
-
-  syncGridToCurrentSlide(slide);
-
-  // Restore snap settings from the slide being loaded
-  const defaultSnapSettings = getDefaultSnapSettings(
-    store.emulatedWidth,
-    store.emulatedHeight,
-  );
-
-  let appliedSnapSettings = defaultSnapSettings;
-
-  if (slide && slide.savedSnapSettings) {
-    appliedSnapSettings = {
-      ...slide.savedSnapSettings,
-      appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
-      snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
-      savedUnit: slide.savedSnapSettings.savedUnit,
-      savedAmount: slide.savedSnapSettings.savedAmount,
-    };
-  } else if (store.dragSnapSettings?.snapEnabled === false) {
-    appliedSnapSettings = {
-      ...defaultSnapSettings,
-      snapEnabled: false,
-      savedUnit: store.dragSnapSettings.savedUnit || defaultSnapSettings.unit,
-      savedAmount:
-        store.dragSnapSettings.savedAmount || defaultSnapSettings.amount,
-    };
-  }
-
-  store.dragSnapSettings = appliedSnapSettings;
-  updateSnapControlsUI();
   // Sanitize all slides to ensure unique IDs and correct indices
-  const slideIdSet = new Set();
-  const elementIdSet = new Set();
-  let maxSlideId = 0;
-  let maxElementId = 0;
+  if (!isPreviewMode) {
+    const slideIdSet = new Set();
+    const elementIdSet = new Set();
+    let maxSlideId = 0;
+    let maxElementId = 0;
 
-  store.slides.forEach((s) => {
-    if (s.id > maxSlideId) maxSlideId = s.id;
-    if (s.elements) {
-      s.elements.forEach((element) => {
-        if (element.id > maxElementId) maxElementId = element.id;
-      });
-    }
-  });
+    store.slides.forEach((s) => {
+      if (s.id > maxSlideId) maxSlideId = s.id;
+      if (s.elements) {
+        s.elements.forEach((element) => {
+          if (element.id > maxElementId) maxElementId = element.id;
+        });
+      }
+    });
 
-  store.slideIdCounter = Math.max(store.slideIdCounter || 1, maxSlideId + 1);
-  store.elementIdCounter = Math.max(
-    store.elementIdCounter || 1,
-    maxElementId + 1,
-  );
+    store.slideIdCounter = Math.max(
+      store.slideIdCounter || 1,
+      maxSlideId + 1,
+    );
+    store.elementIdCounter = Math.max(
+      store.elementIdCounter || 1,
+      maxElementId + 1,
+    );
 
-  store.slides.forEach((s, index) => {
-    // Sanitize slide ID
-    if (slideIdSet.has(s.id)) {
-      s.id = store.slideIdCounter++;
-    }
-    slideIdSet.add(s.id);
+    store.slides.forEach((s, index) => {
+      // Sanitize slide ID
+      if (slideIdSet.has(s.id)) {
+        s.id = store.slideIdCounter++;
+      }
+      slideIdSet.add(s.id);
 
-    // Sanitize element IDs and update originSlideIndex
-    if (s.elements) {
-      s.elements.forEach((element) => {
-        if (elementIdSet.has(element.id)) {
-          element.id = store.elementIdCounter++;
-        }
-        elementIdSet.add(element.id);
-        element.originSlideIndex = index;
-      });
-    }
-  });
+      // Sanitize element IDs and update originSlideIndex
+      if (s.elements) {
+        s.elements.forEach((element) => {
+          if (elementIdSet.has(element.id)) {
+            element.id = store.elementIdCounter++;
+          }
+          elementIdSet.add(element.id);
+          element.originSlideIndex = index;
+        });
+      }
+    });
+  }
 
   const noContentPlaceHolder = document.querySelector(
     ".no-content-placeholder",
@@ -183,6 +195,13 @@ export function loadSlide(
     zoomWrapper.style.backgroundColor = slide.backgroundColor;
   }
 
+  // Cancel any pending background fetch tied to this wrapper before starting a new one
+  if (zoomWrapper._backgroundFetchController) {
+    zoomWrapper._backgroundFetchController.abort();
+    delete zoomWrapper._backgroundFetchController;
+    delete zoomWrapper._backgroundRequestId;
+  }
+
   // Apply background image styles to zoomWrapper if they exist
   if (slide.backgroundImage) {
     const apiKey = queryParams.apiKey;
@@ -195,24 +214,41 @@ export function loadSlide(
     } else {
       throw new Error(gettext("No API Key or Authorization token found."));
     }
+
+    const backgroundFetchController = new AbortController();
+    const backgroundRequestId = `${++backgroundFetchSequence}`;
+    zoomWrapper._backgroundFetchController = backgroundFetchController;
+    zoomWrapper._backgroundRequestId = backgroundRequestId;
     // Fetch and apply logic remains here, targeting zoomWrapper
     fetch(
       `${BASE_URL}/api/documents/file-token/${slide.backgroundImage}/?branch_id=${selectedBranchID}&id=${queryParams.displayWebsiteId}`,
       {
         method: "GET",
         headers,
+        signal: backgroundFetchController.signal,
       },
     )
       .then((r) => r.json())
       .then((data) => {
+        if (
+          backgroundFetchController.signal.aborted ||
+          zoomWrapper._backgroundRequestId !== backgroundRequestId
+        ) {
+          return;
+        }
         zoomWrapper.style.backgroundImage = `url(${data.file_url})`;
         zoomWrapper.style.backgroundSize = slide.backgroundSize || "contain";
         zoomWrapper.style.backgroundRepeat =
           slide.backgroundRepeat || "no-repeat";
         zoomWrapper.style.backgroundPosition =
           slide.backgroundPosition || "center";
+        delete zoomWrapper._backgroundFetchController;
+        delete zoomWrapper._backgroundRequestId;
       })
       .catch((err) => {
+        if (err.name === "AbortError") {
+          return;
+        }
         console.error("Failed to load background image:", err);
         // Potentially set background color on zoomWrapper as fallback?
       });
@@ -335,48 +371,55 @@ export function loadSlide(
     slide.elements = [];
   }
 
+  const shouldRenderPersistentInline = isPreviewMode;
+
   slide.elements.forEach((el) => {
-    if (!el.isPersistent) {
-      _renderSlideElement(el, false, gridContainer);
+    if (el.isPersistent && !shouldRenderPersistentInline) {
+      return;
     }
+    _renderSlideElement(el, false, gridContainer);
   });
 
-  // Render persistent elements from all slides, plus unpinned elements on their origin slide
-  store.slides.forEach((s, slideIndex) => {
-    // Defensive check: ensure each slide has elements array
-    if (!s.elements) {
-      s.elements = [];
-    }
-    s.elements.forEach((el) => {
-      if (el.isPersistent) {
-        // Render persistent elements on all slides
-        _renderSlideElement(el, false, gridContainer);
-      } else if (
-        typeof el.originSlideIndex === "number" &&
-        el.originSlideIndex === store.currentSlideIndex &&
-        slideIndex !== store.currentSlideIndex
-      ) {
-        // Render unpinned elements only on their origin slide (when they're from other slides)
-        _renderSlideElement(el, false, gridContainer);
+  if (!isPreviewMode) {
+    // Render persistent elements from all slides, plus unpinned elements on their origin slide
+    store.slides.forEach((s, slideIndex) => {
+      // Defensive check: ensure each slide has elements array
+      if (!s.elements) {
+        s.elements = [];
       }
+      s.elements.forEach((el) => {
+        if (el.isPersistent) {
+          // Render persistent elements on all slides
+          _renderSlideElement(el, false, gridContainer);
+        } else if (
+          typeof el.originSlideIndex === "number" &&
+          el.originSlideIndex === store.currentSlideIndex &&
+          slideIndex !== store.currentSlideIndex
+        ) {
+          // Render unpinned elements only on their origin slide (when they're from other slides)
+          _renderSlideElement(el, false, gridContainer);
+        }
+      });
     });
-  });
-
-  store.lastSlideIndex = store.currentSlideIndex;
-
-  if (typeof document !== "undefined") {
-    document.dispatchEvent(
-      new CustomEvent("content-engine:active-slide-changed", {
-        detail: {
-          slideIndex: store.currentSlideIndex,
-          slideId: slide?.id ?? null,
-        },
-      }),
-    );
   }
 
-  // Add lock indicators to locked elements in template editor mode
-  addLockIndicatorsToElements();
+  if (!isPreviewMode) {
+    store.lastSlideIndex = store.currentSlideIndex;
+
+    if (typeof document !== "undefined") {
+      document.dispatchEvent(
+        new CustomEvent("content-engine:active-slide-changed", {
+          detail: {
+            slideIndex: store.currentSlideIndex,
+            slideId: slide?.id ?? null,
+          },
+        }),
+      );
+    }
+
+    // Add lock indicators to locked elements in template editor mode
+    addLockIndicatorsToElements();
+  }
 }
 
 export function renderPersistentElements() {
@@ -510,8 +553,14 @@ export function initSlideshowPlayerMode() {
   // Emulated size becomes full window
   store.emulatedWidth = window.innerWidth;
   store.emulatedHeight = window.innerHeight;
-  document.querySelector(".preview-container").style.background = "unset";
-  document.querySelector(".slide-right-sidebar").classList.add("d-none")
+  const previewContainer = document.querySelector(".preview-container");
+  if (previewContainer) {
+    previewContainer.style.background = "unset";
+  }
+  const slideRightSidebar = document.querySelector(".slide-right-sidebar");
+  if (slideRightSidebar) {
+    slideRightSidebar.classList.add("d-none");
+  }
   _startSlideshowPlayer();
 }
 
@@ -573,9 +622,10 @@ async function _startSlideshowPlayer() {
         
 
       if (data.items && data.items.length > 0) {
-        store.emulatedWidth = data.items[0].slideshow.previewWidth;
-        store.emulatedHeight = data.items[0].slideshow.previewHeight;
-        store.slideshowMode = data.items[0].slideshow.mode;
+        const firstSlideshow = data.items[0].slideshow;
+        store.emulatedWidth = firstSlideshow.preview_width ?? 1920;
+        store.emulatedHeight = firstSlideshow.preview_height ?? 1080;
+        store.slideshowMode = firstSlideshow.mode;
       } else if (data.slideshow_data) {
         store.slideshowMode = data.slideshow_data.mode;
       }

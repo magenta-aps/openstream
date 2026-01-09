@@ -13,6 +13,7 @@ import {
   getDefaultFont,
   getFontDisplayLabel,
 } from "../utils/fontUtils.js";
+import { GridUtils } from "../config/gridConfig.js";
 import { gettext } from "../../../../utils/locales.js";
 
 export function initTableElement() {

@@ -246,7 +246,7 @@ async function fetchUnifiedTemplates() {
       const targetLegacyState = Boolean(store.legacyGridEnabled);
       const beforeLegacyFilter = unifiedTemplates.length;
       unifiedTemplates = unifiedTemplates.filter(
-        (template) => Boolean(template.isLegacy) === targetLegacyState,
+        (template) => Boolean(template.is_legacy) === targetLegacyState,
       );
       if (beforeLegacyFilter > 0 && unifiedTemplates.length === 0) {
         legacyFilterMessage = targetLegacyState
@@ -321,8 +321,22 @@ function sortAndRenderTemplates() {
         aVal = (a.category ? a.category.name : "").toLowerCase();
         bVal = (b.category ? b.category.name : "").toLowerCase();
       } else if (currentSort.column === "tags") {
-        aVal = a.tags ? a.tags.join(", ").toLowerCase() : "";
-        bVal = b.tags ? b.tags.join(", ").toLowerCase() : "";
+        const normalizeTags = (template) => {
+          if (!Array.isArray(template.tags)) {
+            return "";
+          }
+          return template.tags
+            .map((tag) => {
+              if (typeof tag === "string") {
+                return tag;
+              }
+              return tag?.name || "";
+            })
+            .filter(Boolean)
+            .join(", ");
+        };
+        aVal = normalizeTags(a).toLowerCase();
+        bVal = normalizeTags(b).toLowerCase();
       }
       if (aVal < bVal) return currentSort.order === "asc" ? -1 : 1;
       if (aVal > bVal) return currentSort.order === "asc" ? 1 : -1;
@@ -425,7 +439,9 @@ function loadUnifiedTemplatePreview(template) {
 
   // Load the slide content into the specific previewSlide div
   // Pass the unique ID selector as the target
-  loadSlide(template.slideData, "#template-slide-preview", true); // Force complete reload for preview
+  loadSlide(template.slide_data, "#template-slide-preview", true, true, {
+    previewMode: true,
+  }); // Render in isolated preview mode
 
   // Scale the content based on the wrapper container
   scaleSlide(wrapper);
@@ -502,7 +518,7 @@ export function initAddSlide() {
         );
         return;
       }
-      const templateSlide = selectedUnifiedTemplate.slideData;
+      const templateSlide = selectedUnifiedTemplate.slide_data;
       const newSlide = JSON.parse(JSON.stringify(templateSlide));
       newSlide.id = store.slideIdCounter++;
 
