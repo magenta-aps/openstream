@@ -27,5 +27,16 @@ export default defineConfig({
         }
       }
     }
+  },
+  server: {
+    warmup: {
+      // Only touch actual JS entrypoints plus the shared main stylesheet to avoid
+      // compiling standalone Handlebars/SCSS partials (those caused the earlier errors).
+      clientFiles: [
+        './src/assets/**/*.js',
+        './src/assets/**/*.ts',
+        './src/assets/scss/main.scss'
+      ]
+    }
   }
 });
