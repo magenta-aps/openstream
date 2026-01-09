@@ -14,6 +14,19 @@ class VideoCacheManager {
     this.fetchPromises = new Map(); // videoId -> Promise (to avoid duplicate fetches)
   }
 
+  _setCachedBlobUrl(videoId, blobUrl) {
+    const existingUrl = this.cache.get(videoId);
+    if (existingUrl && existingUrl !== blobUrl) {
+      try {
+        URL.revokeObjectURL(existingUrl);
+      } catch (err) {
+        console.warn("Failed to revoke stale video blob URL", err);
+      }
+    }
+
+    this.cache.set(videoId, blobUrl);
+  }
+
   _buildAuthHeaders() {
     const headers = { "Content-Type": "application/json" };
     if (queryParams.apiKey) {
@@ -98,8 +111,8 @@ class VideoCacheManager {
       const videoBlob = await videoResponse.blob();
       const blobUrl = URL.createObjectURL(videoBlob);
 
-      // Cache the blob URL
-      this.cache.set(videoId, blobUrl);
+      // Cache the blob URL (revoking any older object URL to avoid leaks)
+      this._setCachedBlobUrl(videoId, blobUrl);
 
       console.log(`Video ${videoId} cached successfully`);
       return blobUrl;
