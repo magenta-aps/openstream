@@ -47,7 +47,8 @@ class VideoCacheManager {
   }
 
   // Get video URL, either from cache or fetch it
-  async getVideoUrl(videoId) {
+  async getVideoUrl(videoId, options = {}) {
+    const { prefetchedUrl = null } = options;
     // Return cached blob URL if available
     if (this.cache.has(videoId)) {
       return this.cache.get(videoId);
@@ -59,7 +60,7 @@ class VideoCacheManager {
     }
 
     // Create new fetch promise
-    const fetchPromise = this.fetchAndCacheVideo(videoId);
+    const fetchPromise = this.fetchAndCacheVideo(videoId, prefetchedUrl);
     this.fetchPromises.set(videoId, fetchPromise);
 
     try {
@@ -73,12 +74,23 @@ class VideoCacheManager {
   }
 
   // Fetch video and create blob URL
-  async fetchAndCacheVideo(videoId) {
+  async fetchAndCacheVideo(videoId, providedFileUrl = null) {
+    let lastTriedUrl = providedFileUrl;
     try {
-      const fileUrl = await this.fetchTokenizedFileUrl(videoId);
+      let fileUrl = providedFileUrl;
+      if (!fileUrl) {
+        fileUrl = await this.fetchTokenizedFileUrl(videoId);
+        lastTriedUrl = fileUrl;
+      }
 
       // Fetch the actual video file
-      const videoResponse = await fetch(fileUrl);
+      let videoResponse = await fetch(fileUrl);
+      if (!videoResponse.ok && providedFileUrl) {
+        // Signed URL might have expired before download completed; retry once
+        fileUrl = await this.fetchTokenizedFileUrl(videoId);
+        lastTriedUrl = fileUrl;
+        videoResponse = await fetch(fileUrl);
+      }
       if (!videoResponse.ok) {
         throw new Error(`Failed to fetch video: ${videoResponse.status}`);
       }
@@ -94,13 +106,16 @@ class VideoCacheManager {
     } catch (error) {
       console.error(`Failed to cache video ${videoId}:`, error);
       // Fallback: try to get the tokenized URL directly
-      return this.getFallbackUrl(videoId);
+      return this.getFallbackUrl(videoId, lastTriedUrl);
     }
   }
 
   // Fallback to tokenized URL if blob caching fails
-  async getFallbackUrl(videoId) {
+  async getFallbackUrl(videoId, providedFileUrl = null) {
     try {
+      if (providedFileUrl) {
+        return providedFileUrl;
+      }
       return await this.fetchTokenizedFileUrl(videoId);
     } catch (error) {
       console.error("Fallback URL fetch failed:", error);
@@ -146,8 +161,9 @@ class VideoCacheManager {
     const sourceKey = String(videoId);
     videoElement.dataset.videoSourceId = sourceKey;
 
+    let directUrl = null;
     try {
-      const directUrl = await this.fetchTokenizedFileUrl(videoId);
+      directUrl = await this.fetchTokenizedFileUrl(videoId);
       if (directUrl && videoElement.dataset.videoSourceId === sourceKey) {
         videoElement.src = directUrl;
       }
@@ -156,7 +172,9 @@ class VideoCacheManager {
     }
 
     try {
-      const cachedUrl = await this.getVideoUrl(videoId);
+      const cachedUrl = await this.getVideoUrl(videoId, {
+        prefetchedUrl: directUrl,
+      });
       if (!cachedUrl) {
         return;
       }
