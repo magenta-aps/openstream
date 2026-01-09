@@ -177,6 +177,20 @@ const start = async () => {
             }
         }
 
+        if (segments.length === 2 && segments[0] === 'slide-types' && !segments[1].includes('.')) {
+            try {
+                const slug = decodeSegment(segments[1])
+                req.pageContext = { orgName: null, page: `slide-types/${slug}` }
+                return next()
+            } catch (error) {
+                if (error.code === INVALID_SEGMENT_ERROR) {
+                    return res.status(400).send('Invalid path encoding')
+                }
+
+                return next(error)
+            }
+        }
+
         let pageContext
 
         try {
