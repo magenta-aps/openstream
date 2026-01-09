@@ -17,7 +17,16 @@ export default defineConfig({
     }),
   ],
   optimizeDeps: {
-    include: ['monaco-editor', '@monaco-editor/loader']
+    include: [
+      'monaco-editor', 
+      '@monaco-editor/loader',
+      // Add these to prevent "New dependencies found" reloads:
+      'monaco-editor/esm/vs/language/json/json.worker',
+      'monaco-editor/esm/vs/language/css/css.worker',
+      'monaco-editor/esm/vs/language/html/html.worker',
+      'monaco-editor/esm/vs/language/typescript/ts.worker',
+      'monaco-editor/esm/vs/editor/editor.worker'
+    ]
   },
   build: {
     rollupOptions: {

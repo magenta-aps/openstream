@@ -50,6 +50,23 @@ let filteredTemplates = [];
 let selectedTemplate = null;
 let currentSort = { column: "name", order: "asc" };
 
+// Ensure a template is active so the preview renders immediately once the modal is visible.
+function ensureInitialTemplateSelection(modal) {
+  if (!modal) {
+    return;
+  }
+
+  if (selectedTemplate) {
+    selectTemplate(selectedTemplate, modal);
+    return;
+  }
+
+  if (filteredTemplates.length > 0) {
+    selectTemplate(filteredTemplates[0], modal);
+  }
+}
+
+
 function buildTemplateSearchIndex(templates) {
   templateMiniSearcher.removeAll();
   if (Array.isArray(templates) && templates.length > 0) {
@@ -708,6 +725,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   `;
 
   initializeTemplateInteractions(modal, globalTemplates);
+  ensureInitialTemplateSelection(modal);
 
   // Handle create button
   const createBtn = modal.querySelector("#createSuborgTemplateBtn");
@@ -764,6 +782,13 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       selectedTemplate = null;
     });
     modal.dataset.restoreHandlerAttached = "true";
+  }
+
+  if (!modal.dataset.initialPreviewHandlerAttached) {
+    modal.addEventListener("shown.bs.modal", () => {
+      setTimeout(() => ensureInitialTemplateSelection(modal), 50);
+    });
+    modal.dataset.initialPreviewHandlerAttached = "true";
   }
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
