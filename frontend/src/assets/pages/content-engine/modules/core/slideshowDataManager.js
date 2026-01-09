@@ -169,6 +169,7 @@ export async function fetchSlideshow(slideshowId) {
   } catch (err) {
     console.error("Error fetching slideshow data:", err);
     showToast(`Failed to load slideshow: ${err.message}`, "Error");
+    throw err;
   }
 }
 
