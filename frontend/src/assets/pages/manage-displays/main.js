@@ -44,14 +44,14 @@ const calendarLocale = document.documentElement.lang || "da";
 // -------------------------
 // GLOBAL STATE & MODALS
 // -------------------------
-let groupsData = []; 
-let displaysData = []; 
-let scheduledEvents = []; 
-let recurringEvents = []; 
-let slideshowPlaylists = []; 
+let groupsData = [];
+let displaysData = [];
+let scheduledEvents = [];
+let recurringEvents = [];
+let slideshowPlaylists = [];
 let slideshows = [];
 let calendar = null;
-let selectedGroupIds = []; 
+let selectedGroupIds = [];
 let ungroupedDisplays = [];
 let currentView = "calendar";
 let registrationUrlModal;
@@ -1122,62 +1122,62 @@ async function loadSlideshows() {
 }
 
 async function copyAPIKey() {
-    // Build the full registration URL. Adjust the base URL if needed.
-    let registrationUrl = `${window.location.origin}/connect-screen?apiKey=${apiKey}`;
-    const selector = document.getElementById("registrationAspectRatio");
-    if (selector && selector.value) {
-      registrationUrl += `&aspect_ratio=${encodeURIComponent(selector.value)}`;
-    }
+  // Build the full registration URL. Adjust the base URL if needed.
+  let registrationUrl = `${window.location.origin}/connect-screen?apiKey=${apiKey}`;
+  const selector = document.getElementById("registrationAspectRatio");
+  if (selector && selector.value) {
+    registrationUrl += `&aspect_ratio=${encodeURIComponent(selector.value)}`;
+  }
 
-    // Set the URL into the modal's input.
-    const regUrlInputEl = document.getElementById("registrationUrlInput");
-    if (regUrlInputEl) {
-      regUrlInputEl.value = registrationUrl;
-    }
+  // Set the URL into the modal's input.
+  const regUrlInputEl = document.getElementById("registrationUrlInput");
+  if (regUrlInputEl) {
+    regUrlInputEl.value = registrationUrl;
+  }
 
-    // Also set the API key into the dedicated API key field (read-only)
-    const regApiKeyInputEl = document.getElementById("registrationApiKeyInput");
-    if (regApiKeyInputEl) {
-      regApiKeyInputEl.value = apiKey || "";
-    }
+  // Also set the API key into the dedicated API key field (read-only)
+  const regApiKeyInputEl = document.getElementById("registrationApiKeyInput");
+  if (regApiKeyInputEl) {
+    regApiKeyInputEl.value = apiKey || "";
+  }
 
-    // If the user changes the aspect ratio in the modal, update the input live.
-    const aspectSelector = document.getElementById("registrationAspectRatio");
-    const updateRegistrationUrlInput = () => {
-      const inputEl = document.getElementById("registrationUrlInput");
-      if (!inputEl) return;
-      let url = inputEl.value || "";
-      try {
-        const u = new URL(url);
-        // remove any existing aspect_ratio param
-        u.searchParams.delete("aspect_ratio");
-        if (aspectSelector && aspectSelector.value) {
-          u.searchParams.set("aspect_ratio", aspectSelector.value);
-        }
-        inputEl.value = u.toString();
-      } catch (e) {
-        // fallback: simple append/remove
-        url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
-        url = url.replace(/[?&]$/, "");
-        if (aspectSelector && aspectSelector.value) {
-          url +=
-            (url.includes("?") ? "&" : "?") +
-            `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
-        }
-        inputEl.value = url;
+  // If the user changes the aspect ratio in the modal, update the input live.
+  const aspectSelector = document.getElementById("registrationAspectRatio");
+  const updateRegistrationUrlInput = () => {
+    const inputEl = document.getElementById("registrationUrlInput");
+    if (!inputEl) return;
+    let url = inputEl.value || "";
+    try {
+      const u = new URL(url);
+      // remove any existing aspect_ratio param
+      u.searchParams.delete("aspect_ratio");
+      if (aspectSelector && aspectSelector.value) {
+        u.searchParams.set("aspect_ratio", aspectSelector.value);
       }
-    };
-
-    if (aspectSelector) {
-      // Make sure we don't attach multiple listeners if modal opened repeatedly
-      aspectSelector.removeEventListener("change", updateRegistrationUrlInput);
-      aspectSelector.addEventListener("change", updateRegistrationUrlInput);
+      inputEl.value = u.toString();
+    } catch (e) {
+      // fallback: simple append/remove
+      url = url.replace(/([?&])aspect_ratio=[^&]*&?/, "$1");
+      url = url.replace(/[?&]$/, "");
+      if (aspectSelector && aspectSelector.value) {
+        url +=
+          (url.includes("?") ? "&" : "?") +
+          `aspect_ratio=${encodeURIComponent(aspectSelector.value)}`;
+      }
+      inputEl.value = url;
     }
+  };
 
-    // Show the modal.
-    if (registrationUrlModal) {
-      registrationUrlModal.show();
-    }
+  if (aspectSelector) {
+    // Make sure we don't attach multiple listeners if modal opened repeatedly
+    aspectSelector.removeEventListener("change", updateRegistrationUrlInput);
+    aspectSelector.addEventListener("change", updateRegistrationUrlInput);
+  }
+
+  // Show the modal.
+  if (registrationUrlModal) {
+    registrationUrlModal.show();
+  }
 }
 
 function initEventListeners() {
@@ -2133,7 +2133,7 @@ function renderGroups() {
           if (targetGroup) {
             showToast(
               gettext(
-                    `Cannot move display "${display.name}" (${display.aspect_ratio || DEFAULT_ASPECT_RATIO}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO}). Aspect ratios must match.`,
+                `Cannot move display "${display.name}" (${display.aspect_ratio || DEFAULT_ASPECT_RATIO}) to group "${targetGroup.name}" (${targetGroup.aspect_ratio || DEFAULT_ASPECT_RATIO}). Aspect ratios must match.`,
               ),
               "Error",
             );
@@ -2212,7 +2212,7 @@ async function initCalendar() {
       customButtons: {
         viewSelectorButton: {
           text: "",
-          click: () => {}, // We'll handle this with Bootstrap dropdown
+          click: () => { }, // We'll handle this with Bootstrap dropdown
         },
         addScheduledButton: {
           text: "",
@@ -2335,20 +2335,17 @@ async function initCalendar() {
             : `<div style="line-height: 1.2;">${arg.event.title}</div>`;
 
         const html = `
-          <div class="fc-custom-event-block" style="${backgroundStyle} color: white; border-radius: 15px; border: 1.5px solid ${
-            isRecurring ? "#fff" : "white"
+          <div class="fc-custom-event-block" style="${backgroundStyle} color: white; border-radius: 15px; border: 1.5px solid ${isRecurring ? "#fff" : "white"
           }; position: relative;">
-              ${
-                !arg.isStart
-                  ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
-                  : ""
-              }
+              ${!arg.isStart
+            ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
+            : ""
+          }
               ${arg.isStart ? `${formattedTitle}` : `${continuationTitle}`}
-              ${
-                !arg.isEnd
-                  ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
-                  : ""
-              }
+              ${!arg.isEnd
+            ? '<span class="material-symbols-outlined arrow">arrow_forward</span>'
+            : ""
+          }
           </div>
       `;
         return { html: html };
@@ -2740,11 +2737,11 @@ function renderListView() {
     dateHeader.className = "list-date-header";
     dateHeader.innerHTML = `
       <h5 class="mb-0">${date.toLocaleDateString(calendarLocale, {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })}</h5>
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}</h5>
     `;
     eventsContainer.appendChild(dateHeader);
 
@@ -2850,13 +2847,12 @@ function createListEventElement(event) {
   const multiDayIndicator = isMultiDay
     ? `<span class="badge bg-primary me-1">
       <span class="material-symbols-outlined">date_range</span> 
-      ${
-        isFirstDay
-          ? gettext("Starts")
-          : isLastDay
-            ? gettext("Ends")
-            : gettext("Continues")
-      }
+      ${isFirstDay
+      ? gettext("Starts")
+      : isLastDay
+        ? gettext("Ends")
+        : gettext("Continues")
+    }
     </span>`
     : "";
 
@@ -2866,8 +2862,7 @@ function createListEventElement(event) {
     : "border-left: 4px solid";
 
   eventDiv.innerHTML = `
-    <div class="list-event-content" style="${borderStyle} ${
-      event.backgroundColor
+    <div class="list-event-content" style="${borderStyle} ${event.backgroundColor
     };">
       <div class="list-event-header">
         <div class="list-event-title">
@@ -2883,13 +2878,12 @@ function createListEventElement(event) {
         </div>
         <div class="list-event-badges">
           ${multiDayIndicator}
-          ${
-            isRecurring
-              ? `<span class="badge bg-secondary me-1"><span class="material-symbols-outlined">autorenew</span> ${gettext(
-                  "Recurring",
-                )}</span>`
-              : ""
-          }
+          ${isRecurring
+      ? `<span class="badge bg-secondary me-1"><span class="material-symbols-outlined">autorenew</span> ${gettext(
+        "Recurring",
+      )}</span>`
+      : ""
+    }
         </div>
       </div>
     </div>
@@ -2968,9 +2962,8 @@ function generateRecurringInstances(recurringEvent, startDate, endDate) {
         gettext("Recurring Event");
 
       const instance = {
-        id: `recurring_${recurringEvent.id}_${
-          currentDate.toISOString().split("T")[0]
-        }`,
+        id: `recurring_${recurringEvent.id}_${currentDate.toISOString().split("T")[0]
+          }`,
         recurring_id: recurringEvent.id,
         title: `${groupName}\n${contentTitle}`,
         start_time: startDateTime.toISOString(),
@@ -4112,28 +4105,29 @@ document.addEventListener("DOMContentLoaded", async function () {
   setInterval(checkForNewDisplays, 10000);
 
   document.getElementsByName("editScheduledContentType").forEach((elem) => {
-  elem.addEventListener("change", function () {
-    if (this.value === "slideshow") {
-      document.getElementById("editScheduledSlideshowContainer").style.display =
-        "block";
-      document.getElementById("editScheduledPlaylistContainer").style.display =
-        "none";
-      populateSlideshowsDropdown(
-        "editScheduledSlideshowSelect",
-        null,
-        gettext("Select Content"),
-      );
-    } else {
-      document.getElementById("editScheduledSlideshowContainer").style.display =
-        "none";
-      document.getElementById("editScheduledPlaylistContainer").style.display =
-        "block";
-      populateSlideshowPlaylistDropdown(
-        "editScheduledPlaylistSelect",
-        null,
-        gettext("Select a playlist"),
-      );
-    }
+    elem.addEventListener("change", function () {
+      if (this.value === "slideshow") {
+        document.getElementById("editScheduledSlideshowContainer").style.display =
+          "block";
+        document.getElementById("editScheduledPlaylistContainer").style.display =
+          "none";
+        populateSlideshowsDropdown(
+          "editScheduledSlideshowSelect",
+          null,
+          gettext("Select Content"),
+        );
+      } else {
+        document.getElementById("editScheduledSlideshowContainer").style.display =
+          "none";
+        document.getElementById("editScheduledPlaylistContainer").style.display =
+          "block";
+        populateSlideshowPlaylistDropdown(
+          "editScheduledPlaylistSelect",
+          null,
+          gettext("Select a playlist"),
+        );
+      }
+    });
   });
-});
+  document.getElementById("toggleExpand").checked = true;
 });
