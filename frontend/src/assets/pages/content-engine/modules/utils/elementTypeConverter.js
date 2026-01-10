@@ -78,21 +78,6 @@ function getElementDefaults() {
       borderThickness: 1,
     },
 
-    list: {
-      type: "list",
-      listType: "disc",
-      items: [
-        { text: "First list item", indent: 0 },
-        { text: "Second list item", indent: 0 },
-        { text: "Third list item", indent: 0 },
-      ],
-      fontSize: 1.5,
-      fontFamily: defaultFont,
-      fontColor: "#212529",
-      lineHeight: 1.4,
-      itemSpacing: 0.5,
-    },
-
     shape: {
       type: "shape",
       shape: "right-arrow",
@@ -345,7 +330,6 @@ export function getAvailableElementTypes() {
     { type: "image", name: "Image", icon: "image" },
     { type: "video", name: "Video", icon: "videocam" },
     { type: "table", name: "Table", icon: "table" },
-    { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
     { type: "mask", name: "Mask", icon: "comedy_mask" },
     { type: "box", name: "Box", icon: "crop_din" },
@@ -366,7 +350,6 @@ export function getAllElementTypes() {
     { type: "image", name: "Image", icon: "image" },
     { type: "video", name: "Video", icon: "videocam" },
     { type: "table", name: "Table", icon: "table" },
-    { type: "list", name: "List", icon: "format_list_bulleted" },
     { type: "shape", name: "Shape", icon: "interests" },
     { type: "mask", name: "Mask", icon: "comedy_mask" },
     { type: "box", name: "Box", icon: "crop_din" },

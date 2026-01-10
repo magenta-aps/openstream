@@ -1027,7 +1027,7 @@ if (typeof window !== "undefined") {
 
     // Check specific slide elements that should use custom fonts
     const slideElements = document.querySelectorAll(
-      ".textbox .text-content, .table-element, .list-element",
+      ".textbox .text-content, .table-element",
     );
     console.log(
       `Found ${slideElements.length} slide elements with potential custom fonts:`,

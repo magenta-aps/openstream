@@ -24,7 +24,6 @@ function setToolbarGeneralVisibility(visibility) {
     toolbarGeneral.style.visibility = visibility;
   }
 }
-import { setupListToolbar } from "../elements/listElement.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { queryParams } from "../../../../utils/utils.js";
 import { updatePersistButtonForSelectedElement } from "../element_formatting/persistElement.js";
@@ -191,13 +190,6 @@ export function hideElementToolbars() {
     // Remove any gradient wrappers when hiding toolbars
     removeGradientWrapper(element);
   });
-
-  // Hide all list element controls
-  document
-    .querySelectorAll(".list-add-item-btn, .list-indent-controls")
-    .forEach((btn) => {
-      btn.style.display = "none";
-    });
 
   // Clear table cell edit indicators from all tables
   document.querySelectorAll("table").forEach((table) => {
@@ -592,45 +584,6 @@ export function selectElement(el, dataObj) {
 
       // Setup the table toolbar with current values
       setupTableToolbar();
-    }
-    setToolbarGeneralVisibility("visible");
-    el.style.outline = "3px dashed blue";
-    createGradientWrapper(el);
-  } else if (dataObj.type === "list") {
-    // List Element handling
-    hideElementToolbars();
-    const listToolbar = document.getElementById("list-toolbar");
-    if (listToolbar) {
-      listToolbar.style.display = "flex";
-      listToolbar.classList.remove("d-none");
-      listToolbar.classList.add("d-flex");
-
-      // Setup the list toolbar with current values
-      setupListToolbar();
-    }
-    setToolbarGeneralVisibility("visible");
-    el.style.outline = "3px dashed blue";
-    createGradientWrapper(el);
-
-    // Show list-specific controls
-    const addButton = el.querySelector(".list-add-item-btn");
-    if (addButton) {
-      addButton.style.display = "flex";
-    }
-    el.querySelectorAll(".list-indent-controls").forEach((controls) => {
-      controls.style.display = "flex";
-    });
-  } else if (dataObj.type === "list") {
-    // List Element handling
-    hideElementToolbars();
-    const listToolbar = document.getElementById("list-toolbar");
-    if (listToolbar) {
-      listToolbar.style.display = "flex";
-      listToolbar.classList.remove("d-none");
-      listToolbar.classList.add("d-flex");
-
-      // Setup the list toolbar with current values
-      setupListToolbar();
     }
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";

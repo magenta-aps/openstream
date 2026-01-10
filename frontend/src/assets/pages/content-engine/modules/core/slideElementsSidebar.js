@@ -231,7 +231,6 @@ function getElementTypeIcon(type) {
     mask: "comedy_mask",
     "html-element": "code",
     table: "table",
-    list: "format_list_bulleted",
     placeholder: "crop_free",
     qrcode: "qr_code",
     box: "crop_din",

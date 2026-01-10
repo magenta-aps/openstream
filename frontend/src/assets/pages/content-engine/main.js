@@ -57,7 +57,6 @@ import { initShape } from "./modules/elements/shapeElement.js";
 import { initMaskElement } from "./modules/elements/maskElement.js";
 import { initBoxElement } from "./modules/elements/boxElement.js";
 import { initTableElement } from "./modules/elements/tableElement.js";
-import { initListElement } from "./modules/elements/listElement.js";
 import { initTiptapTextbox } from "./modules/elements/tiptapTextbox.js";
 import { initVideoElement } from "./modules/elements/videoElement.js";
 import { initPlaceholderElement } from "./modules/elements/placeholderElement.js";
@@ -142,7 +141,6 @@ const initCommonEditorFeatures = () => {
   initBoxElement();
   initHtmlElement();
   initTableElement();
-  initListElement();
   initCollapseLeftSidebarBtn();
   // Only initialize activation modal if the modal element exists
   if (document.getElementById("slideActivationModal")) {

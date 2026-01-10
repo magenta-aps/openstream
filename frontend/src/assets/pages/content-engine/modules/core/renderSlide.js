@@ -28,7 +28,6 @@ import { _renderShape } from "../elements/shapeElement.js";
 import { _renderMask } from "../elements/maskElement.js";
 import { _renderBox } from "../elements/boxElement.js";
 import { _renderTable } from "../elements/tableElement.js";
-import { _renderList } from "../elements/listElement.js";
 import { _renderTiptapTextbox } from "../elements/tiptapTextbox.js";
 import { _renderVideo } from "../elements/videoElement.js";
 import { _renderPlaceholder } from "../elements/placeholderElement.js";
@@ -967,8 +966,6 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     _renderHtmlElement(el, container);
   } else if (el.type === "table") {
     _renderTable(el, container);
-  } else if (el.type === "list") {
-    _renderList(el, container, isInteractivePlayback);
   } else if (el.type === "placeholder") {
     _renderPlaceholder(el, container);
   } else if (el.type === "qrcode") {
