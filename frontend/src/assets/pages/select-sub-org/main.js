@@ -8,8 +8,6 @@ import {
   fetchUserLangugage,
 } from "../../utils/locales";
 import {
-  getOrgId,
-  getSuborgId,
   parentOrgID,
   showToast,
   getOrgName,
@@ -30,6 +28,7 @@ let isActingUserOrgAdmin = false;
 let currentSelectedUserId = null;
 let isSuborgAdmin = false;
 const organisationIdCache = new Map();
+
 
 // Helper function to filter out suborg_templates branches (magic branches used for template management)
 function filterVisibleBranches(branches) {
@@ -1801,6 +1800,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("submitEditBranchBtn")
     .addEventListener("click", onSubmitEditBranch);
+
+  // Ensure pressing Enter inside modal forms triggers JS handlers instead of a full page reload
+  const modalFormBindings = [
+    ["add-suborg-form", onSubmitAddSuborg],
+    ["edit-suborg-form", onSubmitEditSuborg],
+    ["add-branch-form", onSubmitAddBranch],
+    ["edit-branch-form", onSubmitEditBranch],
+    ["add-user-form", onSubmitAddNewUser],
+  ];
+
+  modalFormBindings.forEach(([formId, handler]) => {
+    const formEl = document.getElementById(formId);
+    if (!formEl || typeof handler !== "function") {
+      return;
+    }
+    formEl.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void handler();
+    });
+  });
 
   const formFields = [
     "newUserUsername",
