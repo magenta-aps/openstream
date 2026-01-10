@@ -10,7 +10,10 @@ from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from osauth.models import KeycloakSession
 from osauth.keycloak import TokenResponse, UserInfo
-from app.models import Organisation, OrganisationMembership, User, ROLE_CHOICES
+from app.models import Organisation, OrganisationMembership, User
+
+# Mirror the role keys available in OrganisationMembership to guard against stale imports.
+ROLE_CHOICES = OrganisationMembership.Role.choices
 
 
 def kc_user_info_2_local_user(kc_user: UserInfo) -> User:
