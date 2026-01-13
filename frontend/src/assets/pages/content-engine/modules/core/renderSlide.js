@@ -567,21 +567,15 @@ async function _startSlideshowPlayer() {
   const apiKey = queryParams.apiKey;
 
   // Re-fetch and ensure fonts are ready BEFORE loading any content
-  console.log("Re-fetching fonts for slideshow-player mode with API key...");
   const { fetchAndInitializeFonts, waitForFontsReady } = await import(
     "../utils/fontUtils.js"
   );
   await fetchAndInitializeFonts();
 
-  console.log(
-    "Ensuring fonts are fully ready before loading slideshow content...",
-  );
 
   // Wait for browser font loading to complete
   try {
-    console.log("Waiting for document.fonts.ready...");
     await document.fonts.ready;
-    console.log("✓ document.fonts.ready resolved");
   } catch (e) {
     console.warn("document.fonts.ready failed:", e);
   }
@@ -590,7 +584,6 @@ async function _startSlideshowPlayer() {
   await waitForFontsReady(5000);
 
   // Extra buffer for font processing
-  console.log("Adding 500ms buffer for font processing...");
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   await (async function fetchActiveContent() {

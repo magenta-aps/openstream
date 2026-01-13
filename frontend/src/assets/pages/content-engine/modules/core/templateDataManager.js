@@ -68,10 +68,6 @@ function setResolutionFromAspectRatio(aspectRatio) {
   }, 50);
 
   syncGridToCurrentSlide();
-
-  console.log(
-    `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
-  );
 }
 
 /**
@@ -384,13 +380,6 @@ export async function saveCurrentTemplateData() {
   } else {
     apiEndpoint = `${BASE_URL}/api/slide-templates/${templateIdToSave}/`;
   }
-
-  console.log(`Saving template ${templateIdToSave} to ${apiEndpoint}`, {
-    isSuborgTemplate,
-    isGlobalTemplateContext,
-    editorMode: store.editorMode,
-    templateId: templateIdToSave,
-  });
 
   try {
     const resp = await fetch(apiEndpoint, {

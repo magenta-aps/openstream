@@ -1035,3 +1035,16 @@ export function initOrgUrlRouting() {
     true,
   );
 }
+
+export function shouldUseApiKeyInSlideTypeIframe() {
+  const parentParams = new URLSearchParams(window.parent.location.search);
+  const mode = parentParams.get('mode');
+  if (mode === 'slideshow-player') {
+    console.log("Using API key for slide type iframe in slideshowplayer mode");
+    return true;
+  }
+  else {
+    console.log("using token in editor mode");
+    return false;
+  }
+}

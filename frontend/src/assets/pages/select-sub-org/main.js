@@ -1975,5 +1975,3 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initOrgUrlRouting();
 });
-
-console.log("test")

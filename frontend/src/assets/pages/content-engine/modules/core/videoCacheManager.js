@@ -114,7 +114,6 @@ class VideoCacheManager {
       // Cache the blob URL (revoking any older object URL to avoid leaks)
       this._setCachedBlobUrl(videoId, blobUrl);
 
-      console.log(`Video ${videoId} cached successfully`);
       return blobUrl;
     } catch (error) {
       console.error(`Failed to cache video ${videoId}:`, error);
@@ -154,16 +153,12 @@ class VideoCacheManager {
     const cachePromises = Array.from(videoIds).map(async (videoId) => {
       try {
         await this.getVideoUrl(videoId);
-        console.log(`Pre-cached video: ${videoId}`);
       } catch (error) {
         console.warn(`Failed to pre-cache video ${videoId}:`, error);
       }
     });
 
     await Promise.allSettled(cachePromises);
-    console.log(
-      `Video pre-caching completed. Cached ${this.cache.size} videos.`,
-    );
   }
 
   async attachVideoToElement(videoElement, videoId) {
@@ -236,7 +231,6 @@ class VideoCacheManager {
     });
     this.cache.clear();
     this.fetchPromises.clear();
-    console.log("Video cache cleared");
   }
 
   // Get cache status

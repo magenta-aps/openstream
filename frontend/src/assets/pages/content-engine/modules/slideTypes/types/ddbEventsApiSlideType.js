@@ -10,6 +10,7 @@
 import { BASE_URL } from "../../../../../utils/constants.js";
 import { gettext, translateHTML } from "../../../../../utils/locales.js";
 import { SlideTypeUtils } from "../slideTypeRegistry.js";
+import { shouldUseApiKeyInSlideTypeIframe } from "../../../../../utils/utils.js";
 
 export const DdbEventsApiSlideType = {
   name: "DDB Events API",
@@ -32,11 +33,17 @@ export const DdbEventsApiSlideType = {
 
   buildAuthHeaders() {
     const headers = {};
-    const token = localStorage.getItem("accessToken");
+    const useApiKey = shouldUseApiKeyInSlideTypeIframe();
     const apiKey = localStorage.getItem("apiKey");
+    const token = localStorage.getItem("accessToken");
 
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-    if (apiKey) headers["X-API-KEY"] = apiKey;
+    if (useApiKey && apiKey) {
+      headers["X-API-KEY"] = apiKey;
+    } else if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else if (apiKey) {
+      headers["X-API-KEY"] = apiKey;
+    }
 
     return headers;
   },

@@ -512,7 +512,6 @@ function populateFontDropdown() {
     });
 
     if (availableFonts.length > 0 && !usingFallbackFonts) {
-      console.log("Fonts loaded...");
     }
   }
 

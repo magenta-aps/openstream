@@ -520,9 +520,6 @@ function restoreResolution(resolution) {
       scaleAllSlides();
       updateAllSlidesZoom();
 
-      console.log(
-        `Restored resolution to ${resolution.width}x${resolution.height}`,
-      );
     } catch (err) {
       console.warn("Could not fully restore resolution UI:", err);
     }
@@ -777,7 +774,6 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       if (savedResolution) {
         restoreResolution(savedResolution);
         savedResolution = null;
-        console.log("Restored original resolution after modal cancel");
       }
       selectedTemplate = null;
     });

@@ -4,7 +4,7 @@ import "./style.scss";
 //import VanillaMarquee from 'vanilla-marquee';
 import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
-
+import { shouldUseApiKeyInSlideTypeIframe } from "../../utils/utils";
 import InfiniteMarquee from "vanilla-infinite-marquee";
 
 // Parse config from query parameters
@@ -37,8 +37,11 @@ const baseUrl = queryParams.baseUrl || BASE_URL;
 const token = localStorage.getItem("accessToken");
 const apiKey = localStorage.getItem("apiKey");
 
+
+
+
 const headers = { "Content-Type": "application/json" };
-if (apiKey) {
+if (shouldUseApiKeyInSlideTypeIframe() && apiKey) {
   headers["X-API-KEY"] = apiKey;
 } else if (token) {
   headers["Authorization"] = `Bearer ${token}`;
@@ -99,7 +102,6 @@ async function fetchLocationData() {
 
     locationData = await response.json();
 
-    console.log("locationData:", locationData);
 
     // Update location title
     const locationTitle = document.getElementById("location-title");
@@ -131,7 +133,6 @@ async function fetchAndDisplayBookings() {
     }
 
     const data = await response.json();
-    console.log("Fetched bookings data:", data);
     displayBookingsInCarousel(data);
   } catch (error) {
     console.error("Error fetching bookings:", error);
@@ -201,21 +202,18 @@ function displayBookingsInCarousel(locationBookings) {
   bookingBody.style.height = "100%";
 
 
-  console.log("booking body height", bookingBody.clientHeight)
-  console.log("list height", list.clientHeight)
   const headerHeight = document.getElementById("header").clientHeight;
 
-  console.log("header height", headerHeight)
 
 
   if (list.clientHeight > (bookingBody.clientHeight - headerHeight)) {
-    
+
     // START: Added empty booking as requested
     // Add one empty booking entry to the end of the list if the marquee is running.
     // This creates a visual spacer when the list loops.
     const emptyBooking = document.createElement("div");
     emptyBooking.className = "booking-entry empty-booking-spacer"; // Use base class + new class
-    
+
     // Add minimal structure to mimic a real booking's height/padding
     // using non-breaking spaces to ensure elements have height.
     emptyBooking.innerHTML = `
@@ -235,24 +233,21 @@ function displayBookingsInCarousel(locationBookings) {
     list.appendChild(emptyBooking);
     // END: Added empty booking
 
-     new InfiniteMarquee({
-    element: "#booking-body",
-    speed: pxPrSec,
-    direction: "top",
-    duplicate: 0,
-    on: {
-      beforeInit: () => {
-        console.log("Not Yet Initialized");
-      },
+    new InfiniteMarquee({
+      element: "#booking-body",
+      speed: pxPrSec,
+      direction: "top",
+      duplicate: 0,
+      on: {
+        beforeInit: () => {
+        },
 
-      afterInit: () => {
-        console.log("Initialized");
+        afterInit: () => {
+        },
       },
-    },
-  });
+    });
   }
   else {
-    console.log("should not scroll")
   }
 }
 

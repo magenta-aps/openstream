@@ -125,7 +125,6 @@ function handleZoomChange(mode, level) {
  * Enable fit-to-window mode (current default behavior)
  */
 function enableFitToWindowMode() {
-  console.log("Zoom Controller: Switching to fit-to-window mode");
   const previewContainers = getPreviewContainers();
 
   previewContainers.forEach((container) => {
@@ -174,7 +173,6 @@ function enableFitToWindowMode() {
  * Enable zoom mode with scrolling
  */
 function enableZoomMode(zoomLevel) {
-  console.log(`Zoom Controller: Switching to zoom mode at ${zoomLevel}%`);
   const previewContainers = getPreviewContainers();
 
   previewContainers.forEach((container) => {
