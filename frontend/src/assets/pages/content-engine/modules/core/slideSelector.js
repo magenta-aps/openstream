@@ -62,10 +62,6 @@ function setResolutionFromAspectRatio(aspectRatio) {
     scaleAllSlides();
     updateAllSlidesZoom();
   }, 50);
-
-  console.log(
-    `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
-  );
 }
 
 /**

@@ -214,7 +214,6 @@ document.addEventListener("DOMContentLoaded", () => {
           wayfindingData = data.wayfinding_data;
         }
 
-        console.log("Loaded wayfinding data for user view:", wayfindingData);
 
         // Load the data into the state
         floors = Array.isArray(wayfindingData.floors)

@@ -233,9 +233,6 @@ async function fetchUnifiedTemplates() {
       unifiedTemplates = unifiedTemplates.filter(
         (template) => template.aspect_ratio === currentAspectRatio,
       );
-      console.log(
-        `Filtered templates by aspect ratio ${currentAspectRatio}: ${originalCount} → ${unifiedTemplates.length}`,
-      );
     }
 
     if (
@@ -286,10 +283,6 @@ function filterTemplates() {
   // Get the current aspect ratio for filtering
   const currentAspectRatio = getCurrentAspectRatio();
 
-  console.log("Filtering templates:");
-  console.log("- Current aspect ratio:", currentAspectRatio);
-  console.log("- Total templates before filtering:", searchResults.length);
-
   filteredTemplates = searchResults.filter((t) => {
     const categoryMatch =
       selectedCategoryIds.length === 0 ||
@@ -297,17 +290,8 @@ function filterTemplates() {
 
     // Filter by aspect ratio - template must match current aspect ratio
     const aspectRatioMatch = t.aspect_ratio === currentAspectRatio;
-
-    if (!aspectRatioMatch) {
-      console.log(
-        `- Template "${t.name}" filtered out: has aspect ratio "${t.aspect_ratio}" but current is "${currentAspectRatio}"`,
-      );
-    }
-
     return categoryMatch && aspectRatioMatch;
   });
-
-  console.log("- Templates after filtering:", filteredTemplates.length);
 }
 
 function sortAndRenderTemplates() {
