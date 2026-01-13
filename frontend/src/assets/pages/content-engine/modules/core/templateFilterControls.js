@@ -236,15 +236,44 @@ function renderFilterPanel() {
   const orderByLabel = gettext("Order by");
   const resetLabel = gettext("Reset filters");
 
+  const foo = `
+    <div id="filter-select" class="accordion" >
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#category-filter" aria-expanded="true" aria-controls="category-filter">
+            Categories
+          </button>
+        </h2>
+        <div id="category-filter" class="accordion-collapse collapse show" data-bs-parent="filter-select">
+          <div class="accordion-body">
+            <p>Foo</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    `
+
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
       <div class="template-filter-panel__row">
         <div class="form-floating flex-grow-1">
-          <input type="search" class="form-control" id="templateFilterSearch" placeholder="${searchLabel}" />
-          <label for="templateFilterSearch">${searchLabel}</label>
+          <input type="search" class="form-control rounded-pill" id="templateFilterSearch" placeholder="${searchLabel}" />
+          <label for="templateFilterSearch">
+            <i class="material-symbols-outlined">search</i>
+            ${searchLabel}
+          </label>
           <button class="btn btn-sm btn-link text-decoration-none template-filter-panel__clear d-none" type="button" id="templateFilterSearchClear">
             ${gettext("Clear")}
           </button>
+        </div>
+        <div class="dropdown d-flex">
+          <button class="btn btn-secondary dropdown-toggle align-self-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="material-symbols-outlined">tune</i>
+            Filtre
+          </button>
+          <div class="dropdown-menu">
+            ${foo}
+          </div>
         </div>
         <!-- Removing sort temp
         <div class="form-floating template-filter-panel__sort">
@@ -260,6 +289,7 @@ function renderFilterPanel() {
         </div>
         -->
       </div>
+      <!--
       <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle">
         <span class="template-filter-panel__toggle-label">${categoriesLabel}</span>
         <span class="material-symbols-outlined">expand_more</span>
@@ -285,6 +315,7 @@ function renderFilterPanel() {
         <div class="template-filter-chips flex-grow-1" id="templateFilterChips"></div>
         <button class="btn btn-sm btn-link template-filter-panel__reset" type="button" id="templateFilterReset">${resetLabel}</button>
       </div>
+      -->
     </div>
   `;
 }
