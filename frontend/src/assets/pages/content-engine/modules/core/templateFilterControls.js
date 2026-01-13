@@ -145,9 +145,7 @@ export function applyTemplateFilters(slidesWithIndex) {
     return slidesWithIndex;
   }
 
-  let workingList = Array.isArray(slidesWithIndex)
-    ? [...slidesWithIndex]
-    : [];
+  let workingList = Array.isArray(slidesWithIndex) ? [...slidesWithIndex] : [];
 
   const query = filterState.search.trim().toLowerCase();
   if (query) {
@@ -179,9 +177,7 @@ export function applyTemplateFilters(slidesWithIndex) {
       if (!Array.isArray(slide.tagIds) || slide.tagIds.length === 0) {
         return false;
       }
-      return slide.tagIds.some((tagId) =>
-        filterState.tags.has(String(tagId)),
-      );
+      return slide.tagIds.some((tagId) => filterState.tags.has(String(tagId)));
     });
   }
 
@@ -250,6 +246,7 @@ function renderFilterPanel() {
             ${gettext("Clear")}
           </button>
         </div>
+        <!-- Removing sort temp
         <div class="form-floating template-filter-panel__sort">
           <select class="form-select" id="templateFilterSort">
             <option value="${NAME_SORT_KEY}:asc">${gettext("Name (A-Z)")}</option>
@@ -261,6 +258,7 @@ function renderFilterPanel() {
           </select>
           <label for="templateFilterSort">${orderByLabel}</label>
         </div>
+        -->
       </div>
       <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle">
         <span class="template-filter-panel__toggle-label">${categoriesLabel}</span>
@@ -300,7 +298,9 @@ function cacheDomReferences() {
   sortSelect = filterPanel.querySelector("#templateFilterSort");
   resetBtn = filterPanel.querySelector("#templateFilterReset");
   chipsContainer = filterPanel.querySelector("#templateFilterChips");
-  categoryToggleBtn = filterPanel.querySelector("#templateFilterCategoryToggle");
+  categoryToggleBtn = filterPanel.querySelector(
+    "#templateFilterCategoryToggle",
+  );
   tagToggleBtn = filterPanel.querySelector("#templateFilterTagToggle");
   aspectToggleBtn = filterPanel.querySelector("#templateFilterAspectToggle");
 }
