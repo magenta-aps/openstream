@@ -63,7 +63,7 @@ app.get('/trigger-refresh', (req, res) => {
   
   console.log(`🔄 Content change detected in Django: ${reason || 'unknown source'}`);
 
-        channel.broadcast({ message: `Content change detected: ${reason || 'unknown source'}, id: ${objId || 'unknown id'}`, timestamp: new Date() }, "custom-event");
+        channel.broadcast({ model: `${reason || 'unknown source'}`, id: `${objId || 'unknown id'}`}, "custom-event");
 
 
   res.send('Content change logged');

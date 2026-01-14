@@ -1,20 +1,116 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-<!-- HTML Wrapper -->
-{{#> base/containers/html-container title="Content Engine" script-src="/src/assets/pages/content-engine/main.js" }}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    <!-- HTML Wrapper -->
+    {{#> base/containers/html-container title="Content Engine" script-src="/src/assets/pages/content-engine/main.js" }}
 
     <!-- Main Container -->
     {{#> base/containers/main-container }}
-        <!-- Sidebar and Content Container -->
-        {{#> base/containers/sidebar-and-content-container pageTitleId="contentEngineTitle" pageTitle="Edit Content" showGoBackButton=true }}
+    <!-- Sidebar and Content Container -->
+    {{#> base/containers/sidebar-and-content-container pageTitleId="contentEngineTitle" pageTitle="Edit Content"
+    showGoBackButton=true }}
 
-            {{#*inline "sidebarContent"}}
-            {{/inline}}
-            {{#*inline "mainContent"}}
-                {{#> base/content-engine/top-menu-and-canvas-container }}
-                    {{> base/content-engine/slide-canvas }}
-                {{/base/content-engine/top-menu-and-canvas-container}}
-            {{/inline}}
-        {{/base/containers/sidebar-and-content-container}}
+    {{#*inline "sidebarContent"}}
+    {{/inline}}
+    {{#*inline "mainContent"}}
+    {{#> base/content-engine/top-menu-and-canvas-container }}
+    {{> base/content-engine/slide-canvas }}
+    {{/base/content-engine/top-menu-and-canvas-container}}
+    {{/inline}}
+    {{/base/containers/sidebar-and-content-container}}
     {{/base/containers/main-container}}
-{{/base/containers/html-container}}
+    <script>
+        // 1. Point this to your Express route
+        const eventSource = new EventSource('http://localhost:3000/events');
+
+        // Check connection status
+        eventSource.onopen = () => {
+            console.log('[sse] connection established at', new Date().toISOString());
+        };
+
+        // 2. Listen for the "custom-event" sent by channel.broadcast()
+        eventSource.addEventListener('custom-event', (event) => {
+            const data = JSON.parse(event.data);
+            console.log(data);
+
+            const includesId = (collection, candidate) => Array.isArray(collection) && collection.some((id) => String(id) === String(candidate));
+
+            if (data.model == "Slideshow") {
+
+                // Check if data.id is in slideshow_ids
+                if (includesId(window.slideshow_ids, data.id)) {
+                    console.log("Slideshow used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("Slideshow not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "SlideshowPlaylist") {
+                // Check if data.id is in slideshow_playlist_ids
+                if (includesId(window.slideshow_playlist_ids, data.id)) {
+                    console.log("SlideshowPlaylist used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("SlideshowPlaylist not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "ScheduledContent") {
+                // Check if data.id is in scheduled_content_ids
+                if (includesId(window.scheduled_content_ids, data.id)) {
+                    console.log("ScheduledContent used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("ScheduledContent not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "RecurringScheduledContent") {
+                // Check if data.id is in recurring_scheduled_content_ids
+                if (includesId(window.recurring_scheduled_content_ids, data.id)) {
+                    console.log("RecurringScheduledContent used in current display. Page should reload");
+                    window.location.reload();   
+                }
+                else {
+                    console.log("RecurringScheduledContent not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "DisplayWebsiteGroup") {
+
+
+                console.log(data.id);                console.log(window.display_website_group_id);
+
+                // Check if data.id matches display_website_group_id
+                if (String(data.id) === String(window.display_website_group_id)) {
+                    console.log("DisplayWebsiteGroup used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("DisplayWebsiteGroup not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "DisplayWebsite") {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            const displayWebsiteId = urlParams.get('displayWebsiteId');
+
+                // Check if data.id matches displayWebsiteId
+                if (String(data.id) === String(displayWebsiteId)) {
+                    console.log("DisplayWebsite used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("DisplayWebsite not used in current display. Should not reload")
+                }
+
+            }
+
+        });
+
+        // Handle errors (like server going down)
+        eventSource.onerror = (err) => {
+            console.error('[sse] error', err);
+        };
+    </script>
+    {{/base/containers/html-container}}

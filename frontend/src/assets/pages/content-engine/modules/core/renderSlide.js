@@ -611,7 +611,17 @@ async function _startSlideshowPlayer() {
 
       const data = await response.json();
 
-        
+      console.log(data)
+
+      // Metadata used for live updating set in the window for easy access in open-screen.hbs
+      window.slideshow_ids = data.slideshow_ids;
+      window.slideshow_playlist_ids = data.slideshow_playlist_ids;
+      window.scheduled_content_ids = data.scheduled_content_ids;
+      window.recurring_scheduled_content_ids = data.recurring_scheduled_content_ids;
+      window.display_website_group_id = data.display_website_group_id;
+
+
+      
 
       if (data.items && data.items.length > 0) {
         const firstSlideshow = data.items[0].slideshow;
