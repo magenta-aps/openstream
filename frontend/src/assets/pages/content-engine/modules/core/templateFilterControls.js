@@ -58,7 +58,7 @@ function createPopover(triggerID, content) {
         </div>
       </div>
     `,
-    offset: [-60, 0]
+    //offset: [-60, 0]
   })
 }
 
@@ -270,25 +270,49 @@ function renderFilterPanel() {
   filterPopoverBtn.innerHTML = `<i class='material-symbols-outlined'>tune</i> ${gettext("Filters")}`
 
   filterPopoverContent = document.createElement("div");
-  //popoverContent.style.display = "none";
 
-  filterPopoverContent.innerHTML = `
-    <div id="filter-select" class="accordion" >
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#category-filter" aria-expanded="true" aria-controls="category-filter">
-            Categories
-          </button>
-        </h2>
-        <div id="category-filter" class="accordion-collapse collapse show" data-bs-parent="filter-select">
-          <div class="accordion-body">
-            <p>Foo</p>
+  const arcordionCreator = (section, filters) => {
+    const normalizedSection = section.toLowerCase().split(" ").join("-")
+
+    return `
+      <div id="filter-select-${normalizedSection}" class="accordion" >
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#filter-${normalizedSection}" aria-expanded="true" aria-controls="filter-${normalizedSection}">
+              ${section}
+            </button>
+          </h2>
+          <div id="filter-${normalizedSection}" class="accordion-collapse collapse show" data-bs-parent="#filter-select-${normalizedSection}">
+            <div class="accordion-body">
+                ${filters.map(filter =>
+                  "<div class='form-check'>" +
+                    "<input class='form-check-input' type='checkbox' value='' id='fitler-check-" + section + "'>" +
+                    "<label class='form-check-label' for='checkDefault'>" + filter.name + "</label>" +
+                  "</div>"
+                ).join("")}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `
+    `
+  };
 
+  const filterPopoverCategories = arcordionCreator(
+    "Categories",
+    [{ name: "Børn og unge" }, { name: "Børn og unge 2" }]
+  );
+
+  const filterPopoverTags = arcordionCreator(
+    "Tags",
+    [{name: "Foo"}, {name: "Bar"}, {name: "Baz"}]
+  );
+
+  const fitlerPopoverAspectRatios = arcordionCreator(
+    "Aspect ratios",
+    [{name: "16:9"}, {name:"9:16"}, {name:"4:3"}, {name:"3:4"}]
+  );
+
+  filterPopoverContent.innerHTML = filterPopoverCategories + filterPopoverTags + fitlerPopoverAspectRatios;
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
