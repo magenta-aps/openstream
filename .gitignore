@@ -4,3 +4,4 @@
 **/.vscode
 **/compose.override.yaml
 dev-environment/minio/data/**
+**/node_modules

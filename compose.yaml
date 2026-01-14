@@ -49,6 +49,8 @@ services:
       - *env-openstream
       - *env-keycloak
     networks: *common-networks
+    ports:
+      - "5432:5432"
     volumes:
       - openstream_db:/var/lib/postgresql/data:Z
       - ./dev-environment/backend/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh:ro,Z
@@ -112,6 +114,28 @@ services:
       - ./frontend/public:/app/public:Z
       - ./frontend/server:/app/server:Z
       - ./frontend/vite.config.js:/app/vite.config.js:Z
+    depends_on:
+      - openstream
+  polling-server:
+    container_name: openstream-polling
+    image: docker.io/library/node:20
+    working_dir: /app
+    command: /bin/sh -c "npm install && npm run dev"
+    env_file:
+      - *env-openstream
+    environment:
+      PGHOST: openstream-db
+      PGPORT: "5432"
+      PGDATABASE: db
+      PGUSER: db
+      PGPASSWORD: dbpassword
+      PORT: "3000"
+      DJANGO_ACTIVE_CONTENT_URL: http://openstream:8000/api/active-content/
+    networks: *common-networks
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./polling-server:/app:Z
     depends_on:
       - openstream
   # media_converter service removed

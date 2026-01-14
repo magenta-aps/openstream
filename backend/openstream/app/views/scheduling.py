@@ -292,7 +292,7 @@ class GetActiveContentAPIView(APIView):
         """
         return {
             "id": slideshow_data.get("id"),
-            "position": position,  # Adjust as needed
+            "position": position,  
             "slideshow_playlist": 1,
             "slideshow": slideshow_data,
         }
@@ -355,6 +355,30 @@ class GetActiveContentAPIView(APIView):
         if not dwg:
             return Response({"detail": "No display_website_group found."}, status=404)
 
+        slideshow_ids = set()
+        playlist_ids = set()
+        scheduled_ids = set()
+        recurring_ids = set()
+
+        def track_slides_from_items(items):
+            if not items:
+                return
+            for item in items:
+                slideshow_data = item.get("slideshow") if isinstance(item, dict) else None
+                if isinstance(slideshow_data, dict):
+                    slideshow_id = slideshow_data.get("id")
+                    if slideshow_id is not None:
+                        slideshow_ids.add(slideshow_id)
+
+        def metadata_payload():
+            return {
+                "slideshow_ids": sorted(slideshow_ids),
+                "slideshow_playlist_ids": sorted(playlist_ids),
+                "scheduled_content_ids": sorted(scheduled_ids),
+                "recurring_scheduled_content_ids": sorted(recurring_ids),
+                "display_website_group_id": dwg.id,
+            }
+
         tz_now = timezone.now()
         current_weekday = tz_now.weekday()
         current_time = tz_now.time()
@@ -380,20 +404,38 @@ class GetActiveContentAPIView(APIView):
         combine_with_default = False
 
         for sc in scheduled_qs:
+            scheduled_ids.add(sc.id)
             if sc.slideshow is not None:
-                scheduled_items += self.get_playlist_items(sc.slideshow, "slideshow")
+                slideshow_items = self.get_playlist_items(sc.slideshow, "slideshow")
+                track_slides_from_items(slideshow_items)
+                scheduled_items += slideshow_items
+                if sc.slideshow_id:
+                    slideshow_ids.add(sc.slideshow_id)
             elif sc.playlist is not None:
-                scheduled_items += self.get_playlist_items(sc.playlist, "playlist")
+                playlist_items = self.get_playlist_items(sc.playlist, "playlist")
+                track_slides_from_items(playlist_items)
+                scheduled_items += playlist_items
+                if sc.playlist_id:
+                    playlist_ids.add(sc.playlist_id)
             # If any scheduled content requires merging with default, mark the flag.
             if sc.combine_with_default:
                 combine_with_default = True
 
         # Iterate over all recurring scheduled content records.
         for rsc in recurring_qs:
+            recurring_ids.add(rsc.id)
             if rsc.slideshow is not None:
-                scheduled_items += self.get_playlist_items(rsc.slideshow, "slideshow")
+                slideshow_items = self.get_playlist_items(rsc.slideshow, "slideshow")
+                track_slides_from_items(slideshow_items)
+                scheduled_items += slideshow_items
+                if rsc.slideshow_id:
+                    slideshow_ids.add(rsc.slideshow_id)
             elif rsc.playlist is not None:
-                scheduled_items += self.get_playlist_items(rsc.playlist, "playlist")
+                playlist_items = self.get_playlist_items(rsc.playlist, "playlist")
+                track_slides_from_items(playlist_items)
+                scheduled_items += playlist_items
+                if rsc.playlist_id:
+                    playlist_ids.add(rsc.playlist_id)
             # If any recurring content requires merging with default, mark the flag.
             if rsc.combine_with_default:
                 combine_with_default = True
@@ -409,36 +451,56 @@ class GetActiveContentAPIView(APIView):
                     hasattr(dwg, "default_slideshow")
                     and dwg.default_slideshow is not None
                 ):
-                    default_items += self.get_playlist_items(
+                    default_slideshow_items = self.get_playlist_items(
                         dwg.default_slideshow, "slideshow"
                     )
+                    track_slides_from_items(default_slideshow_items)
+                    default_items += default_slideshow_items
+                    if getattr(dwg, "default_slideshow_id", None):
+                        slideshow_ids.add(dwg.default_slideshow_id)
                 if (
                     hasattr(dwg, "default_playlist")
                     and dwg.default_playlist is not None
                 ):
-                    default_items += self.get_playlist_items(
+                    default_playlist_items = self.get_playlist_items(
                         dwg.default_playlist, "playlist"
                     )
+                    track_slides_from_items(default_playlist_items)
+                    default_items += default_playlist_items
+                    if getattr(dwg, "default_playlist_id", None):
+                        playlist_ids.add(dwg.default_playlist_id)
                 merged_items = merge_items(scheduled_items, default_items)
             else:
                 merged_items = scheduled_items
 
-            return Response({"items": merged_items}, status=200)
+            payload = {"items": merged_items}
+            payload.update(metadata_payload())
+            return Response(payload, status=200)
         else:
             # Fallback: if no scheduled content is active, use default content.
             default_items = []
             if hasattr(dwg, "default_slideshow") and dwg.default_slideshow is not None:
-                default_items += self.get_playlist_items(
+                default_slideshow_items = self.get_playlist_items(
                     dwg.default_slideshow, "slideshow"
                 )
+                track_slides_from_items(default_slideshow_items)
+                default_items += default_slideshow_items
+                if getattr(dwg, "default_slideshow_id", None):
+                    slideshow_ids.add(dwg.default_slideshow_id)
             if hasattr(dwg, "default_playlist") and dwg.default_playlist is not None:
-                default_items += self.get_playlist_items(
+                default_playlist_items = self.get_playlist_items(
                     dwg.default_playlist, "playlist"
                 )
+                track_slides_from_items(default_playlist_items)
+                default_items += default_playlist_items
+                if getattr(dwg, "default_playlist_id", None):
+                    playlist_ids.add(dwg.default_playlist_id)
             if not default_items:
                 return Response({"detail": "No default content found."}, status=404)
             else:
-                return Response({"items": default_items}, status=200)
+                payload = {"items": default_items}
+                payload.update(metadata_payload())
+                return Response(payload, status=200)
 
 
 class BranchActiveContentAPIView(APIView):

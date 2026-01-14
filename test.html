@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Live Feed</title>
+    <style>
+        #feed { font-family: sans-serif; border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: scroll; }
+        .entry { margin-bottom: 5px; padding: 5px; border-bottom: 1px idotted #eee; }
+        .timestamp { color: #888; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h1>Live Server Updates</h1>
+    <div id="status">Connecting...</div>
+    <div id="feed"></div>
+
+    <script>
+        // 1. Point this to your Express route
+        const eventSource = new EventSource('http://localhost:3000/events');
+        const feed = document.getElementById('feed');
+        const status = document.getElementById('status');
+
+        // Check connection status
+        eventSource.onopen = () => {
+            status.innerText = "Connected ✅";
+            status.style.color = "green";
+        };
+
+        // 2. Listen for the "custom-event" sent by channel.broadcast()
+        eventSource.addEventListener('custom-event', (event) => {
+            const data = JSON.parse(event.data);
+            
+            // Create a new message element
+            const div = document.createElement('div');
+            div.className = 'entry';
+            div.innerHTML = `<span class="timestamp">${data.timestamp}</span>: <strong>${data.message}</strong>`;
+            
+            // Add to the top of the feed
+            feed.prepend(div);
+        });
+
+        // Handle errors (like server going down)
+        eventSource.onerror = (err) => {
+            status.innerText = "Connection lost. Reconnecting...";
+            status.style.color = "red";
+        };
+    </script>
+</body>
+</html>

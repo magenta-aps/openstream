@@ -3,12 +3,19 @@
 
 
 import threading
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import User
+import requests
 from .models import (
     Branch,
+    DisplayWebsite,
+    DisplayWebsiteGroup,
+    RecurringScheduledContent,
+    ScheduledContent,
+    Slideshow,
     SlideshowPlayerAPIKey,
     SlideshowPlaylist,
     UserExtended,
@@ -51,3 +58,26 @@ def process_document_pdf(sender, instance, created, **kwargs):
             target=convert_document_pdf, args=(instance.pk,), daemon=True
         )
         thread.start()
+
+# List all models that affect the final "Active Content"
+@receiver(post_save, sender=Slideshow)
+@receiver(post_save, sender=SlideshowPlaylist)
+@receiver(post_save, sender=ScheduledContent)
+@receiver(post_save, sender=RecurringScheduledContent)
+@receiver(post_save, sender=DisplayWebsiteGroup)
+@receiver(post_save, sender=DisplayWebsite)
+def notify_express_of_change(sender, instance, **kwargs):
+    express_refresh_url = getattr(settings, "EXPRESS_REFRESH_URL", None)
+
+    if not express_refresh_url:
+        return
+
+    try:
+        # Tell Express to refresh whenever relevant content changes.
+        requests.get(
+            express_refresh_url,
+            params={"reason": sender.__name__, "object_id": instance.pk},
+            timeout=2,
+        )
+    except Exception as e:
+        print(f"Failed to notify Express: {e}")
