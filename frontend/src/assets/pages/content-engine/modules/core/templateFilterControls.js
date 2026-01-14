@@ -257,7 +257,7 @@ function renderFilterPanel() {
 
   filterPopoverBtn = document.createElement("button");
   filterPopoverBtn.id = "templateFilterPopoverBtn";
-  filterPopoverBtn.className = "btn";
+  filterPopoverBtn.classList.add("btn");
   filterPopoverBtn.setAttribute("data-bs-toggle", "popover");
   filterPopoverBtn.setAttribute("data-bs-placement", "bottom");
   filterPopoverBtn.innerHTML = "<i class='material-symbols-outlined'>tune</i> Filtre"
