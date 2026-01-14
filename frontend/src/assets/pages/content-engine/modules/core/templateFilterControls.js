@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import * as bootstrap from "bootstrap";
 import { store } from "./slideStore.js";
 import { gettext } from "../../../../utils/locales.js";
 import { queryParams } from "../../../../utils/utils.js";
@@ -26,6 +27,9 @@ let tagOptionsRoot;
 let aspectOptionsRoot;
 let searchInput;
 let clearSearchBtn;
+let filterPopoverBtn;
+let filterPopoverAPI;
+let filterPopoverContent;
 let sortSelect;
 let resetBtn;
 let chipsContainer;
@@ -36,6 +40,20 @@ let aspectToggleBtn;
 let availableCategories = new Map();
 let availableTags = new Map();
 let availableAspectRatios = new Map();
+
+/**
+ * @description
+ * Creates a Bootstrap popover instance.
+ * @param triggerID - The id of the element that will trigger the popover
+ * @param content - The html content to display inside the popover
+ */
+function createPopover(triggerID, content) {
+  return new bootstrap.Popover(document.querySelector(`#${triggerID}`), {
+    html: true,
+    content: () => content.innerHTML,
+    sanitize: false
+  })
+}
 
 function isTemplateMode() {
   return (
@@ -236,7 +254,18 @@ function renderFilterPanel() {
   const orderByLabel = gettext("Order by");
   const resetLabel = gettext("Reset filters");
 
-  const foo = `
+
+  filterPopoverBtn = document.createElement("button");
+  filterPopoverBtn.id = "templateFilterPopoverBtn";
+  filterPopoverBtn.className = "btn";
+  filterPopoverBtn.setAttribute("data-bs-toggle", "popover");
+  filterPopoverBtn.setAttribute("data-bs-placement", "bottom");
+  filterPopoverBtn.innerHTML = "<i class='material-symbols-outlined'>tune</i> Filtre"
+
+  filterPopoverContent = document.createElement("div");
+  //popoverContent.style.display = "none";
+
+  filterPopoverContent.innerHTML = `
     <div id="filter-select" class="accordion" >
       <div class="accordion-item">
         <h2 class="accordion-header">
@@ -251,7 +280,8 @@ function renderFilterPanel() {
         </div>
       </div>
     </div>
-    `
+  `
+
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
@@ -266,15 +296,9 @@ function renderFilterPanel() {
             ${gettext("Clear")}
           </button>
         </div>
-        <div class="dropdown d-flex">
-          <button class="btn btn-secondary dropdown-toggle align-self-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="material-symbols-outlined">tune</i>
-            Filtre
-          </button>
-          <div class="dropdown-menu">
-            ${foo}
-          </div>
-        </div>
+
+        ${filterPopoverBtn.outerHTML}
+
         <!-- Removing sort temp
         <div class="form-floating template-filter-panel__sort">
           <select class="form-select" id="templateFilterSort">
@@ -326,6 +350,7 @@ function cacheDomReferences() {
   aspectOptionsRoot = filterPanel.querySelector("#templateFilterAspects");
   searchInput = filterPanel.querySelector("#templateFilterSearch");
   clearSearchBtn = filterPanel.querySelector("#templateFilterSearchClear");
+  filterPopoverBtn = filterPanel.querySelector("#templateFilterPopoverBtn");
   sortSelect = filterPanel.querySelector("#templateFilterSort");
   resetBtn = filterPanel.querySelector("#templateFilterReset");
   chipsContainer = filterPanel.querySelector("#templateFilterChips");
@@ -349,6 +374,15 @@ function attachEventListeners() {
       emitFilterChange();
     });
   }
+
+  if (filterPopoverBtn) {
+    filterPopoverAPI = createPopover("templateFilterPopoverBtn",filterPopoverContent);
+
+    filterPopoverBtn.addEventListener("click", () => {
+      filterPopoverAPI.toggle();
+    });
+  }
+
   if (sortSelect) {
     sortSelect.addEventListener("change", (event) => {
       filterState.sortKey = event.target.value;
