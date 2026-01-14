@@ -51,7 +51,14 @@ function createPopover(triggerID, content) {
   return new bootstrap.Popover(document.querySelector(`#${triggerID}`), {
     html: true,
     content: () => content.innerHTML,
-    sanitize: false
+    sanitize: false,
+    template: `
+      <div class="popover" role="tooltip" style="width: 15.5rem;">
+        <div class="popover-body">
+        </div>
+      </div>
+    `,
+    offset: [-60, 0]
   })
 }
 
@@ -260,7 +267,7 @@ function renderFilterPanel() {
   filterPopoverBtn.classList.add("btn");
   filterPopoverBtn.setAttribute("data-bs-toggle", "popover");
   filterPopoverBtn.setAttribute("data-bs-placement", "bottom");
-  filterPopoverBtn.innerHTML = "<i class='material-symbols-outlined'>tune</i> Filtre"
+  filterPopoverBtn.innerHTML = `<i class='material-symbols-outlined'>tune</i> ${gettext("Filters")}`
 
   filterPopoverContent = document.createElement("div");
   //popoverContent.style.display = "none";
