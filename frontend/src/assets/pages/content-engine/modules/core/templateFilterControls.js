@@ -22,6 +22,7 @@ const filterState = {
 
 let filterPanel;
 let isInitialized = false;
+let filterOptionsRoot = createAccordion("templateFilterOptions", true);
 let categoryOptionsRoot;
 let tagOptionsRoot;
 let aspectOptionsRoot;
@@ -58,9 +59,86 @@ function createPopover(triggerID, content) {
         </div>
       </div>
     `,
-    //offset: [-60, 0]
+    offset: [0, 0]
   })
 }
+
+/**
+ * @description
+ * Creates a bootstrap accordion element
+ * @param {string} parentID - The id of the root element
+ * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
+ * @returns The accordion element node and a item appender fn
+ */
+function createAccordion(parentID, forceOpen) {
+  const accordion = document.createElement("div");
+  accordion.id = parentID;
+  accordion.classList.add("accordion");
+
+  const addAccordionItem = createAccordionItemAppender(accordion, forceOpen);
+
+  return { accordion, addAccordionItem };
+}
+
+/**
+* @description
+* Creates a accordion item appender
+* @param {HTMLElement} accordion - The root element
+* @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
+* @returns A function that will append a new accordion item to the root element
+*/
+function createAccordionItemAppender(accordion, forceOpen) {
+  /**
+  * @description
+  * Adds a new item to the accordion returned from createAccordion
+  * @param {string} itemID - The id of this item
+  * @param {string} headerText - The header text
+  * @param {string} body - The item body
+  * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
+  * @returns A function that will append a new accordion item to the root element
+  */
+  return (itemID, headerText, body, forceOpen) => {
+    const existingItem = accordion.querySelector(`#${itemID}`);
+    if (existingItem) {
+      console.log(existingItem)
+      accordion.removeChild(existingItem);
+    }
+    const item = document.createElement("div");
+      item.classList.add("accordion-item");
+
+      item.innerHTML = `
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${itemID}" aria-expanded="true" aria-controls="${itemID}">
+            ${headerText}
+          </button>
+        </h2>
+        <div id="${itemID}" class="accordion-collapse collapse show" ${forceOpen ? "" : "data-bs-parent='#" + parentID + "'"}>
+          <div class="accordion-body">
+            ${body}
+          </div>
+        </div>
+      `;
+
+      accordion.appendChild(item);
+  }
+}
+
+/**
+ * @description
+ * Creates an html string for a filter option
+ * @param {string} title
+ * @param {string} name
+ * @param {boolean} checked
+ * @param {string | undefined} value
+ * @returns A bootstrap checkbox as a html string
+ */
+function createFilterItem(id, name, checked, value) {
+  return `
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="${value ? value : id}" id="${id}" ${checked}>
+      <label class="form-check-label" for="${id}">${name}</label>
+    </div>`
+  };
 
 function isTemplateMode() {
   return (
@@ -121,48 +199,52 @@ export function initTemplateFilterControls() {
   refreshTemplateFilterOptions();
 }
 
-export function refreshTemplateFilterOptions() {
+function refreshTemplateFilterOptions() {
   if (!isTemplateMode()) {
-    return;
-  }
+        return;
+      }
 
-  const categoriesMap = new Map();
-  const tagsMap = new Map();
-  const aspectMap = new Map();
+      const categoriesMap = new Map();
+      const tagsMap = new Map();
+      const aspectMap = new Map();
 
-  store.slides.forEach((slide) => {
-    if (slide.categoryId && slide.categoryName) {
-      categoriesMap.set(String(slide.categoryId), slide.categoryName);
-    }
-
-    if (Array.isArray(slide.tagIds)) {
-      slide.tagIds.forEach((tagId, idx) => {
-        const stringId = String(tagId);
-        let tagLabel = null;
-        if (Array.isArray(slide.tagNames) && slide.tagNames[idx]) {
-          tagLabel = slide.tagNames[idx];
+      store.slides.forEach((slide) => {
+        if (slide.categoryId && slide.categoryName) {
+          categoriesMap.set(String(slide.categoryId), slide.categoryName);
         }
-        if (tagLabel && !tagsMap.has(stringId)) {
-          tagsMap.set(stringId, tagLabel);
+
+        if (Array.isArray(slide.tagIds)) {
+          slide.tagIds.forEach((tagId, idx) => {
+            const stringId = String(tagId);
+            let tagLabel = null;
+            if (Array.isArray(slide.tagNames) && slide.tagNames[idx]) {
+              tagLabel = slide.tagNames[idx];
+            }
+            if (tagLabel && !tagsMap.has(stringId)) {
+              tagsMap.set(stringId, tagLabel);
+            }
+          });
+        }
+
+        if (typeof slide.aspect_ratio === "string" && slide.aspect_ratio) {
+          aspectMap.set(slide.aspect_ratio, slide.aspect_ratio);
         }
       });
-    }
 
-    if (typeof slide.aspect_ratio === "string" && slide.aspect_ratio) {
-      aspectMap.set(slide.aspect_ratio, slide.aspect_ratio);
-    }
-  });
-
-  availableCategories = categoriesMap;
-  availableTags = tagsMap;
-  availableAspectRatios = aspectMap;
+      availableCategories = categoriesMap;
+      availableTags = tagsMap;
+      availableAspectRatios = aspectMap;
 
   renderCategoryOptions();
-  renderTagOptions();
-  renderAspectOptions();
-  updateToggleLabels();
-  updateChips();
-  updateResetButtonState();
+    renderTagOptions();
+    renderAspectOptions();
+    updateToggleLabels();
+    updateChips();
+    updateResetButtonState();
+
+    if (filterPopoverContent) {
+      filterPopoverContent.innerHTML = filterOptionsRoot.accordion.outerHTML;
+    }
 }
 
 export function applyTemplateFilters(slidesWithIndex) {
@@ -264,55 +346,25 @@ function renderFilterPanel() {
 
   filterPopoverBtn = document.createElement("button");
   filterPopoverBtn.id = "templateFilterPopoverBtn";
-  filterPopoverBtn.classList.add("btn");
+  filterPopoverBtn.classList.add("btn", "btn-sm", "d-flex", "align-items-center", "align-items-center", "row-gap-1");
   filterPopoverBtn.setAttribute("data-bs-toggle", "popover");
   filterPopoverBtn.setAttribute("data-bs-placement", "bottom");
-  filterPopoverBtn.innerHTML = `<i class='material-symbols-outlined'>tune</i> ${gettext("Filters")}`
+  filterPopoverBtn.innerHTML = `<i class="material-symbols-outlined">tune</i><span>${gettext("Filters")}</span>`
 
   filterPopoverContent = document.createElement("div");
 
-  const arcordionCreator = (section, filters) => {
-    const normalizedSection = section.toLowerCase().split(" ").join("-")
+  filterPopoverContent.innerHTML = filterOptionsRoot.accordion.outerHTML;
 
-    return `
-      <div id="filter-select-${normalizedSection}" class="accordion" >
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#filter-${normalizedSection}" aria-expanded="true" aria-controls="filter-${normalizedSection}">
-              ${section}
-            </button>
-          </h2>
-          <div id="filter-${normalizedSection}" class="accordion-collapse collapse show" data-bs-parent="#filter-select-${normalizedSection}">
-            <div class="accordion-body">
-                ${filters.map(filter =>
-                  "<div class='form-check'>" +
-                    "<input class='form-check-input' type='checkbox' value='' id='fitler-check-" + section + "'>" +
-                    "<label class='form-check-label' for='checkDefault'>" + filter.name + "</label>" +
-                  "</div>"
-                ).join("")}
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-  };
-
-  const filterPopoverCategories = arcordionCreator(
-    "Categories",
-    [{ name: "Børn og unge" }, { name: "Børn og unge 2" }]
-  );
-
-  const filterPopoverTags = arcordionCreator(
+  createFilterItem(
+    "templateFilterTags",
     "Tags",
     [{name: "Foo"}, {name: "Bar"}, {name: "Baz"}]
   );
-
-  const fitlerPopoverAspectRatios = arcordionCreator(
+  createFilterItem(
+    "templateFilterAspects",
     "Aspect ratios",
     [{name: "16:9"}, {name:"9:16"}, {name:"4:3"}, {name:"3:4"}]
   );
-
-  filterPopoverContent.innerHTML = filterPopoverCategories + filterPopoverTags + fitlerPopoverAspectRatios;
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
@@ -344,7 +396,7 @@ function renderFilterPanel() {
         </div>
         -->
       </div>
-      <!--
+      <!-- TODO: Remove
       <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle">
         <span class="template-filter-panel__toggle-label">${categoriesLabel}</span>
         <span class="material-symbols-outlined">expand_more</span>
@@ -412,6 +464,20 @@ function attachEventListeners() {
     filterPopoverBtn.addEventListener("click", () => {
       filterPopoverAPI.toggle();
     });
+
+    document.addEventListener("shown.bs.popover", () => {
+      document
+        .querySelector("#template-filter-category-select")
+        .addEventListener("change", (event) => handleFilterChange("category", event));
+
+      document
+        .querySelector("#template-filter-tag-select")
+        .addEventListener("change", (event) => handleFilterChange("tag", event));
+
+      document
+        .querySelector("#template-filter-aspect-ratio-select")
+        .addEventListener("change", (event) => handleFilterChange("aspect-ratio", event));
+    })
   }
 
   if (sortSelect) {
@@ -423,6 +489,8 @@ function attachEventListeners() {
   if (resetBtn) {
     resetBtn.addEventListener("click", resetTemplateFilters);
   }
+
+
   if (categoryOptionsRoot) {
     categoryOptionsRoot.addEventListener("change", handleCategoryChange);
   }
@@ -443,6 +511,42 @@ function handleSearchInput(event) {
     clearSearchBtn.classList.toggle("d-none", filterState.search.length === 0);
   }
   emitFilterChange();
+}
+
+/**
+ *
+ * @param {"category" | "tag" | "aspect-ratio"} type
+ * @param {Event} event
+ */
+function handleFilterChange(type, event) {
+  const target = event.target;
+  let state;
+
+  switch (type) {
+    case "category":
+      state = filterState.categories;
+      break;
+    case "tag":
+      state = filterState.tags;
+      break;
+    case "aspect-ratio":
+      state = filterState.aspectRatios;
+      break;
+  }
+
+  if (!target || target.tagName !== "INPUT") {
+      return;
+    }
+    const id = target.value;
+    if (!id) {
+      return;
+    }
+    if (target.checked) {
+      state.add(id);
+    } else {
+      state.delete(id);
+    }
+    emitFilterChange();
 }
 
 function handleCategoryChange(event) {
@@ -539,40 +643,35 @@ function handleChipInteraction(event) {
 }
 
 function renderCategoryOptions() {
-  if (!categoryOptionsRoot) {
-    return;
-  }
-
   const entries = Array.from(availableCategories.entries()).sort((a, b) =>
     a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
   );
 
+  /* TODO: Handle no available categories
   if (!entries.length) {
     categoryOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
       "No categories available yet.",
     )}</p>`;
     return;
   }
+  */
 
-  categoryOptionsRoot.innerHTML = entries
+
+  const categoryOptions = entries
     .map(([id, name]) => {
       const checkboxId = `template-filter-category-${id}`;
       const checked = filterState.categories.has(id) ? "checked" : "";
-      return `
-        <div class="form-check template-filter-checkbox">
-          <input class="form-check-input" type="checkbox" id="${checkboxId}" value="${id}" ${checked} />
-          <label class="form-check-label" for="${checkboxId}">${name}</label>
-        </div>
-      `;
-    })
-    .join("");
+      return createFilterItem(
+        checkboxId,
+        name,
+        checked
+      );
+    }).join("")
+
+  filterOptionsRoot.addAccordionItem("template-filter-category-select", "Categories", categoryOptions, true);
 }
 
 function renderTagOptions() {
-  if (!tagOptionsRoot) {
-    return;
-  }
-
   const entries = Array.from(availableTags.entries()).sort((a, b) =>
     a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
   );
@@ -584,25 +683,22 @@ function renderTagOptions() {
     return;
   }
 
-  tagOptionsRoot.innerHTML = entries
+  const tagOptions = entries
     .map(([id, name]) => {
       const checkboxId = `template-filter-tag-${id}`;
       const checked = filterState.tags.has(id) ? "checked" : "";
-      return `
-        <div class="form-check template-filter-checkbox">
-          <input class="form-check-input" type="checkbox" id="${checkboxId}" value="${id}" ${checked} />
-          <label class="form-check-label" for="${checkboxId}">${name}</label>
-        </div>
-      `;
+      return createFilterItem(
+        checkboxId,
+        name,
+        checked
+      )
     })
     .join("");
+
+  filterOptionsRoot.addAccordionItem("template-filter-tag-select", "Tags", tagOptions, true);
 }
 
 function renderAspectOptions() {
-  if (!aspectOptionsRoot) {
-    return;
-  }
-
   const entries = Array.from(availableAspectRatios.entries()).sort((a, b) =>
     a[0].localeCompare(b[0], undefined, { sensitivity: "base" }),
   );
@@ -614,18 +710,24 @@ function renderAspectOptions() {
     return;
   }
 
-  aspectOptionsRoot.innerHTML = entries
+  const aspectRatios = entries
     .map(([value]) => {
       const checkboxId = `template-filter-aspect-${escapeForSelector(value)}`;
       const checked = filterState.aspectRatios.has(value) ? "checked" : "";
+      return createFilterItem(checkboxId, value, checked, value)
+      /*
       return `
         <div class="form-check template-filter-checkbox">
           <input class="form-check-input" type="checkbox" id="${checkboxId}" value="${value}" ${checked} />
           <label class="form-check-label" for="${checkboxId}">${value}</label>
         </div>
       `;
+      */
     })
     .join("");
+
+
+  filterOptionsRoot.addAccordionItem("template-filter-aspect-ratio-select", "Aspect Ratios", aspectRatios, true);
 }
 
 function updateToggleLabels() {
@@ -773,3 +875,5 @@ function emitFilterChange() {
     }),
   );
 }
+
+export { refreshTemplateFilterOptions }
