@@ -4,11 +4,687 @@ import {
     fetchUserLangugage,
     gettext,
 } from "../../utils/locales";
-import { initOrgUrlRouting, makeActiveInNav } from "../../utils/utils";
+import {
+    autoHyphenate,
+    genericFetch,
+    initOrgUrlRouting,
+    initSignOutButton,
+    makeActiveInNav,
+    selectedBranchID,
+    showToast,
+    updateNavbarBranchName,
+    updateNavbarUsername,
+} from "../../utils/utils";
+import { BASE_URL } from "../../utils/constants";
+
+const state = {
+    slideshows: [],
+    filteredSlideshows: [],
+    groups: [],
+    filteredGroups: [],
+    emergencies: [],
+    selectedGroupIds: new Set(),
+    selectedSlideshowId: null,
+    isSubmitting: false,
+};
+
+const elements = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
     initOrgUrlRouting();
-    fetchUserLangugage();
+    initSignOutButton();
+    updateNavbarUsername();
+    updateNavbarBranchName();
+
+    await fetchUserLangugage();
     translateHTML();
     makeActiveInNav("/emergency-slideshows");
+
+    cacheElements();
+    bindEventListeners();
+    await bootstrapData();
 });
+
+function cacheElements() {
+    elements.slideshowListContainer = document.getElementById("slideshow-list");
+    elements.slideshowList = document.getElementById("slideshow-list-items");
+    elements.slideshowLoadingText = document.getElementById("slideshow-loading-text");
+    elements.slideshowSearch = document.getElementById("slideshow-search");
+    elements.clearSlideshowFilter = document.getElementById("clear-slideshow-filter");
+    elements.activateButton = document.getElementById("activate-emergency-btn");
+    elements.feedback = document.getElementById("emergency-feedback");
+    elements.groupsListContainer = document.getElementById("display-groups-list");
+    elements.groupsList = document.getElementById("groups-list-items");
+    elements.groupsSearch = document.getElementById("group-search");
+    elements.groupsLoadingText = document.getElementById("groups-loading-text");
+    elements.selectAllGroups = document.getElementById("select-all-groups");
+    elements.clearAllGroups = document.getElementById("clear-all-groups");
+    elements.emergencyList = document.getElementById("active-emergencies-list");
+    elements.emergencyEmptyState = document.getElementById("active-emergencies-empty");
+    elements.refreshSlideshows = document.getElementById("refresh-slideshows");
+    elements.refreshEmergencies = document.getElementById("refresh-emergencies");
+}
+
+function bindEventListeners() {
+    elements.slideshowList?.addEventListener("click", handleSlideshowListClick);
+    elements.slideshowSearch?.addEventListener("input", handleSlideshowSearch);
+    elements.clearSlideshowFilter?.addEventListener("click", () => {
+        elements.slideshowSearch.value = "";
+        handleSlideshowSearch();
+    });
+    elements.groupsSearch?.addEventListener("input", handleGroupSearch);
+    elements.selectAllGroups?.addEventListener("click", (event) => {
+        event.preventDefault();
+        selectAllGroups();
+    });
+    elements.clearAllGroups?.addEventListener("click", (event) => {
+        event.preventDefault();
+        state.selectedGroupIds.clear();
+        renderGroups();
+    });
+    elements.activateButton?.addEventListener("click", handleActivationSubmit);
+    elements.refreshSlideshows?.addEventListener("click", async (event) => {
+        event.preventDefault();
+        await loadSlideshows(true);
+    });
+    elements.refreshEmergencies?.addEventListener("click", async (event) => {
+        event.preventDefault();
+        await loadEmergencies(true);
+    });
+    elements.emergencyList?.addEventListener("click", handleEmergencyActionClick);
+}
+
+async function bootstrapData() {
+    try {
+        await loadSlideshows();
+        await loadGroups();
+        await loadEmergencies();
+    } catch (error) {
+        console.error("Failed to initialize emergency slideshows page", error);
+        showToast(extractErrorMessage(error), gettext("Error"));
+    }
+}
+
+async function loadSlideshows(showToastOnSuccess = false) {
+    if (!elements.slideshowList) {
+        return;
+    }
+    showSlideshowsLoadingState(true);
+
+    try {
+        const result =
+            (await genericFetch(
+                `${BASE_URL}/api/manage_content/?includeSlideshowData=false&branch_id=${selectedBranchID}`,
+                "GET",
+            )) ?? [];
+        state.slideshows = result.filter((slideshow) => slideshow.mode !== "interactive");
+        state.filteredSlideshows = [...state.slideshows];
+        syncSelectedSlideshow();
+        renderSlideshows();
+        if (showToastOnSuccess) {
+            showToast(gettext("Slideshows refreshed"), gettext("Success"));
+        }
+    } catch (error) {
+        console.error("Could not load slideshows", error);
+        elements.slideshowList.innerHTML = `<p class="text-danger text-center my-4">${escapeHtml(
+            extractErrorMessage(error),
+        )}</p>`;
+        state.selectedSlideshowId = null;
+        showToast(extractErrorMessage(error), gettext("Error"));
+    } finally {
+        showSlideshowsLoadingState(false);
+    }
+}
+
+async function loadGroups(showToastOnSuccess = false) {
+    if (!elements.groupsList) {
+        return;
+    }
+    showGroupsLoadingState(true);
+    try {
+        const result =
+            (await genericFetch(
+                `${BASE_URL}/api/display-website-groups/?branch_id=${selectedBranchID}`,
+                "GET",
+            )) ?? [];
+        state.groups = result;
+        state.filteredGroups = [...state.groups];
+        renderGroups();
+        if (showToastOnSuccess) {
+            showToast(gettext("Display groups refreshed"), gettext("Success"));
+        }
+    } catch (error) {
+        console.error("Could not load groups", error);
+        elements.groupsList.innerHTML = `<p class="text-danger text-center my-4">${extractErrorMessage(
+            error,
+        )}</p>`;
+        showToast(extractErrorMessage(error), gettext("Error"));
+    } finally {
+        showGroupsLoadingState(false);
+    }
+}
+
+async function loadEmergencies(showToastOnSuccess = false) {
+    if (!elements.emergencyList) {
+        return;
+    }
+
+    if (!state.groups.length) {
+        state.emergencies = [];
+        renderEmergencies();
+        return;
+    }
+
+    try {
+        const groupIds = state.groups.map((group) => group.id);
+        const params = new URLSearchParams();
+        params.set("ids", groupIds.join(","));
+        const result =
+            (await genericFetch(
+                `${BASE_URL}/api/emergency-slideshows/?${params.toString()}`,
+                "GET",
+            )) ?? [];
+        state.emergencies = result;
+        renderEmergencies();
+        if (showToastOnSuccess) {
+            showToast(gettext("Emergency list refreshed"), gettext("Success"));
+        }
+    } catch (error) {
+        console.error("Could not load emergencies", error);
+        elements.emergencyList.innerHTML = `<p class="text-danger text-center">${extractErrorMessage(
+            error,
+        )}</p>`;
+        state.emergencies = [];
+        toggleEmergencyEmptyState();
+        showToast(extractErrorMessage(error), gettext("Error"));
+    }
+}
+
+function renderSlideshows() {
+    if (!elements.slideshowList) {
+        return;
+    }
+    elements.slideshowList.innerHTML = "";
+    elements.slideshowList.classList.add("slideshow-table");
+
+    if (!state.filteredSlideshows.length) {
+        elements.slideshowList.innerHTML = `<p class="text-muted text-center my-4">${gettext(
+            "No slideshows match your search",
+        )}</p>`;
+        return;
+    }
+
+    const header = document.createElement("div");
+    header.className = "slideshow-table-header";
+    header.innerHTML = `
+        <span>${gettext("Name")}</span>
+        <span class="text-end">${gettext("Aspect Ratio")}</span>
+    `;
+    elements.slideshowList.appendChild(header);
+
+    state.filteredSlideshows.forEach((slideshow) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "slideshow-card btn w-100 text-start border rounded-3 p-3";
+        button.dataset.slideshowId = slideshow.id;
+        if (slideshow.id === state.selectedSlideshowId) {
+            button.classList.add("is-selected");
+        }
+
+        button.innerHTML = `
+            <div class="slideshow-card-content">
+                <span class="slideshow-card-name h6 mb-0">${autoHyphenate(
+                    slideshow?.name || gettext("Untitled slideshow"),
+                )}</span>
+                <span class="text-end">
+                    <span class="badge text-bg-light slideshow-card-ratio">${escapeHtml(
+                        formatAspectRatio(slideshow) || gettext("No ratio"),
+                    )}</span>
+                </span>
+            </div>
+        `;
+
+        elements.slideshowList.appendChild(button);
+    });
+}
+
+function renderGroups() {
+    if (!elements.groupsList) {
+        return;
+    }
+    elements.groupsList.innerHTML = "";
+    elements.groupsList.classList.add("groups-table");
+
+    if (!state.filteredGroups.length) {
+        elements.groupsList.innerHTML = `<p class="text-muted text-center my-4">${gettext(
+            "No groups match your search",
+        )}</p>`;
+        return;
+    }
+
+    const header = document.createElement("div");
+    header.className = "groups-table-header";
+    header.innerHTML = `
+        <span>${gettext("Group")}</span>
+        <span class="text-end">${gettext("Aspect Ratio")}</span>
+    `;
+    elements.groupsList.appendChild(header);
+
+    state.filteredGroups.forEach((group) => {
+        const row = document.createElement("label");
+        row.className = "groups-table-row border rounded-2 bg-body";
+        row.dataset.groupId = group.id;
+
+        const checkboxWrapper = document.createElement("span");
+        checkboxWrapper.className = "groups-table-checkbox";
+
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.className = "form-check-input";
+        input.checked = state.selectedGroupIds.has(group.id);
+
+        checkboxWrapper.appendChild(input);
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "fw-semibold text-truncate";
+        const groupName = group?.name || gettext("Untitled group");
+        nameSpan.innerHTML = autoHyphenate(groupName);
+        nameSpan.title = groupName;
+
+        const ratioSpan = document.createElement("span");
+        ratioSpan.className = "badge text-bg-light text-uppercase text-end";
+        ratioSpan.textContent = group.aspect_ratio || gettext("Default");
+
+        const updateRowState = () => {
+            row.classList.toggle("is-selected", input.checked);
+        };
+
+        updateRowState();
+
+        input.addEventListener("change", () => {
+            toggleGroupSelection(group.id, input.checked);
+            updateRowState();
+        });
+
+        row.appendChild(checkboxWrapper);
+        row.appendChild(nameSpan);
+        row.appendChild(ratioSpan);
+
+        elements.groupsList.appendChild(row);
+    });
+}
+
+function renderEmergencies() {
+    if (!elements.emergencyList) {
+        return;
+    }
+    elements.emergencyList.innerHTML = "";
+
+    if (!state.emergencies.length) {
+        toggleEmergencyEmptyState(true);
+        return;
+    }
+
+    toggleEmergencyEmptyState(false);
+
+    const tableWrapper = document.createElement("div");
+    tableWrapper.className = "table-responsive";
+
+    const table = document.createElement("table");
+    table.className = "table table-hover align-middle mb-0";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML = `
+        <tr>
+            <th scope="col">${gettext("Slideshow")}</th>
+            <th scope="col">${gettext("Groups")}</th>
+            <th scope="col">${gettext("Status")}</th>
+            <th scope="col" class="text-end">${gettext("Actions")}</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    state.emergencies.forEach((emergency) => {
+        const row = document.createElement("tr");
+
+        const slideshowCell = document.createElement("td");
+        slideshowCell.innerHTML = `
+            <span class="fw-semibold">${autoHyphenate(
+                emergency.slideshow?.name || gettext("Untitled slideshow"),
+            )}</span>
+        `;
+
+        const groupsCell = document.createElement("td");
+        const groupsWrapper = document.createElement("div");
+        groupsWrapper.className = "emergency-table-groups";
+        if (emergency.display_website_groups?.length) {
+            emergency.display_website_groups.forEach((group) => {
+                const badge = document.createElement("span");
+                badge.className = "badge text-bg-light border";
+                const groupName = group?.name || gettext("Untitled group");
+                badge.innerHTML = autoHyphenate(groupName);
+                badge.title = groupName;
+                groupsWrapper.appendChild(badge);
+            });
+        } else {
+            const emptyGroup = document.createElement("span");
+            emptyGroup.className = "text-muted";
+            emptyGroup.textContent = gettext("No groups selected");
+            groupsWrapper.appendChild(emptyGroup);
+        }
+        groupsCell.appendChild(groupsWrapper);
+
+        const statusCell = document.createElement("td");
+        statusCell.className = "text-uppercase";
+        const statusBadge = document.createElement("span");
+        statusBadge.className = `badge ${
+            emergency.is_active ? "text-bg-danger" : "text-bg-secondary"
+        }`;
+        statusBadge.textContent = emergency.is_active
+            ? gettext("Active")
+            : gettext("Inactive");
+        statusCell.appendChild(statusBadge);
+
+        const actionsCell = document.createElement("td");
+        actionsCell.className = "text-end";
+        const actionsWrapper = document.createElement("div");
+        actionsWrapper.className = "d-inline-flex flex-wrap gap-2 justify-content-end";
+
+        const toggleButton = document.createElement("button");
+        toggleButton.className = `btn btn-sm ${
+            emergency.is_active ? "btn-outline-secondary" : "btn-outline-success"
+        }`;
+        toggleButton.dataset.emergencyAction = "toggle";
+        toggleButton.dataset.emergencyId = emergency.id;
+        toggleButton.dataset.targetState = emergency.is_active ? "false" : "true";
+        toggleButton.innerHTML = emergency.is_active
+            ? `<span class="material-symbols-outlined align-middle me-1">notifications_off</span>${gettext("Deactivate")}`
+            : `<span class="material-symbols-outlined align-middle me-1">notifications_active</span>${gettext("Activate")}`;
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "btn btn-sm btn-outline-danger";
+        deleteButton.dataset.emergencyAction = "delete";
+        deleteButton.dataset.emergencyId = emergency.id;
+        deleteButton.innerHTML = `<span class="material-symbols-outlined align-middle me-1">delete</span>${gettext("Delete")}`;
+
+        actionsWrapper.appendChild(toggleButton);
+        actionsWrapper.appendChild(deleteButton);
+        actionsCell.appendChild(actionsWrapper);
+
+        row.appendChild(slideshowCell);
+        row.appendChild(groupsCell);
+        row.appendChild(statusCell);
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    tableWrapper.appendChild(table);
+    elements.emergencyList.appendChild(tableWrapper);
+}
+
+function formatAspectRatio(slideshow = {}) {
+    if (slideshow.aspect_ratio) {
+        return slideshow.aspect_ratio;
+    }
+    return "";
+}
+
+function handleSlideshowSearch() {
+    const query = elements.slideshowSearch?.value?.trim().toLowerCase() || "";
+    if (!query) {
+        state.filteredSlideshows = [...state.slideshows];
+    } else {
+        state.filteredSlideshows = state.slideshows.filter((slideshow) =>
+            [slideshow.name, slideshow.aspect_ratio]
+                .filter(Boolean)
+                .some((value) => value.toString().toLowerCase().includes(query)),
+        );
+    }
+    syncSelectedSlideshow();
+    renderSlideshows();
+}
+
+function handleGroupSearch() {
+    const query = elements.groupsSearch?.value?.trim().toLowerCase() || "";
+    if (!query) {
+        state.filteredGroups = [...state.groups];
+    } else {
+        state.filteredGroups = state.groups.filter((group) =>
+            [group.name, group.aspect_ratio]
+                .filter(Boolean)
+                .some((value) => value.toString().toLowerCase().includes(query)),
+        );
+    }
+    renderGroups();
+}
+
+function selectAllGroups() {
+    state.filteredGroups.forEach((group) => {
+        state.selectedGroupIds.add(group.id);
+    });
+    renderGroups();
+}
+
+function toggleGroupSelection(groupId, isChecked) {
+    if (isChecked) {
+        state.selectedGroupIds.add(groupId);
+    } else {
+        state.selectedGroupIds.delete(groupId);
+    }
+}
+
+function showGroupsLoadingState(isLoading) {
+    if (!elements.groupsLoadingText || !elements.groupsList) {
+        return;
+    }
+    elements.groupsLoadingText.classList.toggle("d-none", !isLoading);
+    elements.groupsList.classList.toggle("d-none", isLoading);
+    if (isLoading) {
+        elements.groupsList.innerHTML = "";
+    }
+}
+
+function showSlideshowsLoadingState(isLoading) {
+    if (!elements.slideshowLoadingText || !elements.slideshowList) {
+        return;
+    }
+    elements.slideshowLoadingText.classList.toggle("d-none", !isLoading);
+    elements.slideshowList.classList.toggle("d-none", isLoading);
+    if (isLoading) {
+        elements.slideshowList.innerHTML = "";
+    }
+}
+
+function toggleEmergencyEmptyState(forceEmpty = null) {
+    const isEmpty = forceEmpty ?? state.emergencies.length === 0;
+    elements.emergencyEmptyState?.classList.toggle("d-none", !isEmpty);
+    elements.emergencyList?.classList.toggle("d-none", isEmpty);
+}
+
+async function handleActivationSubmit() {
+    if (state.isSubmitting) {
+        return;
+    }
+    const slideshowId = state.selectedSlideshowId;
+    const groupIds = Array.from(state.selectedGroupIds);
+
+    if (!slideshowId) {
+        showFeedback(gettext("Please select a slideshow."));
+        return;
+    }
+    if (!groupIds.length) {
+        showFeedback(gettext("Please select at least one display group."));
+        return;
+    }
+
+    hideFeedback();
+    state.isSubmitting = true;
+    elements.activateButton?.classList.add("disabled");
+
+    try {
+        const payload = {
+            slideshow_id: slideshowId,
+            display_website_group_ids: groupIds,
+            is_active: true,
+        };
+        await genericFetch(
+            `${BASE_URL}/api/emergency-slideshows/`,
+            "POST",
+            payload,
+        );
+        showToast(gettext("Emergency slideshow activated"), gettext("Success"));
+        state.selectedGroupIds.clear();
+        renderGroups();
+        await loadEmergencies();
+    } catch (error) {
+        console.error("Failed to activate emergency slideshow", error);
+        showFeedback(extractErrorMessage(error));
+    } finally {
+        state.isSubmitting = false;
+        elements.activateButton?.classList.remove("disabled");
+    }
+}
+
+function handleEmergencyActionClick(event) {
+    const actionButton = event.target.closest("[data-emergency-action]");
+    if (!actionButton) {
+        return;
+    }
+    const emergencyId = parseInt(actionButton.dataset.emergencyId, 10);
+    if (Number.isNaN(emergencyId)) {
+        return;
+    }
+
+    const action = actionButton.dataset.emergencyAction;
+    if (action === "toggle") {
+        const targetState = actionButton.dataset.targetState === "true";
+        toggleEmergencyState(emergencyId, targetState, actionButton);
+    }
+    if (action === "delete") {
+        deleteEmergency(emergencyId, actionButton);
+    }
+}
+
+async function toggleEmergencyState(emergencyId, nextState, button) {
+    button?.classList.add("disabled");
+    try {
+        await genericFetch(
+            `${BASE_URL}/api/emergency-slideshows/${emergencyId}/`,
+            "PATCH",
+            { is_active: nextState },
+        );
+        showToast(
+            nextState
+                ? gettext("Emergency slideshow activated")
+                : gettext("Emergency slideshow deactivated"),
+            gettext("Success"),
+        );
+        await loadEmergencies();
+    } catch (error) {
+        console.error("Failed to toggle emergency slideshow", error);
+        showToast(extractErrorMessage(error), gettext("Error"));
+    } finally {
+        button?.classList.remove("disabled");
+    }
+}
+
+async function deleteEmergency(emergencyId, button) {
+    if (!window.confirm(gettext("Remove this emergency slideshow?"))) {
+        return;
+    }
+    button?.classList.add("disabled");
+    try {
+        await genericFetch(
+            `${BASE_URL}/api/emergency-slideshows/${emergencyId}/`,
+            "DELETE",
+        );
+        showToast(gettext("Emergency slideshow removed"), gettext("Success"));
+        await loadEmergencies();
+    } catch (error) {
+        console.error("Failed to delete emergency slideshow", error);
+        showToast(extractErrorMessage(error), gettext("Error"));
+    } finally {
+        button?.classList.remove("disabled");
+    }
+}
+
+function showFeedback(message) {
+    if (!elements.feedback) {
+        return;
+    }
+    elements.feedback.textContent = message || gettext("An unknown error occurred.");
+    elements.feedback.classList.remove("d-none");
+}
+
+function hideFeedback() {
+    elements.feedback?.classList.add("d-none");
+}
+
+function extractErrorMessage(error) {
+    if (!error) {
+        return gettext("Unexpected error");
+    }
+    if (typeof error === "string") {
+        return error;
+    }
+    if (error.detail) {
+        return error.detail;
+    }
+    if (error.message) {
+        return error.message;
+    }
+    return gettext("Unexpected error");
+}
+
+function escapeHtml(text) {
+    if (!text) {
+        return "";
+    }
+    return text.replace(/[&<>"']/g, (char) => {
+        const map = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+        };
+        return map[char] || char;
+    });
+}
+
+function handleSlideshowListClick(event) {
+    const card = event.target.closest("[data-slideshow-id]");
+    if (!card) {
+        return;
+    }
+    const slideshowId = parseInt(card.dataset.slideshowId, 10);
+    if (Number.isNaN(slideshowId)) {
+        return;
+    }
+    setSelectedSlideshow(slideshowId);
+}
+
+function setSelectedSlideshow(slideshowId) {
+    if (state.selectedSlideshowId === slideshowId) {
+        return;
+    }
+    state.selectedSlideshowId = slideshowId;
+    renderSlideshows();
+}
+
+function syncSelectedSlideshow() {
+    if (!state.filteredSlideshows.length) {
+        state.selectedSlideshowId = null;
+        return;
+    }
+    const stillVisible = state.filteredSlideshows.some(
+        (slideshow) => slideshow.id === state.selectedSlideshowId,
+    );
+    if (!stillVisible) {
+        state.selectedSlideshowId = state.filteredSlideshows[0].id;
+    }
+}

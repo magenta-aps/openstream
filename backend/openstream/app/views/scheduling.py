@@ -476,6 +476,7 @@ class GetActiveContentAPIView(APIView):
         playlist_ids = set()
         scheduled_ids = set()
         recurring_ids = set()
+        emergency_slideshow_ids = set()
 
         def track_slides_from_items(items):
             if not items:
@@ -493,6 +494,7 @@ class GetActiveContentAPIView(APIView):
                 "slideshow_playlist_ids": sorted(playlist_ids),
                 "scheduled_content_ids": sorted(scheduled_ids),
                 "recurring_scheduled_content_ids": sorted(recurring_ids),
+                "emergency_slideshow_ids": sorted(emergency_slideshow_ids),
                 "display_website_group_id": dwg.id,
                 "org_id": dw.branch.suborganisation.organisation.id,
                 "suborg_id": dw.branch.suborganisation.id,
@@ -503,6 +505,28 @@ class GetActiveContentAPIView(APIView):
         current_weekday = tz_now.weekday()
         current_time = tz_now.time()
         current_date = tz_now.date()
+
+        active_emergency = (
+            EmergencySlideshow.objects.filter(
+                display_website_groups=dwg, is_active=True
+            )
+            .select_related("slideshow")
+            .order_by("-pk")
+            .first()
+        )
+
+        if active_emergency:
+            emergency_slideshow_ids.add(active_emergency.pk)
+            emergency_items = self.get_playlist_items(
+                active_emergency.slideshow, "slideshow"
+            )
+            track_slides_from_items(emergency_items)
+            if active_emergency.slideshow_id:
+                slideshow_ids.add(active_emergency.slideshow_id)
+
+            payload = {"items": emergency_items, "emergency_active": True}
+            payload.update(metadata_payload())
+            return Response(payload, status=200)
 
         scheduled_qs = ScheduledContent.objects.filter(
             display_website_group=dwg, start_time__lte=tz_now, end_time__gte=tz_now

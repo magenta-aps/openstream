@@ -4,7 +4,7 @@
 
 import threading
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -13,6 +13,7 @@ from .models import (
     Branch,
     DisplayWebsite,
     DisplayWebsiteGroup,
+    EmergencySlideshow,
     RecurringScheduledContent,
     ScheduledContent,
     Slideshow,
@@ -66,18 +67,40 @@ def process_document_pdf(sender, instance, created, **kwargs):
 @receiver(post_save, sender=RecurringScheduledContent)
 @receiver(post_save, sender=DisplayWebsiteGroup)
 @receiver(post_save, sender=DisplayWebsite)
+@receiver(post_save, sender=EmergencySlideshow)
 def notify_express_of_change(sender, instance, **kwargs):
     express_refresh_url = getattr(settings, "EXPRESS_REFRESH_URL", None)
 
     if not express_refresh_url:
         return
 
+    params = {"reason": sender.__name__, "object_id": instance.pk}
+
+    if sender is EmergencySlideshow:
+        # Include extra context so Express can scope emergency refreshes precisely
+        params["slideshow_id"] = instance.slideshow_id
+        group_ids = list(
+            instance.display_website_groups.values_list("id", flat=True)
+        )
+        if group_ids:
+            params["group_ids"] = ",".join(str(group_id) for group_id in group_ids)
+
     try:
         # Tell Express to refresh whenever relevant content changes.
         requests.get(
             express_refresh_url,
-            params={"reason": sender.__name__, "object_id": instance.pk},
+            params=params,
             timeout=2,
         )
     except Exception as e:
         print(f"Failed to notify Express: {e}")
+
+
+@receiver(
+    m2m_changed, sender=EmergencySlideshow.display_website_groups.through
+)
+def notify_express_on_emergency_groups_change(sender, instance, action, **kwargs):
+    if action not in {"post_add", "post_remove", "post_clear"} or instance is None:
+        return
+
+    notify_express_of_change(sender=EmergencySlideshow, instance=instance)

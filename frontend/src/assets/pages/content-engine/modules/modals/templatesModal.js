@@ -159,6 +159,8 @@ function applyTemplateMetadataLocally(
     targetSlide.tagIds = metadataUpdate.tag_ids;
   }
 
+  console.log(metadataUpdate)
+
   if (
     Object.prototype.hasOwnProperty.call(metadataUpdate, "thumbnail_url") ||
     (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url"))
@@ -740,6 +742,8 @@ if (confirmBtn) {
     const bsModalInstance = bootstrap.Modal.getInstance(modalEl);
 
     if (store.editingTemplateId) {
+
+
       // Editing existing template metadata
       const currentTemplate = store.slides[store.editingTemplateIndex];
       const isSuborgTemplate = Boolean(currentTemplate?.isSuborgTemplate);
@@ -803,6 +807,12 @@ if (confirmBtn) {
         showToast(gettext("Template details updated successfully."), "Success");
 
         if (bsModalInstance) bsModalInstance.hide();
+
+
+        // Use store.slides to update available categories
+        console.log("slides", await store.slides)
+
+
       } catch (err) {
         console.error("Error updating template metadata:", err);
         showToast(gettext("Error: ") + err.message, "Error");

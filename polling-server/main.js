@@ -15,11 +15,23 @@ app.get('/events', async (req, res) => {
 });
 
 app.get('/trigger-refresh', (req, res) => {
-  const reason = req.query.reason;
-  const objId = req.query.object_id;
-  channel.broadcast({
-    model: `${reason || 'unknown source'}`, id: `${objId || 'unknown id'}`
-  }, "custom-event");
+  const reason = req.query.reason || 'unknown source';
+  const objId = req.query.object_id || 'unknown id';
+
+  const payload = { model: reason, id: objId };
+
+  if (req.query.slideshow_id) {
+    payload.slideshowId = req.query.slideshow_id;
+  }
+
+  if (req.query.group_ids) {
+    payload.groupIds = req.query.group_ids
+      .split(',')
+      .map(id => id.trim())
+      .filter(Boolean);
+  }
+
+  channel.broadcast(payload, "custom-event");
   res.send('Content change logged');
 });
 

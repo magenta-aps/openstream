@@ -3,38 +3,106 @@
 {{#> base/containers/main-container }}
 
 <div class="container-fluid bg-secondary-accent-lighter w-100 h-100 p-4 d-flex flex-column">
-    <div class="d-flex w-100 flex-grow-1 gap-4">
-        <div id="add-emergency-slideshow" class="w-75 h-100 bg-white p-4 d-flex flex-column border border-black">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 style="line-height: 1;">Activate Emergency Slideshow</h2>
-                <button class="btn btn-primary bg-danger text-white">Activate</button>
-            </div>
-            <div class="w-100 d-flex gap-4 flex-grow-1">
-                <div class="select-slideshow h-100 border border-dark-gray flex-grow-1 p-3">
-                    <h3>Select Slideshow</h3>
-                    <hr>
+    <div class="d-flex w-100 flex-grow-1 gap-4" style="min-height: 0;">
+        <div id="add-emergency-slideshow" class="w-75 h-100 bg-white p-4 d-flex flex-column border border-black overflow-hidden" style="min-height: 0;">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                <div>
+                    <p class="text-uppercase text-muted fw-semibold mb-1">Emergency Response</p>
+                    <h2 class="mb-0" style="line-height: 1;">Activate Emergency Slideshow</h2>
                 </div>
-                <div class="select-groups h-100 border flex-grow-1 p-3 border-dark-gray">
-                    <h3>Select Display Groups</h3>
+                <button id="activate-emergency-btn" class="btn bg-danger text-white px-4 py-2">
+                    <span class="material-symbols-outlined align-middle me-1">notifications_active</span>
+                    Activate
+                </button>
+            </div>
+            <div id="emergency-feedback" class="alert alert-danger d-none" role="alert"></div>
+            <div class="w-100 d-flex gap-4 flex-grow-1" style="min-height: 0;">
+                <div class="select-slideshow h-100 border border-dark-gray flex-grow-1 p-3 rounded-3 bg-light d-flex flex-column overflow-hidden" style="min-height: 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0">Select Slideshow</h3>
+                        <button id="refresh-slideshows" class="btn btn-link btn-sm text-decoration-none">
+                            <span class="material-symbols-outlined align-middle">refresh</span>
+                            Reload
+                        </button>
+                    </div>
                     <hr>
+                    <div class="mb-3">
+                        <label for="slideshow-search" class="form-label small text-uppercase text-muted">Quick
+                            Filter</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white">
+                                <span class="material-symbols-outlined">search</span>
+                            </span>
+                            <input type="search" id="slideshow-search" class="form-control"
+                                placeholder="Search by name or aspect ratio">
+                            <button class="btn btn-outline-secondary" id="clear-slideshow-filter" type="button">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div id="slideshow-list" class="slideshow-list border rounded-3 bg-white p-2 overflow-auto flex-grow-1" style="min-height: 0;">
+                        <p class="text-muted text-center my-4" id="slideshow-loading-text">Loading slideshows...</p>
+                        <div id="slideshow-list-items" class="d-flex flex-column gap-2"></div>
+                    </div>
+                </div>
+                <div class="select-groups h-100 border flex-grow-1 p-3 border-dark-gray rounded-3 bg-light d-flex flex-column overflow-hidden" style="min-height: 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0">Select Display Groups</h3>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-link btn-sm text-decoration-none" id="select-all-groups">
+                                Select all
+                            </button>
+                            <button class="btn btn-link btn-sm text-decoration-none" id="clear-all-groups">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+                    <label for="group-search" class="form-label small text-uppercase text-muted">Filter groups</label>
+                    <div class="input-group input-group-sm mb-3">
+                        <span class="input-group-text bg-white">
+                            <span class="material-symbols-outlined">travel_explore</span>
+                        </span>
+                        <input type="search" id="group-search" class="form-control"
+                            placeholder="Search by group name or aspect ratio">
+                    </div>
+                    <div id="display-groups-list" class="emergency-groups-list border rounded-3 bg-white p-2 overflow-auto flex-grow-1" style="min-height: 0;">
+                        <p class="text-muted text-center my-4" id="groups-loading-text">Loading groups...</p>
+                        <div id="groups-list-items"></div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="bg-white flex-grow-1 h-100 p-4 active-emergencies border border-black">
-            <div class="d-flex justify-content-center align-items-center">
-                <span class="material-symbols-outlined">
+        <div class="bg-white flex-grow-1 h-100 p-4 active-emergencies border border-black rounded-3 d-flex flex-column overflow-hidden" style="min-height: 0;">
+            <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 text-danger">
+                <span class="material-symbols-outlined" aria-hidden="true">
                     warning
                 </span>
-                <h2 style="display: inline;" class="mx-3">Active Emergencies</h2><span
-                    class="material-symbols-outlined">
+                <h2 class="mb-0">Emergencies Status</h2>
+                <span class="material-symbols-outlined" aria-hidden="true">
                     warning
                 </span>
             </div>
             <hr>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                <p class="mb-0 text-muted">
+                    Overview of all emergency slideshows currently configured for this branch.
+                </p>
+                <button id="refresh-emergencies" class="btn btn-outline-secondary btn-sm">
+                    <span class="material-symbols-outlined align-middle me-1">refresh</span>
+                    Refresh
+                </button>
+            </div>
+            <div id="active-emergencies-empty" class="border rounded-3 p-4 text-center bg-light">
+                <p class="mb-1 fw-semibold">No emergency slideshows</p>
+                <p class="mb-0 text-muted">Activate a slideshow to override normal scheduling when critical
+                    information needs to be broadcast.</p>
+            </div>
+            <div id="active-emergencies-list" class="d-flex flex-column gap-3 overflow-auto flex-grow-1" style="min-height: 0;"></div>
         </div>
     </div>
 </div>
 
-</div>
+
 {{/base/containers/main-container}}
 {{/base/containers/html-container}}
