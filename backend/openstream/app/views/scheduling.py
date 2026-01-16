@@ -12,11 +12,13 @@ from rest_framework.views import APIView
 from app.models import (
     DisplayWebsite,
     DisplayWebsiteGroup,
-    ScheduledContent,
+    EmergencySlideshow,
     RecurringScheduledContent,
+    ScheduledContent,
 )
 from app.serializers import (
     DisplayWebsiteGroupSerializer,
+    EmergencySlideshowSerializer,
     SlideshowSerializer,
     SlideshowPlaylistSerializer,
     DisplayWebsiteSerializer,
@@ -279,6 +281,121 @@ class RecurringScheduledContentAPIView(APIView):
         if not user_can_access_branch(request.user, group.branch):
             return Response({"detail": "Not allowed."}, status=403)
         recurring_content.delete()
+        return Response(status=204)
+
+
+class EmergencySlideshowAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _user_can_access_groups(self, user, groups):
+        for group in groups:
+            if group.branch and not user_can_access_branch(user, group.branch):
+                return False
+        return True
+
+    def _groups_share_branch(self, groups):
+        branch_ids = {group.branch_id for group in groups if group.branch_id}
+        return len(branch_ids) <= 1
+
+    def get(self, request, pk=None):
+        if pk is not None:
+            emergency = get_object_or_404(EmergencySlideshow, pk=pk)
+            groups = list(emergency.display_website_groups.all())
+            if not self._user_can_access_groups(request.user, groups):
+                return Response({"detail": "Not allowed."}, status=403)
+            serializer = EmergencySlideshowSerializer(emergency)
+            return Response(serializer.data)
+
+        group_ids = request.query_params.get("ids")
+        single_id = request.query_params.get("id")
+
+        if not group_ids and not single_id:
+            return Response(
+                {"detail": "Either 'id' or 'ids' parameter is required."},
+                status=400,
+            )
+
+        requested_ids = []
+        if group_ids:
+            try:
+                requested_ids = [int(val.strip()) for val in group_ids.split(",") if val.strip()]
+            except ValueError:
+                return Response({"detail": "Invalid ids parameter."}, status=400)
+        else:
+            try:
+                requested_ids = [int(single_id)]
+            except (TypeError, ValueError):
+                return Response({"detail": "Invalid id parameter."}, status=400)
+
+        if not requested_ids:
+            return Response({"detail": "No valid display website group ids supplied."}, status=400)
+
+        requested_set = set(requested_ids)
+        groups = DisplayWebsiteGroup.objects.filter(id__in=requested_set)
+        if groups.count() != len(requested_set):
+            return Response({"detail": "Unknown display website group."}, status=404)
+
+        if not self._user_can_access_groups(request.user, groups):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        emergencies = (
+            EmergencySlideshow.objects.filter(display_website_groups__in=groups)
+            .distinct()
+        )
+        serializer = EmergencySlideshowSerializer(emergencies, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = EmergencySlideshowSerializer(data=request.data)
+        if serializer.is_valid():
+            groups = list(serializer.validated_data["display_website_groups"])
+            if not self._user_can_access_groups(request.user, groups):
+                return Response({"detail": "Not allowed."}, status=403)
+            if not self._groups_share_branch(groups):
+                return Response(
+                    {"detail": "All display website groups must belong to the same branch."},
+                    status=400,
+                )
+
+            emergency = serializer.save()
+            return Response(
+                EmergencySlideshowSerializer(emergency).data,
+                status=201,
+            )
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        emergency = get_object_or_404(EmergencySlideshow, pk=pk)
+        existing_groups = list(emergency.display_website_groups.all())
+        if not self._user_can_access_groups(request.user, existing_groups):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        serializer = EmergencySlideshowSerializer(
+            emergency, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            groups = serializer.validated_data.get(
+                "display_website_groups", existing_groups
+            )
+            groups = list(groups)
+            if not self._user_can_access_groups(request.user, groups):
+                return Response({"detail": "Not allowed."}, status=403)
+            if not self._groups_share_branch(groups):
+                return Response(
+                    {"detail": "All display website groups must belong to the same branch."},
+                    status=400,
+                )
+
+            updated = serializer.save()
+            return Response(EmergencySlideshowSerializer(updated).data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        emergency = get_object_or_404(EmergencySlideshow, pk=pk)
+        groups = list(emergency.display_website_groups.all())
+        if not self._user_can_access_groups(request.user, groups):
+            return Response({"detail": "Not allowed."}, status=403)
+        emergency.delete()
         return Response(status=204)
 
 

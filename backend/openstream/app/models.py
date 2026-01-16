@@ -903,6 +903,32 @@ class RecurringScheduledContent(ContentValidationMixin, models.Model):
         return dict(self.WEEKDAY_CHOICES)[self.weekday]
 
 
+class EmergencySlideshow(models.Model):
+    """Emergency slideshow configuration per set of display groups."""
+
+    slideshow = models.ForeignKey(
+        Slideshow,
+        on_delete=models.CASCADE,
+        related_name="emergency_slideshows",
+        help_text="Slideshow that overrides normal scheduling when active.",
+    )
+    display_website_groups = models.ManyToManyField(
+        DisplayWebsiteGroup,
+        related_name="emergency_slideshows",
+        help_text="Display groups affected by this emergency slideshow.",
+    )
+    is_active = models.BooleanField(
+        default=False,
+        help_text="Whether this emergency slideshow is currently active.",
+    )
+
+    class Meta:
+        verbose_name = "Emergency Slideshow"
+        verbose_name_plural = "Emergency Slideshows"
+
+    def __str__(self):
+        return f"Emergency Slideshow: {self.slideshow.name}"
+
 ###############################################################################
 # Documents
 ###############################################################################
