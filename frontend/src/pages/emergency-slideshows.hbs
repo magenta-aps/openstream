@@ -3,25 +3,24 @@
 {{#> base/containers/main-container }}
 
 <div class="container-fluid bg-secondary-accent-lighter w-100 h-100 p-4 d-flex flex-column">
-    <h1 class="pb-2">Emergency Slideshows</h1>
     <div class="d-flex w-100 flex-grow-1 gap-4">
-        <div id="add-emergency-slideshow" class="w-75 h-100 bg-white p-3 d-flex flex-column">
+        <div id="add-emergency-slideshow" class="w-75 h-100 bg-white p-4 d-flex flex-column border border-black">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 style="line-height: 1;">Activate Emergency Slideshow</h2>
-                <button class="btn btn-primary bg-danger text-white border-black">Activate</button>
+                <button class="btn btn-primary bg-danger text-white">Activate</button>
             </div>
-            <div class="w-100 d-flex gap-2 flex-grow-1">
-                <div class="select-slideshow h-100 border flex-grow-1 p-3">
+            <div class="w-100 d-flex gap-4 flex-grow-1">
+                <div class="select-slideshow h-100 border border-dark-gray flex-grow-1 p-3">
                     <h3>Select Slideshow</h3>
                     <hr>
                 </div>
-                <div class="select-groups h-100 border flex-grow-1 p-3">
+                <div class="select-groups h-100 border flex-grow-1 p-3 border-dark-gray">
                     <h3>Select Display Groups</h3>
                     <hr>
                 </div>
             </div>
         </div>
-        <div class="bg-white flex-grow-1 h-100 p-3 active-emergencies">
+        <div class="bg-white flex-grow-1 h-100 p-4 active-emergencies border border-black">
             <div class="d-flex justify-content-center align-items-center">
                 <span class="material-symbols-outlined">
                     warning
