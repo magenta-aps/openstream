@@ -23,9 +23,6 @@ const filterState = {
 let filterPanel;
 let isInitialized = false;
 let filterOptionsRoot = createAccordion("templateFilterOptions", true);
-let categoryOptionsRoot;
-let tagOptionsRoot;
-let aspectOptionsRoot;
 let searchInput;
 let clearSearchBtn;
 let filterPopoverBtn;
@@ -100,26 +97,27 @@ function createAccordionItemAppender(accordion, forceOpen) {
   return (itemID, headerText, body, forceOpen) => {
     const existingItem = accordion.querySelector(`#${itemID}`);
     if (existingItem) {
-      console.log(existingItem)
       accordion.removeChild(existingItem);
     }
     const item = document.createElement("div");
-      item.classList.add("accordion-item");
+    item.classList.add("accordion-item");
+    item.id = itemID;
 
-      item.innerHTML = `
-        <h2 class="accordion-header">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${itemID}" aria-expanded="true" aria-controls="${itemID}">
-            ${headerText}
-          </button>
-        </h2>
-        <div id="${itemID}" class="accordion-collapse collapse show" ${forceOpen ? "" : "data-bs-parent='#" + parentID + "'"}>
-          <div class="accordion-body">
-            ${body}
-          </div>
+    const itemBodyID = `${itemID}-body`
+    item.innerHTML = `
+      <h2 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${itemBodyID}" aria-expanded="true" aria-controls="${itemBodyID}">
+          ${headerText}
+        </button>
+      </h2>
+      <div id="${itemBodyID}" class="accordion-collapse collapse show" ${forceOpen ? "" : "data-bs-parent='#" + item.id + "'"}>
+        <div class="accordion-body">
+          ${body}
         </div>
-      `;
+      </div>
+    `;
 
-      accordion.appendChild(item);
+    accordion.appendChild(item);
   }
 }
 
@@ -202,50 +200,50 @@ export function initTemplateFilterControls() {
 
 export function refreshTemplateFilterOptions() {
   if (!isTemplateMode()) {
-        return;
-      }
+    return;
+  }
 
-      const categoriesMap = new Map();
-      const tagsMap = new Map();
-      const aspectMap = new Map();
+  const categoriesMap = new Map();
+  const tagsMap = new Map();
+  const aspectMap = new Map();
 
-      store.slides.forEach((slide) => {
-        if (slide.categoryId && slide.categoryName) {
-          categoriesMap.set(String(slide.categoryId), slide.categoryName);
+  store.slides.forEach((slide) => {
+    if (slide.categoryId && slide.categoryName) {
+      categoriesMap.set(String(slide.categoryId), slide.categoryName);
+    }
+
+    if (Array.isArray(slide.tagIds)) {
+      slide.tagIds.forEach((tagId, idx) => {
+        const stringId = String(tagId);
+        let tagLabel = null;
+        if (Array.isArray(slide.tagNames) && slide.tagNames[idx]) {
+          tagLabel = slide.tagNames[idx];
         }
-
-        if (Array.isArray(slide.tagIds)) {
-          slide.tagIds.forEach((tagId, idx) => {
-            const stringId = String(tagId);
-            let tagLabel = null;
-            if (Array.isArray(slide.tagNames) && slide.tagNames[idx]) {
-              tagLabel = slide.tagNames[idx];
-            }
-            if (tagLabel && !tagsMap.has(stringId)) {
-              tagsMap.set(stringId, tagLabel);
-            }
-          });
-        }
-
-        if (typeof slide.aspect_ratio === "string" && slide.aspect_ratio) {
-          aspectMap.set(slide.aspect_ratio, slide.aspect_ratio);
+        if (tagLabel && !tagsMap.has(stringId)) {
+          tagsMap.set(stringId, tagLabel);
         }
       });
+    }
 
-      availableCategories = categoriesMap;
-      availableTags = tagsMap;
-      availableAspectRatios = aspectMap;
+    if (typeof slide.aspect_ratio === "string" && slide.aspect_ratio) {
+      aspectMap.set(slide.aspect_ratio, slide.aspect_ratio);
+    }
+  });
+
+  availableCategories = categoriesMap;
+  availableTags = tagsMap;
+  availableAspectRatios = aspectMap;
 
   renderCategoryOptions();
-    renderTagOptions();
-    renderAspectOptions();
-    updateToggleLabels();
-    updateChips();
-    updateResetButtonState();
+  renderTagOptions();
+  renderAspectOptions();
+  updateToggleLabels();
+  updateChips();
+  updateResetButtonState();
 
-    if (filterPopoverContent) {
-      filterPopoverContent.innerHTML = filterOptionsRoot.accordion.outerHTML;
-    }
+  if (filterPopoverContent) {
+    filterPopoverContent.innerHTML = filterOptionsRoot.accordion.outerHTML;
+  }
 }
 
 export function applyTemplateFilters(slidesWithIndex) {
@@ -276,7 +274,6 @@ export function applyTemplateFilters(slidesWithIndex) {
       if (!slide.categoryId) {
         return false;
       }
-      console.log(filterState.categories, slide.categoryId);
       return filterState.categories.has(String(slide.categoryId));
     });
   }
@@ -430,9 +427,6 @@ function renderFilterPanel() {
 }
 
 function cacheDomReferences() {
-  categoryOptionsRoot = filterPanel.querySelector("#templateFilterCategories");
-  tagOptionsRoot = filterPanel.querySelector("#templateFilterTags");
-  aspectOptionsRoot = filterPanel.querySelector("#templateFilterAspects");
   searchInput = filterPanel.querySelector("#templateFilterSearch");
   clearSearchBtn = filterPanel.querySelector("#templateFilterSearchClear");
   filterPopoverBtn = filterPanel.querySelector("#templateFilterPopoverBtn");
@@ -695,7 +689,6 @@ function renderTagOptions() {
 
   const tagOptions = entries
     .map(([id, name]) => {
-      console.log(id);
       const checkboxId = `template-filter-tag-${id}`;
       const checked = filterState.tags.has(id) ? "checked" : "";
       return createFilterItem(

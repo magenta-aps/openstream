@@ -26,6 +26,7 @@ import {
   getResolutionForAspectRatio,
   getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
+import { refreshTemplateFilterOptions } from "../core/templateFilterControls.js";
 
 const modalEl = document.getElementById("saveAsTemplateModal");
 const modalTitleEl = document.getElementById("saveAsTemplateModalLabel");
@@ -155,8 +156,19 @@ function applyTemplateMetadataLocally(
     targetSlide.categoryId = metadataUpdate.category_id;
   }
 
+  const categoryName = serverData?.category.name;
+  if (categoryName) {
+    targetSlide.categoryName = categoryName;
+  }
+
+
   if (Array.isArray(metadataUpdate.tag_ids)) {
     targetSlide.tagIds = metadataUpdate.tag_ids;
+  }
+
+  const tagNames = serverData?.tags.map(tag => tag.name);
+  if (tagNames) {
+    targetSlide.tagNames = tagNames;
   }
 
   if (
@@ -395,12 +407,12 @@ function isAspectRatioLocked() {
   if (queryParams.mode === "suborg_templates") {
     return true;
   }
-  
+
   // For global templates, only lock when editing an existing template
   if (queryParams.mode === "template_editor") {
     return store.editingTemplateId !== null;
   }
-  
+
   return false;
 }
 
@@ -920,5 +932,6 @@ if (confirmBtn) {
         showToast(gettext("Error: ") + err.message, "Error");
       }
     }
+    refreshTemplateFilterOptions();
   });
 }
