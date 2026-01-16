@@ -614,14 +614,11 @@ async function _startSlideshowPlayer() {
       console.log(data)
 
       // Metadata used for live updating set in the window for easy access in open-screen.hbs
-      window.slideshow_ids = data.slideshow_ids;
-      window.slideshow_playlist_ids = data.slideshow_playlist_ids;
-      window.scheduled_content_ids = data.scheduled_content_ids;
-      window.recurring_scheduled_content_ids = data.recurring_scheduled_content_ids;
-      window.display_website_group_id = data.display_website_group_id;
-
-
-      
+      store.slideshow_ids = data.slideshow_ids;
+      store.slideshow_playlist_ids = data.slideshow_playlist_ids;
+      store.scheduled_content_ids = data.scheduled_content_ids;
+      store.recurring_scheduled_content_ids = data.recurring_scheduled_content_ids;
+      store.display_website_group_id = data.display_website_group_id; 
 
       if (data.items && data.items.length > 0) {
         const firstSlideshow = data.items[0].slideshow;
@@ -710,6 +707,9 @@ async function _startSlideshowPlayer() {
     }
   })();
 
+  // Start SSE listener before entering potentially long-running playback loops
+  initLiveReload();
+
   if (store.slideshowMode === "interactive") {
     if (store.slides.length > 0) {
       store.currentSlideIndex = 0;
@@ -728,7 +728,7 @@ async function _startSlideshowPlayer() {
   } else {
     // Not interactive mode: ensure any player-mode class is removed
     try {
-    } catch (e) {}
+    } catch (e) { }
 
     if (store.slides.length > 0) {
       await playSlideshow(false);
@@ -736,6 +736,103 @@ async function _startSlideshowPlayer() {
   }
   renderPersistentElements();
 }
+
+function initLiveReload(){
+  console.log("Initializing live reload via SSE");
+        // 1. Point this to your Express route
+        const eventSource = new EventSource('http://localhost:3000/events');
+
+        // Check connection status
+        eventSource.onopen = () => {
+            console.log('[sse] connection established at', new Date().toISOString());
+        };
+
+        // 2. Listen for the "custom-event" sent by channel.broadcast()
+        eventSource.addEventListener('custom-event', (event) => {
+            const data = JSON.parse(event.data);
+            console.log(data);
+
+            const includesId = (collection, candidate) => Array.isArray(collection) && collection.some((id) => String(id) === String(candidate));
+
+            if (data.model == "Slideshow") {
+
+                // Check if data.id is in slideshow_ids
+                if (includesId(store.slideshow_ids, data.id)) {
+                    console.log("Slideshow used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("Slideshow not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "SlideshowPlaylist") {
+                // Check if data.id is in slideshow_playlist_ids
+                if (includesId(store.slideshow_playlist_ids, data.id)) {
+                    console.log("SlideshowPlaylist used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("SlideshowPlaylist not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "ScheduledContent") {
+                // Check if data.id is in scheduled_content_ids
+                if (includesId(store.scheduled_content_ids, data.id)) {
+                    console.log("ScheduledContent used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("ScheduledContent not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "RecurringScheduledContent") {
+                // Check if data.id is in recurring_scheduled_content_ids
+                if (includesId(store.recurring_scheduled_content_ids, data.id)) {
+                    console.log("RecurringScheduledContent used in current display. Page should reload");
+                    window.location.reload();   
+                }
+                else {
+                    console.log("RecurringScheduledContent not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "DisplayWebsiteGroup") {
+
+
+                console.log(data.id);                console.log(window.display_website_group_id);
+
+                // Check if data.id matches display_website_group_id
+                if (String(data.id) === String(store.display_website_group_id)) {
+                    console.log("DisplayWebsiteGroup used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("DisplayWebsiteGroup not used in current display. Should not reload")
+                }
+            }
+            if (data.model == "DisplayWebsite") {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            const displayWebsiteId = urlParams.get('displayWebsiteId');
+
+                // Check if data.id matches displayWebsiteId
+                if (String(data.id) === String(displayWebsiteId)) {
+                    console.log("DisplayWebsite used in current display. Page should reload");
+                    window.location.reload();
+                }
+                else {
+                    console.log("DisplayWebsite not used in current display. Should not reload")
+                }
+
+            }
+        });
+
+        // Handle errors (like server going down)
+        eventSource.onerror = (err) => {
+            console.error('[sse] error', err);
+        };
+}
+
 
 function _syncSlideBgColorIcon(backgroundColor) {
   const slideBgColorOption = document.querySelector(
@@ -935,7 +1032,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
             ) {
               try {
                 console.log("click blocked by debounce");
-              } catch (e) {}
+              } catch (e) { }
               return;
             }
             window.__os_lastInteractivePageChangeAt = now;
