@@ -835,10 +835,9 @@ function initLiveReload() {
     if (data.model == "EmergencySlideshow") {
       const currentGroupId = metadata.display_website_group_id;
       const targetedGroupIds = Array.isArray(data.groupIds) ? data.groupIds : [];
-      const isGlobalRefresh = targetedGroupIds.length === 0;
       const matchesDisplayGroup = currentGroupId && includesId(targetedGroupIds, currentGroupId);
 
-      if (isGlobalRefresh || matchesDisplayGroup) {
+      if (matchesDisplayGroup) {
         console.log("EmergencySlideshow affects current display group. Page should reload");
         window.location.reload();
       } else {
