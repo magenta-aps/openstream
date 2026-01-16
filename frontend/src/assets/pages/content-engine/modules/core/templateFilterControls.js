@@ -35,8 +35,15 @@ let categoryToggleBtn;
 let tagToggleBtn;
 let aspectToggleBtn;
 
+/**
+ * @typedef {Map<string, {name: string, count: number }>} FilterOptionMap
+ */
+
+ /** @type {FilterOptionMap} */
 let availableCategories = new Map();
+/** @type {FilterOptionMap} */
 let availableTags = new Map();
+/** @type {FilterOptionMap} */
 let availableAspectRatios = new Map();
 
 /**
@@ -203,13 +210,25 @@ export function refreshTemplateFilterOptions() {
     return;
   }
 
+  /** @type {FilterOptionMap} */
   const categoriesMap = new Map();
+  /** @type {FilterOptionMap} */
   const tagsMap = new Map();
+  /** @type {FilterOptionMap} */
   const aspectMap = new Map();
 
   store.slides.forEach((slide) => {
     if (slide.categoryId && slide.categoryName) {
-      categoriesMap.set(String(slide.categoryId), slide.categoryName);
+      const categoryID = String(slide.categoryId);
+
+      let category = categoriesMap.get(categoryID)
+      if (category) {
+        category.count += 1;
+      } else {
+        category = { name: slide.categoryName, count: 1 };
+      }
+
+      categoriesMap.set(categoryID, category);
     }
 
     if (Array.isArray(slide.tagIds)) {
@@ -219,14 +238,27 @@ export function refreshTemplateFilterOptions() {
         if (Array.isArray(slide.tagNames) && slide.tagNames[idx]) {
           tagLabel = slide.tagNames[idx];
         }
-        if (tagLabel && !tagsMap.has(stringId)) {
-          tagsMap.set(stringId, tagLabel);
+
+        let tag = tagsMap.get(stringId);
+        if (tag) {
+          tag.count += 1;
+        } else if (tagLabel) {
+          tag = { name: tagLabel, count: 1 };
         }
+
+        tagsMap.set(stringId, tagLabel);
       });
     }
 
     if (typeof slide.aspect_ratio === "string" && slide.aspect_ratio) {
-      aspectMap.set(slide.aspect_ratio, slide.aspect_ratio);
+      let aspectRatio = aspectMap.get(slide.aspect_ratio);
+      if (aspectRatio) {
+        aspectRatio.count += 1;
+      } else {
+        aspectRatio = { name: slide.aspect_ratio, count: 1 };
+      }
+
+      aspectMap.set(slide.aspect_ratio, aspectRatio);
     }
   });
 
@@ -234,9 +266,10 @@ export function refreshTemplateFilterOptions() {
   availableTags = tagsMap;
   availableAspectRatios = aspectMap;
 
-  renderCategoryOptions();
-  renderTagOptions();
-  renderAspectOptions();
+  renderFitlerOptions();
+  //renderCategoryOptions();
+  //renderTagOptions();
+  //renderAspectOptions();
   updateToggleLabels();
   updateChips();
   updateResetButtonState();
@@ -643,9 +676,53 @@ function handleChipInteraction(event) {
   emitFilterChange();
 }
 
+function renderFitlerOptions() {
+  // TODO: Use getText()
+  const filterTypes = [
+    { state: filterState.categories, parentID: "template-filter-category-select", title: "Categories", idPrefix: "template-filter-category", filters: availableCategories },
+    { state: filterState.tags, parentID: "template-filter-tag-select", title: "Tags", idPrefix: "template-filter-tag", filters: availableTags },
+    { state: filterState.aspectRatios, parentID: "template-filter-aspect-ratio-select", title: "Aspect-ratios", idPrefix: "template-filter-aspect", filters: availableAspectRatios }
+  ]
+    .map(type => ({
+      ...type,
+      filters: Array.from(type.filters.entries()).sort(([a, b]) => {
+        console.log(a, b);
+        return a[0].localeCompare(b.name[0], undefined, { sensitivity: "base" });
+      }
+      )
+    }))
+
+  /* TODO: Handle no available for all filter types
+  if (!entries.length) {
+    categoryOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
+      "No categories available yet.",
+    )}</p>`;
+    return;
+  }
+  */
+
+  const filterOptions = filterTypes
+    .map((type) => ({
+      parentID: type.parentID,
+      title: type.title,
+      body: type.filters.map(([id, data]) => {
+        const checkboxId = `${type.idPrefix}-${type.idPrefix !== "template-filter-aspect" ? id : escapeForSelector(id)}`;
+        const checked = type.state.has(id) ? "checked" : "";
+        return createFilterItem(
+          checkboxId,
+          id,
+          data.name,
+          checked
+        ).join("");
+      })
+    }));
+
+  filterOptions.forEach(filter => filterOptionsRoot.addAccordionItem(filter.parentID, filter.title, filter.body, true))
+}
+
 function renderCategoryOptions() {
   const entries = Array.from(availableCategories.entries()).sort((a, b) =>
-    a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
+    a[0][1].localeCompare(b[1][1], undefined, { sensitivity: "base" }),
   );
 
   /* TODO: Handle no available categories
@@ -657,15 +734,14 @@ function renderCategoryOptions() {
   }
   */
 
-
   const categoryOptions = entries
-    .map(([id, name]) => {
+    .map(([id, data]) => {
       const checkboxId = `template-filter-category-${id}`;
       const checked = filterState.categories.has(id) ? "checked" : "";
       return createFilterItem(
         checkboxId,
         id,
-        name,
+        data.name,
         checked
       );
     }).join("")
@@ -705,7 +781,7 @@ function renderTagOptions() {
 
 function renderAspectOptions() {
   const entries = Array.from(availableAspectRatios.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0], undefined, { sensitivity: "base" }),
+    a[0][0].localeCompare(b[1][0], undefined, { sensitivity: "base" }),
   );
 
   /* TODO: Handle no availble aspect ratios
@@ -718,7 +794,7 @@ function renderAspectOptions() {
   */
 
   const aspectRatios = entries
-    .map(([value]) => {
+    .map(([value, foo]) => {
       const checkboxId = `template-filter-aspect-${escapeForSelector(value)}`;
       const checked = filterState.aspectRatios.has(value) ? "checked" : "";
       return createFilterItem(checkboxId, value, value, checked);
