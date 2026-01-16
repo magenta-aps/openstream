@@ -13,11 +13,7 @@ export const store = {
   editorMode: null,
   globalTemplateContext: false,
 
-  slideshow_ids: null,
-  slideshow_playlist_ids: null,
-  scheduled_content_ids: null,
-  recurring_scheduled_content_ids: null,
-  display_website_group_id: null,    
+  slideshowPlayerMetaData: {},
   
   selectedElement: null,
   selectedElementData: null,

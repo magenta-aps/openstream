@@ -377,6 +377,9 @@ class GetActiveContentAPIView(APIView):
                 "scheduled_content_ids": sorted(scheduled_ids),
                 "recurring_scheduled_content_ids": sorted(recurring_ids),
                 "display_website_group_id": dwg.id,
+                "org_id": dw.branch.suborganisation.organisation.id,
+                "suborg_id": dw.branch.suborganisation.id,
+                "branch_id": dw.branch.id,
             }
 
         tz_now = timezone.now()
