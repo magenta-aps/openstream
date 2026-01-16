@@ -126,17 +126,18 @@ function createAccordionItemAppender(accordion, forceOpen) {
 /**
  * @description
  * Creates an html string for a filter option
- * @param {string} title
- * @param {string} name
- * @param {boolean} checked
- * @param {string | undefined} value
+ * @param {string} itemID - Id of the checkbox element
+ * @param {string} filterID - Id of the filter inside of the filterState
+ * @param {string} labelText - The label text value
+ * @param {boolean} checked - The checkbox indicator for being checked
+ * @param {string} value - The checkbox value
  * @returns A bootstrap checkbox as a html string
  */
-function createFilterItem(id, name, checked, value) {
+function createFilterItem(itemID, filterID, labelText, checked) {
   return `
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="${value ? value : id}" id="${id}" ${checked}>
-      <label class="form-check-label" for="${id}">${name}</label>
+      <input class="form-check-input" type="checkbox" value="${filterID}" id="${itemID}" ${checked}>
+      <label class="form-check-label" for="${itemID}">${labelText}</label>
     </div>`
   };
 
@@ -199,7 +200,7 @@ export function initTemplateFilterControls() {
   refreshTemplateFilterOptions();
 }
 
-function refreshTemplateFilterOptions() {
+export function refreshTemplateFilterOptions() {
   if (!isTemplateMode()) {
         return;
       }
@@ -275,6 +276,7 @@ export function applyTemplateFilters(slidesWithIndex) {
       if (!slide.categoryId) {
         return false;
       }
+      console.log(filterState.categories, slide.categoryId);
       return filterState.categories.has(String(slide.categoryId));
     });
   }
@@ -491,6 +493,7 @@ function attachEventListeners() {
   }
 
 
+  /*
   if (categoryOptionsRoot) {
     categoryOptionsRoot.addEventListener("change", handleCategoryChange);
   }
@@ -500,6 +503,7 @@ function attachEventListeners() {
   if (aspectOptionsRoot) {
     aspectOptionsRoot.addEventListener("change", handleAspectChange);
   }
+  */
   if (chipsContainer) {
     chipsContainer.addEventListener("click", handleChipInteraction);
   }
@@ -537,18 +541,20 @@ function handleFilterChange(type, event) {
   if (!target || target.tagName !== "INPUT") {
       return;
     }
-    const id = target.value;
-    if (!id) {
+    const value = target.value;
+    if (!value) {
       return;
     }
     if (target.checked) {
-      state.add(id);
+      state.add(value);
     } else {
-      state.delete(id);
+      state.delete(value);
     }
+
     emitFilterChange();
 }
 
+/* TODO: Remove
 function handleCategoryChange(event) {
   const target = event.target;
   if (!target || target.tagName !== "INPUT") {
@@ -599,6 +605,7 @@ function handleAspectChange(event) {
   }
   emitFilterChange();
 }
+*/
 
 function handleChipInteraction(event) {
   const button = event.target.closest("button[data-filter-chip]");
@@ -663,6 +670,7 @@ function renderCategoryOptions() {
       const checked = filterState.categories.has(id) ? "checked" : "";
       return createFilterItem(
         checkboxId,
+        id,
         name,
         checked
       );
@@ -676,19 +684,23 @@ function renderTagOptions() {
     a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
   );
 
+  /* TODO: Handle no tags availble
   if (!entries.length) {
     tagOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
       "No tags available yet.",
     )}</p>`;
     return;
   }
+  */
 
   const tagOptions = entries
     .map(([id, name]) => {
+      console.log(id);
       const checkboxId = `template-filter-tag-${id}`;
       const checked = filterState.tags.has(id) ? "checked" : "";
       return createFilterItem(
         checkboxId,
+        id,
         name,
         checked
       )
@@ -703,26 +715,20 @@ function renderAspectOptions() {
     a[0].localeCompare(b[0], undefined, { sensitivity: "base" }),
   );
 
+  /* TODO: Handle no availble aspect ratios
   if (!entries.length) {
     aspectOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
       "No aspect ratios detected",
     )}</p>`;
     return;
   }
+  */
 
   const aspectRatios = entries
     .map(([value]) => {
       const checkboxId = `template-filter-aspect-${escapeForSelector(value)}`;
       const checked = filterState.aspectRatios.has(value) ? "checked" : "";
-      return createFilterItem(checkboxId, value, checked, value)
-      /*
-      return `
-        <div class="form-check template-filter-checkbox">
-          <input class="form-check-input" type="checkbox" id="${checkboxId}" value="${value}" ${checked} />
-          <label class="form-check-label" for="${checkboxId}">${value}</label>
-        </div>
-      `;
-      */
+      return createFilterItem(checkboxId, value, value, checked);
     })
     .join("");
 
@@ -829,6 +835,21 @@ function syncInputsWithState() {
 }
 
 function syncCheckboxSelections() {
+  const filters = [
+    { id: "template-filter-category-select", state: filterState.categories },
+    { id: "template-filter-tag-select", state: filterState.tags },
+    { id: "template-filter-aspect-ratio-select", state: filterState.aspectRatios },
+  ];
+
+  filters.forEach(filter => {
+    filterOptionsRoot.accordion
+      .querySelectorAll(`${filter.id} input[type='checkbox']`)
+      .forEach((input) => {
+        input.checked = state.has(input.value);
+      });
+  });
+
+  /* TODO: Remove
   if (categoryOptionsRoot) {
     categoryOptionsRoot
       .querySelectorAll('input[type="checkbox"]')
@@ -850,6 +871,7 @@ function syncCheckboxSelections() {
         input.checked = filterState.aspectRatios.has(input.value);
       });
   }
+  */
 }
 
 function updateResetButtonState() {
@@ -875,5 +897,3 @@ function emitFilterChange() {
     }),
   );
 }
-
-export { refreshTemplateFilterOptions }
