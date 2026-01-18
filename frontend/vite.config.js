@@ -38,6 +38,8 @@ export default defineConfig({
     }
   },
   server: {
+    host: true, 
+    port: 4174,  
     warmup: {
       // Only touch actual JS entrypoints plus the shared main stylesheet to avoid
       // compiling standalone Handlebars/SCSS partials (those caused the earlier errors).
