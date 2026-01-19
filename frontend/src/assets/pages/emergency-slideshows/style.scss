@@ -30,10 +30,23 @@
 	}
 
 	.slideshow-card-content {
-		display: grid;
-		grid-template-columns: minmax(0, 2fr) minmax(120px, 1fr);
-		gap: 1rem;
+		display: flex;
+		justify-content: space-between;
 		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.slideshow-card-text {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.slideshow-card-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-shrink: 0;
 	}
 
 	.slideshow-card-name {
@@ -43,12 +56,31 @@
 	.slideshow-card-ratio {
 		min-width: 90px;
 	}
+
+	.slideshow-card-edit {
+		white-space: nowrap;
+	}
 }
 
 .slideshow-table {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
+}
+
+.slideshow-card-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.slideshow-toolbar {
+	gap: 0.75rem;
+
+	.toolbar-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
 }
 
 .slideshow-table-header {
@@ -128,4 +160,10 @@
 
 #emergency-feedback {
 	border-radius: 0.75rem;
+}
+
+.create-emergency-modal {
+	.form-select[multiple] {
+		min-height: 170px;
+	}
 }

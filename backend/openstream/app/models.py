@@ -312,6 +312,8 @@ class Slideshow(models.Model):
         default="slideshow",
     )
 
+    is_emergency_slideshow = models.BooleanField(default=False, null=True, blank=True)
+
     branch = models.ForeignKey(
         Branch,
         on_delete=models.CASCADE,

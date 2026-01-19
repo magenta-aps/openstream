@@ -4,7 +4,7 @@
 
 import threading
 from django.conf import settings
-from django.db.models.signals import m2m_changed, post_save
+from django.db.models.signals import m2m_changed, post_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -61,6 +61,14 @@ def process_document_pdf(sender, instance, created, **kwargs):
         thread.start()
 
 # List all models that affect the final "Active Content"
+@receiver(pre_delete, sender=EmergencySlideshow)
+def cache_emergency_slideshow_groups(sender, instance, **kwargs):
+    """Persist related group IDs for post-delete signals."""
+    instance._cached_display_group_ids = list(
+        instance.display_website_groups.values_list("id", flat=True)
+    )
+
+
 @receiver(post_save, sender=Slideshow)
 @receiver(post_save, sender=SlideshowPlaylist)
 @receiver(post_save, sender=ScheduledContent)
@@ -68,6 +76,7 @@ def process_document_pdf(sender, instance, created, **kwargs):
 @receiver(post_save, sender=DisplayWebsiteGroup)
 @receiver(post_save, sender=DisplayWebsite)
 @receiver(post_save, sender=EmergencySlideshow)
+@receiver(post_delete, sender=EmergencySlideshow)
 def notify_express_of_change(sender, instance, **kwargs):
     express_refresh_url = getattr(settings, "EXPRESS_REFRESH_URL", None)
 
@@ -79,9 +88,11 @@ def notify_express_of_change(sender, instance, **kwargs):
     if sender is EmergencySlideshow:
         # Include extra context so Express can scope emergency refreshes precisely
         params["slideshow_id"] = instance.slideshow_id
-        group_ids = list(
-            instance.display_website_groups.values_list("id", flat=True)
-        )
+        group_ids = getattr(instance, "_cached_display_group_ids", None)
+        if group_ids is None:
+            group_ids = list(
+                instance.display_website_groups.values_list("id", flat=True)
+            )
         if group_ids:
             params["group_ids"] = ",".join(str(group_id) for group_id in group_ids)
 

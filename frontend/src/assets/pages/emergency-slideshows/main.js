@@ -1,3 +1,4 @@
+import * as bootstrap from "bootstrap";
 import "./style.scss";
 import {
     translateHTML,
@@ -10,12 +11,19 @@ import {
     initOrgUrlRouting,
     initSignOutButton,
     makeActiveInNav,
+    parentOrgID,
+    createUrl,
     selectedBranchID,
     showToast,
     updateNavbarBranchName,
     updateNavbarUsername,
 } from "../../utils/utils";
 import { BASE_URL } from "../../utils/constants";
+import {
+    DEFAULT_ASPECT_RATIO,
+    DISPLAYABLE_ASPECT_RATIOS,
+    getResolutionForAspectRatio,
+} from "../../utils/availableAspectRatios";
 
 const state = {
     slideshows: [],
@@ -23,9 +31,14 @@ const state = {
     groups: [],
     filteredGroups: [],
     emergencies: [],
+    categories: [],
+    tags: [],
     selectedGroupIds: new Set(),
     selectedSlideshowId: null,
     isSubmitting: false,
+    selectedCreationAspectRatio: DEFAULT_ASPECT_RATIO,
+    isCreatingSlideshow: false,
+    lastCreatedSlideshowId: null,
 };
 
 const elements = {};
@@ -63,6 +76,31 @@ function cacheElements() {
     elements.emergencyEmptyState = document.getElementById("active-emergencies-empty");
     elements.refreshSlideshows = document.getElementById("refresh-slideshows");
     elements.refreshEmergencies = document.getElementById("refresh-emergencies");
+    elements.createSlideshowButton = document.getElementById("create-emergency-slideshow");
+    elements.createModalEl = document.getElementById("createEmergencyModal");
+    elements.createForm = document.getElementById("createEmergencyForm");
+    elements.createNameInput = document.getElementById("createEmergencyName");
+    elements.createCategorySelect = document.getElementById("createEmergencyCategory");
+    elements.createTagsSelect = document.getElementById("createEmergencyTags");
+    elements.createAspectRatioSelect = document.getElementById("createEmergencyAspectRatio");
+    elements.createFormFeedback = document.getElementById("create-emergency-feedback");
+    elements.createSubmitButton = document.getElementById("create-emergency-submit");
+    elements.createSubmitSpinner = document.getElementById("create-emergency-spinner");
+    if (elements.createModalEl) {
+        elements.createModal = new bootstrap.Modal(elements.createModalEl);
+    }
+    elements.createdModalEl = document.getElementById(
+        "emergencySlideshowCreatedModal",
+    );
+    if (elements.createdModalEl) {
+        elements.createdModal = new bootstrap.Modal(elements.createdModalEl);
+    }
+    elements.createdSlideshowName = document.getElementById(
+        "createdEmergencySlideshowName",
+    );
+    elements.openCreatedSlideshowButton = document.getElementById(
+        "openEmergencySlideshowBtn",
+    );
 }
 
 function bindEventListeners() {
@@ -92,11 +130,32 @@ function bindEventListeners() {
         await loadEmergencies(true);
     });
     elements.emergencyList?.addEventListener("click", handleEmergencyActionClick);
+    elements.createSlideshowButton?.addEventListener(
+        "click",
+        openCreateEmergencyModal,
+    );
+    elements.createForm?.addEventListener(
+        "submit",
+        handleCreateEmergencySubmit,
+    );
+    elements.createAspectRatioSelect?.addEventListener("change", (event) => {
+        state.selectedCreationAspectRatio =
+            event.target.value || DEFAULT_ASPECT_RATIO;
+    });
+    elements.openCreatedSlideshowButton?.addEventListener("click", () => {
+        const slideshowId = parseInt(
+            elements.openCreatedSlideshowButton?.dataset.slideshowId || "",
+            10,
+        );
+        if (!Number.isNaN(slideshowId)) {
+            openSlideshowEditor(slideshowId);
+        }
+    });
 }
 
 async function bootstrapData() {
     try {
-        await loadSlideshows();
+        await Promise.all([loadSlideshows(), loadReferenceData()]);
         await loadGroups();
         await loadEmergencies();
     } catch (error) {
@@ -117,7 +176,11 @@ async function loadSlideshows(showToastOnSuccess = false) {
                 `${BASE_URL}/api/manage_content/?includeSlideshowData=false&branch_id=${selectedBranchID}`,
                 "GET",
             )) ?? [];
-        state.slideshows = result.filter((slideshow) => slideshow.mode !== "interactive");
+        state.slideshows = result.filter(
+            (slideshow) =>
+                slideshow.mode !== "interactive" &&
+                Boolean(slideshow.is_emergency_slideshow),
+        );
         state.filteredSlideshows = [...state.slideshows];
         syncSelectedSlideshow();
         renderSlideshows();
@@ -200,6 +263,234 @@ async function loadEmergencies(showToastOnSuccess = false) {
     }
 }
 
+async function loadReferenceData() {
+    if (!elements.createForm) {
+        return;
+    }
+    try {
+        const [categories = [], tags = []] = await Promise.all([
+            genericFetch(
+                `${BASE_URL}/api/categories/?organisation_id=${parentOrgID}`,
+                "GET",
+            ),
+            genericFetch(
+                `${BASE_URL}/api/tags/?organisation_id=${parentOrgID}`,
+                "GET",
+            ),
+        ]);
+        state.categories = Array.isArray(categories) ? categories : [];
+        state.tags = Array.isArray(tags) ? tags : [];
+        hydrateCreationFormOptions();
+    } catch (error) {
+        console.error("Could not load emergency creation metadata", error);
+    }
+}
+
+function hydrateCreationFormOptions() {
+    populateCategoryOptions();
+    populateTagOptions();
+    populateAspectRatioOptions();
+}
+
+function populateCategoryOptions() {
+    if (!elements.createCategorySelect) {
+        return;
+    }
+    elements.createCategorySelect.innerHTML = "";
+    const noneOption = document.createElement("option");
+    noneOption.value = "";
+    noneOption.textContent = gettext("(No Category)");
+    elements.createCategorySelect.appendChild(noneOption);
+
+    state.categories.forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.name;
+        elements.createCategorySelect.appendChild(option);
+    });
+}
+
+function populateTagOptions() {
+    if (!elements.createTagsSelect) {
+        return;
+    }
+    elements.createTagsSelect.innerHTML = "";
+    state.tags.forEach((tag) => {
+        const option = document.createElement("option");
+        option.value = tag.id;
+        option.textContent = tag.name;
+        elements.createTagsSelect.appendChild(option);
+    });
+}
+
+function populateAspectRatioOptions() {
+    if (!elements.createAspectRatioSelect) {
+        return;
+    }
+    elements.createAspectRatioSelect.innerHTML = "";
+    DISPLAYABLE_ASPECT_RATIOS.forEach((ratio) => {
+        const option = document.createElement("option");
+        option.value = ratio.value;
+        option.textContent = ratio.label;
+        if (ratio.value === state.selectedCreationAspectRatio) {
+            option.selected = true;
+        }
+        elements.createAspectRatioSelect.appendChild(option);
+    });
+}
+
+function openCreateEmergencyModal() {
+    if (!elements.createModal) {
+        return;
+    }
+    if (!state.categories.length || !state.tags.length) {
+        loadReferenceData();
+    }
+    resetCreateForm();
+    hydrateCreationFormOptions();
+    elements.createModal.show();
+}
+
+function resetCreateForm() {
+    state.selectedCreationAspectRatio = DEFAULT_ASPECT_RATIO;
+    if (elements.createNameInput) {
+        elements.createNameInput.value = "";
+    }
+    if (elements.createCategorySelect) {
+        elements.createCategorySelect.value = "";
+    }
+    if (elements.createTagsSelect) {
+        Array.from(elements.createTagsSelect.options).forEach((option) => {
+            option.selected = false;
+        });
+    }
+    if (elements.createAspectRatioSelect) {
+        elements.createAspectRatioSelect.value = DEFAULT_ASPECT_RATIO;
+    }
+    hideCreateFormFeedback();
+}
+
+async function handleCreateEmergencySubmit(event) {
+    event.preventDefault();
+    if (state.isCreatingSlideshow) {
+        return;
+    }
+
+    const name = elements.createNameInput?.value?.trim();
+    if (!name) {
+        showCreateFormFeedback(gettext("Please provide a slideshow name."));
+        return;
+    }
+
+    const categoryValue = elements.createCategorySelect?.value;
+    const categoryId = categoryValue ? parseInt(categoryValue, 10) : null;
+    const tagIds = getSelectedTagIds();
+    const aspectRatio =
+        elements.createAspectRatioSelect?.value ||
+        state.selectedCreationAspectRatio ||
+        DEFAULT_ASPECT_RATIO;
+    const { width, height } = getResolutionForAspectRatio(aspectRatio);
+
+    const payload = {
+        name,
+        mode: "slideshow",
+        preview_width: width,
+        preview_height: height,
+        is_emergency_slideshow: true,
+    };
+
+    if (categoryId) {
+        payload.category_id = categoryId;
+    }
+    if (tagIds.length) {
+        payload.tag_ids = tagIds;
+    }
+
+    hideCreateFormFeedback();
+    setCreateSubmitting(true);
+    try {
+        const newSlideshow = await genericFetch(
+            `${BASE_URL}/api/manage_content/?includeSlideshowData=false&branch_id=${selectedBranchID}`,
+            "POST",
+            payload,
+        );
+        showToast(gettext("Emergency slideshow created"), gettext("Success"));
+        await loadSlideshows();
+        if (newSlideshow?.id) {
+            setSelectedSlideshow(newSlideshow.id);
+        } else {
+            syncSelectedSlideshow();
+            renderSlideshows();
+        }
+        elements.createModal?.hide();
+        if (newSlideshow?.id) {
+            showEmergencyCreatedModal(newSlideshow);
+        }
+    } catch (error) {
+        console.error("Failed to create emergency slideshow", error);
+        showCreateFormFeedback(extractErrorMessage(error));
+    } finally {
+        setCreateSubmitting(false);
+    }
+}
+
+function getSelectedTagIds() {
+    if (!elements.createTagsSelect) {
+        return [];
+    }
+    return Array.from(elements.createTagsSelect.selectedOptions || [])
+        .map((option) => parseInt(option.value, 10))
+        .filter((id) => !Number.isNaN(id));
+}
+
+function showCreateFormFeedback(message) {
+    if (!elements.createFormFeedback) {
+        return;
+    }
+    elements.createFormFeedback.textContent = message;
+    elements.createFormFeedback.classList.remove("d-none");
+}
+
+function hideCreateFormFeedback() {
+    elements.createFormFeedback?.classList.add("d-none");
+}
+
+function setCreateSubmitting(isSubmitting) {
+    state.isCreatingSlideshow = isSubmitting;
+    if (elements.createSubmitButton) {
+        elements.createSubmitButton.disabled = isSubmitting;
+    }
+    elements.createSubmitSpinner?.classList.toggle("d-none", !isSubmitting);
+}
+
+function openSlideshowEditor(slideshowId) {
+    if (!slideshowId) {
+        return;
+    }
+    const url = createUrl(`/edit-content?id=${slideshowId}&mode=edit`, true, true);
+    window.location.href = url;
+}
+
+function showEmergencyCreatedModal(slideshow) {
+    if (!slideshow?.id) {
+        return;
+    }
+    state.lastCreatedSlideshowId = slideshow.id;
+    if (!elements.createdModal) {
+        openSlideshowEditor(slideshow.id);
+        return;
+    }
+    if (elements.createdSlideshowName) {
+        elements.createdSlideshowName.textContent =
+            slideshow.name || gettext("Untitled slideshow");
+    }
+    if (elements.openCreatedSlideshowButton) {
+        elements.openCreatedSlideshowButton.dataset.slideshowId =
+            slideshow.id;
+    }
+    elements.createdModal.show();
+}
+
 function renderSlideshows() {
     if (!elements.slideshowList) {
         return;
@@ -214,37 +505,69 @@ function renderSlideshows() {
         return;
     }
 
-    const header = document.createElement("div");
-    header.className = "slideshow-table-header";
-    header.innerHTML = `
-        <span>${gettext("Name")}</span>
-        <span class="text-end">${gettext("Aspect Ratio")}</span>
-    `;
-    elements.slideshowList.appendChild(header);
+
 
     state.filteredSlideshows.forEach((slideshow) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "slideshow-card btn w-100 text-start border rounded-3 p-3";
-        button.dataset.slideshowId = slideshow.id;
+        const wrapper = document.createElement("div");
+        wrapper.className = "slideshow-card-wrapper";
+
+        const card = document.createElement("div");
+        card.className = "slideshow-card border rounded-3 p-3 w-100";
+        card.dataset.slideshowId = slideshow.id;
+        card.setAttribute("role", "button");
+        card.tabIndex = 0;
         if (slideshow.id === state.selectedSlideshowId) {
-            button.classList.add("is-selected");
+            card.classList.add("is-selected");
         }
 
-        button.innerHTML = `
-            <div class="slideshow-card-content">
-                <span class="slideshow-card-name h6 mb-0">${autoHyphenate(
-                    slideshow?.name || gettext("Untitled slideshow"),
-                )}</span>
-                <span class="text-end">
-                    <span class="badge text-bg-light slideshow-card-ratio">${escapeHtml(
-                        formatAspectRatio(slideshow) || gettext("No ratio"),
-                    )}</span>
-                </span>
-            </div>
+        const content = document.createElement("div");
+        content.className = "slideshow-card-content";
+
+        const textWrapper = document.createElement("div");
+        textWrapper.className = "slideshow-card-text";
+        textWrapper.innerHTML = `
+            <span class="slideshow-card-name h6 mb-0">${autoHyphenate(
+                slideshow?.name || gettext("Untitled slideshow"),
+            )}</span>
         `;
 
-        elements.slideshowList.appendChild(button);
+        const metaWrapper = document.createElement("div");
+        metaWrapper.className = "slideshow-card-meta";
+
+        const ratioBadge = document.createElement("span");
+        ratioBadge.className = "badge text-bg-light slideshow-card-ratio";
+        ratioBadge.textContent =
+            formatAspectRatio(slideshow) || gettext("No ratio");
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "btn btn-outline-primary btn-sm slideshow-card-edit ms-2";
+        editButton.innerHTML = `
+            <span class="material-symbols-outlined align-middle me-1" aria-hidden="true">edit</span>
+            ${gettext("Edit")}
+        `;
+        editButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openSlideshowEditor(slideshow.id);
+        });
+
+        metaWrapper.appendChild(ratioBadge);
+        metaWrapper.appendChild(editButton);
+
+        content.appendChild(textWrapper);
+        content.appendChild(metaWrapper);
+        card.appendChild(content);
+
+        card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setSelectedSlideshow(slideshow.id);
+            }
+        });
+
+        wrapper.appendChild(card);
+        elements.slideshowList.appendChild(wrapper);
     });
 }
 

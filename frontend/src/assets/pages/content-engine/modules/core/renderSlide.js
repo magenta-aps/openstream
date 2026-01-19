@@ -746,7 +746,7 @@ async function _startSlideshowPlayer() {
 function initLiveReload() {
   console.log("Initializing live reload via SSE");
   // 1. Point this to your Express route
-  const eventSource = new EventSource('http://localhost:3000/events');
+  const eventSource = new EventSource(`http://${window.location.hostname}:3000/events`);
 
   // Check connection status
   eventSource.onopen = () => {

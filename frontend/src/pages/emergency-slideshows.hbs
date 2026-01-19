@@ -18,12 +18,18 @@
             <div id="emergency-feedback" class="alert alert-danger d-none" role="alert"></div>
             <div class="w-100 d-flex gap-4 flex-grow-1" style="min-height: 0;">
                 <div class="select-slideshow h-100 border border-dark-gray flex-grow-1 p-3 rounded-3 bg-light d-flex flex-column overflow-hidden" style="min-height: 0;">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap slideshow-toolbar">
                         <h3 class="h5 mb-0">Select Slideshow</h3>
-                        <button id="refresh-slideshows" class="btn btn-link btn-sm text-decoration-none">
-                            <span class="material-symbols-outlined align-middle">refresh</span>
-                            Reload
-                        </button>
+                        <div class="d-flex gap-2 flex-wrap toolbar-actions justify-content-end">
+                            <button id="create-emergency-slideshow" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <span class="material-symbols-outlined align-middle" aria-hidden="true">add</span>
+                                Create New Emergency Slideshow
+                            </button>
+                            <button id="refresh-slideshows" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+                                <span class="material-symbols-outlined align-middle" aria-hidden="true">refresh</span>
+                                Reload
+                            </button>
+                        </div>
                     </div>
                     <hr>
                     <div class="mb-3">
@@ -99,6 +105,77 @@
                     information needs to be broadcast.</p>
             </div>
             <div id="active-emergencies-list" class="d-flex flex-column gap-3 overflow-auto flex-grow-1" style="min-height: 0;"></div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade create-emergency-modal" id="createEmergencyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="text-uppercase text-muted small mb-1">Emergency content</p>
+                    <h1 class="modal-title fs-5 mb-0">Create emergency slideshow</h1>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createEmergencyForm" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <p class="text-muted small">Emergency slideshows will only appear in this list and are filtered from normal content.</p>
+                    <div id="create-emergency-feedback" class="alert alert-danger d-none" role="alert"></div>
+                    <div class="mb-3">
+                        <label for="createEmergencyName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="createEmergencyName" placeholder="City-wide alert" required>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <label for="createEmergencyCategory" class="form-label">Category</label>
+                            <select id="createEmergencyCategory" class="form-select"></select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="createEmergencyTags" class="form-label">Tags</label>
+                            <select id="createEmergencyTags" class="form-select" multiple size="5"></select>
+                            <div class="form-text">Hold Ctrl (Windows) or Cmd (macOS) to select multiple tags.</div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="createEmergencyAspectRatio" class="form-label">Aspect ratio</label>
+                        <select id="createEmergencyAspectRatio" class="form-select"></select>
+                        <div class="form-text">Choose the aspect ratio that matches the displays receiving this emergency message.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="create-emergency-submit">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true" id="create-emergency-spinner"></span>
+                        Create slideshow
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="emergencySlideshowCreatedModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Emergency slideshow created</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">The slideshow <strong id="createdEmergencySlideshowName"></strong> was created successfully.</p>
+                <p class="text-muted mb-0">Open it in the editor to customize the layout and slides immediately.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="openEmergencySlideshowBtn">
+                    <span class="material-symbols-outlined align-middle me-1" aria-hidden="true">open_in_new</span>
+                    Open in editor
+                </button>
+            </div>
         </div>
     </div>
 </div>

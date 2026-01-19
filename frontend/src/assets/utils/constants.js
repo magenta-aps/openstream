@@ -13,8 +13,13 @@ function deriveBaseFromHostname() {
   if (typeof window === "undefined" || !window.location) return null;
   const host = window.location.hostname;
 
+
   if (host === "localhost" || host === "127.0.0.1") {
     return "http://localhost:8000";
+  }
+
+  if (host === "192.168.1.178") {
+    return "http://192.168.1.178:8000";
   }
 
   // handle subdomains like app.test.openstream.dk by matching suffix
@@ -38,7 +43,7 @@ function deriveBaseFromHostname() {
 }
 
 export const BASE_URL =
-  import.meta.env.VITE_BASE_URL ||
+  //import.meta.env.VITE_BASE_URL ||
   deriveBaseFromHostname() ||
   "http://localhost:8000";
 
