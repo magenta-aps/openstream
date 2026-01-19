@@ -55,7 +55,7 @@ let availableAspectRatios = new Map();
 function createPopover(triggerID, content) {
   return new bootstrap.Popover(document.querySelector(`#${triggerID}`), {
     html: true,
-    content: () => content.innerHTML,
+    content: content,
     sanitize: false,
     template: `
       <div class="popover" role="tooltip" style="width: 15.5rem;">
@@ -64,6 +64,43 @@ function createPopover(triggerID, content) {
       </div>
     `,
     offset: [0, 0]
+  })
+}
+
+/**
+ * @description
+ * Sets the content of the filter panel popover
+ * @param {string} content
+ */
+function setFilterPopoverContent(content) {
+  filterPopoverContent.innerHTML = content;
+  attachFilterPopoverEventListeners()
+
+  const resetContainer = document.createElement("div");
+  resetContainer.classList.add("d-flex", "justify-content-end")
+
+  if (!resetBtn) {
+    resetBtn = document.createElement("button");
+    resetBtn.id = "templateFilterReset";
+    resetBtn.classList.add("btn", "btn-sm", "btn-link", "template-filter-panel__reset");
+    resetBtn.textContent = gettext("Reset filters");;
+  }
+
+  resetContainer.appendChild(resetBtn);
+  filterPopoverContent.appendChild(resetContainer);
+}
+
+function attachFilterPopoverEventListeners() {
+  const filterTypes = [
+    { id: "#template-filter-category-select", type: "category" },
+    { id: "#template-filter-tag-select", type: "tag" },
+    { id: "#template-filter-aspect-ratio-select", type: "event" },
+  ];
+
+  filterTypes.forEach(filterType => {
+    filterPopoverContent
+      .querySelector(filterType.id)
+      .addEventListener("change", (event) => handleFilterChange(filterType.type, event));
   })
 }
 
@@ -246,7 +283,7 @@ export function refreshTemplateFilterOptions() {
           tag = { name: tagLabel, count: 1 };
         }
 
-        tagsMap.set(stringId, tagLabel);
+        tagsMap.set(stringId, tag);
       });
     }
 
@@ -266,7 +303,7 @@ export function refreshTemplateFilterOptions() {
   availableTags = tagsMap;
   availableAspectRatios = aspectMap;
 
-  renderFitlerOptions();
+  renderFilterOptions();
   //renderCategoryOptions();
   //renderTagOptions();
   //renderAspectOptions();
@@ -275,7 +312,7 @@ export function refreshTemplateFilterOptions() {
   updateResetButtonState();
 
   if (filterPopoverContent) {
-    filterPopoverContent.innerHTML = filterOptionsRoot.accordion.outerHTML;
+    setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML)
   }
 }
 
@@ -375,7 +412,6 @@ function renderFilterPanel() {
   const orderByLabel = gettext("Order by");
   const resetLabel = gettext("Reset filters");
 
-
   filterPopoverBtn = document.createElement("button");
   filterPopoverBtn.id = "templateFilterPopoverBtn";
   filterPopoverBtn.classList.add("btn", "btn-sm", "d-flex", "align-items-center", "align-items-center", "row-gap-1");
@@ -385,18 +421,7 @@ function renderFilterPanel() {
 
   filterPopoverContent = document.createElement("div");
 
-  filterPopoverContent.innerHTML = filterOptionsRoot.accordion.outerHTML;
-
-  createFilterItem(
-    "templateFilterTags",
-    "Tags",
-    [{name: "Foo"}, {name: "Bar"}, {name: "Baz"}]
-  );
-  createFilterItem(
-    "templateFilterAspects",
-    "Aspect ratios",
-    [{name: "16:9"}, {name:"9:16"}, {name:"4:3"}, {name:"3:4"}]
-  );
+  setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML)
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
@@ -464,7 +489,6 @@ function cacheDomReferences() {
   clearSearchBtn = filterPanel.querySelector("#templateFilterSearchClear");
   filterPopoverBtn = filterPanel.querySelector("#templateFilterPopoverBtn");
   sortSelect = filterPanel.querySelector("#templateFilterSort");
-  resetBtn = filterPanel.querySelector("#templateFilterReset");
   chipsContainer = filterPanel.querySelector("#templateFilterChips");
   categoryToggleBtn = filterPanel.querySelector(
     "#templateFilterCategoryToggle",
@@ -494,19 +518,7 @@ function attachEventListeners() {
       filterPopoverAPI.toggle();
     });
 
-    document.addEventListener("shown.bs.popover", () => {
-      document
-        .querySelector("#template-filter-category-select")
-        .addEventListener("change", (event) => handleFilterChange("category", event));
-
-      document
-        .querySelector("#template-filter-tag-select")
-        .addEventListener("change", (event) => handleFilterChange("tag", event));
-
-      document
-        .querySelector("#template-filter-aspect-ratio-select")
-        .addEventListener("change", (event) => handleFilterChange("aspect-ratio", event));
-    })
+    attachFilterPopoverEventListeners();
   }
 
   if (sortSelect) {
@@ -515,22 +527,11 @@ function attachEventListeners() {
       emitFilterChange();
     });
   }
+  // TODO: Figure out how handle the resteBtn being reset
   if (resetBtn) {
     resetBtn.addEventListener("click", resetTemplateFilters);
   }
 
-
-  /*
-  if (categoryOptionsRoot) {
-    categoryOptionsRoot.addEventListener("change", handleCategoryChange);
-  }
-  if (tagOptionsRoot) {
-    tagOptionsRoot.addEventListener("change", handleTagChange);
-  }
-  if (aspectOptionsRoot) {
-    aspectOptionsRoot.addEventListener("change", handleAspectChange);
-  }
-  */
   if (chipsContainer) {
     chipsContainer.addEventListener("click", handleChipInteraction);
   }
@@ -581,59 +582,6 @@ function handleFilterChange(type, event) {
     emitFilterChange();
 }
 
-/* TODO: Remove
-function handleCategoryChange(event) {
-  const target = event.target;
-  if (!target || target.tagName !== "INPUT") {
-    return;
-  }
-  const id = target.value;
-  if (!id) {
-    return;
-  }
-  if (target.checked) {
-    filterState.categories.add(id);
-  } else {
-    filterState.categories.delete(id);
-  }
-  emitFilterChange();
-}
-
-function handleTagChange(event) {
-  const target = event.target;
-  if (!target || target.tagName !== "INPUT") {
-    return;
-  }
-  const id = target.value;
-  if (!id) {
-    return;
-  }
-  if (target.checked) {
-    filterState.tags.add(id);
-  } else {
-    filterState.tags.delete(id);
-  }
-  emitFilterChange();
-}
-
-function handleAspectChange(event) {
-  const target = event.target;
-  if (!target || target.tagName !== "INPUT") {
-    return;
-  }
-  const value = target.value;
-  if (!value) {
-    return;
-  }
-  if (target.checked) {
-    filterState.aspectRatios.add(value);
-  } else {
-    filterState.aspectRatios.delete(value);
-  }
-  emitFilterChange();
-}
-*/
-
 function handleChipInteraction(event) {
   const button = event.target.closest("button[data-filter-chip]");
   if (!button) {
@@ -676,7 +624,7 @@ function handleChipInteraction(event) {
   emitFilterChange();
 }
 
-function renderFitlerOptions() {
+function renderFilterOptions() {
   // TODO: Use getText()
   const filterTypes = [
     { state: filterState.categories, parentID: "template-filter-category-select", title: "Categories", idPrefix: "template-filter-category", filters: availableCategories },
@@ -686,7 +634,6 @@ function renderFitlerOptions() {
     .map(type => ({
       ...type,
       filters: Array.from(type.filters.entries()).sort(([a, b]) => {
-        console.log(a, b);
         return a[0].localeCompare(b.name[0], undefined, { sensitivity: "base" });
       }
       )
@@ -711,98 +658,13 @@ function renderFitlerOptions() {
         return createFilterItem(
           checkboxId,
           id,
-          data.name,
+          `${data.name} (${data.count})`,
           checked
-        ).join("");
-      })
+        )
+      }).join("")
     }));
 
   filterOptions.forEach(filter => filterOptionsRoot.addAccordionItem(filter.parentID, filter.title, filter.body, true))
-}
-
-function renderCategoryOptions() {
-  const entries = Array.from(availableCategories.entries()).sort((a, b) =>
-    a[0][1].localeCompare(b[1][1], undefined, { sensitivity: "base" }),
-  );
-
-  /* TODO: Handle no available categories
-  if (!entries.length) {
-    categoryOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
-      "No categories available yet.",
-    )}</p>`;
-    return;
-  }
-  */
-
-  const categoryOptions = entries
-    .map(([id, data]) => {
-      const checkboxId = `template-filter-category-${id}`;
-      const checked = filterState.categories.has(id) ? "checked" : "";
-      return createFilterItem(
-        checkboxId,
-        id,
-        data.name,
-        checked
-      );
-    }).join("")
-
-  filterOptionsRoot.addAccordionItem("template-filter-category-select", "Categories", categoryOptions, true);
-}
-
-function renderTagOptions() {
-  const entries = Array.from(availableTags.entries()).sort((a, b) =>
-    a[1].localeCompare(b[1], undefined, { sensitivity: "base" }),
-  );
-
-  /* TODO: Handle no tags availble
-  if (!entries.length) {
-    tagOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
-      "No tags available yet.",
-    )}</p>`;
-    return;
-  }
-  */
-
-  const tagOptions = entries
-    .map(([id, name]) => {
-      const checkboxId = `template-filter-tag-${id}`;
-      const checked = filterState.tags.has(id) ? "checked" : "";
-      return createFilterItem(
-        checkboxId,
-        id,
-        name,
-        checked
-      )
-    })
-    .join("");
-
-  filterOptionsRoot.addAccordionItem("template-filter-tag-select", "Tags", tagOptions, true);
-}
-
-function renderAspectOptions() {
-  const entries = Array.from(availableAspectRatios.entries()).sort((a, b) =>
-    a[0][0].localeCompare(b[1][0], undefined, { sensitivity: "base" }),
-  );
-
-  /* TODO: Handle no availble aspect ratios
-  if (!entries.length) {
-    aspectOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
-      "No aspect ratios detected",
-    )}</p>`;
-    return;
-  }
-  */
-
-  const aspectRatios = entries
-    .map(([value, foo]) => {
-      const checkboxId = `template-filter-aspect-${escapeForSelector(value)}`;
-      const checked = filterState.aspectRatios.has(value) ? "checked" : "";
-      return createFilterItem(checkboxId, value, value, checked);
-    })
-    .join("");
-
-
-  filterOptionsRoot.addAccordionItem("template-filter-aspect-ratio-select", "Aspect Ratios", aspectRatios, true);
 }
 
 function updateToggleLabels() {
@@ -912,35 +774,13 @@ function syncCheckboxSelections() {
 
   filters.forEach(filter => {
     filterOptionsRoot.accordion
-      .querySelectorAll(`${filter.id} input[type='checkbox']`)
+      .querySelectorAll(`#${filter.id} input[type='checkbox']`)
       .forEach((input) => {
-        input.checked = state.has(input.value);
+        input.checked = filter.state.has(input.value);
       });
-  });
 
-  /* TODO: Remove
-  if (categoryOptionsRoot) {
-    categoryOptionsRoot
-      .querySelectorAll('input[type="checkbox"]')
-      .forEach((input) => {
-        input.checked = filterState.categories.has(input.value);
-      });
-  }
-  if (tagOptionsRoot) {
-    tagOptionsRoot
-      .querySelectorAll('input[type="checkbox"]')
-      .forEach((input) => {
-        input.checked = filterState.tags.has(input.value);
-      });
-  }
-  if (aspectOptionsRoot) {
-    aspectOptionsRoot
-      .querySelectorAll('input[type="checkbox"]')
-      .forEach((input) => {
-        input.checked = filterState.aspectRatios.has(input.value);
-      });
-  }
-  */
+    setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML);
+  });
 }
 
 function updateResetButtonState() {
