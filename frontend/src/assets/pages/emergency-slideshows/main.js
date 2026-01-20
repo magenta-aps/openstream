@@ -536,8 +536,7 @@ function renderSlideshows() {
 
         const ratioBadge = document.createElement("span");
         ratioBadge.className = "badge text-bg-light slideshow-card-ratio";
-        ratioBadge.textContent =
-            formatAspectRatio(slideshow) || gettext("No ratio");
+        ratioBadge.textContent = formatAspectRatio(slideshow) || gettext("No ratio");
 
         const editButton = document.createElement("button");
         editButton.type = "button";
@@ -743,7 +742,14 @@ function renderEmergencies() {
         deleteButton.dataset.emergencyId = emergency.id;
         deleteButton.innerHTML = `<span class="material-symbols-outlined align-middle me-1">delete</span>${gettext("Delete")}`;
 
+        const changeButton = document.createElement("button");
+        changeButton.className = "btn btn-sm btn-outline-primary";
+        changeButton.dataset.emergencyAction = "change";
+        changeButton.dataset.emergencyId = emergency.id;
+        changeButton.innerHTML = `<span class="material-symbols-outlined align-middle me-1">swap_horiz</span>${gettext("Change")}`;
+
         actionsWrapper.appendChild(toggleButton);
+        actionsWrapper.appendChild(changeButton);
         actionsWrapper.appendChild(deleteButton);
         actionsCell.appendChild(actionsWrapper);
 
@@ -901,6 +907,113 @@ function handleEmergencyActionClick(event) {
     if (action === "delete") {
         deleteEmergency(emergencyId, actionButton);
     }
+    if (action === "change") {
+        openChangeSlideshowModal(emergencyId, actionButton);
+    }
+}
+
+function _buildChangeModal() {
+    const existing = document.getElementById("changeEmergencySlideshowModal");
+    if (existing) return existing;
+
+    const modalWrap = document.createElement("div");
+    modalWrap.id = "changeEmergencySlideshowModal";
+    modalWrap.className = "modal fade";
+    modalWrap.tabIndex = -1;
+        modalWrap.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${gettext("Change slideshow")}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">${gettext("Select slideshow")}</label>
+                                <select class="form-select" id="changeEmergencySlideshowSelect"></select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">${gettext("Select display groups")}</label>
+                                <select class="form-select" id="changeEmergencyGroupsSelect" multiple size="8"></select>
+                                <div class="form-text">${gettext("All selected groups must belong to the same branch.")}</div>
+                            </div>
+                            <div id="change-emergency-feedback" class="text-danger d-none"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${gettext("Cancel")}</button>
+                            <button type="button" class="btn btn-primary" id="changeEmergencySubmit">${gettext("Save")}</button>
+                        </div>
+                    </div>
+                </div>
+        `;
+    document.body.appendChild(modalWrap);
+    return modalWrap;
+}
+
+function openChangeSlideshowModal(emergencyId, triggerButton) {
+    const modalEl = _buildChangeModal();
+    const bsModal = new bootstrap.Modal(modalEl);
+    const select = modalEl.querySelector("#changeEmergencySlideshowSelect");
+    const groupsSelect = modalEl.querySelector("#changeEmergencyGroupsSelect");
+    const feedback = modalEl.querySelector("#change-emergency-feedback");
+    const submit = modalEl.querySelector("#changeEmergencySubmit");
+
+    // populate slideshow options
+    select.innerHTML = "";
+    const current = state.emergencies.find((e) => e.id === emergencyId)?.slideshow?.id;
+    state.slideshows.forEach((ss) => {
+        const opt = document.createElement("option");
+        opt.value = ss.id;
+        opt.textContent = ss.name || gettext("Untitled slideshow");
+        if (ss.id === current) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    // populate groups multi-select
+    groupsSelect.innerHTML = "";
+    const currentGroupIds = (state.emergencies.find((e) => e.id === emergencyId)?.display_website_groups || []).map((g) => g.id);
+    state.groups.forEach((g) => {
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        opt.textContent = g.name || gettext("Untitled group");
+        if (currentGroupIds.includes(g.id)) opt.selected = true;
+        groupsSelect.appendChild(opt);
+    });
+
+    feedback.classList.add("d-none");
+
+    const onSubmit = async () => {
+        const val = select.value;
+        const slideshowId = val ? parseInt(val, 10) : null;
+        const selectedGroupIds = Array.from(groupsSelect.selectedOptions || []).map((o) => parseInt(o.value, 10)).filter((n) => !Number.isNaN(n));
+        if (!selectedGroupIds.length) {
+            feedback.textContent = gettext("Please select at least one display group.");
+            feedback.classList.remove("d-none");
+            return;
+        }
+
+        submit.disabled = true;
+        try {
+            await genericFetch(
+                `${BASE_URL}/api/emergency-slideshows/${emergencyId}/`,
+                "PATCH",
+                { slideshow_id: slideshowId, display_website_group_ids: selectedGroupIds },
+            );
+            showToast(gettext("Emergency slideshow updated"), gettext("Success"));
+            bsModal.hide();
+            await loadEmergencies();
+        } catch (err) {
+            console.error("Failed to change emergency slideshow", err);
+            feedback.textContent = extractErrorMessage(err);
+            feedback.classList.remove("d-none");
+        } finally {
+            submit.disabled = false;
+        }
+    };
+
+    submit.onclick = onSubmit;
+
+    bsModal.show();
 }
 
 async function toggleEmergencyState(emergencyId, nextState, button) {
