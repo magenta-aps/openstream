@@ -85,7 +85,7 @@ function setFilterPopoverContent(content) {
       "btn-link",
       "template-filter-panel__reset",
     );
-    resetBtn.textContent = gettext("Reset filters");
+    resetBtn.textContent = gettext("Remove Filters");
   }
 
   resetContainer.appendChild(resetBtn);
@@ -478,11 +478,6 @@ function cacheDomReferences() {
   filterPopoverBtn = filterPanel.querySelector("#templateFilterPopoverBtn");
   sortDropdown = filterPanel.querySelector("#templateFilterSort");
   chipsContainer = filterPanel.querySelector("#templateFilterChips");
-  categoryToggleBtn = filterPanel.querySelector(
-    "#templateFilterCategoryToggle",
-  );
-  tagToggleBtn = filterPanel.querySelector("#templateFilterTagToggle");
-  aspectToggleBtn = filterPanel.querySelector("#templateFilterAspectToggle");
 }
 
 function attachEventListeners() {
@@ -715,6 +710,7 @@ function updateChips() {
     chips.push(createChip(ratio, ratio, "aspect"));
   });
 
+
   if (!chips.length) {
     chipsContainer.innerHTML = `<p class="text-muted small mb-0">${gettext(
       "No filters applied",
@@ -722,19 +718,31 @@ function updateChips() {
     return;
   }
 
-  chipsContainer.innerHTML = chips.join("");
+  // reset from previous content
+  chipsContainer.innerHTML = "";
+
+  chips.forEach(chip => chipsContainer.appendChild(chip));
+
+  const btn = document.createElement("btn");
+  btn.classList.add("btn", "btn-sm", "btn-link", "template-filter-Panel__reset");
+  btn.textContent = gettext("Remove Chips");
+  btn.addEventListener("click", resetTemplateFilters);
+
+  chipsContainer.appendChild(btn);
 }
 
 function createChip(label, value, type) {
   const sanitizedLabel = label ?? "";
-  return `
-    <span class="badge template-filter-chip">
+  const chip = document.createElement("span");
+  chip.classList.add("badge", "template-filter-chip");
+  chip.innerHTML = `
       ${sanitizedLabel}
       <button type="button" class="btn-close btn-close-white" aria-label="${gettext(
         "Remove filter",
       )}" data-filter-chip="${type}" data-filter-value="${value}"></button>
-    </span>
   `;
+
+  return chip;
 }
 
 function syncInputsWithState() {

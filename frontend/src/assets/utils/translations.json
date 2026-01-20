@@ -2453,6 +2453,12 @@
   "Show Filters": {
     "da": "Vis Filtre"
   },
+  "Remove Filters": {
+    "da": "Ryd filtre"
+  },
+  "Remove Chips": {
+    "da": "Ryd alle"
+  },
   "Please enter some dynamic content (HTML).": {
     "da": "Indtast noget dynamisk indhold (HTML)."
   },
@@ -3951,4 +3957,3 @@
     "da": "omvendt lige parallelogram"
   }
 }
-
