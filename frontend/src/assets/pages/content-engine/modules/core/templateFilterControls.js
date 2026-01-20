@@ -28,18 +28,15 @@ let clearSearchBtn;
 let filterPopoverBtn;
 let filterPopoverAPI;
 let filterPopoverContent;
-let sortSelect;
+let sortDropdown;
 let resetBtn;
 let chipsContainer;
-let categoryToggleBtn;
-let tagToggleBtn;
-let aspectToggleBtn;
 
 /**
  * @typedef {Map<string, {name: string, count: number }>} FilterOptionMap
  */
 
- /** @type {FilterOptionMap} */
+/** @type {FilterOptionMap} */
 let availableCategories = new Map();
 /** @type {FilterOptionMap} */
 let availableTags = new Map();
@@ -63,8 +60,8 @@ function createPopover(triggerID, content) {
         </div>
       </div>
     `,
-    offset: [0, 0]
-  })
+    offset: [0, 0],
+  });
 }
 
 /**
@@ -74,34 +71,45 @@ function createPopover(triggerID, content) {
  */
 function setFilterPopoverContent(content) {
   filterPopoverContent.innerHTML = content;
-  attachFilterPopoverEventListeners()
+  attachFilterPopoverEventListeners();
 
   const resetContainer = document.createElement("div");
-  resetContainer.classList.add("d-flex", "justify-content-end")
+  resetContainer.classList.add("d-flex", "justify-content-end");
 
   if (!resetBtn) {
     resetBtn = document.createElement("button");
     resetBtn.id = "templateFilterReset";
-    resetBtn.classList.add("btn", "btn-sm", "btn-link", "template-filter-panel__reset");
-    resetBtn.textContent = gettext("Reset filters");;
+    resetBtn.classList.add(
+      "btn",
+      "btn-sm",
+      "btn-link",
+      "template-filter-panel__reset",
+    );
+    resetBtn.textContent = gettext("Reset filters");
   }
 
   resetContainer.appendChild(resetBtn);
   filterPopoverContent.appendChild(resetContainer);
 }
 
+function updatePopOverContent() {
+  setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML);
+}
+
 function attachFilterPopoverEventListeners() {
   const filterTypes = [
     { id: "#template-filter-category-select", type: "category" },
     { id: "#template-filter-tag-select", type: "tag" },
-    { id: "#template-filter-aspect-ratio-select", type: "event" },
+    { id: "#template-filter-aspect-ratio-select", type: "aspect-ratio" },
   ];
 
-  filterTypes.forEach(filterType => {
+  filterTypes.forEach((filterType) => {
     filterPopoverContent
       .querySelector(filterType.id)
-      .addEventListener("change", (event) => handleFilterChange(filterType.type, event));
-  })
+      .addEventListener("change", (event) =>
+        handleFilterChange(filterType.type, event),
+      );
+  });
 }
 
 /**
@@ -122,22 +130,22 @@ function createAccordion(parentID, forceOpen) {
 }
 
 /**
-* @description
-* Creates a accordion item appender
-* @param {HTMLElement} accordion - The root element
-* @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
-* @returns A function that will append a new accordion item to the root element
-*/
+ * @description
+ * Creates a accordion item appender
+ * @param {HTMLElement} accordion - The root element
+ * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
+ * @returns A function that will append a new accordion item to the root element
+ */
 function createAccordionItemAppender(accordion, forceOpen) {
   /**
-  * @description
-  * Adds a new item to the accordion returned from createAccordion
-  * @param {string} itemID - The id of this item
-  * @param {string} headerText - The header text
-  * @param {string} body - The item body
-  * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
-  * @returns A function that will append a new accordion item to the root element
-  */
+   * @description
+   * Adds a new item to the accordion returned from createAccordion
+   * @param {string} itemID - The id of this item
+   * @param {string} headerText - The header text
+   * @param {string} body - The item body
+   * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
+   * @returns A function that will append a new accordion item to the root element
+   */
   return (itemID, headerText, body, forceOpen) => {
     const existingItem = accordion.querySelector(`#${itemID}`);
     if (existingItem) {
@@ -147,7 +155,7 @@ function createAccordionItemAppender(accordion, forceOpen) {
     item.classList.add("accordion-item");
     item.id = itemID;
 
-    const itemBodyID = `${itemID}-body`
+    const itemBodyID = `${itemID}-body`;
     item.innerHTML = `
       <h2 class="accordion-header">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${itemBodyID}" aria-expanded="true" aria-controls="${itemBodyID}">
@@ -162,7 +170,7 @@ function createAccordionItemAppender(accordion, forceOpen) {
     `;
 
     accordion.appendChild(item);
-  }
+  };
 }
 
 /**
@@ -180,8 +188,8 @@ function createFilterItem(itemID, filterID, labelText, checked) {
     <div class="form-check">
       <input class="form-check-input" type="checkbox" value="${filterID}" id="${itemID}" ${checked}>
       <label class="form-check-label" for="${itemID}">${labelText}</label>
-    </div>`
-  };
+    </div>`;
+}
 
 function isTemplateMode() {
   return (
@@ -258,7 +266,7 @@ export function refreshTemplateFilterOptions() {
     if (slide.categoryId && slide.categoryName) {
       const categoryID = String(slide.categoryId);
 
-      let category = categoriesMap.get(categoryID)
+      let category = categoriesMap.get(categoryID);
       if (category) {
         category.count += 1;
       } else {
@@ -304,15 +312,11 @@ export function refreshTemplateFilterOptions() {
   availableAspectRatios = aspectMap;
 
   renderFilterOptions();
-  //renderCategoryOptions();
-  //renderTagOptions();
-  //renderAspectOptions();
-  updateToggleLabels();
   updateChips();
   updateResetButtonState();
 
   if (filterPopoverContent) {
-    setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML)
+    updatePopOverContent();
   }
 }
 
@@ -405,23 +409,25 @@ function sortWorkingList(list) {
 }
 
 function renderFilterPanel() {
-  const categoriesLabel = gettext("Categories");
-  const tagsLabel = gettext("Tags");
-  const aspectLabel = gettext("Aspect ratios");
   const searchLabel = gettext("Search templates");
-  const orderByLabel = gettext("Order by");
-  const resetLabel = gettext("Reset filters");
 
   filterPopoverBtn = document.createElement("button");
   filterPopoverBtn.id = "templateFilterPopoverBtn";
-  filterPopoverBtn.classList.add("btn", "btn-sm", "d-flex", "align-items-center", "align-items-center", "row-gap-1");
+  filterPopoverBtn.classList.add(
+    "btn",
+    "btn-sm",
+    "d-flex",
+    "align-items-center",
+    "align-items-center",
+    "row-gap-1",
+  );
   filterPopoverBtn.setAttribute("data-bs-toggle", "popover");
   filterPopoverBtn.setAttribute("data-bs-placement", "bottom");
-  filterPopoverBtn.innerHTML = `<i class="material-symbols-outlined">tune</i><span>${gettext("Filters")}</span>`
+  filterPopoverBtn.innerHTML = `<i class="material-symbols-outlined">tune</i><span>${gettext("Filters")}</span>`;
 
   filterPopoverContent = document.createElement("div");
 
-  setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML)
+  updatePopOverContent();
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
@@ -438,48 +444,30 @@ function renderFilterPanel() {
         </div>
 
         ${filterPopoverBtn.outerHTML}
+      </div>
 
-        <!-- Removing sort temp
-        <div class="form-floating template-filter-panel__sort">
-          <select class="form-select" id="templateFilterSort">
-            <option value="${NAME_SORT_KEY}:asc">${gettext("Name (A-Z)")}</option>
-            <option value="${NAME_SORT_KEY}:desc">${gettext("Name (Z-A)")}</option>
-            <option value="${CATEGORY_SORT_KEY}:asc">${gettext("Category (A-Z)")}</option>
-            <option value="${CATEGORY_SORT_KEY}:desc">${gettext("Category (Z-A)")}</option>
-            <option value="${TAG_SORT_KEY}:asc">${gettext("Tags (A-Z)")}</option>
-            <option value="${TAG_SORT_KEY}:desc">${gettext("Tags (Z-A)")}</option>
-          </select>
-          <label for="templateFilterSort">${orderByLabel}</label>
+      <div id="templateFilterChips" class="template-filter-panel__row">
+      </div>
+
+      <div class="template-filter-panel__row align-items-center">
+        <span>${store.slides.length} ${gettext("Templates")}</span>
+
+        <div class="dropdown" id="templateFilterSort" data-selected-value="${NAME_SORT_KEY}:asc">
+          <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="material-symbols-outlined">sort</i>
+            ${gettext("Name (A-Z)")}
+          </button>
+
+          <ul class="dropdown-menu">
+            <li><button class="dropdown-item" type="button" data-value="${NAME_SORT_KEY}:asc">${gettext("Name (A-Z)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${NAME_SORT_KEY}:desc">${gettext("Name (Z-A)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${CATEGORY_SORT_KEY}:asc">${gettext("Category (A-Z)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${CATEGORY_SORT_KEY}:desc">${gettext("Category (Z-A)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${TAG_SORT_KEY}:asc">${gettext("Tag (A-Z)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${TAG_SORT_KEY}:desc">${gettext("Tag (Z-A)")}</button></li>
+          </ul>
         </div>
-        -->
       </div>
-      <!-- TODO: Remove
-      <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle">
-        <span class="template-filter-panel__toggle-label">${categoriesLabel}</span>
-        <span class="material-symbols-outlined">expand_more</span>
-      </button>
-      <div class="collapse show" id="templateCategoryCollapse">
-        <div class="template-filter-options" id="templateFilterCategories"></div>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateTagCollapse" id="templateFilterTagToggle">
-        <span class="template-filter-panel__toggle-label">${tagsLabel}</span>
-        <span class="material-symbols-outlined">expand_more</span>
-      </button>
-      <div class="collapse" id="templateTagCollapse">
-        <div class="template-filter-options" id="templateFilterTags"></div>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateAspectCollapse" id="templateFilterAspectToggle">
-        <span class="template-filter-panel__toggle-label">${aspectLabel}</span>
-        <span class="material-symbols-outlined">expand_more</span>
-      </button>
-      <div class="collapse" id="templateAspectCollapse">
-        <div class="template-filter-options" id="templateFilterAspects"></div>
-      </div>
-      <div class="d-flex justify-content-between align-items-center gap-2 mt-2">
-        <div class="template-filter-chips flex-grow-1" id="templateFilterChips"></div>
-        <button class="btn btn-sm btn-link template-filter-panel__reset" type="button" id="templateFilterReset">${resetLabel}</button>
-      </div>
-      -->
     </div>
   `;
 }
@@ -488,7 +476,7 @@ function cacheDomReferences() {
   searchInput = filterPanel.querySelector("#templateFilterSearch");
   clearSearchBtn = filterPanel.querySelector("#templateFilterSearchClear");
   filterPopoverBtn = filterPanel.querySelector("#templateFilterPopoverBtn");
-  sortSelect = filterPanel.querySelector("#templateFilterSort");
+  sortDropdown = filterPanel.querySelector("#templateFilterSort");
   chipsContainer = filterPanel.querySelector("#templateFilterChips");
   categoryToggleBtn = filterPanel.querySelector(
     "#templateFilterCategoryToggle",
@@ -512,7 +500,10 @@ function attachEventListeners() {
   }
 
   if (filterPopoverBtn) {
-    filterPopoverAPI = createPopover("templateFilterPopoverBtn",filterPopoverContent);
+    filterPopoverAPI = createPopover(
+      "templateFilterPopoverBtn",
+      filterPopoverContent,
+    );
 
     filterPopoverBtn.addEventListener("click", () => {
       filterPopoverAPI.toggle();
@@ -521,13 +512,20 @@ function attachEventListeners() {
     attachFilterPopoverEventListeners();
   }
 
-  if (sortSelect) {
-    sortSelect.addEventListener("change", (event) => {
-      filterState.sortKey = event.target.value;
-      emitFilterChange();
+  if (sortDropdown) {
+    sortDropdown.querySelectorAll(".dropdown-item").forEach((btn) => {
+      btn.addEventListener("click", (event) => {
+        const selectedValue = event.target.getAttribute("data-value");
+        sortDropdown.setAttribute("data-selected-value", selectedValue);
+
+        sortDropdown.querySelector(".dropdown-toggle").innerHTML =
+          `<i class="material-symbols-outlined">sort</i>${event.target.textContent}`;
+
+        filterState.sortKey = selectedValue;
+        emitFilterChange();
+      });
     });
   }
-  // TODO: Figure out how handle the resteBtn being reset
   if (resetBtn) {
     resetBtn.addEventListener("click", resetTemplateFilters);
   }
@@ -546,7 +544,8 @@ function handleSearchInput(event) {
 }
 
 /**
- *
+ * @description
+ * handles filter changes for category, tags and aspect ratio
  * @param {"category" | "tag" | "aspect-ratio"} type
  * @param {Event} event
  */
@@ -567,19 +566,19 @@ function handleFilterChange(type, event) {
   }
 
   if (!target || target.tagName !== "INPUT") {
-      return;
-    }
-    const value = target.value;
-    if (!value) {
-      return;
-    }
-    if (target.checked) {
-      state.add(value);
-    } else {
-      state.delete(value);
-    }
+    return;
+  }
+  const value = target.value;
+  if (!value) {
+    return;
+  }
+  if (target.checked) {
+    state.add(value);
+  } else {
+    state.delete(value);
+  }
 
-    emitFilterChange();
+  emitFilterChange();
 }
 
 function handleChipInteraction(event) {
@@ -597,7 +596,7 @@ function handleChipInteraction(event) {
     }
   } else if (filterType === "category" && filterValue) {
     filterState.categories.delete(filterValue);
-    const checkbox = filterPanel.querySelector(
+    const checkbox = filterPopoverContent.querySelector(
       `#template-filter-category-${escapeForSelector(filterValue)}`,
     );
     if (checkbox) {
@@ -605,7 +604,7 @@ function handleChipInteraction(event) {
     }
   } else if (filterType === "tag" && filterValue) {
     filterState.tags.delete(filterValue);
-    const checkbox = filterPanel.querySelector(
+    const checkbox = filterPopoverContent.querySelector(
       `#template-filter-tag-${escapeForSelector(filterValue)}`,
     );
     if (checkbox) {
@@ -613,7 +612,7 @@ function handleChipInteraction(event) {
     }
   } else if (filterType === "aspect" && filterValue) {
     filterState.aspectRatios.delete(filterValue);
-    const checkbox = filterPanel.querySelector(
+    const checkbox = filterPopoverContent.querySelector(
       `#template-filter-aspect-${escapeForSelector(filterValue)}`,
     );
     if (checkbox) {
@@ -627,17 +626,33 @@ function handleChipInteraction(event) {
 function renderFilterOptions() {
   // TODO: Use getText()
   const filterTypes = [
-    { state: filterState.categories, parentID: "template-filter-category-select", title: "Categories", idPrefix: "template-filter-category", filters: availableCategories },
-    { state: filterState.tags, parentID: "template-filter-tag-select", title: "Tags", idPrefix: "template-filter-tag", filters: availableTags },
-    { state: filterState.aspectRatios, parentID: "template-filter-aspect-ratio-select", title: "Aspect-ratios", idPrefix: "template-filter-aspect", filters: availableAspectRatios }
-  ]
-    .map(type => ({
-      ...type,
-      filters: Array.from(type.filters.entries()).sort(([a, b]) => {
-        return a[0].localeCompare(b.name[0], undefined, { sensitivity: "base" });
-      }
-      )
-    }))
+    {
+      state: filterState.categories,
+      parentID: "template-filter-category-select",
+      title: "Categories",
+      idPrefix: "template-filter-category",
+      filters: availableCategories,
+    },
+    {
+      state: filterState.tags,
+      parentID: "template-filter-tag-select",
+      title: "Tags",
+      idPrefix: "template-filter-tag",
+      filters: availableTags,
+    },
+    {
+      state: filterState.aspectRatios,
+      parentID: "template-filter-aspect-ratio-select",
+      title: "Aspect-ratios",
+      idPrefix: "template-filter-aspect",
+      filters: availableAspectRatios,
+    },
+  ].map((type) => ({
+    ...type,
+    filters: Array.from(type.filters.entries()).sort(([a, b]) => {
+      return a[0].localeCompare(b.name[0], undefined, { sensitivity: "base" });
+    }),
+  }));
 
   /* TODO: Handle no available for all filter types
   if (!entries.length) {
@@ -648,59 +663,31 @@ function renderFilterOptions() {
   }
   */
 
-  const filterOptions = filterTypes
-    .map((type) => ({
-      parentID: type.parentID,
-      title: type.title,
-      body: type.filters.map(([id, data]) => {
+  const filterOptions = filterTypes.map((type) => ({
+    parentID: type.parentID,
+    title: type.title,
+    body: type.filters
+      .map(([id, data]) => {
         const checkboxId = `${type.idPrefix}-${type.idPrefix !== "template-filter-aspect" ? id : escapeForSelector(id)}`;
         const checked = type.state.has(id) ? "checked" : "";
         return createFilterItem(
           checkboxId,
           id,
           `${data.name} (${data.count})`,
-          checked
-        )
-      }).join("")
-    }));
+          checked,
+        );
+      })
+      .join(""),
+  }));
 
-  filterOptions.forEach(filter => filterOptionsRoot.addAccordionItem(filter.parentID, filter.title, filter.body, true))
-}
-
-function updateToggleLabels() {
-  if (categoryToggleBtn) {
-    const label = categoryToggleBtn.querySelector(
-      ".template-filter-panel__toggle-label",
-    );
-    if (label) {
-      const count = filterState.categories.size;
-      label.textContent = count
-        ? `${gettext("Categories")} (${count})`
-        : gettext("Categories");
-    }
-  }
-  if (tagToggleBtn) {
-    const label = tagToggleBtn.querySelector(
-      ".template-filter-panel__toggle-label",
-    );
-    if (label) {
-      const count = filterState.tags.size;
-      label.textContent = count
-        ? `${gettext("Tags")} (${count})`
-        : gettext("Tags");
-    }
-  }
-  if (aspectToggleBtn) {
-    const label = aspectToggleBtn.querySelector(
-      ".template-filter-panel__toggle-label",
-    );
-    if (label) {
-      const count = filterState.aspectRatios.size;
-      label.textContent = count
-        ? `${gettext("Aspect ratios")} (${count})`
-        : gettext("Aspect ratios");
-    }
-  }
+  filterOptions.forEach((filter) =>
+    filterOptionsRoot.addAccordionItem(
+      filter.parentID,
+      filter.title,
+      filter.body,
+      true,
+    ),
+  );
 }
 
 function updateChips() {
@@ -715,13 +702,13 @@ function updateChips() {
   }
 
   filterState.categories.forEach((categoryId) => {
-    const label = availableCategories.get(categoryId) || gettext("Category");
-    chips.push(createChip(label, categoryId, "category"));
+    const category = availableCategories.get(categoryId) || gettext("Category");
+    chips.push(createChip(category.name, categoryId, "category"));
   });
 
   filterState.tags.forEach((tagId) => {
-    const label = availableTags.get(tagId) || gettext("Tag");
-    chips.push(createChip(label, tagId, "tag"));
+    const tag = availableTags.get(tagId) || gettext("Tag");
+    chips.push(createChip(tag.name, tagId, "tag"));
   });
 
   filterState.aspectRatios.forEach((ratio) => {
@@ -757,11 +744,16 @@ function syncInputsWithState() {
   if (clearSearchBtn) {
     clearSearchBtn.classList.toggle("d-none", filterState.search === "");
   }
-  if (sortSelect) {
-    sortSelect.value = filterState.sortKey;
+  if (sortDropdown) {
+    sortDropdown.setAttribute("data-selected-value", filterState.sortKey);
+    const selectedName =
+      sortDropdown.querySelector(
+        `.dropdown-item[data-value="${filterState.sortKey}"`,
+      )?.textContent ?? gettext("Name (A-Z)");
+    sortDropdown.querySelector(".dropdown-toggle").innerHTML =
+      `<i class="material-symbols-outlined">sort</i>${selectedName}`;
   }
   syncCheckboxSelections();
-  updateToggleLabels();
   updateResetButtonState();
 }
 
@@ -769,17 +761,20 @@ function syncCheckboxSelections() {
   const filters = [
     { id: "template-filter-category-select", state: filterState.categories },
     { id: "template-filter-tag-select", state: filterState.tags },
-    { id: "template-filter-aspect-ratio-select", state: filterState.aspectRatios },
+    {
+      id: "template-filter-aspect-ratio-select",
+      state: filterState.aspectRatios,
+    },
   ];
 
-  filters.forEach(filter => {
+  filters.forEach((filter) => {
     filterOptionsRoot.accordion
       .querySelectorAll(`#${filter.id} input[type='checkbox']`)
       .forEach((input) => {
         input.checked = filter.state.has(input.value);
       });
 
-    setFilterPopoverContent(filterOptionsRoot.accordion.outerHTML);
+    updatePopOverContent();
   });
 }
 
@@ -792,7 +787,6 @@ function updateResetButtonState() {
 
 function emitFilterChange() {
   updateChips();
-  updateToggleLabels();
   updateResetButtonState();
   document.dispatchEvent(
     new CustomEvent(FILTER_EVENT, {
