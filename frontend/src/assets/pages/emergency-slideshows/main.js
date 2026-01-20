@@ -552,8 +552,19 @@ function renderSlideshows() {
             openSlideshowEditor(slideshow.id);
         });
 
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "btn btn-outline-danger btn-sm slideshow-card-delete ms-2";
+        deleteButton.innerHTML = `<span class="material-symbols-outlined align-middle me-1" aria-hidden="true">delete</span>${gettext("Delete")}`;
+        deleteButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            deleteSlideshow(slideshow.id, deleteButton);
+        });
+
         metaWrapper.appendChild(ratioBadge);
         metaWrapper.appendChild(editButton);
+        metaWrapper.appendChild(deleteButton);
 
         content.appendChild(textWrapper);
         content.appendChild(metaWrapper);
@@ -929,6 +940,26 @@ async function deleteEmergency(emergencyId, button) {
         await loadEmergencies();
     } catch (error) {
         console.error("Failed to delete emergency slideshow", error);
+        showToast(extractErrorMessage(error), gettext("Error"));
+    } finally {
+        button?.classList.remove("disabled");
+    }
+}
+
+async function deleteSlideshow(slideshowId, button) {
+    if (!window.confirm(gettext("Delete this slideshow?"))) {
+        return;
+    }
+    button?.classList.add("disabled");
+    try {
+        await genericFetch(
+            `${BASE_URL}/api/manage_content/${slideshowId}/?branch_id=${selectedBranchID}`,
+            "DELETE",
+        );
+        showToast(gettext("Slideshow removed"), gettext("Success"));
+        await loadSlideshows();
+    } catch (error) {
+        console.error("Failed to delete slideshow", error);
         showToast(extractErrorMessage(error), gettext("Error"));
     } finally {
         button?.classList.remove("disabled");
