@@ -435,12 +435,12 @@ function renderFilterPanel() {
           </button>
         </div>
 
-        <button id="templateFilterPopoverBtn" class="btn btn-sm d-flex align-items-center row-gap-1" popovertarget="templateFilterPopoverContent">
+        <button id="templateFilterPopoverBtn" class="btn btn-sm d-flex align-items-center row-gap-1 template-filter-panel__popover-trigger" popovertarget="templateFilterPopoverContent">
           <i class="material-symbols-outlined">tune</i>
           ${gettext("Filters")}
         </button>
 
-        <div id="templateFilterPopoverContent" popover>
+        <div id="templateFilterPopoverContent" class="template-filter-panel__popover-content" popover>
           <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle" aria-expanded="true">
             <span>${categoriesLabel}</span>
             <span class="material-symbols-outlined">expand_more</span>
@@ -475,26 +475,7 @@ function renderFilterPanel() {
         </div>
       </div>
 
-      <!-- TODO: handle style elsewhere -->
-      <style>
-        #templateFilterPopoverBtn {
-          anchor-name: --filter-anchor;
-        }
-
-        #templateFilterPopoverContent {
-          anchor-name: --filter-anchor;
-          position-anchor: --filter-anchor;
-          position-area: bottom center;
-          width: 15.5rem;
-          padding: 0.5rem 1rem;
-          background-color: #fff;
-          border: 1px solid var(--Gray);
-          border-radius: 0.25rem;
-          box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.20);
-        }
-      </style>
-
-      <div id="templateFilterChips" class="template-filter-panel__row">
+      <div id="templateFilterChips" class="template-filter-panel__chips-container template-filter-panel__row">
       </div>
 
       <div class="template-filter-panel__row align-items-center">

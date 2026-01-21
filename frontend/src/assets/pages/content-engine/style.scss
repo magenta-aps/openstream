@@ -479,7 +479,6 @@ body {
   visibility: hidden;
 }
 
-
 /* New CSS for the media change button (used by images, videos, and embedded websites) */
 .media-change-btn {
   position: absolute;
@@ -887,12 +886,10 @@ span {
   box-shadow: 0 1px 0 rgba($black, 0.03) inset;
 }
 
-
 #eventPreviewList .list-group-item.active {
-background: $secondary-accent-lighter;
-color: black;
-border: $black;
-
+  background: $secondary-accent-lighter;
+  color: black;
+  border: $black;
 }
 
 #slide-elements-list .list-group-item .fw-bold {
@@ -1352,7 +1349,6 @@ border: $black;
   animation: fadeIn 0.1s forwards;
 }
 
-
 .resize-handle {
   display: none;
   width: 23px;
@@ -1622,7 +1618,7 @@ border: $black;
 }
 
 .dropdown-menu.tiptap-font-size-dropdown-menu.shadow.show {
- left: -3.4rem !important;
+  left: -3.4rem !important;
 }
 
 .slide-element *::-webkit-scrollbar {
@@ -2451,15 +2447,6 @@ border: $black;
 
 /* Template filter controls */
 .template-filter-panel {
-  background-color: $white;
-  border: 1px solid rgba($dark-gray, 0.2);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  margin-top: 1rem;
-  font-size: 0.9rem;
-}
-
-.template-filter-panel-no-bg {
   padding: 0.75rem;
   margin-top: 1rem;
   font-size: 0.9rem;
@@ -2488,22 +2475,33 @@ border: $black;
   color: $dark-gray;
 }
 
+.template-filter-panel__popover-trigger {
+  anchor-name: --filter-anchor;
+}
+
+.template-filter-panel__popover-content {
+  anchor-name: --filter-anchor;
+  position-anchor: --filter-anchor;
+  position-area: bottom center;
+  width: 15.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid var(--Gray);
+  border-radius: 0.25rem;
+  box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.2);
+}
+
 .template-filter-panel__toggle {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
-  border-color: rgba($dark-gray, 0.25);
-  background-color: $white;
 }
 
-.template-filter-options {
+.template-filter-panel__options {
   max-height: 180px;
   overflow-y: auto;
   padding: 0.25rem 0.5rem;
-  border: 1px solid rgba($dark-gray, 0.15);
-  border-radius: 0.5rem;
-  background-color: $secondary-accent-light;
 }
 
 .template-filter-checkbox + .template-filter-checkbox {
@@ -2512,6 +2510,10 @@ border: $black;
 
 .template-filter-checkbox .form-check-label {
   font-size: 0.85rem;
+}
+
+.template-filter-panel__chips-container {
+  flex-wrap: wrap;
 }
 
 .template-filter-chip {
