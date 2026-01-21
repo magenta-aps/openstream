@@ -24,7 +24,6 @@ let filterPanel;
 let isInitialized = false;
 let searchInput;
 let clearSearchBtn;
-let filterPopoverBtn;
 let filterPopoverContent;
 let sortDropdown;
 let resetBtn;
@@ -625,24 +624,24 @@ function handleChipInteraction(event) {
     }
   } else if (filterType === "category" && filterValue) {
     filterState.categories.delete(filterValue);
-    const checkbox = filterPopoverContent.querySelector(
-      `#template-filter-category-${escapeForSelector(filterValue)}`,
+    const checkbox = document.getElementById(
+      `template-filter-category-${escapeForSelector(filterValue)}`,
     );
     if (checkbox) {
       checkbox.checked = false;
     }
   } else if (filterType === "tag" && filterValue) {
     filterState.tags.delete(filterValue);
-    const checkbox = filterPopoverContent.querySelector(
-      `#template-filter-tag-${escapeForSelector(filterValue)}`,
+    const checkbox = document.getElementById(
+      `template-filter-tag-${escapeForSelector(filterValue)}`,
     );
     if (checkbox) {
       checkbox.checked = false;
     }
   } else if (filterType === "aspect" && filterValue) {
     filterState.aspectRatios.delete(filterValue);
-    const checkbox = filterPopoverContent.querySelector(
-      `#template-filter-aspect-${escapeForSelector(filterValue)}`,
+    const checkbox = document.getElementById(
+      `template-filter-aspect-${escapeForSelector(filterValue)}`,
     );
     if (checkbox) {
       checkbox.checked = false;
@@ -671,7 +670,6 @@ function renderFilterOptions() {
 
   const filterTypes = [
     {
-      type: "categories",
       state: filterState.categories,
       parentID: "templateCategoryOptions",
       title: gettext("Category"),
@@ -688,7 +686,6 @@ function renderFilterOptions() {
       noneAvailableName: "No tags available yet.",
     },
     {
-      type: "aspect ratios",
       state: filterState.aspectRatios,
       parentID: "templateAspectOptions",
       title: gettext("Aspect Ratio"),
@@ -703,8 +700,6 @@ function renderFilterOptions() {
     }),
   }));
 
-  const noFiltersAvailable = (type) =>
-    `<p class="text-muted small mb-0">${gettext("No ${} available yet.")}</p>`;
   const filterOptions = filterTypes.map((type) => {
     const option = {
       parentID: type.parentID,
