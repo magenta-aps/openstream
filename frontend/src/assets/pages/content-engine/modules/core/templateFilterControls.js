@@ -412,6 +412,15 @@ function sortWorkingList(list) {
   });
 }
 
+export function updateTemplateSlideCount() {
+  if (filterPanel) {
+    const templateCount = filterPanel.querySelector(
+      "#templateFilterPanelSlideCount",
+    );
+    templateCount.textContent = `${store.slides.length} ${gettext("Templates")}`;
+  }
+}
+
 function renderFilterPanel() {
   const categoriesLabel = gettext("Categories");
   const tagsLabel = gettext("Tags");
@@ -478,7 +487,7 @@ function renderFilterPanel() {
       </div>
 
       <div class="template-filter-panel__row align-items-center">
-        <span>${store.slides.length} ${gettext("Templates")}</span>
+        <span id="templateFilterPanelSlideCount"></span>
 
         <div class="dropdown" id="templateFilterSort" data-selected-value="${NAME_SORT_KEY}:asc">
           <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -498,12 +507,12 @@ function renderFilterPanel() {
       </div>
     </div>
   `;
+  updateTemplateSlideCount();
 }
 
 function cacheDomReferences() {
   searchInput = filterPanel.querySelector("#templateFilterSearch");
   clearSearchBtn = filterPanel.querySelector("#templateFilterSearchClear");
-  filterPopoverBtn = filterPanel.querySelector("#templateFilterPopoverBtn");
   filterPopoverContent = filterPanel.querySelector(
     "#templateFilterPopoverContent",
   );
