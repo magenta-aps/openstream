@@ -634,7 +634,7 @@ function handleChipInteraction(event) {
   } else if (filterType === "category" && filterValue) {
     filterState.categories.delete(filterValue);
     const checkbox = document.getElementById(
-      `template-filter-category-${escapeForSelector(filterValue)}`,
+      `template-filter-category-${filterValue}`,
     );
     if (checkbox) {
       checkbox.checked = false;
@@ -642,7 +642,7 @@ function handleChipInteraction(event) {
   } else if (filterType === "tag" && filterValue) {
     filterState.tags.delete(filterValue);
     const checkbox = document.getElementById(
-      `template-filter-tag-${escapeForSelector(filterValue)}`,
+      `template-filter-tag-${filterValue}`,
     );
     if (checkbox) {
       checkbox.checked = false;
@@ -777,15 +777,17 @@ function updateChips() {
     chips.push(createChip(ratio, ratio, "aspect"));
   });
 
+  // reset from previous content
+  chipsContainer.innerHTML = "";
+
   if (!chips.length) {
+    /*
     chipsContainer.innerHTML = `<p class="text-muted small mb-0">${gettext(
       "No filters applied",
     )}</p>`;
+    */
     return;
   }
-
-  // reset from previous content
-  chipsContainer.innerHTML = "";
 
   chips.forEach((chip) => chipsContainer.appendChild(chip));
 
