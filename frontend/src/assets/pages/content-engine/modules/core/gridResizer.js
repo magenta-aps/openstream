@@ -4,6 +4,7 @@ import { store } from "./slideStore.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { queryParams } from "../../../../utils/utils.js";
 import { isElementLocked } from "../element_formatting/lockElement.js";
+import { selectElement } from "./elementSelector.js";
 import { GRID_CONFIG, GridUtils, getDragSnapSteps } from "../config/gridConfig.js";
 import { updateGridInfo, clearGridInfo } from "../utils/statusBar.js";
 
@@ -124,6 +125,14 @@ export function makeDraggable(el, dataObj) {
     // Final position update for resize handle
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
+    }
+
+    if (hasDragged) {
+      requestAnimationFrame(() => {
+        if (document.body.contains(el)) {
+          selectElement(el, dataObj);
+        }
+      });
     }
   }
 
