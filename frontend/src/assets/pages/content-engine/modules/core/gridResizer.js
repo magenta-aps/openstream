@@ -128,6 +128,21 @@ export function makeDraggable(el, dataObj) {
   }
 
   el.addEventListener("mousedown", dragMouseDown);
+
+  if (el._dragIndicator) {
+    el._dragIndicator.addEventListener("mousedown", dragMouseDown);
+    el._dragIndicator.addEventListener("click", (event) => {
+      event.stopPropagation();
+      el.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          clientX: event.clientX,
+          clientY: event.clientY,
+        }),
+      );
+    });
+  }
 }
 
 export function makeResizable(el, dataObj) {

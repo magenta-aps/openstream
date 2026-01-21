@@ -865,6 +865,15 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     return handle.dataset.resizeDirection === "se";
   }) || resizeHandles[0];
 
+  const dragIndicator = document.createElement("div");
+  dragIndicator.classList.add("drag-indicator");
+  dragIndicator.dataset.dragIndicator = "true";
+  const dragIndicatorIcon = document.createElement("span");
+  dragIndicatorIcon.classList.add("material-symbols-outlined");
+  dragIndicatorIcon.textContent = "drag_pan";
+  dragIndicator.appendChild(dragIndicatorIcon);
+  container._dragIndicator = dragIndicator;
+
   if (
     queryParams.mode === "edit" ||
     queryParams.mode === "template_editor" ||
@@ -970,6 +979,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   if (resizeHandles.length && container.parentNode) {
     const HANDLE_SIZE = 23;
     const HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
+    const DRAG_INDICATOR_SIZE = 28;
+    const HALF_DRAG_INDICATOR = DRAG_INDICATOR_SIZE / 2;
 
     const ensureHandlesInDom = () => {
       resizeHandles.forEach((handle) => {
@@ -977,6 +988,51 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
           container.parentNode.appendChild(handle);
         }
       });
+
+      if (dragIndicator && !dragIndicator.isConnected) {
+        container.parentNode.appendChild(dragIndicator);
+      }
+    };
+
+    const parseZIndex = (node) => {
+      if (!node) {
+        return 0;
+      }
+
+      let parsedValue = 0;
+      try {
+        const computed = window.getComputedStyle(node).zIndex;
+        const parsedComputed = parseInt(computed, 10);
+        if (!isNaN(parsedComputed)) {
+          parsedValue = parsedComputed;
+        }
+      } catch (err) {
+        // Ignore inability to read computed styles (element may be detached)
+      }
+
+      if (parsedValue === 0 && node.style) {
+        const inline = parseInt(node.style.zIndex ?? "", 10);
+        if (!isNaN(inline)) {
+          parsedValue = inline;
+        }
+      }
+
+      return parsedValue;
+    };
+
+    const getHighestSlideZIndex = () => {
+      if (!container.parentNode) {
+        return parseZIndex(container);
+      }
+
+      let highestZIndex = 0;
+      container.parentNode
+        .querySelectorAll(".slide-element")
+        .forEach((node) => {
+          highestZIndex = Math.max(highestZIndex, parseZIndex(node));
+        });
+
+      return highestZIndex;
     };
 
     const updateResizerPosition = () => {
@@ -990,24 +1046,15 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       const parentHeight = container.parentNode.offsetHeight;
       const maxLeft = Math.max(parentWidth - HANDLE_SIZE, 0);
       const maxTop = Math.max(parentHeight - HANDLE_SIZE, 0);
+      const indicatorMaxLeft = Math.max(parentWidth - DRAG_INDICATOR_SIZE, 0);
+      const indicatorMaxTop = Math.max(parentHeight - DRAG_INDICATOR_SIZE, 0);
 
-      let elementZIndex = 0;
-      try {
-        const computedStyle = window.getComputedStyle(container);
-        const parsed = parseInt(computedStyle.zIndex, 10);
-        if (!isNaN(parsed)) {
-          elementZIndex = parsed;
-        }
-      } catch (err) {
-        // ignore
-      }
-
-      if (elementZIndex === 0) {
-        const inline = parseInt(container.style.zIndex ?? "", 10);
-        if (!isNaN(inline)) {
-          elementZIndex = inline;
-        }
-      }
+      const elementZIndex = parseZIndex(container);
+      const highestSlideZIndex = Math.max(
+        elementZIndex,
+        getHighestSlideZIndex(),
+      );
+      const handleZIndex = Math.max(highestSlideZIndex + 2, 1000);
 
       resizeHandles.forEach((handle) => {
         const direction = handle.dataset.resizeDirection || "se";
@@ -1057,8 +1104,20 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
         handle.style.left = Math.round(handleLeft) + "px";
         handle.style.top = Math.round(handleTop) + "px";
-        handle.style.zIndex = String(elementZIndex + 2);
+        handle.style.zIndex = String(handleZIndex);
       });
+
+      if (dragIndicator) {
+        let indicatorLeft = baseLeft + width / 2 - HALF_DRAG_INDICATOR;
+        let indicatorTop = baseTop + height / 2 - HALF_DRAG_INDICATOR;
+
+        indicatorLeft = Math.min(Math.max(indicatorLeft, 0), indicatorMaxLeft);
+        indicatorTop = Math.min(Math.max(indicatorTop, 0), indicatorMaxTop);
+
+        dragIndicator.style.left = Math.round(indicatorLeft) + "px";
+        dragIndicator.style.top = Math.round(indicatorTop) + "px";
+        dragIndicator.style.zIndex = String(handleZIndex + 1);
+      }
     };
 
     ensureHandlesInDom();
@@ -1092,8 +1151,12 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
           handle.parentNode.removeChild(handle);
         }
       });
+      if (dragIndicator && dragIndicator.parentNode) {
+        dragIndicator.parentNode.removeChild(dragIndicator);
+      }
       delete container._resizeHandles;
       delete container._resizeHandle;
+      delete container._dragIndicator;
     };
   }
 
