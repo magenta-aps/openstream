@@ -441,30 +441,30 @@ function renderFilterPanel() {
         </button>
 
         <div id="templateFilterPopoverContent" popover>
-          <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle">
-            <span class="template-filter-panel__toggle-label">${categoriesLabel}</span>
+          <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle" aria-expanded="true">
+            <span>${categoriesLabel}</span>
             <span class="material-symbols-outlined">expand_more</span>
           </button>
-          <div class="collapse show">
-            <div id="templateCategoryCollapse" class="template-filter-options">
+          <div id="templateCategoryCollapse" class="collapse show">
+            <div id="templateCategoryOptions" class="template-filter-options">
             </div>
           </div>
 
-          <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateTagCollapse" id="templateFilterTagToggle">
-            <span class="template-filter-panel__toggle-label">${tagsLabel}</span>
+          <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateTagCollapse" id="templateFilterTagToggle" aria-expanded="true">
+            <span>${tagsLabel}</span>
             <span class="material-symbols-outlined">expand_more</span>
           </button>
-          <div class="collapse show">
-            <div id="templateTagCollapse" class="template-filter-options">
+          <div id="templateTagCollapse" class="collapse show">
+            <div id="templateTagOptions" class="template-filter-options">
             </div>
           </div>
 
-          <button class="btn btn-sm btn-outline-secondary w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateAspectCollapse" id="templateFilterTagToggle">
-            <span class="template-filter-panel__toggle-label">${aspectLabel}</span>
+          <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateAspectCollapse" id="templateFilterAspectToggle" aria-expanded="true">
+            <span>${aspectLabel}</span>
             <span class="material-symbols-outlined">expand_more</span>
           </button>
-          <div class="collapse show">
-            <div id="templateAspectCollapse" class="template-filter-options">
+          <div id="templateAspectCollapse" class="collapse show">
+            <div id="templateAspectOptions" class="template-filter-options">
             </div>
           </div>
 
@@ -673,11 +673,11 @@ function handleChipInteraction(event) {
 
 function renderFilterOptions() {
   const existingCategoryCollapse = document.getElementById(
-    "templateCategoryCollapse",
+    "templateCategoryOptions",
   );
-  const existingTagCollapse = document.getElementById("templateTagCollapse");
+  const existingTagCollapse = document.getElementById("templateTagOptions");
   const existingAspectRatioCollapse = document.getElementById(
-    "templateAspectCollapse",
+    "templateAspectOptions",
   );
   const existingElements =
     existingCategoryCollapse &&
@@ -690,25 +690,30 @@ function renderFilterOptions() {
 
   const filterTypes = [
     {
+      type: "categories",
       state: filterState.categories,
-      parentID: "templateCategoryCollapse",
+      parentID: "templateCategoryOptions",
       title: gettext("Category"),
       idPrefix: "template-filter-category",
       filters: availableCategories,
+      noneAvailableName: "No categories available yet.",
     },
     {
       state: filterState.tags,
-      parentID: "templateTagCollapse",
+      parentID: "templateTagOptions",
       title: gettext("Tags"),
       idPrefix: "template-filter-tag",
       filters: availableTags,
+      noneAvailableName: "No tags available yet.",
     },
     {
+      type: "aspect ratios",
       state: filterState.aspectRatios,
-      parentID: "templateAspectCollapse",
+      parentID: "templateAspectOptions",
       title: gettext("Aspect Ratio"),
       idPrefix: "template-filter-aspect",
       filters: availableAspectRatios,
+      noneAvailableName: "No aspect ratios detected.",
     },
   ].map((type) => ({
     ...type,
@@ -717,31 +722,39 @@ function renderFilterOptions() {
     }),
   }));
 
-  /* TODO: Handle no available for all filter types
-  if (!entries.length) {
-    categoryOptionsRoot.innerHTML = `<p class="text-muted small mb-0">${gettext(
-      "No categories available yet.",
-    )}</p>`;
-    return;
-  }
-  */
+  const noFiltersAvailable = (type) =>
+    `<p class="text-muted small mb-0">${gettext("No ${} available yet.")}</p>`;
+  const filterOptions = filterTypes.map((type) => {
+    const option = {
+      parentID: type.parentID,
+      title: type.title,
+    };
+    if (type.filters.length === 0) {
+      return {
+        ...option,
+        body: `<p class="text-muted small mb-0">${gettext(type.noneAvailableName)}</p>`,
+      };
+    }
 
-  const filterOptions = filterTypes.map((type) => ({
-    parentID: type.parentID,
-    title: type.title,
-    body: type.filters
-      .map(([id, data]) => {
-        const checkboxId = `${type.idPrefix}-${type.idPrefix !== "template-filter-aspect" ? id : escapeForSelector(id)}`;
-        const checked = type.state.has(id) ? "checked" : "";
-        return createFilterItem(
-          checkboxId,
-          id,
-          `${data.name} (${data.count})`,
-          checked,
-        );
-      })
-      .join(""),
-  }));
+    return {
+      ...option,
+      body:
+        type.filters.length === 0
+          ? noFiltersAvailable
+          : type.filters
+              .map(([id, data]) => {
+                const checkboxId = `${type.idPrefix}-${type.idPrefix !== "template-filter-aspect" ? id : escapeForSelector(id)}`;
+                const checked = type.state.has(id) ? "checked" : "";
+                return createFilterItem(
+                  checkboxId,
+                  id,
+                  `${data.name} (${data.count})`,
+                  checked,
+                );
+              })
+              .join(""),
+    };
+  });
 
   filterOptions.forEach((filter) => {
     if (existingCategoryCollapse.id === filter.parentID) {
@@ -752,20 +765,6 @@ function renderFilterOptions() {
       existingAspectRatioCollapse.innerHTML = filter.body;
     }
   });
-
-  /*
-  const filterPopover = document.querySelector("#templateFilterPopoverContent");
-  if (filterPopover) {
-    filterOptions.forEach((filter) => {
-      const collapse = createCollapse(
-        { label: filter.title },
-        { id: filter.parentID, content: filter.body },
-      );
-      filterPopover.appendChild(collapse.triggerContainer);
-      filterPopover.appendChild(collapse.collapseContent);
-    });
-  }
-  */
 }
 
 function updateChips() {
