@@ -431,16 +431,11 @@ function renderFilterPanel() {
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
-      <div class="template-filter-panel__row">
-        <div class="form-floating flex-grow-1">
-          <input type="search" class="form-control rounded-pill" id="templateFilterSearch" placeholder="${searchLabel}" />
-          <label for="templateFilterSearch">
-            <i class="material-symbols-outlined">search</i>
-            ${searchLabel}
-          </label>
-          <button class="btn btn-sm btn-link text-decoration-none template-filter-panel__clear d-none" type="button" id="templateFilterSearchClear">
-            ${gettext("Clear")}
-          </button>
+      <div class="d-flex">
+        <div id="templateFilterSearchContainer">
+          <input type="search" class="form-control rounded-pill" id="templateFilterSearch" placeholder="${searchLabel}">
+
+          <span id="templateFilterSearchIcon" class="material-symbols-outlined">search</span>
         </div>
 
         <button id="templateFilterPopoverBtn" class="btn btn-sm d-flex align-items-center row-gap-1 template-filter-panel__popover-trigger" popovertarget="templateFilterPopoverContent">
@@ -486,7 +481,7 @@ function renderFilterPanel() {
       <div id="templateFilterChips" class="template-filter-panel__chips-container template-filter-panel__row">
       </div>
 
-      <div class="template-filter-panel__row align-items-center">
+      <div class="template-filter-panel__row-between align-items-center">
         <span id="templateFilterPanelSlideCount"></span>
 
         <div class="dropdown" id="templateFilterSort" data-selected-value="${NAME_SORT_KEY}:asc">
@@ -796,7 +791,7 @@ function updateChips() {
     "btn",
     "btn-sm",
     "btn-link",
-    "template-filter-Panel__reset",
+    "template-filter-panel__reset",
   );
   btn.textContent = gettext("Remove Chips");
   btn.addEventListener("click", resetTemplateFilters);
