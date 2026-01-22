@@ -318,7 +318,9 @@ class EmergencySlideshowAPIView(APIView):
         requested_ids = []
         if group_ids:
             try:
-                requested_ids = [int(val.strip()) for val in group_ids.split(",") if val.strip()]
+                requested_ids = [
+                    int(val.strip()) for val in group_ids.split(",") if val.strip()
+                ]
             except ValueError:
                 return Response({"detail": "Invalid ids parameter."}, status=400)
         else:
@@ -328,7 +330,9 @@ class EmergencySlideshowAPIView(APIView):
                 return Response({"detail": "Invalid id parameter."}, status=400)
 
         if not requested_ids:
-            return Response({"detail": "No valid display website group ids supplied."}, status=400)
+            return Response(
+                {"detail": "No valid display website group ids supplied."}, status=400
+            )
 
         requested_set = set(requested_ids)
         groups = DisplayWebsiteGroup.objects.filter(id__in=requested_set)
@@ -338,10 +342,9 @@ class EmergencySlideshowAPIView(APIView):
         if not self._user_can_access_groups(request.user, groups):
             return Response({"detail": "Not allowed."}, status=403)
 
-        emergencies = (
-            EmergencySlideshow.objects.filter(display_website_groups__in=groups)
-            .distinct()
-        )
+        emergencies = EmergencySlideshow.objects.filter(
+            display_website_groups__in=groups
+        ).distinct()
         serializer = EmergencySlideshowSerializer(emergencies, many=True)
         return Response(serializer.data)
 
@@ -353,7 +356,9 @@ class EmergencySlideshowAPIView(APIView):
                 return Response({"detail": "Not allowed."}, status=403)
             if not self._groups_share_branch(groups):
                 return Response(
-                    {"detail": "All display website groups must belong to the same branch."},
+                    {
+                        "detail": "All display website groups must belong to the same branch."
+                    },
                     status=400,
                 )
 
@@ -382,7 +387,9 @@ class EmergencySlideshowAPIView(APIView):
                 return Response({"detail": "Not allowed."}, status=403)
             if not self._groups_share_branch(groups):
                 return Response(
-                    {"detail": "All display website groups must belong to the same branch."},
+                    {
+                        "detail": "All display website groups must belong to the same branch."
+                    },
                     status=400,
                 )
 
@@ -409,7 +416,7 @@ class GetActiveContentAPIView(APIView):
         """
         return {
             "id": slideshow_data.get("id"),
-            "position": position,  
+            "position": position,
             "slideshow_playlist": 1,
             "slideshow": slideshow_data,
         }
@@ -482,7 +489,9 @@ class GetActiveContentAPIView(APIView):
             if not items:
                 return
             for item in items:
-                slideshow_data = item.get("slideshow") if isinstance(item, dict) else None
+                slideshow_data = (
+                    item.get("slideshow") if isinstance(item, dict) else None
+                )
                 if isinstance(slideshow_data, dict):
                     slideshow_id = slideshow_data.get("id")
                     if slideshow_id is not None:

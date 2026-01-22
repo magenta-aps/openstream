@@ -70,9 +70,7 @@ class SlideshowCRUDView(APIView):
             emergency_filter = request.query_params.get("is_emergency_slideshow")
             if emergency_filter is not None:
                 emergency_flag = emergency_filter.lower() in ("1", "true", "yes", "on")
-                slideshows = slideshows.filter(
-                    is_emergency_slideshow=emergency_flag
-                )
+                slideshows = slideshows.filter(is_emergency_slideshow=emergency_flag)
             ser = SlideshowSerializer(slideshows, many=True, context=context)
             return Response(ser.data)
 

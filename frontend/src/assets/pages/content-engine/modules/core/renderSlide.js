@@ -5,7 +5,7 @@ import {
   selectedBranchID,
   token,
 } from "../../../../utils/utils.js";
-import { BASE_URL } from "../../../../utils/constants.js";
+import { BASE_URL, derivePollingServiceFromHostname } from "../../../../utils/constants.js";
 import { _renderBackgroundColor } from "../element_formatting/backgroundColor.js";
 import { _renderBorder } from "../element_formatting/border.js";
 import { _renderBorderRadius } from "../element_formatting/borderRadius.js";
@@ -746,7 +746,7 @@ async function _startSlideshowPlayer() {
 function initLiveReload() {
   console.log("Initializing live reload via SSE");
   // 1. Point this to your Express route
-  const eventSource = new EventSource(`http://${window.location.hostname}:3000/events`);
+  const eventSource = new EventSource(derivePollingServiceFromHostname());
 
   // Check connection status
   eventSource.onopen = () => {

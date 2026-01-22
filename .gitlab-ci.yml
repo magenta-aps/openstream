@@ -29,6 +29,12 @@ variables:
   FRONTEND_RELEASE_IMAGE_TAG: ${FRONTEND_RELEASE_IMAGE}:${CI_COMMIT_TAG}
   FRONTEND_RELEASE_IMAGE_LATEST: ${FRONTEND_RELEASE_IMAGE}:latest
   FRONTEND_CONTEXT: $CI_PROJECT_DIR/frontend
+  POLLING_DOCKERFILE: $CI_PROJECT_DIR/polling-server/Dockerfile
+  POLLING_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:polling-${CI_COMMIT_SHA}
+  POLLING_RELEASE_IMAGE: magentaaps/openstream-polling
+  POLLING_RELEASE_IMAGE_TAG: ${POLLING_RELEASE_IMAGE}:${CI_COMMIT_TAG}
+  POLLING_RELEASE_IMAGE_LATEST: ${POLLING_RELEASE_IMAGE}:latest
+  POLLING_CONTEXT: $CI_PROJECT_DIR/polling-server
 
 #############
 #  Linting  #
@@ -113,6 +119,16 @@ Build Frontend image:
     TARGET: production
   needs: [Test Frontend]
 
+Build Polling Server image:
+  extends: .build-docker
+  variables:
+    DOCKERFILE: $POLLING_DOCKERFILE
+    CONTEXT: $POLLING_CONTEXT
+    IMAGE_SHA: $POLLING_IMAGE_SHA
+    TARGET: production
+  # Polling server doesn't have frontend tests dependency; build when backend is ready
+  needs: [Build app image]
+
 #############
 #  Release  #
 #############
@@ -159,3 +175,21 @@ Release Frontend latest tag:
       --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
       "docker://${FRONTEND_IMAGE_SHA}"
       "docker://${FRONTEND_RELEASE_IMAGE_LATEST}"
+
+Release Polling Server versioned tag:
+  <<: *release-default
+  extends: [.rules:semver-all]
+  script:
+    - skopeo copy --src-creds=${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
+      "docker://${POLLING_IMAGE_SHA}"
+      "docker://${POLLING_RELEASE_IMAGE_TAG}"
+
+Release Polling Server latest tag:
+  <<: *release-default
+  extends: [.rules:semver-core]
+  script:
+    - skopeo copy --src-creds=${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
+      "docker://${POLLING_IMAGE_SHA}"
+      "docker://${POLLING_RELEASE_IMAGE_LATEST}"

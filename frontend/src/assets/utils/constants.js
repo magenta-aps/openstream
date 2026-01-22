@@ -42,6 +42,26 @@ function deriveBaseFromHostname() {
   return null;
 }
 
+export function derivePollingServiceFromHostname() {
+  const host = window.location.hostname;
+
+  if (host === "test.openstream.dk"){
+    return "https://polling.test.openstream.dk";
+  }
+
+  if (host === "staging.openstream.dk"){
+    return "https://polling.staging.openstream.dk";
+  }
+
+  if (host === "openstream.dk"){
+    return "https://polling.openstream.dk";
+  }
+
+  else return `http://${window.location.hostname}:3000/events`
+}
+
+
+
 export const BASE_URL =
   //import.meta.env.VITE_BASE_URL ||
   deriveBaseFromHostname() ||

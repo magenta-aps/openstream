@@ -931,6 +931,7 @@ class EmergencySlideshow(models.Model):
     def __str__(self):
         return f"Emergency Slideshow: {self.slideshow.name}"
 
+
 ###############################################################################
 # Documents
 ###############################################################################

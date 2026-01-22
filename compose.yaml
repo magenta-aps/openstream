@@ -118,8 +118,16 @@ services:
       - openstream
   polling-server:
     container_name: openstream-polling
-    image: docker.io/library/node:20
+    build:
+      context: ./polling-server
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV:-development}
+    image: openstreamadminsite-polling
     working_dir: /app
+    # In development we still run `npm install && npm run dev` so file bind-mounts
+    # (source code) work and new deps are installed on container start. In
+    # production, build with NODE_ENV=production and don't override the command.
     command: /bin/sh -c "npm install && npm run dev"
     env_file:
       - *env-openstream

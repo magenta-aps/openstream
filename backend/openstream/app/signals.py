@@ -60,6 +60,7 @@ def process_document_pdf(sender, instance, created, **kwargs):
         )
         thread.start()
 
+
 # List all models that affect the final "Active Content"
 @receiver(pre_delete, sender=EmergencySlideshow)
 def cache_emergency_slideshow_groups(sender, instance, **kwargs):
@@ -107,9 +108,7 @@ def notify_express_of_change(sender, instance, **kwargs):
         print(f"Failed to notify Express: {e}")
 
 
-@receiver(
-    m2m_changed, sender=EmergencySlideshow.display_website_groups.through
-)
+@receiver(m2m_changed, sender=EmergencySlideshow.display_website_groups.through)
 def notify_express_on_emergency_groups_change(sender, instance, action, **kwargs):
     if action not in {"post_add", "post_remove", "post_clear"} or instance is None:
         return
