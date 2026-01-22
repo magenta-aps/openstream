@@ -125,7 +125,7 @@ Build Polling Server image:
     DOCKERFILE: $POLLING_DOCKERFILE
     CONTEXT: $POLLING_CONTEXT
     IMAGE_SHA: $POLLING_IMAGE_SHA
-    TARGET: production
+    TARGET: runner
   # Polling server doesn't have frontend tests dependency; build when backend is ready
   needs: [Build app image]
 
