@@ -792,6 +792,8 @@ function updateChips() {
     "btn-sm",
     "btn-link",
     "template-filter-panel__reset",
+    "m-0",
+    "p-0",
   );
   btn.textContent = gettext("Remove Chips");
   btn.addEventListener("click", resetTemplateFilters);
