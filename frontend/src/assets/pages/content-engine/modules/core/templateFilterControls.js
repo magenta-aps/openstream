@@ -449,7 +449,7 @@ function renderFilterPanel() {
             <span class="material-symbols-outlined">expand_more</span>
           </button>
           <div id="templateCategoryCollapse" class="collapse show">
-            <div id="templateCategoryOptions" class="template-filter-options">
+            <div id="templateCategoryOptions" class="template-filter-panel__options">
             </div>
           </div>
 
@@ -458,7 +458,7 @@ function renderFilterPanel() {
             <span class="material-symbols-outlined">expand_more</span>
           </button>
           <div id="templateTagCollapse" class="collapse show">
-            <div id="templateTagOptions" class="template-filter-options">
+            <div id="templateTagOptions" class="template-filter-panel__options">
             </div>
           </div>
 
@@ -467,7 +467,7 @@ function renderFilterPanel() {
             <span class="material-symbols-outlined">expand_more</span>
           </button>
           <div id="templateAspectCollapse" class="collapse show">
-            <div id="templateAspectOptions" class="template-filter-options">
+            <div id="templateAspectOptions" class="template-filter-panel__options">
             </div>
           </div>
 
