@@ -46,15 +46,15 @@ export function derivePollingServiceFromHostname() {
   const host = window.location.hostname;
 
   if (host === "test.openstream.dk"){
-    return "https://polling.test.openstream.dk";
+    return "https://polling.test.openstream.dk/events";
   }
 
   if (host === "staging.openstream.dk"){
-    return "https://polling.staging.openstream.dk";
+    return "https://polling.staging.openstream.dk/events";
   }
 
   if (host === "openstream.dk"){
-    return "https://polling.openstream.dk";
+    return "https://polling.openstream.dk/events";
   }
 
   else return `http://${window.location.hostname}:3000/events`
