@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # Multi-stage Dockerfile for polling-server
 # - Installs dependencies in the first stage depending on NODE_ENV
 # - Copies node_modules into the final image and the application code
