@@ -13,6 +13,8 @@ export const store = {
   editorMode: null,
   globalTemplateContext: false,
 
+  slideshowPlayerMetaData: {},
+  
   selectedElement: null,
   selectedElementData: null,
 

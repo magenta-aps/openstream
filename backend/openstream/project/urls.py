@@ -79,6 +79,7 @@ from app.views.scheduling import (
     BranchUpcomingContentAPIView,
     DisplayWebsiteAPIView,
     DisplayWebsiteGroupAPIView,
+    EmergencySlideshowAPIView,
     GetActiveContentAPIView,
     RecurringScheduledContentAPIView,
     ScheduledContentAPIView,
@@ -398,6 +399,16 @@ urlpatterns = [
         "api/recurring-scheduled-contents/<int:pk>/",
         RecurringScheduledContentAPIView.as_view(),
         name="recurring_scheduled_contents_crud_detail",
+    ),
+    path(
+        "api/emergency-slideshows/",
+        EmergencySlideshowAPIView.as_view(),
+        name="emergency_slideshows_crud",
+    ),
+    path(
+        "api/emergency-slideshows/<int:pk>/",
+        EmergencySlideshowAPIView.as_view(),
+        name="emergency_slideshows_detail_crud",
     ),
     path(
         "api/display-website/get-active-content",

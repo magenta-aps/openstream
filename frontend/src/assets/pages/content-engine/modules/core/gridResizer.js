@@ -4,6 +4,7 @@ import { store } from "./slideStore.js";
 import { pushCurrentSlideState } from "./undoRedo.js";
 import { queryParams } from "../../../../utils/utils.js";
 import { isElementLocked } from "../element_formatting/lockElement.js";
+import { selectElement } from "./elementSelector.js";
 import { GRID_CONFIG, GridUtils, getDragSnapSteps } from "../config/gridConfig.js";
 import { updateGridInfo, clearGridInfo } from "../utils/statusBar.js";
 
@@ -125,9 +126,32 @@ export function makeDraggable(el, dataObj) {
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
     }
+
+    if (hasDragged) {
+      requestAnimationFrame(() => {
+        if (document.body.contains(el)) {
+          selectElement(el, dataObj);
+        }
+      });
+    }
   }
 
   el.addEventListener("mousedown", dragMouseDown);
+
+  if (el._dragIndicator) {
+    el._dragIndicator.addEventListener("mousedown", dragMouseDown);
+    el._dragIndicator.addEventListener("click", (event) => {
+      event.stopPropagation();
+      el.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          clientX: event.clientX,
+          clientY: event.clientY,
+        }),
+      );
+    });
+  }
 }
 
 export function makeResizable(el, dataObj) {

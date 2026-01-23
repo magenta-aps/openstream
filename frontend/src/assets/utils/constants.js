@@ -13,8 +13,13 @@ function deriveBaseFromHostname() {
   if (typeof window === "undefined" || !window.location) return null;
   const host = window.location.hostname;
 
+
   if (host === "localhost" || host === "127.0.0.1") {
     return "http://localhost:8000";
+  }
+
+  if (host === "192.168.1.178") {
+    return "http://192.168.1.178:8000";
   }
 
   // handle subdomains like app.test.openstream.dk by matching suffix
@@ -37,8 +42,28 @@ function deriveBaseFromHostname() {
   return null;
 }
 
+export function derivePollingServiceFromHostname() {
+  const host = window.location.hostname;
+
+  if (host === "test.openstream.dk"){
+    return "https://polling.test.openstream.dk/events";
+  }
+
+  if (host === "staging.openstream.dk"){
+    return "https://polling.staging.openstream.dk/events";
+  }
+
+  if (host === "openstream.dk"){
+    return "https://polling.openstream.dk/events";
+  }
+
+  else return `http://${window.location.hostname}:3000/events`
+}
+
+
+
 export const BASE_URL =
-  import.meta.env.VITE_BASE_URL ||
+  //import.meta.env.VITE_BASE_URL ||
   deriveBaseFromHostname() ||
   "http://localhost:8000";
 

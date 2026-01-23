@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
-**/.env
-**/.vscode
-**/compose.override.yaml
-dev-environment/minio/data/**
-**/node_modules
+
+node_modules
+npm-debug.log
+.env
+.DS_Store
+coverage
+.vscode
+.idea

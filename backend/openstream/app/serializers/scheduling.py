@@ -4,10 +4,16 @@
 
 from rest_framework import serializers
 
-from app.models import RecurringScheduledContent, ScheduledContent
+from app.models import (
+    DisplayWebsiteGroup,
+    EmergencySlideshow,
+    RecurringScheduledContent,
+    ScheduledContent,
+)
 from app.utils import make_aware_if_needed
 
 from .content import SlideshowPlaylistSerializer, SlideshowSerializer
+from .screens import DisplayWebsiteGroupSerializer
 
 
 class ScheduledContentSerializer(serializers.ModelSerializer):
@@ -174,3 +180,52 @@ class RecurringScheduledContentSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(exc.message) from exc
 
         return data
+
+
+class EmergencySlideshowSerializer(serializers.ModelSerializer):
+    slideshow = SlideshowSerializer(read_only=True)
+    slideshow_id = serializers.PrimaryKeyRelatedField(
+        queryset=EmergencySlideshow._meta.get_field(
+            "slideshow"
+        ).related_model.objects.all(),
+        source="slideshow",
+        write_only=True,
+        required=False,
+    )
+    display_website_groups = DisplayWebsiteGroupSerializer(many=True, read_only=True)
+    display_website_group_ids = serializers.PrimaryKeyRelatedField(
+        queryset=DisplayWebsiteGroup.objects.all(),
+        source="display_website_groups",
+        write_only=True,
+        many=True,
+        allow_empty=False,
+    )
+
+    class Meta:
+        model = EmergencySlideshow
+        fields = [
+            "id",
+            "slideshow",
+            "slideshow_id",
+            "display_website_groups",
+            "display_website_group_ids",
+            "is_active",
+        ]
+
+    def validate(self, data):
+        if self.instance is None and "slideshow" not in data:
+            raise serializers.ValidationError("slideshow_id is required.")
+        return data
+
+    def create(self, validated_data):
+        groups = validated_data.pop("display_website_groups", [])
+        instance = super().create(validated_data)
+        instance.display_website_groups.set(groups)
+        return instance
+
+    def update(self, instance, validated_data):
+        groups = validated_data.pop("display_website_groups", None)
+        instance = super().update(instance, validated_data)
+        if groups is not None:
+            instance.display_website_groups.set(groups)
+        return instance

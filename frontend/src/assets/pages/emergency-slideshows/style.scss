@@ -1,0 +1,175 @@
+/* SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> */
+/* SPDX-License-Identifier: AGPL-3.0-only */
+@import "../../scss/main";
+
+#add-emergency-slideshow {
+	border-radius: 1.5rem;
+	box-shadow: 0 25px 45px rgba(17, 17, 17, 0.08);
+}
+
+.select-slideshow,
+.select-groups {
+	min-height: 420px;
+	border-radius: 1rem !important;
+}
+
+.slideshow-card {
+	background-color: var(--bs-body-bg);
+	color: inherit;
+	border: 1px solid var(--bs-gray-300) !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+	cursor: pointer;
+
+	&:hover:not(.is-selected) {
+		border-color: var(--bs-gray-500) !important;
+		background-color: rgba(0, 0, 0, 0.02);
+	}
+
+	&.is-selected {
+		border-color: var(--bs-primary) !important;
+		background-color: rgba(13, 110, 253, 0.08);
+		box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.25);
+	}
+
+	.slideshow-card-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.slideshow-card-text {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.slideshow-card-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-shrink: 0;
+	}
+
+	.slideshow-card-name {
+		font-weight: 600;
+	}
+
+	.slideshow-card-ratio {
+		min-width: 90px;
+	}
+
+	.slideshow-card-edit {
+		white-space: nowrap;
+	}
+
+    .slideshow-card-delete {
+        white-space: nowrap;
+    }
+}
+
+.slideshow-table {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.slideshow-card-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.slideshow-toolbar {
+	gap: 0.75rem;
+
+	.toolbar-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+}
+
+.slideshow-table-header {
+	display: flex;
+    justify-content: space-between;
+    width: 100%;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--bs-gray-600);
+}
+
+.emergency-groups-list {
+	min-height: 320px;
+	max-height: 520px;
+}
+
+.groups-table {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.groups-table-header {
+	display: flex;
+    justify-content: space-between;
+    width: 100%;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--bs-gray-600);
+}
+
+.groups-table-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 2fr) minmax(120px, 1fr);
+	gap: 0.75rem;
+	align-items: center;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--bs-gray-300);
+	cursor: pointer;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.groups-table-row:hover:not(.is-selected) {
+	border-color: var(--bs-gray-500);
+	background-color: rgba(0, 0, 0, 0.02);
+}
+
+.groups-table-row.is-selected {
+	border-color: var(--bs-primary);
+	background-color: rgba(13, 110, 253, 0.08);
+	box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.25);
+}
+
+.groups-table-checkbox {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.groups-table-checkbox .form-check-input {
+	margin: 0;
+}
+
+.emergency-table-groups {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	min-height: 24px;
+}
+
+#active-emergencies-list {
+	max-height: 100%;
+	overflow-y: auto;
+}
+
+#emergency-feedback {
+	border-radius: 0.75rem;
+}
+
+.create-emergency-modal {
+	.form-select[multiple] {
+		min-height: 170px;
+	}
+}
