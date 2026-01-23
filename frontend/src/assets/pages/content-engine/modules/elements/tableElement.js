@@ -1591,7 +1591,7 @@ function showTableTypographyPopover(button) {
 function showTableColorPopover(button) {
   // Remove any existing popovers
   document.querySelectorAll(".table-popover").forEach((p) => p.remove());
-
+  const previewContainerHeight = document.querySelector(".preview-container").offsetHeight + "px";
   const popover = document.createElement("div");
   popover.className = "table-popover popover";
   popover.style.position = "absolute";
@@ -1599,7 +1599,7 @@ function showTableColorPopover(button) {
   popover.style.minWidth = "550px";
   popover.style.maxWidth = "600px";
   popover.style.padding = "15px";
-  popover.style.maxHeight = "650px";
+  popover.style.maxHeight = previewContainerHeight;
   popover.style.overflowY = "auto";
 
   // Header
@@ -2018,12 +2018,6 @@ function positionPopover(button, popover) {
   // Adjust if popover would go off right edge
   if (left + popoverWidth > window.innerWidth) {
     left = window.innerWidth - popoverWidth - 10;
-  }
-
-  // Adjust if popover would go off bottom edge
-  const popoverHeight = 500; // approximate height for more compact design
-  if (top + popoverHeight > window.innerHeight) {
-    top = rect.top - popoverHeight - 5; // Position above button instead
   }
 
   popover.style.top = top + "px";
