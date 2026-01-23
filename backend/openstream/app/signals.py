@@ -99,7 +99,7 @@ def notify_express_of_change(sender, instance, **kwargs):
 
     if sender is DisplayWebsite:
         params["displaywebsite_id"] = instance.pk
-        if instance.branch_id: 
+        if instance.branch_id:
             params["branch_id"] = instance.branch_id
 
     try:

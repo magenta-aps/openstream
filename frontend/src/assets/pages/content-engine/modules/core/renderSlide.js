@@ -606,6 +606,10 @@ async function _startSlideshowPlayer() {
       );
       if (!response.ok) {
         console.error("Failed to fetch data", response.status);
+        const data = await response.json();
+        if (data.detail === "No display_website_group found.") {
+          window.location.href = `/connect-screen?apiKey=${queryParams.apiKey}`;
+        }
         return;
       }
 
