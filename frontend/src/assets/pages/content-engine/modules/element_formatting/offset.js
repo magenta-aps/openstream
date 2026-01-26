@@ -129,43 +129,35 @@ export function initSelectedElementOffset() {
     hSlider.addEventListener("input", () => {
       const val = hSlider.value;
       hInput.value = val;
+      pushCurrentSlideState();
       store.selectedElement.style.left = val + "%";
       store.selectedElementData.left = val + "%";
-    });
-    hSlider.addEventListener("change", () => {
-      pushCurrentSlideState();
     });
 
     hInput.addEventListener("input", () => {
       const val = Math.max(-100, Math.min(100, parseInt(hInput.value) || 0));
       hInput.value = val;
       hSlider.value = val;
+      pushCurrentSlideState();
       store.selectedElement.style.left = val + "%";
       store.selectedElementData.left = val + "%";
-    });
-    hInput.addEventListener("change", () => {
-      pushCurrentSlideState();
     });
 
     vSlider.addEventListener("input", () => {
       const val = vSlider.value;
       vInput.value = val;
+      pushCurrentSlideState();
       store.selectedElement.style.top = val + "%";
       store.selectedElementData.top = val + "%";
-    });
-    vSlider.addEventListener("change", () => {
-      pushCurrentSlideState();
     });
 
     vInput.addEventListener("input", () => {
       const val = Math.max(-100, Math.min(100, parseInt(vInput.value) || 0));
       vInput.value = val;
       vSlider.value = val;
+      pushCurrentSlideState();
       store.selectedElement.style.top = val + "%";
       store.selectedElementData.top = val + "%";
-    });
-    vInput.addEventListener("change", () => {
-      pushCurrentSlideState();
     });
 
     setTimeout(() => {
