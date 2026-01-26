@@ -44,12 +44,6 @@ export function _renderBox(el, container) {
   // Ensure full-size container
   container.style.width = "100%";
   container.style.height = "100%";
-  // Background color is handled by the common backgroundColor formatter
-  // but ensure a default if missing
-  if (!el.backgroundColor) {
-    el.backgroundColor = "#000000";
-    container.style.backgroundColor = "#000000";
-  }
 }
 
 export function initBoxElement() {
