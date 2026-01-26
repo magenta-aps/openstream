@@ -5,6 +5,7 @@ from typing import Any
 
 from django.http import HttpResponse
 from rest_framework.views import exception_handler
+from django.conf import settings
 
 _TEMPLATE_PATH = Path(__file__).resolve().parent / "templates" / "authcode_error.html"
 _TEMPLATE_CACHE: str | None = None
@@ -26,9 +27,11 @@ def _render_error_html(status_code: int, detail: Any) -> str:
     safe_detail = html.escape(detail_json)
 
     template = _get_template()
+    frontend_host = getattr(settings, "FRONTEND_HOST", "https://openstream.dk").rstrip("/")
     return (
         template.replace("__STATUS_CODE__", str(status_code))
         .replace("__DETAIL__", safe_detail)
+        .replace("__FRONTEND_HOST__", frontend_host)
     )
 
 
