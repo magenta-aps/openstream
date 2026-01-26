@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import * as bootstrap from "bootstrap";
 import { store } from "./slideStore.js";
 import { gettext } from "../../../../utils/locales.js";
 import { queryParams } from "../../../../utils/utils.js";
@@ -43,128 +42,92 @@ let availableTags = new Map();
 let availableAspectRatios = new Map();
 
 /**
- * @description
- * Creates a Bootstrap popover instance.
- * @param triggerID - The id of the element that will trigger the popover
- * @param content - The html content to display inside the popover
+ * @typedef {Object} ComponentOptions
+ * @property {string} Component.id
+ * @property {string} [Component.classNames]
+ * @property {string} Component.content
  */
-function createPopover(triggerID, content) {
-  return new bootstrap.Popover(document.querySelector(`#${triggerID}`), {
-    html: true,
-    content: content,
-    sanitize: false,
-    template: `
-      <div class="popover" role="tooltip" style="width: 15.5rem;">
-        <div class="popover-body">
-        </div>
-      </div>
-    `,
-    offset: [0, 0],
-  });
-}
 
 /**
  * @description
- * Creates a bootstrap accordion element
- * @param {string} parentID - The id of the root element
- * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
- * @returns The accordion element node and a item appender fn
+ * Creates a popover that is compatible with the popover API.
+ * @param {ComponentOptions} triggerOptions
+ * @param {ComponentOptions} popoverOptions
+ * @returns A trigger element for the popover as well as the popover itself
  */
-function createAccordion(parentID, forceOpen) {
-  const accordion = document.createElement("div");
-  accordion.id = parentID;
-  accordion.classList.add("accordion");
+function createPopover(triggerOptions, popoverOptions) {
+  const trigger = document.createElement("button");
+  trigger.id = triggerOptions.id;
+  trigger.classList.add("btn");
+  if (triggerOptions.classNames) {
+    trigger.classList.add(...triggerOptions.classNames.split(" "));
+  }
+  trigger.setAttribute("popovertarget", popoverOptions.id);
+  trigger.innerHTML = triggerOptions.content;
 
-  const addAccordionItem = createAccordionItemAppender(accordion, forceOpen);
+  const popover = document.createElement("div");
+  popover.id = popoverOptions.id;
+  popover.setAttribute("popover", true);
+  if (popoverOptions.classNames) {
+    popover.classList.add(...popoverOptions.classNames.split(" "));
+  }
+  popover.innerHTML = popoverOptions.content;
 
-  return { accordion, addAccordionItem };
-}
-
-/**
- * @description
- * Creates a accordion item appender
- * @param {HTMLElement} accordion - The root element
- * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
- * @returns A function that will append a new accordion item to the root element
- */
-function createAccordionItemAppender(accordion, forceOpen) {
-  /**
-   * @description
-   * Adds a new item to the accordion returned from createAccordion
-   * @param {string} itemID - The id of this item
-   * @param {string} headerText - The header text
-   * @param {string} body - The item body
-   * @param {boolean} forceOpen - Determines if the accordions can be remain open independent of one another
-   * @returns A function that will append a new accordion item to the root element
-   */
-  return (itemID, headerText, body, forceOpen) => {
-    const existingItem = accordion.querySelector(`#${itemID}`);
-    if (existingItem) {
-      accordion.removeChild(existingItem);
-    }
-    const item = document.createElement("div");
-    item.classList.add("accordion-item");
-    item.id = itemID;
-
-    const itemBodyID = `${itemID}-body`;
-    item.innerHTML = `
-      <h2 class="accordion-header">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${itemBodyID}" aria-expanded="true" aria-controls="${itemBodyID}">
-          ${headerText}
-        </button>
-      </h2>
-      <div id="${itemBodyID}" class="accordion-collapse collapse show" ${forceOpen ? "" : "data-bs-parent='#" + item.id + "'"}>
-        <div class="accordion-body">
-          ${body}
-        </div>
-      </div>
-    `;
-
-    accordion.appendChild(item);
-  };
+  return { trigger, popover };
 }
 
 /**
  * @description
  * Creates a bootstrap collapse element
- * @param {Object} triggerOptions
- * @param {string} triggerOptions.label
- * @param {Object} contentOptions
- * @param {string} contentOptions.id
- * @param {string} contentOptions.content
+ * @param {ComponentOptions} triggerOptions
+ * @param {ComponentOptions} contentOptions
+ * @returns A trigger for the collapse element as well as the collapse element itself
  */
 function createCollapse(triggerOptions, contentOptions) {
-  const triggerContainer = document.createElement("p");
+  const collapseOpendIcon =
+    "<i class='material-symbols-outlined'>keyboard_arrow_down</i>";
+  const collapseClosedIcon =
+    "<i class='material-symbols-outlined'>keyboard_arrow_up</i>";
+  let isCollapseOpen = true;
 
-  const trigger = document.createElement("button");
-  trigger.type = "button";
-  trigger.classList.add(
+  const collapseTrigger = document.createElement("button");
+  collapseTrigger.id = triggerOptions.id;
+  collapseTrigger.type = "button";
+  collapseTrigger.classList.add(
     "btn",
     "w-100",
     "d-flex",
     "justify-content-between",
-    "p-0",
   );
-  trigger.setAttribute("data-bs-toggle", "collapse");
-  trigger.setAttribute("data-bs-target", `#${contentOptions.id}`);
-  trigger.setAttribute("aria-expanded", "true");
-  trigger.setAttribute("aria-controls", contentOptions.id);
+  if (triggerOptions.classNames) {
+    collapseTrigger.classList.add(triggerOptions.classNames);
+  }
+  collapseTrigger.setAttribute("data-bs-toggle", "collapse");
+  collapseTrigger.setAttribute("data-bs-target", `#${contentOptions.id}`);
+  collapseTrigger.setAttribute("aria-expanded", contentOptions.id);
+  collapseTrigger.setAttribute("aria-control", contentOptions.id);
+  collapseTrigger.innerHTML = triggerOptions.content + collapseOpendIcon;
 
-  const isCollapseOpen = false;
+  const collapseContent = document.createElement("div");
+  collapseContent.id = contentOptions.id;
+  collapseContent.classList.add("collapse", "show");
+  if (contentOptions.classNames) {
+    collapseContent.classList.add(contentOptions.classNames);
+  }
+  collapseContent.innerHTML = contentOptions.content;
 
-  const setTextFolded = () =>
-    (trigger.innerHTML = `
-    ${triggerOptions.label}
-    <i class="material-symbols-outlined">keyboard_arrow_up</i>
-  `);
-  const setTextExpanded = () =>
-    (trigger.innerHTML = `
-    ${triggerOptions.label}
-    <i class="material-symbols-outlined">keyboard_arrow_down</i>
-  `);
-  setTextFolded();
+  /** @type {(content: string) => void} */
+  const setButtonContent = (icon) => {
+    collapseTrigger.innerHTML = `
+    ${triggerOptions.content}
+    ${icon}
+  `;
+  };
 
-  trigger.addEventListener("click", () => {
+  const setTextFolded = () => setButtonContent(collapseClosedIcon);
+  const setTextExpanded = () => setButtonContent(collapseOpendIcon);
+
+  collapseTrigger.addEventListener("click", () => {
     isCollapseOpen = !isCollapseOpen;
     if (isCollapseOpen) {
       setTextExpanded();
@@ -173,14 +136,7 @@ function createCollapse(triggerOptions, contentOptions) {
     }
   });
 
-  triggerContainer.appendChild(trigger);
-
-  const collapseContent = document.createElement("div");
-  collapseContent.id = contentOptions.id;
-  collapseContent.classList.add("collapse", "show");
-  collapseContent.innerHTML = contentOptions.content;
-
-  return { triggerContainer, collapseContent };
+  return { trigger: collapseTrigger, content: collapseContent };
 }
 
 /**
@@ -445,55 +401,54 @@ function renderFilterPanel() {
   const tagsLabel = gettext("Tags");
   const aspectLabel = gettext("Aspect ratios");
   const searchLabel = gettext("Search templates");
-  const orderByLabel = gettext("Order by");
   const resetLabel = gettext("Reset filters");
+
+  const categoryCollapse = createCollapse(
+    {
+      id: "templateFilterCategoryToggle",
+      classNames: "template-filter-panel__toggle",
+      content: categoriesLabel,
+    },
+    {
+      id: "templateCategoryCollapse",
+      content:
+        "<div id='templateCategoryOptions' class='template-filter-panel__options'></div>",
+    },
+  );
+
+  const tagCollapse = createCollapse(
+    {
+      id: "templateFilterTagToggle",
+      classNames: "template-filter-panel__toggle",
+      content: tagsLabel,
+    },
+    {
+      id: "templateTagCollapse",
+      content:
+        "<div id='templateTagOptions' class='template-filter-panel__options'></div>",
+    },
+  );
+
+  const aspectCollapse = createCollapse(
+    {
+      id: "templateFilterAspectToggle",
+      classNames: "template-filter-panel__toggle",
+      content: aspectLabel,
+    },
+    {
+      id: "templateAspectCollapse",
+      content:
+        "<div id='templateAspectOptions' class='template-filter-panel__options'></div>",
+    },
+  );
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
-      <div class="d-flex">
-        <div id="templateFilterSearchContainer">
+      <div id="templateFilterPanelFilterContainer" class="d-flex">
+        <div id="templateFilterPanelSearchContainer">
           <input type="search" class="form-control rounded-pill" id="templateFilterSearch" placeholder="${searchLabel}">
 
           <span id="templateFilterSearchIcon" class="material-symbols-outlined">search</span>
-        </div>
-
-        <button id="templateFilterPopoverBtn" class="btn btn-sm d-flex align-items-center row-gap-1 template-filter-panel__popover-trigger" popovertarget="templateFilterPopoverContent">
-          <i class="material-symbols-outlined">tune</i>
-          ${gettext("Filters")}
-        </button>
-
-        <div id="templateFilterPopoverContent" class="template-filter-panel__popover-content" popover>
-          <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateCategoryCollapse" id="templateFilterCategoryToggle" aria-expanded="true">
-            <span>${categoriesLabel}</span>
-            <span class="material-symbols-outlined">expand_more</span>
-          </button>
-          <div id="templateCategoryCollapse" class="collapse show">
-            <div id="templateCategoryOptions" class="template-filter-panel__options">
-            </div>
-          </div>
-
-          <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateTagCollapse" id="templateFilterTagToggle" aria-expanded="true">
-            <span>${tagsLabel}</span>
-            <span class="material-symbols-outlined">expand_more</span>
-          </button>
-          <div id="templateTagCollapse" class="collapse show">
-            <div id="templateTagOptions" class="template-filter-panel__options">
-            </div>
-          </div>
-
-          <button class="btn btn-sm w-100 template-filter-panel__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#templateAspectCollapse" id="templateFilterAspectToggle" aria-expanded="true">
-            <span>${aspectLabel}</span>
-            <span class="material-symbols-outlined">expand_more</span>
-          </button>
-          <div id="templateAspectCollapse" class="collapse show">
-            <div id="templateAspectOptions" class="template-filter-panel__options">
-            </div>
-          </div>
-
-
-          <div class="d-flex justify-content-end">
-            <button class="btn btn-sm btn-link template-filter-panel__reset" type="button" id="templateFilterReset">${resetLabel}</button>
-          </div>
         </div>
       </div>
 
@@ -525,6 +480,50 @@ function renderFilterPanel() {
       </div>
     </div>
   `;
+
+  const popover = createPopover(
+    {
+      id: "templateFilterPopoverBtn",
+      classNames:
+        "btn btn-sm d-flex align-items-center row-gap-1 template-filter-panel__popover-trigger",
+      content: `
+        <i class="material-symbols-outlined">tune</i>
+        ${gettext("Filters")}
+      `,
+    },
+    {
+      id: "templateFilterPopoverContent",
+      classNames: "template-filter-panel__popover-content",
+      content: `
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-sm btn-link template-filter-panel__reset" type="button" id="templateFilterReset">${resetLabel}</button>
+        </div>
+      `,
+    },
+  );
+
+  const searchFilterContainer = filterPanel.querySelector(
+    "#templateFilterPanelFilterContainer",
+  );
+  searchFilterContainer.appendChild(popover.trigger);
+  searchFilterContainer.appendChild(popover.popover);
+
+  const popoverContent = filterPanel?.querySelector(
+    "#templateFilterPopoverContent",
+  );
+  const resetBtn = popoverContent?.firstChild;
+
+  if (popoverContent && resetBtn) {
+    popoverContent.insertBefore(categoryCollapse.trigger, resetBtn);
+    popoverContent.insertBefore(categoryCollapse.content, resetBtn);
+
+    popoverContent.insertBefore(tagCollapse.trigger, resetBtn);
+    popoverContent.insertBefore(tagCollapse.content, resetBtn);
+
+    popoverContent.insertBefore(aspectCollapse.trigger, resetBtn);
+    popoverContent.insertBefore(aspectCollapse.content, resetBtn);
+  }
+
   updateTemplateSlideCount();
 }
 
