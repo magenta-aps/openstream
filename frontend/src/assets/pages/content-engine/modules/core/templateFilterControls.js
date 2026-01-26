@@ -21,13 +21,19 @@ const filterState = {
   sortKey: DEFAULT_SORT_KEY,
 };
 
+/** @type {HTMLElement | null} */
 let filterPanel;
 let isInitialized = false;
+
+/** @type {HTMLInputElement | null} */
 let searchInput;
-let clearSearchBtn;
+/** @type {Element | null} */
 let filterPopoverContent;
+/** @type {Element | null} */
 let sortDropdown;
+/** @type {Element | null} */
 let resetBtn;
+/** @type {Element | null} */
 let chipsContainer;
 
 /**
@@ -95,6 +101,7 @@ function createCollapse(triggerOptions, contentOptions) {
   collapseTrigger.type = "button";
   collapseTrigger.classList.add(
     "btn",
+    "btn-sm",
     "w-100",
     "d-flex",
     "justify-content-between",
@@ -145,8 +152,7 @@ function createCollapse(triggerOptions, contentOptions) {
  * @param {string} itemID - Id of the checkbox element
  * @param {string} filterID - Id of the filter inside of the filterState
  * @param {string} labelText - The label text value
- * @param {boolean} checked - The checkbox indicator for being checked
- * @param {string} value - The checkbox value
+ * @param {string} checked - The checkbox indicator for being checked
  * @returns A bootstrap checkbox as a html string
  */
 function createFilterItem(itemID, filterID, labelText, checked) {
@@ -388,10 +394,11 @@ function sortWorkingList(list) {
 }
 
 export function updateTemplateSlideCount() {
-  if (filterPanel) {
-    const templateCount = filterPanel.querySelector(
-      "#templateFilterPanelSlideCount",
-    );
+  const templateCount = filterPanel?.querySelector(
+    "#templateFilterPanelSlideCount",
+  );
+
+  if (templateCount) {
     templateCount.textContent = `${store.slides.length} ${gettext("Templates")}`;
   }
 }
@@ -785,11 +792,6 @@ function updateChips() {
   chipsContainer.innerHTML = "";
 
   if (!chips.length) {
-    /*
-    chipsContainer.innerHTML = `<p class="text-muted small mb-0">${gettext(
-      "No filters applied",
-    )}</p>`;
-    */
     return;
   }
 
