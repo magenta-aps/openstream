@@ -65,13 +65,12 @@ let globalTemplateThumbnailValue = null;
 
 const templateAspectRatioOptionMap = new Map();
 
-
 const saveAsTemplateForm = document.getElementById("saveAsTemplateForm");
 
-if (saveAsTemplateForm){
-saveAsTemplateForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-});
+if (saveAsTemplateForm) {
+  saveAsTemplateForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+  });
 }
 
 function getTemplateAspectRatiosForOrientation(orientation) {
@@ -97,8 +96,7 @@ function createTemplateAspectRatioOption(container, ratio) {
 
   if (ratio.note) {
     const note = document.createElement("div");
-    note.className =
-      "template-resolution-option-note text-muted text-center";
+    note.className = "template-resolution-option-note text-muted text-center";
     note.textContent = ratio.note;
     wrapper.appendChild(note);
   }
@@ -161,21 +159,29 @@ function applyTemplateMetadataLocally(
     targetSlide.categoryName = categoryName;
   }
 
-
   if (Array.isArray(metadataUpdate.tag_ids)) {
     targetSlide.tagIds = metadataUpdate.tag_ids;
   }
 
-  const tagNames = serverData?.tags.map(tag => tag.name);
+  const tagNames = serverData?.tags.map((tag) => tag.name);
   if (tagNames) {
     targetSlide.tagNames = tagNames;
   }
 
+  const updatedAt = serverData?.updated_at;
+  if (updatedAt) {
+    targetSlide.updated_at = updatedAt;
+  }
+
   if (
     Object.prototype.hasOwnProperty.call(metadataUpdate, "thumbnail_url") ||
-    (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url"))
+    (serverData &&
+      Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url"))
   ) {
-    if (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url")) {
+    if (
+      serverData &&
+      Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url")
+    ) {
       targetSlide.thumbnail_url = serverData.thumbnail_url;
     } else {
       targetSlide.thumbnail_url = metadataUpdate.thumbnail_url;
@@ -287,8 +293,7 @@ function renderTemplateAspectRatioOptions() {
     }
   });
 
-  const initialValue =
-    templateAspectRatioInput?.value || DEFAULT_ASPECT_RATIO;
+  const initialValue = templateAspectRatioInput?.value || DEFAULT_ASPECT_RATIO;
   selectTemplateAspectRatio(initialValue, { force: true });
 }
 
@@ -367,10 +372,7 @@ if (globalTemplateThumbnailInput) {
     }
 
     if (file.size > MAX_GLOBAL_THUMBNAIL_BYTES) {
-      showToast(
-        gettext("Thumbnail image must be 1 MB or smaller."),
-        "Warning",
-      );
+      showToast(gettext("Thumbnail image must be 1 MB or smaller."), "Warning");
       event.target.value = "";
       return;
     }
@@ -423,8 +425,7 @@ function getAspectRatioForIndex(index = null) {
 
   if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
     return (
-      store.slides[store.currentSlideIndex].aspect_ratio ||
-      DEFAULT_ASPECT_RATIO
+      store.slides[store.currentSlideIndex].aspect_ratio || DEFAULT_ASPECT_RATIO
     );
   }
 
@@ -848,7 +849,11 @@ if (confirmBtn) {
             duration: 5, // Default duration
             savedSnapSettings: {
               unit: "cells",
-              amount: getDefaultCellSnapForResolution(store.emulatedWidth, store.emulatedHeight) || 1,
+              amount:
+                getDefaultCellSnapForResolution(
+                  store.emulatedWidth,
+                  store.emulatedHeight,
+                ) || 1,
               isAuto: true,
               snapEnabled: false,
             },
