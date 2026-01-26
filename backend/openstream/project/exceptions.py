@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: AGPL-3.0-only
+
 import html
 import json
 from pathlib import Path
@@ -27,7 +30,9 @@ def _render_error_html(status_code: int, detail: Any) -> str:
     safe_detail = html.escape(detail_json)
 
     template = _get_template()
-    frontend_host = getattr(settings, "FRONTEND_HOST", "https://openstream.dk").rstrip("/")
+    frontend_host = getattr(settings, "FRONTEND_HOST", "https://openstream.dk").rstrip(
+        "/"
+    )
     return (
         template.replace("__STATUS_CODE__", str(status_code))
         .replace("__DETAIL__", safe_detail)
@@ -51,6 +56,8 @@ def custom_exception_handler(exc, context):
 
     if accepts_html and is_auth_code_view:
         html_body = _render_error_html(response.status_code, response.data)
-        return HttpResponse(html_body, status=response.status_code, content_type="text/html")
+        return HttpResponse(
+            html_body, status=response.status_code, content_type="text/html"
+        )
 
     return response

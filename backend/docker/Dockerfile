@@ -52,9 +52,9 @@ RUN if [ "$INSTALL_DEV_DEPS" = "true" ]; \
 
 FROM base AS final
 
-ARG bwqCACHEBUSTER107="bwqCACHEBUSTER107"
+ARG bwqCACHEBUSTER108="bwqCACHEBUSTER108"
     
-RUN echo "Cachebuster: $bwqCACHEBUSTER107"
+RUN echo "Cachebuster: $bwqCACHEBUSTER108"
 
 WORKDIR /app
 
