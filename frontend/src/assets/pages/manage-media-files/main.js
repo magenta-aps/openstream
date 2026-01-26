@@ -849,7 +849,7 @@ async function submitMediaUpdate(event) {
   if (form.category.value) body.append("category", form.category.value);
   currentMediaTags.forEach((tag) => body.append("tags[]", tag));
 
-  let method = "PUT";
+  let method = "PATCH";
   let idParam = "";
 
   if (!currentlyEditingMedia) {
@@ -880,7 +880,7 @@ async function submitMediaUpdate(event) {
   showLoadingOverlay(true);
   try {
     await genericFetch(
-      `${BASE_URL}/api/documents/${idParam}?branch_id=${selectedBranchID}`,
+      `${BASE_URL}/api/documents/${idParam}/?branch_id=${selectedBranchID}`,
       method,
       body,
     );
