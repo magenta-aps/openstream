@@ -33,6 +33,10 @@ app.get('/trigger-refresh', (req, res) => {
       .filter(Boolean);
   }
 
+  if (req.query.branch_id) {
+    payload.branchId = req.query.branch_id;
+  }
+
   channel.broadcast(payload, "custom-event");
   res.send('Content change logged');
 });

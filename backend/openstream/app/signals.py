@@ -97,6 +97,11 @@ def notify_express_of_change(sender, instance, **kwargs):
         if group_ids:
             params["group_ids"] = ",".join(str(group_id) for group_id in group_ids)
 
+    if sender is DisplayWebsite:
+        params["displaywebsite_id"] = instance.pk
+        if instance.branch_id:
+            params["branch_id"] = instance.branch_id
+
     try:
         # Tell Express to refresh whenever relevant content changes.
         requests.get(
