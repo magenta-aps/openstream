@@ -29,6 +29,7 @@ WINKAS_CONTRACTCODE = os.environ.get("WINKAS_CONTRACTCODE")
 
 FRONTEND_HOST = os.environ.get("FRONTEND_HOST", "https://openstream.dk")
 FRONTEND_PASSWORD_RESET_URL = os.environ.get("FRONTEND_PASSWORD_RESET_URL")
+EXPRESS_REFRESH_URL = os.environ.get("EXPRESS_REFRESH_URL")
 
 DEBUG = os.environ.get("DEBUG") == "True"
 

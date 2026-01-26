@@ -106,6 +106,7 @@ class SlideshowSerializer(serializers.ModelSerializer):
             "tags",
             "tag_ids",
             "mode",
+            "is_emergency_slideshow",
             "branch",
             "created_by",
             "preview_width",

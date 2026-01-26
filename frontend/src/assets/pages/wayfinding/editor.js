@@ -79,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
         indicator.style.opacity = "1";
       }
       await saveWayfindingData(false); // Don't show success toast for auto-save
-      console.log("Auto-saved wayfinding data");
 
       // Show success indicator briefly
       if (indicator) {
@@ -182,7 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
           wayfindingData = data.wayfinding_data;
         }
 
-        console.log("Parsed wayfinding data:", wayfindingData);
 
         // Load the data into the editor state
         floors = Array.isArray(wayfindingData.floors)
@@ -276,8 +274,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function saveWayfindingData(showSuccessToast = true) {
     try {
-      console.log("Starting save operation...");
-      console.log("exportState function:", exportState);
 
       // Pass the current state to exportState
       const currentState = {
@@ -288,19 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
         pathCounter,
         floorCounter,
       };
-      console.log("Current state:", currentState);
 
       const exportedData = exportState(currentState);
-      console.log("Exported data:", exportedData);
-
-      console.log(
-        "Making API call to:",
-        `${BASE_URL}/api/wayfinding/${wayfindingSystemId}/`,
-      );
-      console.log("With data:", {
-        wayfinding_data: exportedData,
-        branch_id: selectedBranchID,
-      });
 
       await genericFetch(
         `${BASE_URL}/api/wayfinding/${wayfindingSystemId}/`,

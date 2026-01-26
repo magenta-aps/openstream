@@ -34,7 +34,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
-import { BASE_URL } from "../../utils/constants";
+import { BASE_URL, derivePollingServiceFromHostname } from "../../utils/constants";
 
 // -------------------------
 // LOCALE SETUP
@@ -4043,8 +4043,39 @@ function syncDefaultToggleAndGroup() {
   });
 }
 
+function initLiveReload() {
+  console.log("Initializing live reload via SSE");
+  // 1. Point this to your Express route
+  const eventSource = new EventSource(derivePollingServiceFromHostname());
+
+  // Check connection status
+  eventSource.onopen = () => {
+    console.log('[sse] connection established at', new Date().toISOString());
+  };
+
+  // 2. Listen for the "custom-event" sent by channel.broadcast()
+  eventSource.addEventListener('custom-event', (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.model == "DisplayWebsite" && Number(data.branchId) === Number(selectedBranchID)) {
+    const currentDisplayIds = new Set(displaysData.map((d) => d.id));
+      if (!currentDisplayIds.has(data.id)) {
+        checkForNewDisplays();
+      }
+    }
+  });
+
+  // Handle errors (like server going down)
+  eventSource.onerror = (err) => {
+    console.error('[sse] error', err);
+  };
+}
+
+
 // Init
 document.addEventListener("DOMContentLoaded", async function () {
+
+  initLiveReload();
 
   await fetchUserLangugage();
   translateHTML();
@@ -4108,7 +4139,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   initCalendar();
   initOrgUrlRouting();
 
-  setInterval(checkForNewDisplays, 10000);
 
   document.getElementsByName("editScheduledContentType").forEach((elem) => {
     elem.addEventListener("change", function () {

@@ -1363,6 +1363,29 @@ span {
   border-radius: 50%;
 }
 
+.drag-indicator {
+  display: none;
+  width: 50px;
+  height: 50px;
+  background: $white;
+  border: 2px dashed $neutral-blue;
+  position: absolute;
+  border-radius: 50%;
+  user-select: none;
+  pointer-events: auto;
+  box-shadow: 0 0 6px rgba($black, 0.35);
+  cursor: move;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-9px);
+}
+
+.drag-indicator .material-symbols-outlined {
+  font-size: 40px;
+  line-height: 1;
+}
+
 .resize-handle--n,
 .resize-handle--s {
   cursor: ns-resize;
@@ -2172,6 +2195,8 @@ span {
 .slide-element.is-locked .resize-handle {
   display: none !important;
 }
+
+
 
 /* Placeholder element styling for better visual separation */
 .slide-element.placeholder-element {

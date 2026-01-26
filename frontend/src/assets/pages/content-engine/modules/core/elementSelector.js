@@ -177,6 +177,10 @@ export function hideResizeHandles() {
   document.querySelectorAll(".resize-handle").forEach((handle) => {
     handle.style.display = "none";
   });
+
+  document.querySelectorAll(".drag-indicator").forEach((indicator) => {
+    indicator.style.display = "none";
+  });
 }
 
 export function hideElementToolbars() {
@@ -311,16 +315,21 @@ export function selectElement(el, dataObj) {
     : el._resizeHandle
       ? [el._resizeHandle]
       : Array.from(el.querySelectorAll(".resize-handle"));
+  const dragIndicator = el._dragIndicator;
+  const hasInteractiveOverlays = resizeHandles.length || dragIndicator;
 
-  if (resizeHandles.length) {
+  if (hasInteractiveOverlays) {
     if (el._updateResizerPosition) {
       el._updateResizerPosition();
     }
 
-    const shouldShowHandles = !isElementLocked(dataObj);
+    const shouldShowControls = !isElementLocked(dataObj);
     resizeHandles.forEach((handle) => {
-      handle.style.display = shouldShowHandles ? "block" : "none";
+      handle.style.display = shouldShowControls ? "block" : "none";
     });
+    if (dragIndicator) {
+      dragIndicator.style.display = shouldShowControls ? "flex" : "none";
+    }
   }
 
   // ### Initialize values for the general element formatting

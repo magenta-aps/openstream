@@ -5,7 +5,7 @@ import {
   selectedBranchID,
   token,
 } from "../../../../utils/utils.js";
-import { BASE_URL } from "../../../../utils/constants.js";
+import { BASE_URL, derivePollingServiceFromHostname } from "../../../../utils/constants.js";
 import { _renderBackgroundColor } from "../element_formatting/backgroundColor.js";
 import { _renderBorder } from "../element_formatting/border.js";
 import { _renderBorderRadius } from "../element_formatting/borderRadius.js";
@@ -567,21 +567,15 @@ async function _startSlideshowPlayer() {
   const apiKey = queryParams.apiKey;
 
   // Re-fetch and ensure fonts are ready BEFORE loading any content
-  console.log("Re-fetching fonts for slideshow-player mode with API key...");
   const { fetchAndInitializeFonts, waitForFontsReady } = await import(
     "../utils/fontUtils.js"
   );
   await fetchAndInitializeFonts();
 
-  console.log(
-    "Ensuring fonts are fully ready before loading slideshow content...",
-  );
 
   // Wait for browser font loading to complete
   try {
-    console.log("Waiting for document.fonts.ready...");
     await document.fonts.ready;
-    console.log("✓ document.fonts.ready resolved");
   } catch (e) {
     console.warn("document.fonts.ready failed:", e);
   }
@@ -590,7 +584,6 @@ async function _startSlideshowPlayer() {
   await waitForFontsReady(5000);
 
   // Extra buffer for font processing
-  console.log("Adding 500ms buffer for font processing...");
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   await (async function fetchActiveContent() {
@@ -613,12 +606,29 @@ async function _startSlideshowPlayer() {
       );
       if (!response.ok) {
         console.error("Failed to fetch data", response.status);
+        const data = await response.json();
+        if (data.detail === "No display_website_group found.") {
+          window.location.href = `/connect-screen?apiKey=${queryParams.apiKey}`;
+        }
         return;
       }
 
       const data = await response.json();
 
-        
+      console.log(data)
+
+      // Metadata used for live updating set in the window for easy access in open-screen.hbs
+      store.slideshowPlayerMetaData = {
+        slideshow_ids: data.slideshow_ids,
+        slideshow_playlist_ids: data.slideshow_playlist_ids,
+        scheduled_content_ids: data.scheduled_content_ids,
+        recurring_scheduled_content_ids: data.recurring_scheduled_content_ids,
+        display_website_group_id: data.display_website_group_id,
+        branch_id: data.branch_id,
+        suborg_id: data.suborg_id,
+        org_id: data.org_id,
+      };
+
 
       if (data.items && data.items.length > 0) {
         const firstSlideshow = data.items[0].slideshow;
@@ -707,6 +717,9 @@ async function _startSlideshowPlayer() {
     }
   })();
 
+  // Start SSE listener before entering potentially long-running playback loops
+  initLiveReload();
+
   if (store.slideshowMode === "interactive") {
     if (store.slides.length > 0) {
       store.currentSlideIndex = 0;
@@ -725,7 +738,7 @@ async function _startSlideshowPlayer() {
   } else {
     // Not interactive mode: ensure any player-mode class is removed
     try {
-    } catch (e) {}
+    } catch (e) { }
 
     if (store.slides.length > 0) {
       await playSlideshow(false);
@@ -733,6 +746,116 @@ async function _startSlideshowPlayer() {
   }
   renderPersistentElements();
 }
+
+function initLiveReload() {
+  console.log("Initializing live reload via SSE");
+  // 1. Point this to your Express route
+  const eventSource = new EventSource(derivePollingServiceFromHostname());
+
+  // Check connection status
+  eventSource.onopen = () => {
+    console.log('[sse] connection established at', new Date().toISOString());
+  };
+
+  // 2. Listen for the "custom-event" sent by channel.broadcast()
+  eventSource.addEventListener('custom-event', (event) => {
+    const data = JSON.parse(event.data);
+    console.log(data);
+    const metadata = store.slideshowPlayerMetaData || {};
+
+    const includesId = (collection, candidate) => Array.isArray(collection) && collection.some((id) => String(id) === String(candidate));
+
+    if (data.model == "Slideshow") {
+
+      // Check if data.id is in slideshow_ids
+      if (includesId(metadata.slideshow_ids, data.id)) {
+        console.log("Slideshow used in current display. Page should reload");
+        window.location.reload();
+      }
+      else {
+        console.log("Slideshow not used in current display. Should not reload")
+      }
+    }
+    if (data.model == "SlideshowPlaylist") {
+      // Check if data.id is in slideshow_playlist_ids
+      if (includesId(metadata.slideshow_playlist_ids, data.id)) {
+        console.log("SlideshowPlaylist used in current display. Page should reload");
+        window.location.reload();
+      }
+      else {
+        console.log("SlideshowPlaylist not used in current display. Should not reload")
+      }
+    }
+    if (data.model == "ScheduledContent") {
+      // Check if data.id is in scheduled_content_ids
+      if (includesId(metadata.scheduled_content_ids, data.id)) {
+        console.log("ScheduledContent used in current display. Page should reload");
+        window.location.reload();
+      }
+      else {
+        console.log("ScheduledContent not used in current display. Should not reload")
+      }
+    }
+    if (data.model == "RecurringScheduledContent") {
+      // Check if data.id is in recurring_scheduled_content_ids
+      if (includesId(metadata.recurring_scheduled_content_ids, data.id)) {
+        console.log("RecurringScheduledContent used in current display. Page should reload");
+        window.location.reload();
+      }
+      else {
+        console.log("RecurringScheduledContent not used in current display. Should not reload")
+      }
+    }
+    if (data.model == "DisplayWebsiteGroup") {
+
+
+      console.log(data.id); console.log(window.display_website_group_id);
+
+      // Check if data.id matches display_website_group_id
+      if (String(data.id) === String(metadata.display_website_group_id)) {
+        console.log("DisplayWebsiteGroup used in current display. Page should reload");
+        window.location.reload();
+      }
+      else {
+        console.log("DisplayWebsiteGroup not used in current display. Should not reload")
+      }
+    }
+    if (data.model == "DisplayWebsite") {
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+
+      const displayWebsiteId = urlParams.get('displayWebsiteId');
+
+      // Check if data.id matches displayWebsiteId
+      if (String(data.id) === String(displayWebsiteId)) {
+        console.log("DisplayWebsite used in current display. Page should reload");
+        window.location.reload();
+      }
+      else {
+        console.log("DisplayWebsite not used in current display. Should not reload")
+      }
+
+    }
+    if (data.model == "EmergencySlideshow") {
+      const currentGroupId = metadata.display_website_group_id;
+      const targetedGroupIds = Array.isArray(data.groupIds) ? data.groupIds : [];
+      const matchesDisplayGroup = currentGroupId && includesId(targetedGroupIds, currentGroupId);
+
+      if (matchesDisplayGroup) {
+        console.log("EmergencySlideshow affects current display group. Page should reload");
+        window.location.reload();
+      } else {
+        console.log("EmergencySlideshow scoped to other groups. Should not reload");
+      }
+    }
+  });
+
+  // Handle errors (like server going down)
+  eventSource.onerror = (err) => {
+    console.error('[sse] error', err);
+  };
+}
+
 
 function _syncSlideBgColorIcon(backgroundColor) {
   const slideBgColorOption = document.querySelector(
@@ -872,6 +995,15 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
     return handle.dataset.resizeDirection === "se";
   }) || resizeHandles[0];
 
+  const dragIndicator = document.createElement("div");
+  dragIndicator.classList.add("drag-indicator");
+  dragIndicator.dataset.dragIndicator = "true";
+  const dragIndicatorIcon = document.createElement("span");
+  dragIndicatorIcon.classList.add("material-symbols-outlined");
+  dragIndicatorIcon.textContent = "drag_pan";
+  dragIndicator.appendChild(dragIndicatorIcon);
+  container._dragIndicator = dragIndicator;
+
   if (
     queryParams.mode === "edit" ||
     queryParams.mode === "template_editor" ||
@@ -923,7 +1055,7 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
             ) {
               try {
                 console.log("click blocked by debounce");
-              } catch (e) {}
+              } catch (e) { }
               return;
             }
             window.__os_lastInteractivePageChangeAt = now;
@@ -977,6 +1109,8 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   if (resizeHandles.length && container.parentNode) {
     const HANDLE_SIZE = 23;
     const HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
+    const DRAG_INDICATOR_SIZE = 28;
+    const HALF_DRAG_INDICATOR = DRAG_INDICATOR_SIZE / 2;
 
     const ensureHandlesInDom = () => {
       resizeHandles.forEach((handle) => {
@@ -984,6 +1118,51 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
           container.parentNode.appendChild(handle);
         }
       });
+
+      if (dragIndicator && !dragIndicator.isConnected) {
+        container.parentNode.appendChild(dragIndicator);
+      }
+    };
+
+    const parseZIndex = (node) => {
+      if (!node) {
+        return 0;
+      }
+
+      let parsedValue = 0;
+      try {
+        const computed = window.getComputedStyle(node).zIndex;
+        const parsedComputed = parseInt(computed, 10);
+        if (!isNaN(parsedComputed)) {
+          parsedValue = parsedComputed;
+        }
+      } catch (err) {
+        // Ignore inability to read computed styles (element may be detached)
+      }
+
+      if (parsedValue === 0 && node.style) {
+        const inline = parseInt(node.style.zIndex ?? "", 10);
+        if (!isNaN(inline)) {
+          parsedValue = inline;
+        }
+      }
+
+      return parsedValue;
+    };
+
+    const getHighestSlideZIndex = () => {
+      if (!container.parentNode) {
+        return parseZIndex(container);
+      }
+
+      let highestZIndex = 0;
+      container.parentNode
+        .querySelectorAll(".slide-element")
+        .forEach((node) => {
+          highestZIndex = Math.max(highestZIndex, parseZIndex(node));
+        });
+
+      return highestZIndex;
     };
 
     const updateResizerPosition = () => {
@@ -997,24 +1176,15 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
       const parentHeight = container.parentNode.offsetHeight;
       const maxLeft = Math.max(parentWidth - HANDLE_SIZE, 0);
       const maxTop = Math.max(parentHeight - HANDLE_SIZE, 0);
+      const indicatorMaxLeft = Math.max(parentWidth - DRAG_INDICATOR_SIZE, 0);
+      const indicatorMaxTop = Math.max(parentHeight - DRAG_INDICATOR_SIZE, 0);
 
-      let elementZIndex = 0;
-      try {
-        const computedStyle = window.getComputedStyle(container);
-        const parsed = parseInt(computedStyle.zIndex, 10);
-        if (!isNaN(parsed)) {
-          elementZIndex = parsed;
-        }
-      } catch (err) {
-        // ignore
-      }
-
-      if (elementZIndex === 0) {
-        const inline = parseInt(container.style.zIndex ?? "", 10);
-        if (!isNaN(inline)) {
-          elementZIndex = inline;
-        }
-      }
+      const elementZIndex = parseZIndex(container);
+      const highestSlideZIndex = Math.max(
+        elementZIndex,
+        getHighestSlideZIndex(),
+      );
+      const handleZIndex = Math.max(highestSlideZIndex + 2, 1000);
 
       resizeHandles.forEach((handle) => {
         const direction = handle.dataset.resizeDirection || "se";
@@ -1064,8 +1234,20 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
 
         handle.style.left = Math.round(handleLeft) + "px";
         handle.style.top = Math.round(handleTop) + "px";
-        handle.style.zIndex = String(elementZIndex + 2);
+        handle.style.zIndex = String(handleZIndex);
       });
+
+      if (dragIndicator) {
+        let indicatorLeft = baseLeft + width / 2 - HALF_DRAG_INDICATOR;
+        let indicatorTop = baseTop + height / 2 - HALF_DRAG_INDICATOR;
+
+        indicatorLeft = Math.min(Math.max(indicatorLeft, 0), indicatorMaxLeft);
+        indicatorTop = Math.min(Math.max(indicatorTop, 0), indicatorMaxTop);
+
+        dragIndicator.style.left = Math.round(indicatorLeft) + "px";
+        dragIndicator.style.top = Math.round(indicatorTop) + "px";
+        dragIndicator.style.zIndex = String(handleZIndex + 1);
+      }
     };
 
     ensureHandlesInDom();
@@ -1099,8 +1281,12 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
           handle.parentNode.removeChild(handle);
         }
       });
+      if (dragIndicator && dragIndicator.parentNode) {
+        dragIndicator.parentNode.removeChild(dragIndicator);
+      }
       delete container._resizeHandles;
       delete container._resizeHandle;
+      delete container._dragIndicator;
     };
   }
 

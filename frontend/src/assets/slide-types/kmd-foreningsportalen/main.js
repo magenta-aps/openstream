@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import "./style.scss";
 import { BASE_URL } from "../../utils/constants";
-import { queryParams } from "../../utils/utils";
+import { queryParams, shouldUseApiKeyInSlideTypeIframe } from "../../utils/utils";
 
 import InfiniteMarquee from "vanilla-infinite-marquee";
 
@@ -37,7 +37,7 @@ const token = localStorage.getItem("accessToken");
 const apiKey = localStorage.getItem("apiKey");
 
 const headers = { "Content-Type": "application/json" };
-if (apiKey) {
+if (shouldUseApiKeyInSlideTypeIframe() && apiKey) {
   headers["X-API-KEY"] = apiKey;
 } else if (token) {
   headers["Authorization"] = `Bearer ${token}`;

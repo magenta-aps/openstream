@@ -816,6 +816,9 @@ if (confirmBtn) {
         showToast(gettext("Template details updated successfully."), "Success");
 
         if (bsModalInstance) bsModalInstance.hide();
+
+        // Use store.slides to update available categories
+        console.log("slides", await store.slides);
       } catch (err) {
         console.error("Error updating template metadata:", err);
         showToast(gettext("Error: ") + err.message, "Error");

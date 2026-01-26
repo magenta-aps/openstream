@@ -141,10 +141,6 @@ export function setResolutionFromAspectRatio(aspectRatio) {
   }, 50);
 
   syncGridToCurrentSlide();
-
-  console.log(
-    `Set resolution to ${width}x${height} for aspect ratio ${aspectRatio}`,
-  );
 }
 
 /**
@@ -212,14 +208,10 @@ async function ensureSuborgTemplatesBranch(suborgIdToUse) {
     );
 
     if (existingBranch) {
-      console.log(
-        `Found existing 'suborg_templates' branch with ID: ${existingBranch.id}`,
-      );
       return existingBranch.id;
     }
 
     // If not found, create the branch
-    console.log("Creating 'suborg_templates' branch...");
     const createResp = await fetch(`${BASE_URL}/api/branches/`, {
       method: "POST",
       headers: {
@@ -239,7 +231,6 @@ async function ensureSuborgTemplatesBranch(suborgIdToUse) {
     }
 
     const newBranch = await createResp.json();
-    console.log(`Created 'suborg_templates' branch with ID: ${newBranch.id}`);
     return newBranch.id;
   } catch (err) {
     console.error("Error ensuring suborg_templates branch:", err);
@@ -463,17 +454,12 @@ export async function initSuborgTemplateEditor(suborgIdToUse) {
   suborgId = suborgIdToUse;
   store.editorMode = "suborg_templates";
   store.globalTemplateContext = false;
-  console.log(`Initializing suborg template editor for suborg ID: ${suborgId}`);
-
   try {
     // Ensure 'suborg_templates' branch exists and get its ID
     const suborgTemplatesBranchId = await ensureSuborgTemplatesBranch(suborgId);
 
     // Set the selectedBranchID in localStorage so media operations work
     localStorage.setItem("selectedBranchID", suborgTemplatesBranchId);
-    console.log(
-      `Set selectedBranchID to suborg_templates branch: ${suborgTemplatesBranchId}`,
-    );
 
     const success = await fetchAllSuborgTemplatesAndPopulateStore(suborgId);
     if (!success) {
@@ -486,8 +472,6 @@ export async function initSuborgTemplateEditor(suborgIdToUse) {
     if (pageTitle) {
       pageTitle.textContent = gettext("Suborganisation Templates");
     }
-
-    console.log(gettext("Suborg template editor initialized successfully."));
   } catch (err) {
     console.error(gettext("Error initializing suborg template editor:"), err);
     showToast(

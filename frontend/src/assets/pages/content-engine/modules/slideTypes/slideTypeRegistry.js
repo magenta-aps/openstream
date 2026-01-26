@@ -54,7 +54,6 @@ try {
     data.forEach((slideType) => {
       allowedSlideTypes.push(slideType.slide_type_id);
     });
-    console.log("Allowed slide types:", allowedSlideTypes);
   } else {
     console.error("Failed to fetch slide types:", res.statusText);
   }

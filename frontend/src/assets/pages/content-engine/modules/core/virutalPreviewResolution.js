@@ -223,7 +223,6 @@ export async function updateResolution(selectedResolution) {
     ) {
       const currentTemplate = store.slides[store.currentSlideIndex];
       currentTemplate.aspect_ratio = currentAspectRatio;
-      console.log(`Updated template aspect ratio to: ${currentAspectRatio}`);
     }
 
     const shouldReloadSlide =

@@ -12,11 +12,13 @@ from rest_framework.views import APIView
 from app.models import (
     DisplayWebsite,
     DisplayWebsiteGroup,
-    ScheduledContent,
+    EmergencySlideshow,
     RecurringScheduledContent,
+    ScheduledContent,
 )
 from app.serializers import (
     DisplayWebsiteGroupSerializer,
+    EmergencySlideshowSerializer,
     SlideshowSerializer,
     SlideshowPlaylistSerializer,
     DisplayWebsiteSerializer,
@@ -282,6 +284,128 @@ class RecurringScheduledContentAPIView(APIView):
         return Response(status=204)
 
 
+class EmergencySlideshowAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _user_can_access_groups(self, user, groups):
+        for group in groups:
+            if group.branch and not user_can_access_branch(user, group.branch):
+                return False
+        return True
+
+    def _groups_share_branch(self, groups):
+        branch_ids = {group.branch_id for group in groups if group.branch_id}
+        return len(branch_ids) <= 1
+
+    def get(self, request, pk=None):
+        if pk is not None:
+            emergency = get_object_or_404(EmergencySlideshow, pk=pk)
+            groups = list(emergency.display_website_groups.all())
+            if not self._user_can_access_groups(request.user, groups):
+                return Response({"detail": "Not allowed."}, status=403)
+            serializer = EmergencySlideshowSerializer(emergency)
+            return Response(serializer.data)
+
+        group_ids = request.query_params.get("ids")
+        single_id = request.query_params.get("id")
+
+        if not group_ids and not single_id:
+            return Response(
+                {"detail": "Either 'id' or 'ids' parameter is required."},
+                status=400,
+            )
+
+        requested_ids = []
+        if group_ids:
+            try:
+                requested_ids = [
+                    int(val.strip()) for val in group_ids.split(",") if val.strip()
+                ]
+            except ValueError:
+                return Response({"detail": "Invalid ids parameter."}, status=400)
+        else:
+            try:
+                requested_ids = [int(single_id)]
+            except (TypeError, ValueError):
+                return Response({"detail": "Invalid id parameter."}, status=400)
+
+        if not requested_ids:
+            return Response(
+                {"detail": "No valid display website group ids supplied."}, status=400
+            )
+
+        requested_set = set(requested_ids)
+        groups = DisplayWebsiteGroup.objects.filter(id__in=requested_set)
+        if groups.count() != len(requested_set):
+            return Response({"detail": "Unknown display website group."}, status=404)
+
+        if not self._user_can_access_groups(request.user, groups):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        emergencies = EmergencySlideshow.objects.filter(
+            display_website_groups__in=groups
+        ).distinct()
+        serializer = EmergencySlideshowSerializer(emergencies, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = EmergencySlideshowSerializer(data=request.data)
+        if serializer.is_valid():
+            groups = list(serializer.validated_data["display_website_groups"])
+            if not self._user_can_access_groups(request.user, groups):
+                return Response({"detail": "Not allowed."}, status=403)
+            if not self._groups_share_branch(groups):
+                return Response(
+                    {
+                        "detail": "All display website groups must belong to the same branch."
+                    },
+                    status=400,
+                )
+
+            emergency = serializer.save()
+            return Response(
+                EmergencySlideshowSerializer(emergency).data,
+                status=201,
+            )
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        emergency = get_object_or_404(EmergencySlideshow, pk=pk)
+        existing_groups = list(emergency.display_website_groups.all())
+        if not self._user_can_access_groups(request.user, existing_groups):
+            return Response({"detail": "Not allowed."}, status=403)
+
+        serializer = EmergencySlideshowSerializer(
+            emergency, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            groups = serializer.validated_data.get(
+                "display_website_groups", existing_groups
+            )
+            groups = list(groups)
+            if not self._user_can_access_groups(request.user, groups):
+                return Response({"detail": "Not allowed."}, status=403)
+            if not self._groups_share_branch(groups):
+                return Response(
+                    {
+                        "detail": "All display website groups must belong to the same branch."
+                    },
+                    status=400,
+                )
+
+            updated = serializer.save()
+            return Response(EmergencySlideshowSerializer(updated).data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        emergency = get_object_or_404(EmergencySlideshow, pk=pk)
+        groups = list(emergency.display_website_groups.all())
+        if not self._user_can_access_groups(request.user, groups):
+            return Response({"detail": "Not allowed."}, status=403)
+        emergency.delete()
+        return Response(status=204)
+
+
 class GetActiveContentAPIView(APIView):
     permission_classes = [HasAPIKeyOrIsAuthenticated]
 
@@ -292,7 +416,7 @@ class GetActiveContentAPIView(APIView):
         """
         return {
             "id": slideshow_data.get("id"),
-            "position": position,  # Adjust as needed
+            "position": position,
             "slideshow_playlist": 1,
             "slideshow": slideshow_data,
         }
@@ -355,10 +479,63 @@ class GetActiveContentAPIView(APIView):
         if not dwg:
             return Response({"detail": "No display_website_group found."}, status=404)
 
+        slideshow_ids = set()
+        playlist_ids = set()
+        scheduled_ids = set()
+        recurring_ids = set()
+        emergency_slideshow_ids = set()
+
+        def track_slides_from_items(items):
+            if not items:
+                return
+            for item in items:
+                slideshow_data = (
+                    item.get("slideshow") if isinstance(item, dict) else None
+                )
+                if isinstance(slideshow_data, dict):
+                    slideshow_id = slideshow_data.get("id")
+                    if slideshow_id is not None:
+                        slideshow_ids.add(slideshow_id)
+
+        def metadata_payload():
+            return {
+                "slideshow_ids": sorted(slideshow_ids),
+                "slideshow_playlist_ids": sorted(playlist_ids),
+                "scheduled_content_ids": sorted(scheduled_ids),
+                "recurring_scheduled_content_ids": sorted(recurring_ids),
+                "emergency_slideshow_ids": sorted(emergency_slideshow_ids),
+                "display_website_group_id": dwg.id,
+                "org_id": dw.branch.suborganisation.organisation.id,
+                "suborg_id": dw.branch.suborganisation.id,
+                "branch_id": dw.branch.id,
+            }
+
         tz_now = timezone.now()
         current_weekday = tz_now.weekday()
         current_time = tz_now.time()
         current_date = tz_now.date()
+
+        active_emergency = (
+            EmergencySlideshow.objects.filter(
+                display_website_groups=dwg, is_active=True
+            )
+            .select_related("slideshow")
+            .order_by("-pk")
+            .first()
+        )
+
+        if active_emergency:
+            emergency_slideshow_ids.add(active_emergency.pk)
+            emergency_items = self.get_playlist_items(
+                active_emergency.slideshow, "slideshow"
+            )
+            track_slides_from_items(emergency_items)
+            if active_emergency.slideshow_id:
+                slideshow_ids.add(active_emergency.slideshow_id)
+
+            payload = {"items": emergency_items, "emergency_active": True}
+            payload.update(metadata_payload())
+            return Response(payload, status=200)
 
         scheduled_qs = ScheduledContent.objects.filter(
             display_website_group=dwg, start_time__lte=tz_now, end_time__gte=tz_now
@@ -380,20 +557,38 @@ class GetActiveContentAPIView(APIView):
         combine_with_default = False
 
         for sc in scheduled_qs:
+            scheduled_ids.add(sc.id)
             if sc.slideshow is not None:
-                scheduled_items += self.get_playlist_items(sc.slideshow, "slideshow")
+                slideshow_items = self.get_playlist_items(sc.slideshow, "slideshow")
+                track_slides_from_items(slideshow_items)
+                scheduled_items += slideshow_items
+                if sc.slideshow_id:
+                    slideshow_ids.add(sc.slideshow_id)
             elif sc.playlist is not None:
-                scheduled_items += self.get_playlist_items(sc.playlist, "playlist")
+                playlist_items = self.get_playlist_items(sc.playlist, "playlist")
+                track_slides_from_items(playlist_items)
+                scheduled_items += playlist_items
+                if sc.playlist_id:
+                    playlist_ids.add(sc.playlist_id)
             # If any scheduled content requires merging with default, mark the flag.
             if sc.combine_with_default:
                 combine_with_default = True
 
         # Iterate over all recurring scheduled content records.
         for rsc in recurring_qs:
+            recurring_ids.add(rsc.id)
             if rsc.slideshow is not None:
-                scheduled_items += self.get_playlist_items(rsc.slideshow, "slideshow")
+                slideshow_items = self.get_playlist_items(rsc.slideshow, "slideshow")
+                track_slides_from_items(slideshow_items)
+                scheduled_items += slideshow_items
+                if rsc.slideshow_id:
+                    slideshow_ids.add(rsc.slideshow_id)
             elif rsc.playlist is not None:
-                scheduled_items += self.get_playlist_items(rsc.playlist, "playlist")
+                playlist_items = self.get_playlist_items(rsc.playlist, "playlist")
+                track_slides_from_items(playlist_items)
+                scheduled_items += playlist_items
+                if rsc.playlist_id:
+                    playlist_ids.add(rsc.playlist_id)
             # If any recurring content requires merging with default, mark the flag.
             if rsc.combine_with_default:
                 combine_with_default = True
@@ -409,36 +604,56 @@ class GetActiveContentAPIView(APIView):
                     hasattr(dwg, "default_slideshow")
                     and dwg.default_slideshow is not None
                 ):
-                    default_items += self.get_playlist_items(
+                    default_slideshow_items = self.get_playlist_items(
                         dwg.default_slideshow, "slideshow"
                     )
+                    track_slides_from_items(default_slideshow_items)
+                    default_items += default_slideshow_items
+                    if getattr(dwg, "default_slideshow_id", None):
+                        slideshow_ids.add(dwg.default_slideshow_id)
                 if (
                     hasattr(dwg, "default_playlist")
                     and dwg.default_playlist is not None
                 ):
-                    default_items += self.get_playlist_items(
+                    default_playlist_items = self.get_playlist_items(
                         dwg.default_playlist, "playlist"
                     )
+                    track_slides_from_items(default_playlist_items)
+                    default_items += default_playlist_items
+                    if getattr(dwg, "default_playlist_id", None):
+                        playlist_ids.add(dwg.default_playlist_id)
                 merged_items = merge_items(scheduled_items, default_items)
             else:
                 merged_items = scheduled_items
 
-            return Response({"items": merged_items}, status=200)
+            payload = {"items": merged_items}
+            payload.update(metadata_payload())
+            return Response(payload, status=200)
         else:
             # Fallback: if no scheduled content is active, use default content.
             default_items = []
             if hasattr(dwg, "default_slideshow") and dwg.default_slideshow is not None:
-                default_items += self.get_playlist_items(
+                default_slideshow_items = self.get_playlist_items(
                     dwg.default_slideshow, "slideshow"
                 )
+                track_slides_from_items(default_slideshow_items)
+                default_items += default_slideshow_items
+                if getattr(dwg, "default_slideshow_id", None):
+                    slideshow_ids.add(dwg.default_slideshow_id)
             if hasattr(dwg, "default_playlist") and dwg.default_playlist is not None:
-                default_items += self.get_playlist_items(
+                default_playlist_items = self.get_playlist_items(
                     dwg.default_playlist, "playlist"
                 )
+                track_slides_from_items(default_playlist_items)
+                default_items += default_playlist_items
+                if getattr(dwg, "default_playlist_id", None):
+                    playlist_ids.add(dwg.default_playlist_id)
             if not default_items:
                 return Response({"detail": "No default content found."}, status=404)
             else:
-                return Response({"items": default_items}, status=200)
+                payload = {"items": default_items}
+                payload.update(metadata_payload())
+                return Response(payload, status=200)
 
 
 class BranchActiveContentAPIView(APIView):

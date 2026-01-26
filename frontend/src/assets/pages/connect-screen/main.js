@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import "./style.scss";
-import { BASE_URL } from "../../utils/constants";
+import { BASE_URL, derivePollingServiceFromHostname } from "../../utils/constants";
 import {
   translateHTML,
   fetchUserLangugage,
@@ -192,22 +192,6 @@ async function initializeScreen() {
       localStorage.setItem("screenId", screenId);
       showRegistration(screenId);
     }
-
-    // Start polling for group assignment
-    const pollInterval = setInterval(async () => {
-      try {
-        const currentScreenId = localStorage.getItem("screenId");
-        if (currentScreenId) {
-          const isAssigned = await checkForGroupAssignment(currentScreenId);
-          if (isAssigned) {
-            clearInterval(pollInterval);
-          }
-        }
-      } catch (error) {
-        console.error("Error during polling:", error);
-        // Continue polling despite errors
-      }
-    }, 1000); // Poll every second
   } catch (error) {
     console.error("Error initializing screen:", error);
     showError(
@@ -218,5 +202,47 @@ async function initializeScreen() {
   }
 }
 
+
+function initLiveReload() {
+  const currentScreenId = localStorage.getItem("screenId");
+  console.log("Initializing live reload via SSE");
+  // 1. Point this to your Express route
+  const eventSource = new EventSource(derivePollingServiceFromHostname());
+
+  // Check connection status
+  eventSource.onopen = () => {
+    console.log('[sse] connection established at', new Date().toISOString());
+  };
+
+  // 2. Listen for the "custom-event" sent by channel.broadcast()
+  eventSource.addEventListener('custom-event', (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.model == "DisplayWebsite") {
+      console.log("DisplayWebsite change detected");
+      checkForGroupAssignment(currentScreenId);
+    }
+  });
+
+  // Handle errors (like server going down)
+  eventSource.onerror = (err) => {
+    console.error('[sse] error', err);
+  };
+}
+
 // Start the initialization process when the page loads
-document.addEventListener("DOMContentLoaded", initializeScreen);
+document.addEventListener("DOMContentLoaded", async () => {
+  await initializeScreen();
+  
+  const currentScreenId = localStorage.getItem("screenId");
+  if (currentScreenId) {
+    // Set up SSE for real-time updates
+    initLiveReload();
+    
+    // Backup polling every minute in case SSE fails
+    setInterval(() => {
+      console.log("Backup polling check");
+      checkForGroupAssignment(currentScreenId);
+    }, 60000);
+  }
+});

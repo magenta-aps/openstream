@@ -3,7 +3,7 @@
 import "./style.scss";
 import VanillaMarquee from "vanilla-marquee"; // Import vanilla-marquee
 import { BASE_URL } from "../../utils/constants";
-import { queryParams } from "../../utils/utils";
+import { queryParams, shouldUseApiKeyInSlideTypeIframe } from "../../utils/utils";
 
 // Parse config from query parameters
 const config = {
@@ -23,7 +23,7 @@ const token = localStorage.getItem("accessToken");
 const apiKey = localStorage.getItem("apiKey");
 
 const headers = { "Content-Type": "application/json" };
-if (apiKey) {
+if (shouldUseApiKeyInSlideTypeIframe() && apiKey) {
   headers["X-API-KEY"] = apiKey;
 } else if (token) {
   headers["Authorization"] = `Bearer ${token}`;

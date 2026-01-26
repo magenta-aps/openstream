@@ -1,0 +1,19 @@
+{
+  "name": "polling-server",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon main.js",
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "better-sse": "^0.16.1",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

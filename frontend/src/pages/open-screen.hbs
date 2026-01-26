@@ -1,20 +1,14 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-<!-- HTML Wrapper -->
-{{#> base/containers/html-container title="Content Engine" script-src="/src/assets/pages/content-engine/main.js" }}
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    <!-- HTML Wrapper -->
+    {{#> base/containers/html-container title="Content Engine" script-src="/src/assets/pages/content-engine/main.js" }}
 
     <!-- Main Container -->
-    {{#> base/containers/main-container }}
-        <!-- Sidebar and Content Container -->
-        {{#> base/containers/sidebar-and-content-container pageTitleId="contentEngineTitle" pageTitle="Edit Content" showGoBackButton=true }}
-
-            {{#*inline "sidebarContent"}}
-            {{/inline}}
-            {{#*inline "mainContent"}}
-                {{#> base/content-engine/top-menu-and-canvas-container }}
-                    {{> base/content-engine/slide-canvas }}
-                {{/base/content-engine/top-menu-and-canvas-container}}
-            {{/inline}}
-        {{/base/containers/sidebar-and-content-container}}
-    {{/base/containers/main-container}}
-{{/base/containers/html-container}}
+    <div class="h-100 w-100">
+    {{#> base/containers/content-engine-player-container }}
+    {{#*inline "mainContent"}}
+    {{> base/content-engine/player-canvas }}
+    {{/inline}}
+    {{/base/containers/content-engine-player-container}}
+    </div>  
+    {{/base/containers/html-container}}
