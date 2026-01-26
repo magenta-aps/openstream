@@ -1,21 +1,21 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
+import logging
 import os
 import uuid
-import logging
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models, transaction
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 from .utils import (
-    generate_content_hash,
     calculate_aspect_ratio,
     create_hashed_filename,
+    generate_content_hash,
 )
 
 logger = logging.getLogger(__name__)
@@ -392,6 +392,9 @@ class SlideTemplate(models.Model):
         default="16:9",
         help_text='The aspect ratio for this template, e.g. "16:9", "4:3", "9:16"',
     )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]

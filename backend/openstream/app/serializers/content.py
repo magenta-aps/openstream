@@ -11,10 +11,10 @@ from app.models import (
     Category,
     GlobalSlideTemplate,
     Organisation,
-    SlideTemplate,
     Slideshow,
     SlideshowPlaylist,
     SlideshowPlaylistItem,
+    SlideTemplate,
     SubOrganisation,
     Tag,
 )
@@ -133,6 +133,8 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
     organisation = OrganisationSerializer(read_only=True)
     suborganisation = SubOrganisationSerializer(read_only=True)
     parent_template = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     category_id = serializers.PrimaryKeyRelatedField(
         source="category",
@@ -186,6 +188,8 @@ class SlideTemplateSerializer(serializers.ModelSerializer):
             "suborganisation_id",
             "parent_template_id",
             "aspect_ratio",
+            "created_at",
+            "updated_at",
         ]
 
     def get_parent_template(self, obj):
