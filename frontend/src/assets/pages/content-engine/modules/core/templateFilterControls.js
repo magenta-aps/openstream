@@ -11,6 +11,8 @@ const DEFAULT_SORT_KEY = "name:asc";
 const TAG_SORT_KEY = "tags";
 const CATEGORY_SORT_KEY = "category";
 const NAME_SORT_KEY = "name";
+const CREATED_SORT_KEY = "created";
+const UPDATED_SORT_KEY = "updated";
 
 const filterState = {
   search: "",
@@ -386,6 +388,7 @@ function sortWorkingList(list) {
   const multiplier = direction === "desc" ? -1 : 1;
   const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 
+  let sortByDate = false;
   const resolveValue = (entry) => {
     const { slide } = entry;
     if (column === CATEGORY_SORT_KEY) {
@@ -397,6 +400,16 @@ function sortWorkingList(list) {
       }
       return "";
     }
+
+    if (column === CREATED_SORT_KEY) {
+      sortByDate = true;
+      return slide.created_at || "";
+    }
+
+    if (column === UPDATED_SORT_KEY) {
+      sortByDate = true;
+      return slide.updated_at || "";
+    }
     return slide.name || "";
   };
 
@@ -406,6 +419,12 @@ function sortWorkingList(list) {
 
     if (typeof aVal === "number" && typeof bVal === "number") {
       return (aVal - bVal) * multiplier;
+    }
+
+    if (sortByDate) {
+      // when the multiplier is 1 (asc) it returns the smallest number, the past, and vice versa
+      // this is the opposite behaviour of what is expected so the multiplier is reversed on the line below
+      return (new Date(aVal) - new Date(bVal)) * -multiplier;
     }
 
     return collator.compare(String(aVal), String(bVal)) * multiplier;
@@ -497,6 +516,10 @@ function renderFilterPanel() {
             <li><button class="dropdown-item" type="button" data-value="${CATEGORY_SORT_KEY}:desc">${gettext("Category (Z-A)")}</button></li>
             <li><button class="dropdown-item" type="button" data-value="${TAG_SORT_KEY}:asc">${gettext("Tag (A-Z)")}</button></li>
             <li><button class="dropdown-item" type="button" data-value="${TAG_SORT_KEY}:desc">${gettext("Tag (Z-A)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${CREATED_SORT_KEY}:asc">${gettext("Created (Newest)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${CREATED_SORT_KEY}:desc">${gettext("Created (Oldest)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${UPDATED_SORT_KEY}:asc">${gettext("Updated (Newest)")}</button></li>
+            <li><button class="dropdown-item" type="button" data-value="${UPDATED_SORT_KEY}:desc">${gettext("Updated (Oldest)")}</button></li>
           </ul>
         </div>
       </div>
