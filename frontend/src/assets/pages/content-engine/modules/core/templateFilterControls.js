@@ -529,7 +529,6 @@ function renderFilterPanel() {
 
 function cacheDomReferences() {
   searchInput = filterPanel.querySelector("#templateFilterSearch");
-  clearSearchBtn = filterPanel.querySelector("#templateFilterSearchClear");
   filterPopoverContent = filterPanel.querySelector(
     "#templateFilterPopoverContent",
   );
@@ -541,15 +540,6 @@ function cacheDomReferences() {
 function attachEventListeners() {
   if (searchInput) {
     searchInput.addEventListener("input", handleSearchInput);
-  }
-  if (clearSearchBtn) {
-    clearSearchBtn.addEventListener("click", () => {
-      if (!searchInput) return;
-      searchInput.value = "";
-      filterState.search = "";
-      clearSearchBtn.classList.add("d-none");
-      emitFilterChange();
-    });
   }
 
   if (filterPopoverContent) {
@@ -591,9 +581,6 @@ function attachEventListeners() {
 
 function handleSearchInput(event) {
   filterState.search = event.target.value;
-  if (clearSearchBtn) {
-    clearSearchBtn.classList.toggle("d-none", filterState.search.length === 0);
-  }
   emitFilterChange();
 }
 
@@ -840,9 +827,6 @@ function createChip(label, value, type) {
 function syncInputsWithState() {
   if (searchInput) {
     searchInput.value = filterState.search;
-  }
-  if (clearSearchBtn) {
-    clearSearchBtn.classList.toggle("d-none", filterState.search === "");
   }
   if (sortDropdown) {
     sortDropdown.setAttribute("data-selected-value", filterState.sortKey);
