@@ -814,13 +814,15 @@ function updateChips() {
 
 function createChip(label, value, type) {
   const sanitizedLabel = label ?? "";
-  const chip = document.createElement("span");
-  chip.classList.add("badge", "template-filter-chip");
+  const chip = document.createElement("button");
+  chip.type = "button";
+  chip.classList.add("template-filter-chip");
+  chip.setAttribute("data-filter-chip", type);
+  chip.setAttribute("data-filter-value", value);
+
   chip.innerHTML = `
-      ${sanitizedLabel}
-      <button type="button" class="btn-close btn-close-white" aria-label="${gettext(
-        "Remove filter",
-      )}" data-filter-chip="${type}" data-filter-value="${value}"></button>
+    <i class="material-symbols-outlined icon-16">close</i>
+    ${sanitizedLabel}
   `;
 
   return chip;
