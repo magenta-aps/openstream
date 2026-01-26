@@ -8,7 +8,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0052_document_processing_status"),
+        ("app", "0054_slideshow_is_emergency_slideshow"),
     ]
 
     operations = [
