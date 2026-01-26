@@ -140,6 +140,8 @@ export async function populateStoreFromTemplates({
       slideObject.templateOriginalName = template.name;
       slideObject.name = template.name;
       slideObject.aspect_ratio = template.aspect_ratio || DEFAULT_ASPECT_RATIO;
+      slideObject.created_at = template.created_at;
+      slideObject.updated_at = template.updated_at;
 
       const templateCategory = template.category || null;
       slideObject.categoryId =
