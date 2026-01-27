@@ -57,6 +57,7 @@ function createStatusBar() {
     // Use static positioning and let layout handle sizing. We'll wrap
     // the preview area and append the status bar as a flex child so it
     // automatically fills available width and sits below the preview.
+    /*
     statusBar.style.cssText = `
       height: 32px;
       background: linear-gradient(90deg, var(--bs-light-gray) 0%, var(--bs-gray) 100%);
@@ -74,6 +75,7 @@ function createStatusBar() {
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       width: 100%;
     `;
+    */
 
     // Create content container (left side for grid info)
     statusBarContent = document.createElement("div");
@@ -195,7 +197,10 @@ function ensureGridSizeSubscription() {
   });
 }
 
-function updateGridSizeDisplay(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+function updateGridSizeDisplay(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+) {
   if (!gridSizeBadge) {
     return;
   }
@@ -243,7 +248,7 @@ function createSnapControls(rightSection) {
     align-items: center;
     gap: 2px;
   `;
-  
+
   const snapToggleIcon = document.createElement("i");
   snapToggleIcon.className = "material-symbols-outlined";
   snapToggleIcon.textContent = "grid_on";
@@ -251,9 +256,9 @@ function createSnapControls(rightSection) {
     font-size: 14px;
     font-variation-settings: 'FILL' 1;
   `;
-  
+
   snapToggleButton.appendChild(snapToggleIcon);
-  
+
   snapToggleButton.addEventListener("click", () => {
     toggleSnapEnabled();
   });
@@ -478,7 +483,10 @@ function normalizeSnapAmount(
   return sanitized;
 }
 
-function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+function getGridSignature(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+) {
   return `${Math.round(columns)}x${Math.round(rows)}`;
 }
 
@@ -522,9 +530,9 @@ function toggleSnapEnabled() {
   if (!store.dragSnapSettings) {
     getCurrentSnapSettings();
   }
-  
+
   const wasEnabled = store.dragSnapSettings.snapEnabled !== false;
-  
+
   if (wasEnabled) {
     // Turning snap OFF - save current settings and set to 1 cell
     store.dragSnapSettings.savedUnit = store.dragSnapSettings.unit;
@@ -542,7 +550,7 @@ function toggleSnapEnabled() {
       store.dragSnapSettings.amount = store.dragSnapSettings.savedAmount;
     }
   }
-  
+
   // Save to current slide
   if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
     const currentSlide = store.slides[store.currentSlideIndex];
@@ -555,7 +563,7 @@ function toggleSnapEnabled() {
       savedAmount: store.dragSnapSettings.savedAmount,
     };
   }
-  
+
   updateSnapControlsUI();
 }
 
@@ -625,7 +633,7 @@ function setSnapSettings(partial = {}) {
   next.amount = normalizeSnapAmount(next.unit, rawAmount);
   next.isAuto = false;
   next.appliedGridSignature = getGridSignature();
-  
+
   // Preserve snapEnabled state and saved values
   if (store.dragSnapSettings) {
     next.snapEnabled = store.dragSnapSettings.snapEnabled;
@@ -656,26 +664,32 @@ export function updateSnapControlsUI() {
   if (!snapControlsContainer) {
     return;
   }
-  
+
   const snapEnabled = store.dragSnapSettings?.snapEnabled !== false;
   const settings = getCurrentSnapSettings();
   const isDivision = settings.unit === "division";
-  
+
   // Update toggle button appearance
-  const toggleButton = snapControlsContainer.querySelector(".snap-toggle-button");
+  const toggleButton = snapControlsContainer.querySelector(
+    ".snap-toggle-button",
+  );
   const toggleIcon = toggleButton?.querySelector(".material-symbols-outlined");
   if (toggleButton) {
-    toggleButton.style.background = snapEnabled ? "var(--bs-primary)" : "var(--bs-darker-gray)";
-    toggleButton.title = snapEnabled ? gettext("Snap: On") : gettext("Snap: Off");
+    toggleButton.style.background = snapEnabled
+      ? "var(--bs-primary)"
+      : "var(--bs-darker-gray)";
+    toggleButton.title = snapEnabled
+      ? gettext("Snap: On")
+      : gettext("Snap: Off");
     if (toggleIcon) {
       toggleIcon.textContent = snapEnabled ? "grid_on" : "grid_off";
     }
   }
-  
+
   // Disable/enable other controls based on snap state
   const modeToggle = snapControlsContainer.querySelector(".snap-mode-toggle");
   const amountGroup = snapControlsContainer.querySelector(".snap-amount-group");
-  
+
   if (modeToggle) {
     modeToggle.style.opacity = snapEnabled ? "1" : "0.5";
     modeToggle.style.pointerEvents = snapEnabled ? "" : "none";
@@ -698,7 +712,9 @@ export function updateSnapControlsUI() {
       button.style.background = isActive
         ? "var(--bs-darkest-gray)"
         : "transparent";
-      button.style.color = isActive ? "var(--bs-white)" : "var(--bs-darker-gray)";
+      button.style.color = isActive
+        ? "var(--bs-white)"
+        : "var(--bs-darker-gray)";
     });
   }
 
@@ -874,7 +890,7 @@ function createZoomControls(rightSection) {
     background: var(--bs-gray);
     border-radius: 6px;
     padding: 1px;
-    
+
   `;
 
   const zoomButton = document.createElement("button");
@@ -1162,19 +1178,19 @@ function addInteractiveStyles() {
       min-width: 16px;
       text-align: center;
     }
-    
+
     .grid-info-text .editable-value:hover {
       background-color: rgba(54, 56, 57, 0.15);
       border-color: var(--bs-darker-gray);
     }
-    
+
     .grid-info-text .editable-value.editing {
       background-color: var(--bs-white);
       color: var(--bs-darkest-gray) !important;
       border-color: var(--bs-darker-gray);
       outline: none;
     }
-    
+
     .grid-info-text .editable-input {
       background: var(--bs-white);
       color: var(--bs-darkest-gray);
@@ -1188,14 +1204,14 @@ function addInteractiveStyles() {
       outline: none;
       transition: all 0.2s ease;
     }
-    
+
     .grid-info-text .editable-input:invalid,
     .grid-info-text .editable-input[style*="var(--bs-error-red)"] {
       border-color: var(--bs-error-red) !important;
       background-color: var(--bs-error-red-light) !important;
       box-shadow: 0 0 3px rgba(179, 0, 33, 0.3);
     }
-    
+
     .grid-info-text .editable-input:valid,
     .grid-info-text .editable-input[style*="var(--bs-darker-gray)"] {
       border-color: var(--bs-darker-gray) !important;
