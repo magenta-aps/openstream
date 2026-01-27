@@ -23,22 +23,37 @@ function notifyListeners() {
   });
 }
 
-function observeValue(value) {
+export function observeValue(value) {
   if (!isTrackable(value)) {
     return value;
   }
 
+  // If it's already a proxy, return it
   if (proxyToTarget.has(value)) {
     return value;
   }
 
+  // If we already have a proxy for this target, return it
   if (targetToProxy.has(value)) {
     return targetToProxy.get(value);
+  }
+
+  // Deeply observe children of Arrays and Objects immediately ---
+  // This ensures nested values are wrapped even before a 'get' is triggered.
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      value[i] = observeValue(value[i]);
+    }
+  } else {
+    Object.keys(value).forEach(key => {
+      value[key] = observeValue(value[key]);
+    });
   }
 
   const proxy = new Proxy(value, {
     get(target, prop, receiver) {
       const result = Reflect.get(target, prop, receiver);
+      // Still recursive on access for safety
       return observeValue(result);
     },
     set(target, prop, newValue, receiver) {
@@ -67,6 +82,7 @@ function observeValue(value) {
 }
 
 export function definePersistedProperty(target, key) {
+  // Ensure the initial value is deeply observed
   let currentValue = observeValue(target[key]);
 
   Object.defineProperty(target, key, {
@@ -74,6 +90,7 @@ export function definePersistedProperty(target, key) {
       return currentValue;
     },
     set(newValue) {
+      // Deeply wrap the new object being assigned
       const wrappedValue = observeValue(newValue);
       if (!Object.is(currentValue, wrappedValue)) {
         currentValue = wrappedValue;
@@ -83,8 +100,10 @@ export function definePersistedProperty(target, key) {
     enumerable: true,
     configurable: true,
   });
-
-  currentValue = observeValue(currentValue);
+  
+  // Update the original target with the proxy to ensure 
+  // direct access to store.slides is also proxied.
+  target[key] = currentValue;
 }
 
 export function subscribeToPersistedStateChanges(listener) {
