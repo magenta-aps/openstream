@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "../core/slideStore.js";
+import { pushCurrentSlideState } from "../core/undoRedo.js";
 
 export function alignMediaElement(hAlign, vAlign) {
   let mediaEl = null;
@@ -30,6 +31,7 @@ export function alignMediaElement(hAlign, vAlign) {
     currentVAlign = vAlign;
   }
 
+  pushCurrentSlideState();
   const newObjectPosition = `${currentHAlign} ${currentVAlign}`;
   mediaEl.style.objectPosition = newObjectPosition;
   dataObj.objectPosition = newObjectPosition;
