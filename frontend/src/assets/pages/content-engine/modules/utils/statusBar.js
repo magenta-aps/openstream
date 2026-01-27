@@ -31,6 +31,30 @@ let currentZoomMode = "fit"; // 'fit' or 'zoom'
 let currentZoomLevel = 100; // percentage
 let zoomChangeCallbacks = [];
 
+function createToggleButton() {
+  const rootClassName = "toggle-btn-sm";
+  const container = document.createElement("div");
+
+  /** @type {(event: Event, opposite: HTMLButtonElement) => void} */
+  const switcher = (event, opposite) => {
+    opposite.classList.remove("toggle-btn-on");
+    event.target.classList.add("toggle-btn-on");
+  };
+
+  const onBtn = document.createElement("button");
+  onBtn.classList.add(rootClassName, "toggle-btn-on");
+  onBtn.addEventListener(switcher);
+
+  const offBtn = document.createElement("button");
+  offBtn.classList.add(rootClassName);
+  offBtn.addEventListener(switcher);
+
+  container.appendChild(onBtn);
+  container.appendChild(offBtn);
+
+  return { container, onBtn, offBtn };
+}
+
 /**
  * Register a callback to be called when zoom changes
  */
@@ -57,7 +81,7 @@ function createStatusBar() {
     // Use static positioning and let layout handle sizing. We'll wrap
     // the preview area and append the status bar as a flex child so it
     // automatically fills available width and sits below the preview.
-    /*
+    /* TODO: Remove
     statusBar.style.cssText = `
       height: 32px;
       background: linear-gradient(90deg, var(--bs-light-gray) 0%, var(--bs-gray) 100%);
@@ -80,6 +104,7 @@ function createStatusBar() {
     // Create content container (left side for grid info)
     statusBarContent = document.createElement("div");
     statusBarContent.className = "status-bar-left";
+    /* TODO: Remove
     statusBarContent.style.cssText = `
       flex: 1;
       display: flex;
@@ -87,10 +112,12 @@ function createStatusBar() {
       gap: 12px;
       min-width: 0;
     `;
+    */
 
     // Create grid info section
     const gridInfoSection = document.createElement("div");
     gridInfoSection.className = "status-bar-grid-info";
+    /* TODO: Remove
     gridInfoSection.style.cssText = `
       display: flex;
       align-items: center;
@@ -99,7 +126,7 @@ function createStatusBar() {
       font-weight: 500;
       min-width: 0;
     `;
-
+    */
     const gridIcon = document.createElement("span");
     gridIcon.textContent = "⌗";
     gridIcon.style.cssText = `
@@ -110,14 +137,16 @@ function createStatusBar() {
     const gridText = document.createElement("span");
     gridText.className = "grid-info-text";
     gridText.textContent = "Ready";
+    /* TODO: Remove
     gridText.style.cssText = `
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     `;
-
+    */
     gridSizeBadge = document.createElement("span");
     gridSizeBadge.className = "grid-size-badge";
+    /* TODO: Remove
     gridSizeBadge.style.cssText = `
       background-color: var(--bs-light-gray);
       color: var(--bs-darkest-gray);
@@ -126,6 +155,7 @@ function createStatusBar() {
       padding: 2px 8px;
       font-variant-numeric: tabular-nums;
     `;
+    */
     updateGridSizeDisplay();
     ensureGridSizeSubscription();
 
@@ -143,11 +173,13 @@ function createStatusBar() {
     // Add space for future features on the right
     const rightSection = document.createElement("div");
     rightSection.className = "status-bar-right";
+    /* TODO: Remove
     rightSection.style.cssText = `
       display: flex;
       align-items: center;
       gap: 16px;
     `;
+    */
 
     // Create controls (snap first, zoom last)
     createSnapControls(rightSection);
@@ -230,6 +262,8 @@ function createSnapControls(rightSection) {
   `;
 
   // Snap toggle button (on/off)
+  const snapToggleButton = createToggleButton();
+  /* TODO: Remove
   const snapToggleButton = document.createElement("button");
   snapToggleButton.type = "button";
   snapToggleButton.className = "snap-toggle-button";
@@ -248,6 +282,7 @@ function createSnapControls(rightSection) {
     align-items: center;
     gap: 2px;
   `;
+  */
 
   const snapToggleIcon = document.createElement("i");
   snapToggleIcon.className = "material-symbols-outlined";
@@ -733,8 +768,7 @@ export function updateSnapControlsUI() {
  */
 export function showStatusBar() {
   const bar = createStatusBar();
-  bar.style.opacity = "1";
-  bar.style.transform = "translateY(0)";
+  bar.classList.add("show");
 }
 
 /**
@@ -742,8 +776,7 @@ export function showStatusBar() {
  */
 export function hideStatusBar() {
   if (statusBar) {
-    statusBar.style.opacity = "0";
-    statusBar.style.transform = "translateY(100%)";
+    statusBar.classList.remove("show");
   }
 }
 
