@@ -399,14 +399,14 @@ export function updateTemplateSlideCount() {
   );
 
   if (templateCount) {
-    templateCount.textContent = `${store.slides.length} ${gettext("Templates")}`;
+    templateCount.textContent = `${store.slides.length} ${gettext("Templates").toLowerCase()}`;
   }
 }
 
 function renderFilterPanel() {
   const categoriesLabel = gettext("Categories");
   const tagsLabel = gettext("Tags");
-  const aspectLabel = gettext("Aspect ratios");
+  const aspectLabel = gettext("Aspect Ratio");
   const searchLabel = gettext("Search templates");
   const resetLabel = gettext("Reset filters");
 
@@ -463,7 +463,7 @@ function renderFilterPanel() {
       </div>
 
       <div class="template-filter-panel__row-between align-items-center">
-        <span id="templateFilterPanelSlideCount"></span>
+        <h3 id="templateFilterPanelSlideCount"></h3>
 
         <div class="dropdown" id="templateFilterSort" data-selected-value="${NAME_SORT_KEY}:asc">
           <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

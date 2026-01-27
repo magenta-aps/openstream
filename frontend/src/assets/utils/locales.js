@@ -66,9 +66,15 @@ export function gettext(key) {
   if (lang === "en") return key;
 
   if (!translations[key]) {
-    console.error(`Translation not found for key: "${key}"`);
+    const num = Number(key);
+    const isKeyNaN = Number.isNaN(num);
+
+    if (isKeyNaN) {
+      console.error(`Translation not found for key: "${key}"`);
+    }
     return key;
   }
+
   const translated = translations[key][lang];
   if (!translated) {
     // don't log errors for keys that are just numbers
