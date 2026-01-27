@@ -31,23 +31,44 @@ let currentZoomMode = "fit"; // 'fit' or 'zoom'
 let currentZoomLevel = 100; // percentage
 let zoomChangeCallbacks = [];
 
-function createToggleButton() {
-  const rootClassName = "toggle-btn-sm";
-  const container = document.createElement("div");
+/**
+ * @param {{ label: string, fn: () => void}} onOptions
+ * @param {{ label: string, fn: () => void}} offOptions
+ * @returns
+ */
+function createToggleButton(onOptions, offOptions) {
+  const rootClassName = ["toggle-btn"];
 
-  /** @type {(event: Event, opposite: HTMLButtonElement) => void} */
-  const switcher = (event, opposite) => {
-    opposite.classList.remove("toggle-btn-on");
-    event.target.classList.add("toggle-btn-on");
-  };
+  const container = document.createElement("div");
+  container.classList.add("toggle-btn-container");
 
   const onBtn = document.createElement("button");
-  onBtn.classList.add(rootClassName, "toggle-btn-on");
-  onBtn.addEventListener(switcher);
+  onBtn.classList.add(...rootClassName, "toggle-btn-left", "toggle-btn-on");
+  onBtn.innerHTML = onOptions.label;
 
   const offBtn = document.createElement("button");
-  offBtn.classList.add(rootClassName);
-  offBtn.addEventListener(switcher);
+  offBtn.classList.add(...rootClassName, "toggle-btn-right");
+  offBtn.innerHTML = offOptions.label;
+
+  /** @type {(event: Event, otherSwitch: HTMLButtonElement, fn: () => void)} */
+  const switcher = (event, otherSwitch, fn) => {
+    const target = event.target;
+    if (target.classList.contains("toggle-btn-on")) {
+      return;
+    }
+
+    fn();
+
+    otherSwitch.classList.remove("toggle-btn-on");
+    target.classList.add("toggle-btn-on");
+  };
+
+  onBtn.addEventListener("click", (event) =>
+    switcher(event, offBtn, onOptions.fn),
+  );
+  offBtn.addEventListener("click", (event) =>
+    switcher(event, onBtn, offOptions.fn),
+  );
 
   container.appendChild(onBtn);
   container.appendChild(offBtn);
@@ -262,41 +283,10 @@ function createSnapControls(rightSection) {
   `;
 
   // Snap toggle button (on/off)
-  const snapToggleButton = createToggleButton();
-  /* TODO: Remove
-  const snapToggleButton = document.createElement("button");
-  snapToggleButton.type = "button";
-  snapToggleButton.className = "snap-toggle-button";
-  snapToggleButton.title = gettext("Toggle Snap");
-  snapToggleButton.style.cssText = `
-    border: none;
-    background: var(--bs-primary);
-    color: var(--bs-white);
-    padding: 4px 8px;
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  `;
-  */
-
-  const snapToggleIcon = document.createElement("i");
-  snapToggleIcon.className = "material-symbols-outlined";
-  snapToggleIcon.textContent = "grid_on";
-  snapToggleIcon.style.cssText = `
-    font-size: 14px;
-    font-variation-settings: 'FILL' 1;
-  `;
-
-  snapToggleButton.appendChild(snapToggleIcon);
-
-  snapToggleButton.addEventListener("click", () => {
-    toggleSnapEnabled();
-  });
+  const snapToggle = createToggleButton(
+    { label: "on", fn: toggleSnapEnabled },
+    { label: "off", fn: toggleSnapEnabled },
+  );
 
   const snapLabel = document.createElement("span");
   snapLabel.textContent = gettext("Snap");
@@ -420,7 +410,7 @@ function createSnapControls(rightSection) {
     setSnapSettings({ amount: sanitized });
   });
 
-  snapControlsContainer.appendChild(snapToggleButton);
+  snapControlsContainer.appendChild(snapToggle.container);
   snapControlsContainer.appendChild(snapLabel);
   snapControlsContainer.appendChild(snapModeToggle);
   snapControlsContainer.appendChild(snapAmountGroup);
