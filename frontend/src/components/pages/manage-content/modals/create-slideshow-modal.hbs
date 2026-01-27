@@ -3,14 +3,14 @@
 <form id="createSlideshowForm">
     {{#> base/modal/modal id="createSlideshowModal" size="modal-xl" }}
         {{#*inline "header"}}
-            {{> base/modal/modal-title title="Create Slideshow"}}
+            {{> base/modal/modal-title title="Create new content"}}
             {{> base/modal/modal-header-close}}
     {{/inline}}
         
         {{#*inline "body"}}
             <!-- NAME -->
             <div class="mb-3">
-                {{> base/form/label for="createSlideshowName" text="Name"}}
+                {{> base/form/label for="createSlideshowName" text="Content title"}}
                 {{> base/form/input type="text" id="createSlideshowName" placeholder="Enter slideshow name..." required=true}}
             </div>
             <!-- MODE -->
