@@ -670,7 +670,6 @@ export function selectElement(el, dataObj) {
       setupQRCodeToolbar(dataObj);
     } catch (err) {
       // Non-fatal: if toolbar isn't present yet, ignore
-      // console.debug('setupQRCodeToolbar not available or failed', err);
     }
 
     el.style.outline = "3px dashed blue";

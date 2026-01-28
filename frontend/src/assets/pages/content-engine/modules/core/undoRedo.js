@@ -11,8 +11,6 @@ function isDeepEqual(a, b) {
 
 export function pushCurrentSlideState() {
 
-  console.log("slide state pushed")
-
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.undoStack) slide.undoStack = [];
@@ -43,13 +41,12 @@ export function doUndo() {
   const targetMap = new Map(targetSnapshot.map(el => [el.id, el]));
 
   function applyChanges() {
-    console.log("Undo Actions:");
+    
 
     // 1. Handle Removed Elements (Present in current, missing in target)
     // We must remove these from DOM and clean up their editors if applicable
     slide.elements.forEach(el => {
       if (!targetMap.has(el.id)) {
-        console.log(`- Element with ID ${el.id} was removed.`);
         document.getElementById("el-" + el.id)?.remove();
         if (el.type === 'tiptap-textbox') {
           disposeEditorForElement(el.id);
@@ -70,14 +67,12 @@ export function doUndo() {
         } else {
           // MODIFIED: Use the *target* object (snapshot data).
           // Update DOM. renderSlide will handle cleaning up the old editor and creating a new one.
-          console.log(`- Element with ID ${targetEl.id} was modified.`);
           updateSlideElement(targetEl);
           nextElements.push(targetEl);
         }
       } else {
         // ADDED: Use the target object.
         // Render new element to DOM.
-        console.log(`- Element with ID ${targetEl.id} was added.`);
         updateSlideElement(targetEl);
         nextElements.push(targetEl);
       }
@@ -88,12 +83,10 @@ export function doUndo() {
 
   slide.redoStack.push(currentSnapshot);
   slide.elements = nextElements;
-
-  console.log("After undo, slide.elements count:", slide.elements.length);
 }
 
 export function doRedo() {
-  console.log("Redo invoked");
+  
 
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
@@ -111,12 +104,11 @@ export function doRedo() {
   const targetMap = new Map(targetSnapshot.map(el => [el.id, el]));
 
   function applyChanges() {
-    console.log("Redo Actions:");
+    
 
     // 1. Handle Removed Elements (Present in current, missing in target)
     slide.elements.forEach(el => {
       if (!targetMap.has(el.id)) {
-        console.log(`- Element with ID ${el.id} was removed.`);
         document.getElementById("el-" + el.id)?.remove();
         if (el.type === 'tiptap-textbox') {
           disposeEditorForElement(el.id);
@@ -134,13 +126,11 @@ export function doRedo() {
           nextElements.push(currentEl);
         } else {
           // MODIFIED: Use target data, update DOM
-          console.log(`- Element with ID ${targetEl.id} was modified.`);
           updateSlideElement(targetEl);
           nextElements.push(targetEl);
         }
       } else {
         // ADDED: Use target data, update DOM
-        console.log(`- Element with ID ${targetEl.id} was added.`);
         updateSlideElement(targetEl);
         nextElements.push(targetEl);
       }
@@ -151,8 +141,6 @@ export function doRedo() {
 
   slide.undoStack.push(currentSnapshot);
   slide.elements = nextElements;
-
-  console.log("After redo, slide.elements count:", slide.elements.length);
 }
 
 export function initUndoRedo() {
