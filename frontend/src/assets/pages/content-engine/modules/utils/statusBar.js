@@ -86,47 +86,35 @@ function createToggleButton(onOptions, offOptions, size, isAlt) {
 }
 
 /**
- * @param {{ name: string, value: string }} options - The options for the select element
+ * @param {boolean} isAlt - determines if the dropdown is of the alt variant
  */
-function createDropdown(options) {
-  const dropdown = document.createElement("select");
-  dropdown.classList.add("os-dropdown");
+function createDropdown(isAlt) {
+  /** @type {HTMLSelectElement | HTMLInputElement} */
+  let dropdown;
+  if (isAlt) {
+    dropdownContainer = document.createElement("div");
+    dropdownPrefix = document.createElement("span");
+    dropdownSufix = document.createElement("span");
 
-  options.forEach((option) => {
-    const optionElement = document.createElement("option");
-    optionElement.textContent = option.name;
-    optionElement.value = option.value;
-
-    dropdown.appendChild(optionElement);
-  });
-
-  return dropdown;
-}
-
-function createAltDropdown() {
-  const dropdown = document.createElement("div");
-  dropdown.classList.add("os-dropdown");
-
-  const input = document.createElement("input");
-  input.type = "number";
-  input.classList.add("os-dropdown-alt");
-
-  dropdown.appendChild(input);
+    dropdown = document.createElement("input");
+    dropdown.classList.add("dropdown");
+    
+    dropdown
+  } else {
+    dropdown = document.createElement("select");
+    dropdown.type = "number";
+    dropdown.classList.add("dropdown-alt");
+  }
 
   return dropdown;
 }
 
 function createCoherentDropdown() {
   const coherentContainer = document.createElement("div");
-  coherentContainer.classList.add("os-dropdown-coherent");
 
-  const options = [
-    { name: "foo", value: "foo" },
-    { name: "bar", value: "bar" },
-  ];
-  const dropdown = createDropdown(options);
+  const dropdown = createDropdown(false);
 
-  const altDropdown = createAltDropdown();
+  const altDropdown = createDropdown(true);
 
   coherentContainer.appendChild(dropdown);
   coherentContainer.appendChild(altDropdown);
@@ -166,6 +154,7 @@ function createStatusBar() {
     const gridInfoSection = document.createElement("div");
     gridInfoSection.className = "status-bar-grid-info";
 
+
     const gridIcon = document.createElement("span");
     gridIcon.textContent = "⌗";
     gridIcon.style.cssText = `
@@ -177,8 +166,10 @@ function createStatusBar() {
     gridText.className = "grid-info-text";
     gridText.textContent = "Ready";
 
+
     gridSizeBadge = document.createElement("span");
     gridSizeBadge.className = "grid-size-badge";
+
 
     updateGridSizeDisplay();
     ensureGridSizeSubscription();
@@ -291,6 +282,8 @@ function createSnapControls(rightSection) {
 
   const snapModeToggle = createCoherentDropdown();
   /* TODO: Remove
+  const snapModeToggle = createCoherentDropdown();
+  /* TODO: Remove
   const snapAmountGroup = document.createElement("div");
   snapAmountGroup.className = "snap-amount-group";
   snapAmountGroup.style.cssText = `
@@ -368,10 +361,12 @@ function createSnapControls(rightSection) {
     setSnapSettings({ amount: sanitized });
   });
   */
+  */
 
   snapControlsContainer.appendChild(snapToggle.container);
   snapControlsContainer.appendChild(snapLabel);
   snapControlsContainer.appendChild(snapModeToggle);
+  //snapControlsContainer.appendChild(snapAmountGroup);
   //snapControlsContainer.appendChild(snapAmountGroup);
 
   rightSection.appendChild(snapControlsContainer);
