@@ -387,10 +387,6 @@ export function _renderEmbedWebsite(el, container) {
   container.appendChild(webviewEl);
 }
 
-export function initMute() {
-  // Mute logic if needed
-}
-
 export function initEmbedWebsite() {
   // Make functions globally accessible
   window.addEmbedWebsiteElementToSlide = addEmbedWebsiteElementToSlide;
@@ -407,7 +403,6 @@ export function initEmbedWebsite() {
         pushCurrentSlideState();
         window.selectedElementForUpdate.element.muted =
           event.target.value === "true";
-        loadSlide(store.slides[store.currentSlideIndex]);
       }
     });
   });

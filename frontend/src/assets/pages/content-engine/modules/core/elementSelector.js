@@ -460,11 +460,11 @@ export function selectElement(el, dataObj) {
     );
 
   } else if (dataObj.type === "embed-website") {
-    setupMuteButtons();
     const changeWebsiteInput = document.getElementById("change-website-input");
     if (changeWebsiteInput) {
       changeWebsiteInput.value = dataObj.url || "";
     }
+
     hideElementToolbars();
     document
       .querySelector(".website-toolbar")
@@ -472,6 +472,42 @@ export function selectElement(el, dataObj) {
     setToolbarGeneralVisibility("visible");
     el.style.outline = "3px dashed blue";
     createGradientWrapper(el);
+    // Initialize website volume radio buttons to reflect element state
+    try {
+      const muted = typeof dataObj.muted !== "undefined" ? dataObj.muted : true;
+      const radioButtons = document.querySelectorAll('input[name="websiteVolume"]');
+      if (radioButtons && radioButtons.length) {
+        radioButtons.forEach((radio) => {
+          const shouldBeChecked = radio.value === (muted ? "true" : "false");
+          radio.checked = shouldBeChecked;
+          if (radio.parentElement) {
+            radio.parentElement.classList.toggle("active", shouldBeChecked);
+          }
+        });
+      }
+
+      // If the element contains a webview, try to apply the muted state immediately
+      const webviewEl = el.querySelector && el.querySelector("webview");
+      if (webviewEl) {
+        const shouldMute = queryParams.mode === "edit" || muted;
+        if (typeof webviewEl.setAudioMuted === "function") {
+          try {
+            webviewEl.setAudioMuted(shouldMute);
+          } catch (e) {
+            // ignore failures
+          }
+        } else {
+          try {
+            if (shouldMute) webviewEl.setAttribute("muted", "");
+            else webviewEl.removeAttribute("muted");
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
+    } catch (err) {
+      // non-fatal: don't break selection if toolbar isn't present
+    }
   } else if (dataObj.type === "shape") {
     // NEW: Handle shape element type
     hideElementToolbars();

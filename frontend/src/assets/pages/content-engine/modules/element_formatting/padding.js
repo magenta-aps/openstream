@@ -73,7 +73,7 @@ export function initSelectedElementPadding() {
       store.selectedElementData.padding = effectivePadding + "%";
     });
 
-    slider.addEventListener("change", () => {
+    slider.addEventListener("pointerdown", () => {
       pushCurrentSlideState();
     });
 

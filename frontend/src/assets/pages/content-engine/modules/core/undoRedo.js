@@ -11,6 +11,8 @@ function isDeepEqual(a, b) {
 
 export function pushCurrentSlideState() {
 
+  console.log("slide state pushed")
+
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.undoStack) slide.undoStack = [];
