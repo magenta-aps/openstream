@@ -23,7 +23,7 @@ import {
   resolveSlidesForSpecialSave,
 } from "../utils/specialSaveUtils.js";
 
-const AUTOSAVE_DEBOUNCE_MS = 1500;
+const AUTOSAVE_DEBOUNCE_MS = 150;
 let autosaveDebounceHandle = null;
 let unsubscribeFromPersistedChanges = null;
 let activeSlideshowId = null;

@@ -74,6 +74,7 @@ function showMirrorPopover(button, callback, initialMirror) {
   document.body.appendChild(popover);
 
   horizontalBtn.addEventListener("click", () => {
+    pushCurrentSlideState();
     const newMirror = {
       horizontal: !initialMirror.horizontal,
       vertical: initialMirror.vertical,
@@ -81,10 +82,10 @@ function showMirrorPopover(button, callback, initialMirror) {
     initialMirror = newMirror;
     updateButtonStates(newMirror);
     callback(newMirror);
-    pushCurrentSlideState();
   });
 
   verticalBtn.addEventListener("click", () => {
+    pushCurrentSlideState();
     const newMirror = {
       horizontal: initialMirror.horizontal,
       vertical: !initialMirror.vertical,
@@ -92,15 +93,14 @@ function showMirrorPopover(button, callback, initialMirror) {
     initialMirror = newMirror;
     updateButtonStates(newMirror);
     callback(newMirror);
-    pushCurrentSlideState();
   });
 
   resetBtn.addEventListener("click", () => {
+    pushCurrentSlideState();
     const newMirror = { horizontal: false, vertical: false };
     initialMirror = newMirror;
     updateButtonStates(newMirror);
     callback(newMirror);
-    pushCurrentSlideState();
   });
 
   function removePopover(e) {
