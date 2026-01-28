@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
 import { loadSlide, updateSlideElement } from "./renderSlide.js";
-import { disposeAllTiptapEditors } from "../elements/tiptapTextbox.js";
+import { disposeAllTiptapEditors, disposeEditorForElement } from "../elements/tiptapTextbox.js";
+
+// Helper to check deep equality (simple version for POJOs)
+function isDeepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
 export function pushCurrentSlideState() {
 
@@ -25,49 +30,64 @@ export function doUndo() {
   if (!slide.undoStack || slide.undoStack.length === 0) return;
   if (!slide.redoStack) slide.redoStack = [];
 
-  disposeAllTiptapEditors(false);
-
+  // Capture current state for the redo stack before applying changes
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
+  
+  // Get the state we want to restore
+  const targetSnapshot = slide.undoStack.pop();
 
-  function showChanges() {
-    const latestState = slide.undoStack[slide.undoStack.length - 1];
-    const prevElementIds = new Set(currentSnapshot.map(el => el.id));
-    const newElementIds = new Set(latestState.map(el => el.id));
+  const nextElements = [];
+  const currentMap = new Map(slide.elements.map(el => [el.id, el]));
+  const targetMap = new Map(targetSnapshot.map(el => [el.id, el]));
 
-    console.log("Removed Elements:");
-    prevElementIds.forEach(id => {
-      if (!newElementIds.has(id)) {
-        console.log(`- Element with ID ${id} was removed.`);
-        document.getElementById("el-" + id)?.remove();
+  function applyChanges() {
+    console.log("Undo Actions:");
+
+    // 1. Handle Removed Elements (Present in current, missing in target)
+    // We must remove these from DOM and clean up their editors if applicable
+    slide.elements.forEach(el => {
+      if (!targetMap.has(el.id)) {
+        console.log(`- Element with ID ${el.id} was removed.`);
+        document.getElementById("el-" + el.id)?.remove();
+        if (el.type === 'tiptap-textbox') {
+          disposeEditorForElement(el.id);
+        }
       }
     });
 
-    console.log("Added Elements:");
-    latestState.forEach(newEl => {
-      if (!prevElementIds.has(newEl.id)) {
-        console.log(`- Element with ID ${newEl.id} was added.`);
-        updateSlideElement(newEl);
-      }
-    });
+    // 2. Handle Added, Modified, and Unchanged Elements
+    targetSnapshot.forEach(targetEl => {
+      const currentEl = currentMap.get(targetEl.id);
 
-    console.log("Modified Elements:");
-    latestState.forEach(newEl => {
-      const prevEl = currentSnapshot.find(el => el.id === newEl.id);
-      // If it existed before and the data has changed
-      if (prevEl && JSON.stringify(prevEl) !== JSON.stringify(newEl)) {
-        console.log(`- Element with ID ${newEl.id} was modified.`);
-        updateSlideElement(newEl);
+      if (currentEl) {
+        // Element exists in both. Check if content changed.
+        if (isDeepEqual(currentEl, targetEl)) {
+          // UNCHANGED: Optimization - reuse the *current* object reference.
+          // This keeps the live editor instance bound to the correct object.
+          nextElements.push(currentEl);
+        } else {
+          // MODIFIED: Use the *target* object (snapshot data).
+          // Update DOM. renderSlide will handle cleaning up the old editor and creating a new one.
+          console.log(`- Element with ID ${targetEl.id} was modified.`);
+          updateSlideElement(targetEl);
+          nextElements.push(targetEl);
+        }
+      } else {
+        // ADDED: Use the target object.
+        // Render new element to DOM.
+        console.log(`- Element with ID ${targetEl.id} was added.`);
+        updateSlideElement(targetEl);
+        nextElements.push(targetEl);
       }
     });
   }
 
-  showChanges();
+  applyChanges();
 
   slide.redoStack.push(currentSnapshot);
+  slide.elements = nextElements;
 
-  slide.elements = slide.undoStack.pop();
-
-  console.log("After undo, slide.elements:", JSON.parse(JSON.stringify(slide.elements)));
+  console.log("After undo, slide.elements count:", slide.elements.length);
 }
 
 export function doRedo() {
@@ -78,50 +98,59 @@ export function doRedo() {
   if (!slide.redoStack || slide.redoStack.length === 0) return;
   if (!slide.undoStack) slide.undoStack = [];
 
-  // 1. Clean up active editors before swapping state
-  disposeAllTiptapEditors(false);
-
+  // Capture current state for the undo stack before applying changes
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
-  const nextState = slide.redoStack.pop();
+  
+  // Get the state we want to restore
+  const targetSnapshot = slide.redoStack.pop();
 
-  // 2. Diffing logic to update the DOM without a full reload
-  function showChanges() {
-    const prevElementIds = new Set(currentSnapshot.map(el => el.id));
-    const nextElementIds = new Set(nextState.map(el => el.id));
+  const nextElements = [];
+  const currentMap = new Map(slide.elements.map(el => [el.id, el]));
+  const targetMap = new Map(targetSnapshot.map(el => [el.id, el]));
 
-    console.log("Redo - Removed Elements:");
-    prevElementIds.forEach(id => {
-      if (!nextElementIds.has(id)) {
-        console.log(`- Element with ID ${id} was removed.`);
-        document.getElementById("el-" + id)?.remove();
+  function applyChanges() {
+    console.log("Redo Actions:");
+
+    // 1. Handle Removed Elements (Present in current, missing in target)
+    slide.elements.forEach(el => {
+      if (!targetMap.has(el.id)) {
+        console.log(`- Element with ID ${el.id} was removed.`);
+        document.getElementById("el-" + el.id)?.remove();
+        if (el.type === 'tiptap-textbox') {
+          disposeEditorForElement(el.id);
+        }
       }
     });
 
-    console.log("Redo - Added Elements:");
-    nextState.forEach(nextEl => {
-      if (!prevElementIds.has(nextEl.id)) {
-        console.log(`- Element with ID ${nextEl.id} was added.`);
-        updateSlideElement(nextEl);
-      }
-    });
+    // 2. Handle Added, Modified, and Unchanged Elements
+    targetSnapshot.forEach(targetEl => {
+      const currentEl = currentMap.get(targetEl.id);
 
-    console.log("Redo - Modified Elements:");
-    nextState.forEach(nextEl => {
-      const prevEl = currentSnapshot.find(el => el.id === nextEl.id);
-      if (prevEl && JSON.stringify(prevEl) !== JSON.stringify(nextEl)) {
-        console.log(`- Element with ID ${nextEl.id} was modified.`);
-        updateSlideElement(nextEl);
+      if (currentEl) {
+        if (isDeepEqual(currentEl, targetEl)) {
+          // UNCHANGED: Keep current reference
+          nextElements.push(currentEl);
+        } else {
+          // MODIFIED: Use target data, update DOM
+          console.log(`- Element with ID ${targetEl.id} was modified.`);
+          updateSlideElement(targetEl);
+          nextElements.push(targetEl);
+        }
+      } else {
+        // ADDED: Use target data, update DOM
+        console.log(`- Element with ID ${targetEl.id} was added.`);
+        updateSlideElement(targetEl);
+        nextElements.push(targetEl);
       }
     });
   }
 
-  showChanges();
+  applyChanges();
 
-  // 3. Update the stacks and the store
   slide.undoStack.push(currentSnapshot);
-  slide.elements = nextState;
+  slide.elements = nextElements;
 
-  console.log("After redo, slide.elements:", JSON.parse(JSON.stringify(slide.elements)));
+  console.log("After redo, slide.elements count:", slide.elements.length);
 }
 
 export function initUndoRedo() {

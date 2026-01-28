@@ -415,7 +415,7 @@ function runEditorCommand(editor, applyToWholeDoc, commandBuilder) {
   return executed;
 }
 
-function disposeEditorForElement(elementId, preserveContent = true) {
+export function disposeEditorForElement(elementId, preserveContent = true) {
   const existing = tiptapEditors.get(elementId);
   if (!existing) return;
 
