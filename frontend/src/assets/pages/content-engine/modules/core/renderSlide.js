@@ -869,7 +869,7 @@ function _syncSlideBgColorIcon(backgroundColor) {
   }
 }
 
-function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
+export async function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   // Consider this an interactive playback render when we're not in the
   // editor or template editor modes. That covers slideshow and interactive
   // playback contexts where we shouldn't show editor-only indicators.

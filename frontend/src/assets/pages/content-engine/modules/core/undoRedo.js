@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
-import { loadSlide } from "./renderSlide.js";
+import { loadSlide, updateSlideElement } from "./renderSlide.js";
 import { disposeAllTiptapEditors } from "../elements/tiptapTextbox.js";
 
-export function pushCurrentSlideState() {
+export function pushCurrentSlideState(elementId = null) {
+
+  console.log(elementId)
+
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.undoStack) slide.undoStack = [];
@@ -26,15 +29,50 @@ export function doUndo() {
   disposeAllTiptapEditors(false);
 
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
+
+  console.log("Before undo, slide.elements:", JSON.parse(JSON.stringify(slide.elements)));
+
+  function showChanges(){
+    const prevElementIds = new Set(currentSnapshot.map(el => el.id));
+    const newElementIds = new Set(slide.undoStack[slide.undoStack.length - 1].map(el => el.id));
+    
+    console.log("Removed Elements:");
+    prevElementIds.forEach(id => {
+      if (!newElementIds.has(id)) {
+        console.log(`- Element with ID ${id} was removed.`);
+        document.getElementById("el-"+id)?.remove();
+      }
+    });
+  
+    console.log("Added Elements:");
+    newElementIds.forEach(id => {
+      if (!prevElementIds.has(id)) {
+        console.log(`- Element with ID ${id} was added.`);
+        const newEl = slide.undoStack[slide.undoStack.length - 1].find(el => el.id === id);
+        updateSlideElement(newEl);
+      }
+    });
+
+    console.log("Modified Elements:");
+    slide.undoStack[slide.undoStack.length - 1].forEach(newEl => {
+      const prevEl = currentSnapshot.find(el => el.id === newEl.id);
+      if (prevEl && JSON.stringify(prevEl) !== JSON.stringify(newEl)) {
+        console.log(`- Element with ID ${newEl.id} was modified.`);
+      }
+      const modifiedEl = document.getElementById("el-"+newEl.id);
+      if(modifiedEl){
+        updateSlideElement(newEl);
+      }
+    });
+  }
+
+  showChanges();
+
   slide.redoStack.push(currentSnapshot);
 
   slide.elements = slide.undoStack.pop();
 
-  loadSlide(slide, undefined, undefined, true);
-
-  store.selectedElement = null;
-  store.selectedElementData = null;
-  window.selectedElementForUpdate = null;
+  console.log("After undo, slide.elements:", JSON.parse(JSON.stringify(slide.elements)));
 }
 
 export function doRedo() {
