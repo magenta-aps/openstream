@@ -86,6 +86,55 @@ function createToggleButton(onOptions, offOptions, size, isAlt) {
 }
 
 /**
+ * @param {{ name: string, value: string }} options - The options for the select element
+ */
+function createDropdown(options) {
+  const dropdown = document.createElement("select");
+  dropdown.classList.add("os-dropdown");
+
+  options.forEach((option) => {
+    const optionElement = document.createElement("option");
+    optionElement.textContent = option.name;
+    optionElement.value = option.value;
+
+    dropdown.appendChild(optionElement);
+  });
+
+  return dropdown;
+}
+
+function createAltDropdown() {
+  const dropdown = document.createElement("div");
+  dropdown.classList.add("os-dropdown");
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.classList.add("os-dropdown-alt");
+
+  dropdown.appendChild(input);
+
+  return dropdown;
+}
+
+function createCoherentDropdown() {
+  const coherentContainer = document.createElement("div");
+  coherentContainer.classList.add("os-dropdown-coherent");
+
+  const options = [
+    { name: "foo", value: "foo" },
+    { name: "bar", value: "bar" },
+  ];
+  const dropdown = createDropdown(options);
+
+  const altDropdown = createAltDropdown();
+
+  coherentContainer.appendChild(dropdown);
+  coherentContainer.appendChild(altDropdown);
+
+  return coherentContainer;
+}
+
+/**
  * Register a callback to be called when zoom changes
  */
 export function onZoomChange(callback) {
@@ -108,55 +157,15 @@ function createStatusBar() {
   if (!statusBar) {
     statusBar = document.createElement("div");
     statusBar.className = "content-engine-status-bar";
-    // Use static positioning and let layout handle sizing. We'll wrap
-    // the preview area and append the status bar as a flex child so it
-    // automatically fills available width and sits below the preview.
-    /* TODO: Remove
-    statusBar.style.cssText = `
-      height: 32px;
-      background: linear-gradient(90deg, var(--bs-light-gray) 0%, var(--bs-gray) 100%);
-      border-top: 1px solid var(--bs-darker-gray);
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      font-size: 12px;
-      color: var(--bs-darkest-gray);
-      box-sizing: border-box;
-      z-index: 10;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      width: 100%;
-    `;
-    */
 
     // Create content container (left side for grid info)
     statusBarContent = document.createElement("div");
     statusBarContent.className = "status-bar-left";
-    /* TODO: Remove
-    statusBarContent.style.cssText = `
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    `;
-    */
 
     // Create grid info section
     const gridInfoSection = document.createElement("div");
     gridInfoSection.className = "status-bar-grid-info";
-    /* TODO: Remove
-    gridInfoSection.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--bs-darkest-gray);
-      font-weight: 500;
-      min-width: 0;
-    `;
-    */
+
     const gridIcon = document.createElement("span");
     gridIcon.textContent = "⌗";
     gridIcon.style.cssText = `
@@ -167,25 +176,10 @@ function createStatusBar() {
     const gridText = document.createElement("span");
     gridText.className = "grid-info-text";
     gridText.textContent = "Ready";
-    /* TODO: Remove
-    gridText.style.cssText = `
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    `;
-    */
+
     gridSizeBadge = document.createElement("span");
     gridSizeBadge.className = "grid-size-badge";
-    /* TODO: Remove
-    gridSizeBadge.style.cssText = `
-      background-color: var(--bs-light-gray);
-      color: var(--bs-darkest-gray);
-      font-weight: 600;
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-variant-numeric: tabular-nums;
-    `;
-    */
+
     updateGridSizeDisplay();
     ensureGridSizeSubscription();
 
@@ -203,13 +197,6 @@ function createStatusBar() {
     // Add space for future features on the right
     const rightSection = document.createElement("div");
     rightSection.className = "status-bar-right";
-    /* TODO: Remove
-    rightSection.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    `;
-    */
 
     // Create controls (snap first, zoom last)
     createSnapControls(rightSection);
@@ -302,47 +289,8 @@ function createSnapControls(rightSection) {
   snapLabel.textContent = gettext("Snap");
   snapLabel.style.fontWeight = "600";
 
-  const snapModeToggle = document.createElement("div");
-  snapModeToggle.className = "snap-mode-toggle";
-  snapModeToggle.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    border-radius: 6px;
-    background: var(--bs-light-gray);
-    border: 1px solid var(--bs-darker-gray);
-    overflow: hidden;
-  `;
-
-  const cellsButton = document.createElement("button");
-  cellsButton.type = "button";
-  cellsButton.textContent = gettext("Cells");
-  const divisionButton = document.createElement("button");
-  divisionButton.type = "button";
-  divisionButton.textContent = gettext("Division");
-
-  [cellsButton, divisionButton].forEach((btn) => {
-    btn.style.cssText = `
-      border: none;
-      background: transparent;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--bs-darker-gray);
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
-    `;
-    btn.addEventListener("click", () => {
-      const nextUnit = btn === cellsButton ? "cells" : "division";
-      setSnapSettings({ unit: nextUnit });
-    });
-    snapModeToggle.appendChild(btn);
-  });
-
-  snapModeButtons = {
-    cells: cellsButton,
-    division: divisionButton,
-  };
-
+  const snapModeToggle = createCoherentDropdown();
+  /* TODO: Remove
   const snapAmountGroup = document.createElement("div");
   snapAmountGroup.className = "snap-amount-group";
   snapAmountGroup.style.cssText = `
@@ -419,11 +367,12 @@ function createSnapControls(rightSection) {
     const sanitized = sanitizeSnapAmount(snapAmountSelect.value);
     setSnapSettings({ amount: sanitized });
   });
+  */
 
   snapControlsContainer.appendChild(snapToggle.container);
   snapControlsContainer.appendChild(snapLabel);
   snapControlsContainer.appendChild(snapModeToggle);
-  snapControlsContainer.appendChild(snapAmountGroup);
+  //snapControlsContainer.appendChild(snapAmountGroup);
 
   rightSection.appendChild(snapControlsContainer);
   updateSnapAmountOptions();
