@@ -62,6 +62,9 @@ export function loadSlide(
   forceCompleteReload = false,
   options = {},
 ) {
+
+  console.log("load slide called")
+
   const isPreviewMode = options.previewMode === true;
   // Save current snap settings to the slide we're switching FROM
   // Use lastSlideIndex if available, otherwise use currentSlideIndex
@@ -478,6 +481,9 @@ export function updateSlideElement(elementData) {
 }
 
 export function scaleSlide(previewContainer) {
+
+  console.log("scaleSlide called")
+
   const zoomInfo = getCurrentZoomInfo();
 
   if (zoomInfo.mode === "fit") {
@@ -502,6 +508,9 @@ export function scaleSlide(previewContainer) {
 }
 
 export function scaleAllSlides() {
+
+  console.log("scale all slides called")
+
   const zoomInfo = getCurrentZoomInfo();
 
   // Use the same selector pattern as zoom controller to get the correct preview containers

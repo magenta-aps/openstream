@@ -4,9 +4,7 @@ import { store } from "./slideStore.js";
 import { loadSlide, updateSlideElement } from "./renderSlide.js";
 import { disposeAllTiptapEditors } from "../elements/tiptapTextbox.js";
 
-export function pushCurrentSlideState(elementId = null) {
-
-  console.log(elementId)
+export function pushCurrentSlideState() {
 
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
@@ -18,6 +16,7 @@ export function pushCurrentSlideState(elementId = null) {
     slide.undoStack.shift();
   }
   slide.redoStack = [];
+
 }
 
 export function doUndo() {
@@ -30,37 +29,33 @@ export function doUndo() {
 
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
 
-  console.log("Before undo, slide.elements:", JSON.parse(JSON.stringify(slide.elements)));
-
-  function showChanges(){
+  function showChanges() {
+    const latestState = slide.undoStack[slide.undoStack.length - 1];
     const prevElementIds = new Set(currentSnapshot.map(el => el.id));
-    const newElementIds = new Set(slide.undoStack[slide.undoStack.length - 1].map(el => el.id));
-    
+    const newElementIds = new Set(latestState.map(el => el.id));
+
     console.log("Removed Elements:");
     prevElementIds.forEach(id => {
       if (!newElementIds.has(id)) {
         console.log(`- Element with ID ${id} was removed.`);
-        document.getElementById("el-"+id)?.remove();
+        document.getElementById("el-" + id)?.remove();
       }
     });
-  
+
     console.log("Added Elements:");
-    newElementIds.forEach(id => {
-      if (!prevElementIds.has(id)) {
-        console.log(`- Element with ID ${id} was added.`);
-        const newEl = slide.undoStack[slide.undoStack.length - 1].find(el => el.id === id);
+    latestState.forEach(newEl => {
+      if (!prevElementIds.has(newEl.id)) {
+        console.log(`- Element with ID ${newEl.id} was added.`);
         updateSlideElement(newEl);
       }
     });
 
     console.log("Modified Elements:");
-    slide.undoStack[slide.undoStack.length - 1].forEach(newEl => {
+    latestState.forEach(newEl => {
       const prevEl = currentSnapshot.find(el => el.id === newEl.id);
+      // If it existed before and the data has changed
       if (prevEl && JSON.stringify(prevEl) !== JSON.stringify(newEl)) {
         console.log(`- Element with ID ${newEl.id} was modified.`);
-      }
-      const modifiedEl = document.getElementById("el-"+newEl.id);
-      if(modifiedEl){
         updateSlideElement(newEl);
       }
     });
@@ -76,23 +71,57 @@ export function doUndo() {
 }
 
 export function doRedo() {
+  console.log("Redo invoked");
+
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.redoStack || slide.redoStack.length === 0) return;
   if (!slide.undoStack) slide.undoStack = [];
 
+  // 1. Clean up active editors before swapping state
   disposeAllTiptapEditors(false);
 
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
+  const nextState = slide.redoStack.pop();
+
+  // 2. Diffing logic to update the DOM without a full reload
+  function showChanges() {
+    const prevElementIds = new Set(currentSnapshot.map(el => el.id));
+    const nextElementIds = new Set(nextState.map(el => el.id));
+
+    console.log("Redo - Removed Elements:");
+    prevElementIds.forEach(id => {
+      if (!nextElementIds.has(id)) {
+        console.log(`- Element with ID ${id} was removed.`);
+        document.getElementById("el-" + id)?.remove();
+      }
+    });
+
+    console.log("Redo - Added Elements:");
+    nextState.forEach(nextEl => {
+      if (!prevElementIds.has(nextEl.id)) {
+        console.log(`- Element with ID ${nextEl.id} was added.`);
+        updateSlideElement(nextEl);
+      }
+    });
+
+    console.log("Redo - Modified Elements:");
+    nextState.forEach(nextEl => {
+      const prevEl = currentSnapshot.find(el => el.id === nextEl.id);
+      if (prevEl && JSON.stringify(prevEl) !== JSON.stringify(nextEl)) {
+        console.log(`- Element with ID ${nextEl.id} was modified.`);
+        updateSlideElement(nextEl);
+      }
+    });
+  }
+
+  showChanges();
+
+  // 3. Update the stacks and the store
   slide.undoStack.push(currentSnapshot);
+  slide.elements = nextState;
 
-  slide.elements = slide.redoStack.pop();
-
-  loadSlide(slide, undefined, undefined, true);
-
-  store.selectedElement = null;
-  store.selectedElementData = null;
-  window.selectedElementForUpdate = null;
+  console.log("After redo, slide.elements:", JSON.parse(JSON.stringify(slide.elements)));
 }
 
 export function initUndoRedo() {
