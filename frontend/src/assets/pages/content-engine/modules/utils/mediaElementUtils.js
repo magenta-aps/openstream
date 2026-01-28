@@ -120,9 +120,6 @@ export function setupMuteButtons() {
 }
 
 export function initMuteButtons() {
-  const websiteVolumeButtons = document.querySelectorAll(
-    'input[name="websiteVolume"]',
-  );
   const videoVolumeButtons = document.querySelectorAll(
     'input[name="videoVolume"]',
   );
@@ -148,11 +145,6 @@ export function initMuteButtons() {
     }
   }
 
-  websiteVolumeButtons.forEach((radio) => {
-    radio.addEventListener("change", (event) => {
-      setElementVolumeState(event.target.value);
-    });
-  });
 
   videoVolumeButtons.forEach((radio) => {
     radio.addEventListener("change", (event) => {
