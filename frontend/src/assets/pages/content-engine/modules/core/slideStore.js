@@ -94,3 +94,24 @@ Object.defineProperty(store, "selectedElement", {
   enumerable: true,
   configurable: true,
 });
+
+let _selectedElementData = null;
+
+Object.defineProperty(store, "selectedElementData", {
+  get() {
+    return _selectedElementData;
+  },
+  set(value) {
+    // We import observeValue to ensure the selected element 
+    // is reactive the second it is picked up by the editor.
+    import("./persistedStateObserver.js").then(m => {
+        _selectedElementData = m.observeValue(value);
+    });
+    
+    // Fallback for immediate assignment if observer is already loaded 
+    // (Or better, just import observeValue at the top of this file)
+    _selectedElementData = value; 
+  },
+  enumerable: true,
+  configurable: true,
+});
