@@ -52,6 +52,7 @@ export const WinkasSlideType = {
       sub_locations: config.sub_locations || [],
       // Marquee-only: we no longer offer a paginated mode, only scroll speed (1-10)
       scroll_speed: config.scroll_speed || 5,
+      skipped_events: config.skipped_events || "",
     };
   },
 
@@ -82,6 +83,10 @@ export const WinkasSlideType = {
   populateFormData(config) {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
+
+    // Inject and populate skipped events input
+    this.ensureSkippedEventsInput(config.skipped_events);
+
     // Populate marquee (scroll speed) control
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
@@ -93,6 +98,90 @@ export const WinkasSlideType = {
       scrollSpeedValue.textContent = scrollSpeedInput
         ? scrollSpeedInput.value
         : config.scroll_speed || 5;
+    }
+  },
+
+  ensureSkippedEventsInput(value) {
+    // If hidden input exists, update and re-render list
+    const existingHidden = document.getElementById("skipped-events-input");
+    const containerPlaceholder =
+      document.getElementById("skipped-events-container");
+
+    const renderListFromHidden = () => {
+      const hidden = document.getElementById("skipped-events-input");
+      const list = document.getElementById("skipped-events-list");
+      if (!hidden || !list) return;
+      list.innerHTML = "";
+      const items = (hidden.value || "").split(",").map((s) => s.trim()).filter(Boolean);
+      items.forEach((it) => {
+        const li = document.createElement("div");
+        li.className = "d-flex align-items-center gap-2 mb-1 skipped-event-item";
+        li.dataset.value = it;
+        li.innerHTML = `<span class=\"badge bg-secondary\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
+        list.appendChild(li);
+      });
+    };
+
+    if (existingHidden) {
+      existingHidden.value = value || "";
+      // If list container exists, render from hidden
+      const list = document.getElementById("skipped-events-list");
+      if (list) renderListFromHidden();
+      return;
+    }
+
+    // Build UI: visible input + add button, list, and hidden input for form extraction
+    if (containerPlaceholder) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "mb-3";
+
+      const label = document.createElement("label");
+      label.className = "form-label";
+      label.htmlFor = "skipped-events-input-field";
+      label.textContent = gettext("Skipped Events");
+
+      const inputGroup = document.createElement("div");
+      inputGroup.className = "d-flex gap-2 mb-2";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "form-control";
+      input.id = "skipped-events-input-field";
+      input.placeholder = gettext("Add event title, press + to add");
+
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.id = "add-skipped-event-btn";
+      addBtn.className = "btn btn-primary";
+      addBtn.innerHTML = "+";
+
+      inputGroup.appendChild(input);
+      inputGroup.appendChild(addBtn);
+
+      const help = document.createElement("div");
+      help.className = "form-text mb-2";
+      help.textContent = gettext(
+        "Events with these exact titles will be hidden from the display.",
+      );
+
+      const list = document.createElement("div");
+      list.id = "skipped-events-list";
+
+      // Hidden input used by existing extractFormData
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.id = "skipped-events-input";
+      hidden.value = value || "";
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(inputGroup);
+      wrapper.appendChild(help);
+      wrapper.appendChild(list);
+      wrapper.appendChild(hidden);
+
+      containerPlaceholder.appendChild(wrapper);
+
+      renderListFromHidden();
     }
   },
 
@@ -213,6 +302,65 @@ export const WinkasSlideType = {
         scrollSpeedInput.removeEventListener("input", speedHandler),
       );
     }
+
+    // Skipped events UI listeners (add, enter, remove)
+    const addBtn = document.getElementById("add-skipped-event-btn");
+    const skippedField = document.getElementById("skipped-events-input");
+    const skippedTextField = document.getElementById("skipped-events-input-field");
+    const skippedList = document.getElementById("skipped-events-list");
+
+    const renderFromHidden = () => {
+      if (!skippedField || !skippedList) return;
+      skippedList.innerHTML = "";
+      const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean);
+      items.forEach((it) => {
+        const li = document.createElement("div");
+        li.className = "d-flex align-items-center gap-2 mb-1 skipped-event-item";
+        li.dataset.value = it;
+        li.innerHTML = `<span class=\"badge bg-secondary\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
+        skippedList.appendChild(li);
+      });
+    };
+
+    if (addBtn && skippedTextField && skippedField) {
+      const addHandler = () => {
+        const val = skippedTextField.value.trim();
+        if (!val) return;
+        const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean);
+        if (!items.includes(val)) items.push(val);
+        skippedField.value = items.join(",");
+        skippedTextField.value = "";
+        renderFromHidden();
+      };
+      addBtn.addEventListener("click", addHandler);
+      this.eventListenerCleanup.push(() => addBtn.removeEventListener("click", addHandler));
+
+      const enterHandler = (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addHandler();
+        }
+      };
+      skippedTextField.addEventListener("keydown", enterHandler);
+      this.eventListenerCleanup.push(() => skippedTextField.removeEventListener("keydown", enterHandler));
+
+      // Initial render
+      renderFromHidden();
+    }
+
+    if (skippedList && skippedField) {
+      const removeDelegate = (e) => {
+        if (!e.target.classList.contains("remove-skipped-event")) return;
+        const item = e.target.closest(".skipped-event-item");
+        if (!item) return;
+        const val = item.dataset.value;
+        const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean).filter((i) => i !== val);
+        skippedField.value = items.join(",");
+        renderFromHidden();
+      };
+      skippedList.addEventListener("click", removeDelegate);
+      this.eventListenerCleanup.push(() => skippedList.removeEventListener("click", removeDelegate));
+    }
   },
 
   cleanupFormEventListeners() {
@@ -230,6 +378,7 @@ export const WinkasSlideType = {
       // Always use marquee (continuous scrolling)
       continuous_scroll: "1",
       scroll_speed: config.scroll_speed || 5,
+      skipped_events: config.skipped_events || "",
     };
 
     return SlideTypeUtils.generateSlideUrl(
@@ -245,6 +394,7 @@ export const WinkasSlideType = {
       ".sub_loc_box:checked",
     );
     const scrollSpeedInput = document.getElementById("scroll-speed");
+    const skippedEventsInput = document.getElementById("skipped-events-input");
 
     const subLocations = Array.from(subLocationCheckboxes).map(
       (checkbox) => checkbox.value,
@@ -256,6 +406,7 @@ export const WinkasSlideType = {
       // Marquee-only: always enabled
       continuous_scroll: true,
       scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 5,
+      skipped_events: skippedEventsInput ? skippedEventsInput.value.trim() : "",
     };
   },
 

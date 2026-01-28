@@ -13,6 +13,8 @@ const config = {
   sub_locations: queryParams.sub_locations
     ? queryParams.sub_locations.split(",")
     : [],
+  // Get skipped events from URL, default to empty string
+  skipped_events: queryParams.skipped_events || "",
 };
 
 // Marquee options from query params
@@ -114,6 +116,35 @@ async function fetchLocationData() {
   }
 }
 
+/**
+ * Filters the list of bookings based on the skipped_events config.
+ * Performs a case-insensitive match on the booking subject.
+ */
+function filterSkippedEvents(bookings) {
+  if (!config.skipped_events || !Array.isArray(bookings)) {
+    return bookings;
+  }
+
+  // Split, trim, and lowercase the skipped events list
+  const skippedList = config.skipped_events
+    .split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter((name) => name.length > 0);
+
+  if (skippedList.length === 0) {
+    return bookings;
+  }
+
+  return bookings.filter((booking) => {
+    // Handle nested booking data structure used in WinKAS
+    const bookingData = booking.booking_data || booking;
+    const subject = (bookingData.subject || "").trim().toLowerCase();
+
+    // If subject is in the skipped list, filter it out (return false)
+    return !skippedList.includes(subject);
+  });
+}
+
 async function fetchAndDisplayBookings() {
   try {
     const subLocationsParam = config.sub_locations.join(",");
@@ -133,6 +164,12 @@ async function fetchAndDisplayBookings() {
     }
 
     const data = await response.json();
+
+    // Filter data before displaying
+    if (data && data.bookings) {
+      data.bookings = filterSkippedEvents(data.bookings);
+    }
+
     displayBookingsInCarousel(data);
   } catch (error) {
     console.error("Error fetching bookings:", error);
@@ -159,13 +196,20 @@ function displayBookingsInCarousel(locationBookings) {
     !locationBookings.bookings ||
     locationBookings.bookings.length === 0
   ) {
-    // Show no bookings message inside a .booking-list to maintain layout
+    // Show a single mock booking entry that reads "No events"
     bookingBody.innerHTML = `
       <div class="booking-list">
-        <div class="no-bookings-message">
-          <span class="material-symbols-outlined">event_busy</span>
-          <h3>No bookings scheduled</h3>
-          <p>There are currently no bookings for the selected locations.</p>
+        <div class="booking-entry no-events">
+          <div class="booking-details">
+            <div class="time-column">
+              <div class="start-time">&nbsp;</div>
+              <div class="time-divider" style="visibility: hidden;"></div>
+              <div class="end-time">&nbsp;</div>
+            </div>
+            <div class="booking-info">
+              <div class="booking-title">No events</div>
+            </div>
+          </div>
         </div>
       </div>
     `;
