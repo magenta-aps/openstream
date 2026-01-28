@@ -77,13 +77,19 @@ function initTableEventListeners() {
   // Table style controls
   const tableStyleSelect = document.getElementById("table-style");
   if (tableStyleSelect) {
-    tableStyleSelect.addEventListener("change", updateTableStyleLive);
+    tableStyleSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableStyleLive();
+    });
   }
 
   // Table sizing controls
   const tableSizingSelect = document.getElementById("table-sizing");
   if (tableSizingSelect) {
-    tableSizingSelect.addEventListener("change", updateTableSizingLive);
+    tableSizingSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableSizingLive();
+    });
   }
 
   // Table striped, bordered options
@@ -105,11 +111,17 @@ function initTableEventListeners() {
   const rowFontSizeSelect = document.getElementById("table-row-font-size");
 
   if (headerFontSizeSelect) {
-    headerFontSizeSelect.addEventListener("change", updateTableFontSizeLive);
+    headerFontSizeSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableFontSizeLive();
+    });
   }
 
   if (rowFontSizeSelect) {
-    rowFontSizeSelect.addEventListener("change", updateTableFontSizeLive);
+    rowFontSizeSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableFontSizeLive();
+    });
   }
 
   // Font family controls
@@ -1447,6 +1459,7 @@ function showTableStructurePopover(button) {
   sizingSelect.value = originalSizingSelect.value;
 
   sizingSelect.addEventListener("change", () => {
+    pushCurrentSlideState();
     originalSizingSelect.value = sizingSelect.value;
     updateTableSizingLive();
   });
@@ -1499,6 +1512,7 @@ function showTableTypographyPopover(button) {
   headerFontSizeSelect.value = originalHeaderSizeSelect.value;
 
   headerFontSizeSelect.addEventListener("change", () => {
+    pushCurrentSlideState();
     originalHeaderSizeSelect.value = headerFontSizeSelect.value;
     updateTableFontSizeLive();
   });
@@ -1547,6 +1561,7 @@ function showTableTypographyPopover(button) {
   rowFontSizeSelect.value = originalRowSizeSelect.value;
 
   rowFontSizeSelect.addEventListener("change", () => {
+    pushCurrentSlideState();
     originalRowSizeSelect.value = rowFontSizeSelect.value;
     updateTableFontSizeLive();
   });
@@ -1646,6 +1661,7 @@ function showTableColorPopover(button) {
       transparentLabel.textContent = gettext("Transparent");
 
       transparentCheckbox.addEventListener("change", () => {
+        pushCurrentSlideState();
         if (document.getElementById(transparentCheckboxId)) {
           document.getElementById(transparentCheckboxId).checked =
             transparentCheckbox.checked;
@@ -1741,6 +1757,7 @@ function showTableColorPopover(button) {
           colorButton.textContent = gettext("Choose Color");
 
           if (selectedColor) {
+            pushCurrentSlideState();
             document.getElementById(colorInputId).value = selectedColor;
             colorDisplay.style.backgroundColor = selectedColor;
             colorText.textContent = selectedColor.toUpperCase();
@@ -1791,6 +1808,7 @@ function showTableColorPopover(button) {
 
     // Checkbox event listener
     checkbox.addEventListener("change", () => {
+      pushCurrentSlideState();
       document.getElementById(enableCheckboxId).checked = checkbox.checked;
       controlsDiv.style.opacity = checkbox.checked ? "1" : "0.4";
       controlsDiv.style.pointerEvents = checkbox.checked ? "auto" : "none";
