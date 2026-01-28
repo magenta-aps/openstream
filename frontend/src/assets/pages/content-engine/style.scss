@@ -98,13 +98,24 @@ body.player-mode .persistent-elements-container {
 }
 
 .toggle-btn {
-  padding: 0.375rem 0.75rem;
-  border: none;
+  padding: 0.5rem 0.75rem;
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: $lighter-gray;
   background-color: $lighter-gray;
   color: $darkest-gray;
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  &.toggle-btn-alt:not(&.toggle-btn-on) {
+    background-color: transparent;
+    border-color: $dark-gray;
+  }
 
   &.toggle-btn-on {
     background-color: $secondary;
+    border-color: $secondary;
     color: $white;
   }
 
@@ -113,6 +124,10 @@ body.player-mode .persistent-elements-container {
   }
   &.toggle-btn-right {
     border-radius: 0 0.375rem 0.375rem 0;
+  }
+
+  &.toggle-btn-sm {
+    padding: 0.375rem 0.75rem;
   }
 }
 

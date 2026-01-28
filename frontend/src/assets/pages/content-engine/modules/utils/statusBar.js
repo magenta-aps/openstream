@@ -34,10 +34,19 @@ let zoomChangeCallbacks = [];
 /**
  * @param {{ label: string, fn: () => void}} onOptions
  * @param {{ label: string, fn: () => void}} offOptions
+ * @param {"sm"} [size]
+ * @param {boolean} [isAlt] - determiens if the alt variant should be used
  * @returns
  */
-function createToggleButton(onOptions, offOptions) {
-  const rootClassName = ["toggle-btn"];
+function createToggleButton(onOptions, offOptions, size, isAlt) {
+  const rootClassName = ["toggle-btn", "toggle-btn-sm"];
+  if (isAlt) {
+    rootClassName.push("toggle-btn-alt");
+  }
+
+  if (size) {
+    rootClassName.push("toggle-btn-sm");
+  }
 
   const container = document.createElement("div");
   container.classList.add("toggle-btn-container");
@@ -284,8 +293,9 @@ function createSnapControls(rightSection) {
 
   // Snap toggle button (on/off)
   const snapToggle = createToggleButton(
-    { label: "on", fn: toggleSnapEnabled },
-    { label: "off", fn: toggleSnapEnabled },
+    { label: gettext("free-movement"), fn: toggleSnapEnabled },
+    { label: gettext("snapping"), fn: toggleSnapEnabled },
+    true,
   );
 
   const snapLabel = document.createElement("span");
@@ -904,49 +914,48 @@ function createZoomControls(rightSection) {
   `;
 
   // Zoom mode toggle buttons
-  const zoomModeToggle = document.createElement("div");
-  zoomModeToggle.className = "zoom-mode-toggle";
-  zoomModeToggle.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--bs-gray);
-    border-radius: 6px;
-    padding: 1px;
+  /** @type {(zoomMode: "fit" | "zoom", display: string, fn: (element: HTMLElement), notify: {mode: "fit" | "zoom",level: number })} */
+  const zoomSwitcher = (zoomMode, display, fn, notify) =>
+    function () {
+      if (currentZoomMode !== zoomMode) {
+        currentZoomMode = zoomMode;
 
-  `;
+        const rightContainer = document.getElementById(
+          "right-content-container",
+        );
+        console.log(rightContainer);
+        fn(rightContainer);
 
-  const zoomButton = document.createElement("button");
-  zoomButton.className = "zoom-mode-btn";
-  zoomButton.textContent = "Zoom";
-  zoomButton.style.cssText = `
-    background: transparent;
-    border: none;
-    color: var(--bs-darker-gray);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  `;
-
-  const fitButton = document.createElement("button");
-  fitButton.className = "zoom-mode-btn active";
-  fitButton.textContent = "Fit";
-  fitButton.style.cssText = `
-    background: var(--bs-light-gray);
-    border: none;
-    color: var(--bs-darkest-gray);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(54,56,57,0.2);
-  `;
-
+        zoomSliderContainer.style.display = display;
+        notifyZoomChange(notify.mode, notify.level);
+      }
+    };
+  const zoomModeToggle = createToggleButton(
+    {
+      label: "Fit",
+      fn: zoomSwitcher(
+        "fit",
+        "none",
+        (element) => element.classList.remove("resize-for-zoom"),
+        {
+          mode: "fit",
+          level: 100,
+        },
+      ),
+    },
+    {
+      label: "Zoom",
+      fn: zoomSwitcher(
+        "zoom",
+        "flex",
+        (element) => element.classList.add("resize-for-zoom"),
+        { mode: "zoom", level: currentZoomLevel },
+      ),
+    },
+    true,
+    true,
+  );
+  /* TODO: Remove
   // Event handlers
   fitButton.addEventListener("click", () => {
     if (currentZoomMode !== "fit") {
@@ -955,32 +964,6 @@ function createZoomControls(rightSection) {
       document
         .getElementById("right-content-container")
         .classList.remove("resize-for-zoom");
-
-      // Update button styles
-      fitButton.style.cssText = `
-        background: var(--bs-light-gray);
-        border: none;
-        color: var(--bs-darkest-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(54,56,57,0.2);
-      `;
-
-      zoomButton.style.cssText = `
-        background: transparent;
-        border: none;
-        color: var(--bs-darker-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      `;
 
       zoomSliderContainer.style.display = "none";
       notifyZoomChange("fit", 100);
@@ -995,36 +978,11 @@ function createZoomControls(rightSection) {
         .getElementById("right-content-container")
         .classList.add("resize-for-zoom");
 
-      // Update button styles
-      zoomButton.style.cssText = `
-        background: var(--bs-light-gray);
-        border: none;
-        color: var(--bs-darkest-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(54,56,57,0.2);
-      `;
-
-      fitButton.style.cssText = `
-        background: transparent;
-        border: none;
-        color: var(--bs-darker-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      `;
-
       zoomSliderContainer.style.display = "flex";
       notifyZoomChange("zoom", currentZoomLevel);
     }
   });
+  */
 
   zoomSlider.addEventListener("input", (e) => {
     currentZoomLevel = parseInt(e.target.value);
@@ -1055,12 +1013,9 @@ function createZoomControls(rightSection) {
   zoomSliderContainer.appendChild(zoomSlider);
   zoomSliderContainer.appendChild(zoomLabel);
 
-  zoomModeToggle.appendChild(zoomButton);
-  zoomModeToggle.appendChild(fitButton);
-
   // Add to main container in order: slider, then toggle buttons
   zoomControlsContainer.appendChild(zoomSliderContainer);
-  zoomControlsContainer.appendChild(zoomModeToggle);
+  zoomControlsContainer.appendChild(zoomModeToggle.container);
 
   rightSection.appendChild(zoomControlsContainer);
 }

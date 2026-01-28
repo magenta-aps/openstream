@@ -4135,5 +4135,11 @@
   },
   "No events": {
     "da": "Ingen begivenheder"
+  },
+  "free-movement": {
+    "da": "Fri bevægelse"
+  },
+  "snapping": {
+    "da": "Snapping"
   }
 }    
