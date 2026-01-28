@@ -2506,6 +2506,11 @@ span {
   color: $dark-gray;
 }
 
+#templateFilterPanelFilterContainer {
+  display: flex;
+  column-gap: 0.5rem;
+}
+
 #templateFilterPanelSearchContainer {
   display: flex;
   align-items: center;
@@ -2514,13 +2519,15 @@ span {
 }
 #templateFilterSearch {
   width: 100%;
-  padding-left: 2.3rem;
+  padding-left: 1.75rem;
+  font-size: 0.9rem;
 }
 
 #templateFilterSearchIcon {
   position: absolute;
-  top: 0.5rem;
+  top: 0.75rem;
   left: 0.5rem;
+  font-size: 17px;
 }
 
 .template-filter-panel__popover-trigger {
@@ -2578,6 +2585,7 @@ span {
   background-color: $secondary-accent-hover;
   color: $darkest-gray;
 
+  /* changes icon size */
   & i {
     font-size: 14px;
   }
@@ -2590,11 +2598,15 @@ span {
 
 .template-filter-panel__reset {
   white-space: nowrap;
-  color: $black;
+  color: $darkest-gray;
 
   &:hover {
     color: $black;
   }
+}
+
+#templateFilterPanelChipReset {
+  font-size: 0.85rem;
 }
 
 .template-filter-empty {
@@ -2616,4 +2628,10 @@ span {
   .template-filter-panel__sort {
     min-width: auto;
   }
+}
+
+#templateFilterPanelSlideCount {
+  font-size: 0.85rem;
+  color: $darkest-gray;
+  margin: 0;
 }

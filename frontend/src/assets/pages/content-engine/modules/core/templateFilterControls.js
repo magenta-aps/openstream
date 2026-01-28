@@ -91,9 +91,9 @@ function createPopover(triggerOptions, popoverOptions) {
  */
 function createCollapse(triggerOptions, contentOptions) {
   const collapseOpendIcon =
-    "<i class='material-symbols-outlined'>keyboard_arrow_down</i>";
-  const collapseClosedIcon =
     "<i class='material-symbols-outlined'>keyboard_arrow_up</i>";
+  const collapseClosedIcon =
+    "<i class='material-symbols-outlined'>keyboard_arrow_down</i>";
   let isCollapseOpen = true;
 
   const collapseTrigger = document.createElement("button");
@@ -408,7 +408,7 @@ function renderFilterPanel() {
   const tagsLabel = gettext("Tags");
   const aspectLabel = gettext("Aspect Ratio");
   const searchLabel = gettext("Search templates");
-  const resetLabel = gettext("Reset filters");
+  const resetLabel = gettext("Reset Filters");
 
   const categoryCollapse = createCollapse(
     {
@@ -451,7 +451,7 @@ function renderFilterPanel() {
 
   filterPanel.innerHTML = `
     <div class="template-filter-panel__wrapper">
-      <div id="templateFilterPanelFilterContainer" class="d-flex">
+      <div id="templateFilterPanelFilterContainer">
         <div id="templateFilterPanelSearchContainer">
           <input type="search" class="form-control rounded-pill" id="templateFilterSearch" placeholder="${searchLabel}">
 
@@ -463,10 +463,10 @@ function renderFilterPanel() {
       </div>
 
       <div class="template-filter-panel__row-between align-items-center">
-        <h3 id="templateFilterPanelSlideCount"></h3>
+        <p id="templateFilterPanelSlideCount"></p>
 
         <div class="dropdown" id="templateFilterSort" data-selected-value="${NAME_SORT_KEY}:asc">
-          <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <button class="btn btn-sm text-black dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="material-symbols-outlined">sort</i>
             ${gettext("Name (A-Z)")}
           </button>
@@ -492,7 +492,7 @@ function renderFilterPanel() {
     {
       id: "templateFilterPopoverBtn",
       classNames:
-        "btn btn-sm d-flex align-items-center row-gap-1 template-filter-panel__popover-trigger",
+        "btn btn-sm d-flex align-items-center row-gap-1 text-black template-filter-panel__popover-trigger",
       content: `
         <i class="material-symbols-outlined">tune</i>
         ${gettext("Filters")}
@@ -798,9 +798,9 @@ function updateChips() {
   chips.forEach((chip) => chipsContainer.appendChild(chip));
 
   const btn = document.createElement("btn");
+  btn.id = "templateFilterPanelChipReset";
   btn.classList.add(
     "btn",
-    "btn-sm",
     "btn-link",
     "template-filter-panel__reset",
     "m-0",

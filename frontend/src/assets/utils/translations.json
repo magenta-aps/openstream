@@ -2489,6 +2489,9 @@
   "Remove Filters": {
     "da": "Ryd filtre"
   },
+  "Reset Filters": {
+    "da": "Ryd filtre"
+  },
   "Remove Chips": {
     "da": "Ryd alle"
   },
@@ -2991,7 +2994,7 @@
     "da": "Administrer Wayfinding Systemer"
   },
   "Edit Templates": {
-    "da": "Rediger Skabeloner"
+    "da": "Globale Skabeloner"
   },
   "Suborganisation Templates": {
     "da": "Underorganisations Skabeloner"
