@@ -1125,8 +1125,7 @@ function enterEditMode(elementData) {
     const currentContent = editor.getHTML();
 
     if (lastSavedContent !== currentContent) {
-      console.log("Change detected - creating undo checkpoint");
-      
+
       const newContent = currentContent;
       elementData.tiptapContent = lastSavedContent;
       pushCurrentSlideState();
@@ -1143,7 +1142,6 @@ function enterEditMode(elementData) {
   const stopTracking = () => {
     clearInterval(intervalId);
     editor.off('blur', stopTracking); // Clean up the listener itself
-    console.log("Tracking stopped.");
   };
 
   // Attach the cleanup to the editor's blur event
