@@ -26,6 +26,7 @@ import {
   getResolutionForAspectRatio,
   getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
+import { refreshTemplateFilterOptions } from "../core/templateFilterControls.js";
 
 const modalEl = document.getElementById("saveAsTemplateModal");
 const modalTitleEl = document.getElementById("saveAsTemplateModalLabel");
@@ -64,13 +65,12 @@ let globalTemplateThumbnailValue = null;
 
 const templateAspectRatioOptionMap = new Map();
 
-
 const saveAsTemplateForm = document.getElementById("saveAsTemplateForm");
 
-if (saveAsTemplateForm){
-saveAsTemplateForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-});
+if (saveAsTemplateForm) {
+  saveAsTemplateForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+  });
 }
 
 function getTemplateAspectRatiosForOrientation(orientation) {
@@ -96,8 +96,7 @@ function createTemplateAspectRatioOption(container, ratio) {
 
   if (ratio.note) {
     const note = document.createElement("div");
-    note.className =
-      "template-resolution-option-note text-muted text-center";
+    note.className = "template-resolution-option-note text-muted text-center";
     note.textContent = ratio.note;
     wrapper.appendChild(note);
   }
@@ -155,17 +154,34 @@ function applyTemplateMetadataLocally(
     targetSlide.categoryId = metadataUpdate.category_id;
   }
 
+  const categoryName = serverData?.category.name;
+  if (categoryName) {
+    targetSlide.categoryName = categoryName;
+  }
+
   if (Array.isArray(metadataUpdate.tag_ids)) {
     targetSlide.tagIds = metadataUpdate.tag_ids;
   }
 
-  console.log(metadataUpdate)
+  const tagNames = serverData?.tags.map((tag) => tag.name);
+  if (tagNames) {
+    targetSlide.tagNames = tagNames;
+  }
+
+  const updatedAt = serverData?.updated_at;
+  if (updatedAt) {
+    targetSlide.updated_at = updatedAt;
+  }
 
   if (
     Object.prototype.hasOwnProperty.call(metadataUpdate, "thumbnail_url") ||
-    (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url"))
+    (serverData &&
+      Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url"))
   ) {
-    if (serverData && Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url")) {
+    if (
+      serverData &&
+      Object.prototype.hasOwnProperty.call(serverData, "thumbnail_url")
+    ) {
       targetSlide.thumbnail_url = serverData.thumbnail_url;
     } else {
       targetSlide.thumbnail_url = metadataUpdate.thumbnail_url;
@@ -277,8 +293,7 @@ function renderTemplateAspectRatioOptions() {
     }
   });
 
-  const initialValue =
-    templateAspectRatioInput?.value || DEFAULT_ASPECT_RATIO;
+  const initialValue = templateAspectRatioInput?.value || DEFAULT_ASPECT_RATIO;
   selectTemplateAspectRatio(initialValue, { force: true });
 }
 
@@ -357,10 +372,7 @@ if (globalTemplateThumbnailInput) {
     }
 
     if (file.size > MAX_GLOBAL_THUMBNAIL_BYTES) {
-      showToast(
-        gettext("Thumbnail image must be 1 MB or smaller."),
-        "Warning",
-      );
+      showToast(gettext("Thumbnail image must be 1 MB or smaller."), "Warning");
       event.target.value = "";
       return;
     }
@@ -397,12 +409,12 @@ function isAspectRatioLocked() {
   if (queryParams.mode === "suborg_templates") {
     return true;
   }
-  
+
   // For global templates, only lock when editing an existing template
   if (queryParams.mode === "template_editor") {
     return store.editingTemplateId !== null;
   }
-  
+
   return false;
 }
 
@@ -413,8 +425,7 @@ function getAspectRatioForIndex(index = null) {
 
   if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
     return (
-      store.slides[store.currentSlideIndex].aspect_ratio ||
-      DEFAULT_ASPECT_RATIO
+      store.slides[store.currentSlideIndex].aspect_ratio || DEFAULT_ASPECT_RATIO
     );
   }
 
@@ -742,8 +753,6 @@ if (confirmBtn) {
     const bsModalInstance = bootstrap.Modal.getInstance(modalEl);
 
     if (store.editingTemplateId) {
-
-
       // Editing existing template metadata
       const currentTemplate = store.slides[store.editingTemplateIndex];
       const isSuborgTemplate = Boolean(currentTemplate?.isSuborgTemplate);
@@ -808,11 +817,8 @@ if (confirmBtn) {
 
         if (bsModalInstance) bsModalInstance.hide();
 
-
         // Use store.slides to update available categories
-        console.log("slides", await store.slides)
-
-
+        console.log("slides", await store.slides);
       } catch (err) {
         console.error("Error updating template metadata:", err);
         showToast(gettext("Error: ") + err.message, "Error");
@@ -846,7 +852,11 @@ if (confirmBtn) {
             duration: 5, // Default duration
             savedSnapSettings: {
               unit: "cells",
-              amount: getDefaultCellSnapForResolution(store.emulatedWidth, store.emulatedHeight) || 1,
+              amount:
+                getDefaultCellSnapForResolution(
+                  store.emulatedWidth,
+                  store.emulatedHeight,
+                ) || 1,
               isAuto: true,
               snapEnabled: false,
             },
@@ -930,5 +940,6 @@ if (confirmBtn) {
         showToast(gettext("Error: ") + err.message, "Error");
       }
     }
+    refreshTemplateFilterOptions();
   });
 }

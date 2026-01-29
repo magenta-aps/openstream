@@ -479,7 +479,6 @@ body {
   visibility: hidden;
 }
 
-
 /* New CSS for the media change button (used by images, videos, and embedded websites) */
 .media-change-btn {
   position: absolute;
@@ -887,12 +886,10 @@ span {
   box-shadow: 0 1px 0 rgba($black, 0.03) inset;
 }
 
-
 #eventPreviewList .list-group-item.active {
-background: $secondary-accent-lighter;
-color: black;
-border: $black;
-
+  background: $secondary-accent-lighter;
+  color: black;
+  border: $black;
 }
 
 #slide-elements-list .list-group-item .fw-bold {
@@ -1352,7 +1349,6 @@ border: $black;
   animation: fadeIn 0.1s forwards;
 }
 
-
 .resize-handle {
   display: none;
   width: 23px;
@@ -1645,7 +1641,7 @@ border: $black;
 }
 
 .dropdown-menu.tiptap-font-size-dropdown-menu.shadow.show {
- left: -3.4rem !important;
+  left: -3.4rem !important;
 }
 
 .slide-element *::-webkit-scrollbar {
@@ -2200,8 +2196,6 @@ border: $black;
   display: none !important;
 }
 
-
-
 /* Placeholder element styling for better visual separation */
 .slide-element.placeholder-element {
   /* Add a subtle inset margin to create visual separation between adjacent placeholders */
@@ -2475,11 +2469,11 @@ border: $black;
 }
 
 /* Template filter controls */
+.hr-lg {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
 .template-filter-panel {
-  background-color: $white;
-  border: 1px solid rgba($dark-gray, 0.2);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
   margin-top: 1rem;
   font-size: 0.9rem;
 }
@@ -2492,7 +2486,12 @@ border: $black;
 
 .template-filter-panel__row {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+.template-filter-panel__row-between {
+  display: flex;
+  justify-content: space-between;
 }
 
 .template-filter-panel__sort {
@@ -2507,22 +2506,58 @@ border: $black;
   color: $dark-gray;
 }
 
+#templateFilterPanelFilterContainer {
+  display: flex;
+  column-gap: 0.5rem;
+}
+
+#templateFilterPanelSearchContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+#templateFilterSearch {
+  width: 100%;
+  padding-left: 1.75rem;
+  font-size: 0.9rem;
+}
+
+#templateFilterSearchIcon {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.5rem;
+  font-size: 17px;
+}
+
+.template-filter-panel__popover-trigger {
+  anchor-name: --filter-anchor;
+  padding: 0.5rem 0.25rem;
+}
+
+.template-filter-panel__popover-content {
+  anchor-name: --filter-anchor;
+  position-anchor: --filter-anchor;
+  position-area: bottom span-left;
+  width: 16rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid var(--Gray);
+  border-radius: 0.25rem;
+  box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.2);
+}
+
 .template-filter-panel__toggle {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
-  border-color: rgba($dark-gray, 0.25);
-  background-color: $white;
 }
 
-.template-filter-options {
+.template-filter-panel__options {
   max-height: 180px;
   overflow-y: auto;
   padding: 0.25rem 0.5rem;
-  border: 1px solid rgba($dark-gray, 0.15);
-  border-radius: 0.5rem;
-  background-color: $secondary-accent-light;
 }
 
 .template-filter-checkbox + .template-filter-checkbox {
@@ -2533,14 +2568,27 @@ border: $black;
   font-size: 0.85rem;
 }
 
+.template-filter-panel__chips-container {
+  flex-wrap: wrap;
+  line-height: 1rem;
+}
+
 .template-filter-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.5rem;
+  gap: 0.25rem;
+  padding: 0.25rem;
   font-size: 0.75rem;
-  background-color: $secondary;
-  color: $white;
+  font-weight: 400;
+  border-radius: 0.25rem;
+  border: none;
+  background-color: $secondary-accent-hover;
+  color: $darkest-gray;
+
+  /* changes icon size */
+  & i {
+    font-size: 14px;
+  }
 }
 
 .template-filter-chip .btn-close {
@@ -2550,6 +2598,15 @@ border: $black;
 
 .template-filter-panel__reset {
   white-space: nowrap;
+  color: $darkest-gray;
+
+  &:hover {
+    color: $black;
+  }
+}
+
+#templateFilterPanelChipReset {
+  font-size: 0.85rem;
 }
 
 .template-filter-empty {
@@ -2571,4 +2628,10 @@ border: $black;
   .template-filter-panel__sort {
     min-width: auto;
   }
+}
+
+#templateFilterPanelSlideCount {
+  font-size: 0.85rem;
+  color: $darkest-gray;
+  margin: 0;
 }

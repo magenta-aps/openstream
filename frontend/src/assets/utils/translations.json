@@ -227,11 +227,44 @@
   "Select All": {
     "da": "Vælg Alle"
   },
+  "Search templates": {
+    "da": "Søg i skabeloner"
+  },
   "Search name, category, or tags...": {
     "da": "Søg navn, kategori eller tags..."
   },
   "Sort by relevancy on search": {
     "da": "Sorter efter relevans på søgning"
+  },
+  "Name (A-Z)": {
+    "da": "Navn (A-Å)"
+  },
+  "Name (Z-A)": {
+    "da": "Navn (Å-A)"
+  },
+  "Category (A-Z)": {
+    "da": "Kategori (A-Å)"
+  },
+  "Category (Z-A)": {
+    "da": "Kategori (Å-A)"
+  },
+  "Tag (A-Z)": {
+    "da": "Tag (A-Å)"
+  },
+  "Tag (Z-A)": {
+    "da": "Tag (Å-A)"
+  },
+  "Created (Newest)": {
+    "da": "Oprettet (Nyest)"
+  },
+  "Created (Oldest)": {
+    "da": "Oprettet (Ældst)"
+  },
+  "Updated (Newest)": {
+    "da": "Redigeret (Nyest)"
+  },
+  "Updated (Oldest)": {
+    "da": "Redigeret (Ældst)"
   },
   "Mode": {
     "da": "Tilstand"
@@ -2453,6 +2486,15 @@
   "Show Filters": {
     "da": "Vis Filtre"
   },
+  "Remove Filters": {
+    "da": "Ryd filtre"
+  },
+  "Reset Filters": {
+    "da": "Ryd filtre"
+  },
+  "Clear all": {
+    "da": "Ryd alle"
+  },
   "Please enter some dynamic content (HTML).": {
     "da": "Indtast noget dynamisk indhold (HTML)."
   },
@@ -2951,8 +2993,8 @@
   "Manage Wayfinding Systems": {
     "da": "Administrer Wayfinding Systemer"
   },
-  "Edit Templates": {
-    "da": "Rediger Skabeloner"
+  "Global templates": {
+    "da": "Globale skabeloner"
   },
   "Suborganisation Templates": {
     "da": "Underorganisations Skabeloner"
@@ -3951,4 +3993,3 @@
     "da": "omvendt lige parallelogram"
   }
 }
-

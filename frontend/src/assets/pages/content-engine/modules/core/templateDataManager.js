@@ -24,7 +24,10 @@ import {
   getResolutionForAspectRatio,
 } from "../../../../utils/availableAspectRatios.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
-import { refreshTemplateFilterOptions } from "./templateFilterControls.js";
+import {
+  refreshTemplateFilterOptions,
+  updateTemplateSlideCount,
+} from "./templateFilterControls.js";
 import { registerFontsFromSlides } from "../utils/fontUtils.js";
 import {
   SPECIAL_SAVE_ENABLED,
@@ -126,22 +129,19 @@ export async function populateStoreFromTemplates({
         return;
       }
 
-      store.templateLegacyFlags.set(
-        template.id,
-        Boolean(template.is_legacy),
-      );
+      store.templateLegacyFlags.set(template.id, Boolean(template.is_legacy));
 
       const slideObject = JSON.parse(JSON.stringify(template.slide_data));
       slideObject.templateId = template.id;
       slideObject.templateOriginalName = template.name;
       slideObject.name = template.name;
-      slideObject.aspect_ratio =
-        template.aspect_ratio || DEFAULT_ASPECT_RATIO;
+      slideObject.aspect_ratio = template.aspect_ratio || DEFAULT_ASPECT_RATIO;
+      slideObject.created_at = template.created_at;
+      slideObject.updated_at = template.updated_at;
 
       const templateCategory = template.category || null;
       slideObject.categoryId =
-        template.category_id ||
-        (templateCategory ? templateCategory.id : null);
+        template.category_id || (templateCategory ? templateCategory.id : null);
       slideObject.categoryName = templateCategory
         ? templateCategory.name
         : null;
@@ -199,6 +199,7 @@ export async function populateStoreFromTemplates({
       transformSlideObject(slideObject, template);
       store.slides.push(slideObject);
     });
+    updateTemplateSlideCount();
 
     await registerFontsFromSlides(store.slides);
 
@@ -400,7 +401,8 @@ export async function saveCurrentTemplateData() {
 
     currentSlideObject.templateOriginalName = updatedTemplateFromServer.name;
     currentSlideObject.preview_width = updatedTemplateFromServer.preview_width;
-    currentSlideObject.preview_height = updatedTemplateFromServer.preview_height;
+    currentSlideObject.preview_height =
+      updatedTemplateFromServer.preview_height;
     currentSlideObject.aspect_ratio =
       updatedTemplateFromServer.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
@@ -549,7 +551,6 @@ export async function initTemplateEditor() {
   const slideshowNameEl = document.getElementById("slideshow-name");
   if (slideshowNameEl)
     slideshowNameEl.textContent = gettext("Manage Templates");
-
 
   const addSlideButton = document.getElementById("add-slide-button");
   if (addSlideButton) addSlideButton.style.display = "none";
