@@ -73,7 +73,7 @@ function createPopover(triggerOptions, popoverOptions) {
 
   const popover = document.createElement("div");
   popover.id = popoverOptions.id;
-  popover.setAttribute("popover", true);
+  popover.setAttribute("popover", "auto");
   if (popoverOptions.classNames) {
     popover.classList.add(...popoverOptions.classNames.split(" "));
   }
@@ -806,7 +806,7 @@ function updateChips() {
     "m-0",
     "p-0",
   );
-  btn.textContent = gettext("Remove Chips");
+  btn.textContent = gettext("Clear all");
   btn.addEventListener("click", resetTemplateFilters);
 
   chipsContainer.appendChild(btn);
