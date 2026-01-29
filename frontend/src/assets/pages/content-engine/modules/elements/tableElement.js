@@ -1319,7 +1319,6 @@ function showTableStructurePopover(button) {
 
   let rowsDebounceTimer;
 
-  // Copy event listeners
   rowsInput.addEventListener("input", () => {
     clearTimeout(rowsDebounceTimer);
     rowsDebounceTimer = setTimeout(() => {
