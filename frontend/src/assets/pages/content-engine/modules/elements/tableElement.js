@@ -1404,7 +1404,7 @@ function showTableStructurePopover(button) {
   rowsInput.value = document.getElementById("table-rows").value;
 
   // Copy event listeners
-  rowsInput.addEventListener("change", () => {
+  rowsInput.addEventListener("input", () => {
     document.getElementById("table-rows").value = rowsInput.value;
     updateTableStructure();
   });
@@ -1431,7 +1431,7 @@ function showTableStructurePopover(button) {
   colsInput.value = document.getElementById("table-cols").value;
 
   // Copy event listeners
-  colsInput.addEventListener("change", () => {
+  colsInput.addEventListener("input", () => {
     document.getElementById("table-cols").value = colsInput.value;
     updateTableStructure();
   });
