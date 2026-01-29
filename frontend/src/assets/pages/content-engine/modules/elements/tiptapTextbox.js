@@ -1138,7 +1138,6 @@ function enterEditMode(elementData) {
 
   const intervalId = setInterval(checkChangesInElementData, 1500);
 
-  // --- THE FIX: Create a cleanup function ---
   const stopTracking = () => {
     clearInterval(intervalId);
     editor.off('blur', stopTracking); // Clean up the listener itself
