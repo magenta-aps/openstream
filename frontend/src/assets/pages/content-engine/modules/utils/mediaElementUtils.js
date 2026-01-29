@@ -31,7 +31,7 @@ export function alignMediaElement(hAlign, vAlign) {
     currentVAlign = vAlign;
   }
 
-  pushCurrentSlideState(store.selectedElementData.id);
+  pushCurrentSlideState();
   const newObjectPosition = `${currentHAlign} ${currentVAlign}`;
   mediaEl.style.objectPosition = newObjectPosition;
   dataObj.objectPosition = newObjectPosition;
