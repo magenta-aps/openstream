@@ -62,6 +62,9 @@ export function loadSlide(
   forceCompleteReload = false,
   options = {},
 ) {
+
+  
+
   const isPreviewMode = options.previewMode === true;
   // Save current snap settings to the slide we're switching FROM
   // Use lastSlideIndex if available, otherwise use currentSlideIndex
@@ -478,6 +481,8 @@ export function updateSlideElement(elementData) {
 }
 
 export function scaleSlide(previewContainer) {
+
+
   const zoomInfo = getCurrentZoomInfo();
 
   if (zoomInfo.mode === "fit") {
@@ -502,6 +507,8 @@ export function scaleSlide(previewContainer) {
 }
 
 export function scaleAllSlides() {
+
+
   const zoomInfo = getCurrentZoomInfo();
 
   // Use the same selector pattern as zoom controller to get the correct preview containers
@@ -614,8 +621,6 @@ async function _startSlideshowPlayer() {
       }
 
       const data = await response.json();
-
-      console.log(data)
 
       // Metadata used for live updating set in the window for easy access in open-screen.hbs
       store.slideshowPlayerMetaData = {
@@ -748,76 +753,49 @@ async function _startSlideshowPlayer() {
 }
 
 function initLiveReload() {
-  console.log("Initializing live reload via SSE");
+  
   // 1. Point this to your Express route
   const eventSource = new EventSource(derivePollingServiceFromHostname());
 
   // Check connection status
   eventSource.onopen = () => {
-    console.log('[sse] connection established at', new Date().toISOString());
   };
 
   // 2. Listen for the "custom-event" sent by channel.broadcast()
   eventSource.addEventListener('custom-event', (event) => {
     const data = JSON.parse(event.data);
-    console.log(data);
     const metadata = store.slideshowPlayerMetaData || {};
 
     const includesId = (collection, candidate) => Array.isArray(collection) && collection.some((id) => String(id) === String(candidate));
 
     if (data.model == "Slideshow") {
-
       // Check if data.id is in slideshow_ids
       if (includesId(metadata.slideshow_ids, data.id)) {
-        console.log("Slideshow used in current display. Page should reload");
         window.location.reload();
-      }
-      else {
-        console.log("Slideshow not used in current display. Should not reload")
       }
     }
     if (data.model == "SlideshowPlaylist") {
       // Check if data.id is in slideshow_playlist_ids
       if (includesId(metadata.slideshow_playlist_ids, data.id)) {
-        console.log("SlideshowPlaylist used in current display. Page should reload");
         window.location.reload();
-      }
-      else {
-        console.log("SlideshowPlaylist not used in current display. Should not reload")
       }
     }
     if (data.model == "ScheduledContent") {
       // Check if data.id is in scheduled_content_ids
       if (includesId(metadata.scheduled_content_ids, data.id)) {
-        console.log("ScheduledContent used in current display. Page should reload");
         window.location.reload();
-      }
-      else {
-        console.log("ScheduledContent not used in current display. Should not reload")
       }
     }
     if (data.model == "RecurringScheduledContent") {
       // Check if data.id is in recurring_scheduled_content_ids
       if (includesId(metadata.recurring_scheduled_content_ids, data.id)) {
-        console.log("RecurringScheduledContent used in current display. Page should reload");
         window.location.reload();
-      }
-      else {
-        console.log("RecurringScheduledContent not used in current display. Should not reload")
       }
     }
     if (data.model == "DisplayWebsiteGroup") {
-
-
-      console.log(data.id); console.log(window.display_website_group_id);
-
       // Check if data.id matches display_website_group_id
       if (String(data.id) === String(metadata.display_website_group_id)) {
-        console.log("DisplayWebsiteGroup used in current display. Page should reload");
         window.location.reload();
-      }
-      else {
-        console.log("DisplayWebsiteGroup not used in current display. Should not reload")
       }
     }
     if (data.model == "DisplayWebsite") {
@@ -828,11 +806,7 @@ function initLiveReload() {
 
       // Check if data.id matches displayWebsiteId
       if (String(data.id) === String(displayWebsiteId)) {
-        console.log("DisplayWebsite used in current display. Page should reload");
         window.location.reload();
-      }
-      else {
-        console.log("DisplayWebsite not used in current display. Should not reload")
       }
 
     }
@@ -842,10 +816,7 @@ function initLiveReload() {
       const matchesDisplayGroup = currentGroupId && includesId(targetedGroupIds, currentGroupId);
 
       if (matchesDisplayGroup) {
-        console.log("EmergencySlideshow affects current display group. Page should reload");
         window.location.reload();
-      } else {
-        console.log("EmergencySlideshow scoped to other groups. Should not reload");
       }
     }
   });
@@ -869,7 +840,7 @@ function _syncSlideBgColorIcon(backgroundColor) {
   }
 }
 
-function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
+export async function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
   // Consider this an interactive playback render when we're not in the
   // editor or template editor modes. That covers slideshow and interactive
   // playback contexts where we shouldn't show editor-only indicators.
@@ -1053,9 +1024,6 @@ function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
               window.__os_lastInteractivePageChangeAt &&
               now - window.__os_lastInteractivePageChangeAt < 1000
             ) {
-              try {
-                console.log("click blocked by debounce");
-              } catch (e) { }
               return;
             }
             window.__os_lastInteractivePageChangeAt = now;

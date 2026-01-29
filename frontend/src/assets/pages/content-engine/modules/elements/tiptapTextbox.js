@@ -415,7 +415,7 @@ function runEditorCommand(editor, applyToWholeDoc, commandBuilder) {
   return executed;
 }
 
-function disposeEditorForElement(elementId, preserveContent = true) {
+export function disposeEditorForElement(elementId, preserveContent = true) {
   const existing = tiptapEditors.get(elementId);
   if (!existing) return;
 
@@ -1103,12 +1103,49 @@ function enterEditMode(elementData) {
   if (!elementData) return;
   const editor = tiptapEditors.get(elementData.id);
   if (!editor) return;
+
   if (editor.isEditable) {
     editor.chain().focus().run();
     return;
   }
+
   pushCurrentSlideState();
   editor.setEditable(true, false);
+
+  let lastSavedContent = elementData.tiptapContent || elementData.text || "";
+
+  // Define the checker
+  const checkChangesInElementData = () => {
+    // Safety check: is the editor still there?
+    if (!editor || editor.isDestroyed) {
+      stopTracking();
+      return;
+    }
+
+    const currentContent = editor.getHTML();
+
+    if (lastSavedContent !== currentContent) {
+
+      const newContent = currentContent;
+      elementData.tiptapContent = lastSavedContent;
+      pushCurrentSlideState();
+
+      elementData.tiptapContent = newContent;
+      elementData.text = newContent;
+      lastSavedContent = newContent;
+    }
+  };
+
+  const intervalId = setInterval(checkChangesInElementData, 1500);
+
+  const stopTracking = () => {
+    clearInterval(intervalId);
+    editor.off('blur', stopTracking); // Clean up the listener itself
+  };
+
+  // Attach the cleanup to the editor's blur event
+  editor.on('blur', stopTracking);
+
   editor.chain().focus("end").run();
 }
 

@@ -5,7 +5,7 @@ import { loadSlide } from "../core/renderSlide.js";
 import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
 import { getNewZIndex } from "../utils/domUtils.js";
-import { queryParams, showToast } from "../../../../utils/utils.js";
+import { debounce, queryParams, showToast } from "../../../../utils/utils.js";
 import { showColorPalette } from "../utils/colorUtils.js";
 import {
   getAvailableFonts,
@@ -30,21 +30,6 @@ export function initTableElement() {
   );
 }
 
-// Debounce timer for live table structure updates
-let tableStructureUpdateTimer = null;
-
-function debounceTableStructureUpdate() {
-  // Clear previous timer
-  if (tableStructureUpdateTimer) {
-    clearTimeout(tableStructureUpdateTimer);
-  }
-
-  // Set new timer for 150ms delay (more responsive)
-  tableStructureUpdateTimer = setTimeout(() => {
-    updateTableStructureLive();
-  }, 150);
-}
-
 function initTableEventListeners() {
   // Add table element button
   document
@@ -60,30 +45,22 @@ function initTableEventListeners() {
   // Initialize popover buttons
   initTablePopoverButtons();
 
-  // Table rows and columns controls
-  const rowsInput = document.getElementById("table-rows");
-  const colsInput = document.getElementById("table-cols");
-
-  if (rowsInput) {
-    rowsInput.addEventListener("change", updateTableStructure);
-    rowsInput.addEventListener("input", debounceTableStructureUpdate);
-  }
-
-  if (colsInput) {
-    colsInput.addEventListener("change", updateTableStructure);
-    colsInput.addEventListener("input", debounceTableStructureUpdate);
-  }
-
   // Table style controls
   const tableStyleSelect = document.getElementById("table-style");
   if (tableStyleSelect) {
-    tableStyleSelect.addEventListener("change", updateTableStyleLive);
+    tableStyleSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableStyleLive();
+    });
   }
 
   // Table sizing controls
   const tableSizingSelect = document.getElementById("table-sizing");
   if (tableSizingSelect) {
-    tableSizingSelect.addEventListener("change", updateTableSizingLive);
+    tableSizingSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableSizingLive();
+    });
   }
 
   // Table striped, bordered options
@@ -105,11 +82,17 @@ function initTableEventListeners() {
   const rowFontSizeSelect = document.getElementById("table-row-font-size");
 
   if (headerFontSizeSelect) {
-    headerFontSizeSelect.addEventListener("change", updateTableFontSizeLive);
+    headerFontSizeSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableFontSizeLive();
+    });
   }
 
   if (rowFontSizeSelect) {
-    rowFontSizeSelect.addEventListener("change", updateTableFontSizeLive);
+    rowFontSizeSelect.addEventListener("change", () => {
+      pushCurrentSlideState();
+      updateTableFontSizeLive();
+    });
   }
 
   // Font family controls
@@ -383,61 +366,6 @@ function updateTableStructure() {
   element.data = newData;
 
   // Update the table DOM directly (faster than full slide reload)
-  updateTableStructureDOM(element);
-}
-
-function updateTableStructureLive() {
-  if (
-    !window.selectedElementForUpdate ||
-    window.selectedElementForUpdate.element.type !== "table"
-  ) {
-    return;
-  }
-
-  const rowsInput = document.getElementById("table-rows");
-  const colsInput = document.getElementById("table-cols");
-
-  if (!rowsInput || !colsInput) return;
-
-  const newRows = parseInt(rowsInput.value) || 3;
-  const newCols = parseInt(colsInput.value) || 3;
-
-  if (newRows < 1 || newCols < 1 || newRows > 20 || newCols > 10) {
-    return; // Invalid dimensions, don't update live
-  }
-
-  const element = window.selectedElementForUpdate.element;
-
-  // Check if values actually changed to avoid unnecessary updates
-  if (element.rows === newRows && element.cols === newCols) {
-    return;
-  }
-
-  const oldData = element.data || [];
-
-  // Update element properties (live update, no state push)
-  element.rows = newRows;
-  element.cols = newCols;
-
-  // Generate new data array preserving existing data where possible
-  const newData = [];
-  for (let i = 0; i < newRows; i++) {
-    const row = [];
-    for (let j = 0; j < newCols; j++) {
-      if (oldData[i] && oldData[i][j] !== undefined) {
-        row.push(oldData[i][j]);
-      } else if (i === 0) {
-        row.push(gettext("Header") + ` ${j + 1}`);
-      } else {
-        row.push(gettext("Row") + ` ${i} ` + gettext("Col") + ` ${j + 1}`);
-      }
-    }
-    newData.push(row);
-  }
-
-  element.data = newData;
-
-  // Live update the table DOM without full slide re-render
   updateTableStructureDOM(element);
 }
 
@@ -851,7 +779,6 @@ function updateTableSizing(tableElement, element) {
   }
 }
 
-// Helper function to setup table cell edit mode functionality
 function setupTableCellEditMode(cell, element, isInteractivePlayback) {
   // Only enable edit mode in edit mode, not during playback
   if (isInteractivePlayback || queryParams.mode === "playback") {
@@ -943,7 +870,6 @@ function setupTableCellEditMode(cell, element, isInteractivePlayback) {
   });
 }
 
-// Helper function used by the rendering engine in renderSlide.js
 export function _renderTable(el, container, isInteractivePlayback) {
   const table = document.createElement("table");
 
@@ -1391,14 +1317,14 @@ function showTableStructurePopover(button) {
   rowsInput.className = "form-control form-control-sm";
   rowsInput.value = document.getElementById("table-rows").value;
 
-  // Copy event listeners
-  rowsInput.addEventListener("change", () => {
+  let rowsDebounceTimer;
+
+  rowsInput.addEventListener("input", () => {
+    clearTimeout(rowsDebounceTimer);
+    rowsDebounceTimer = setTimeout(() => {
     document.getElementById("table-rows").value = rowsInput.value;
     updateTableStructure();
-  });
-  rowsInput.addEventListener("input", () => {
-    document.getElementById("table-rows").value = rowsInput.value;
-    debounceTableStructureUpdate();
+    }, 750);
   });
 
   rowsDiv.appendChild(rowsLabel);
@@ -1418,14 +1344,14 @@ function showTableStructurePopover(button) {
   colsInput.className = "form-control form-control-sm";
   colsInput.value = document.getElementById("table-cols").value;
 
-  // Copy event listeners
-  colsInput.addEventListener("change", () => {
-    document.getElementById("table-cols").value = colsInput.value;
-    updateTableStructure();
-  });
+  let colDebounceTimer;
+  
   colsInput.addEventListener("input", () => {
-    document.getElementById("table-cols").value = colsInput.value;
-    debounceTableStructureUpdate();
+    clearTimeout(colDebounceTimer);
+    colDebounceTimer = setTimeout(() => {
+      document.getElementById("table-cols").value = colsInput.value;
+      updateTableStructure();
+    }, 750); 
   });
 
   colsDiv.appendChild(colsLabel);
@@ -1447,6 +1373,7 @@ function showTableStructurePopover(button) {
   sizingSelect.value = originalSizingSelect.value;
 
   sizingSelect.addEventListener("change", () => {
+    pushCurrentSlideState();
     originalSizingSelect.value = sizingSelect.value;
     updateTableSizingLive();
   });
@@ -1499,6 +1426,7 @@ function showTableTypographyPopover(button) {
   headerFontSizeSelect.value = originalHeaderSizeSelect.value;
 
   headerFontSizeSelect.addEventListener("change", () => {
+    pushCurrentSlideState();
     originalHeaderSizeSelect.value = headerFontSizeSelect.value;
     updateTableFontSizeLive();
   });
@@ -1547,6 +1475,7 @@ function showTableTypographyPopover(button) {
   rowFontSizeSelect.value = originalRowSizeSelect.value;
 
   rowFontSizeSelect.addEventListener("change", () => {
+    pushCurrentSlideState();
     originalRowSizeSelect.value = rowFontSizeSelect.value;
     updateTableFontSizeLive();
   });
@@ -1646,6 +1575,7 @@ function showTableColorPopover(button) {
       transparentLabel.textContent = gettext("Transparent");
 
       transparentCheckbox.addEventListener("change", () => {
+        pushCurrentSlideState();
         if (document.getElementById(transparentCheckboxId)) {
           document.getElementById(transparentCheckboxId).checked =
             transparentCheckbox.checked;
@@ -1741,6 +1671,7 @@ function showTableColorPopover(button) {
           colorButton.textContent = gettext("Choose Color");
 
           if (selectedColor) {
+            pushCurrentSlideState();
             document.getElementById(colorInputId).value = selectedColor;
             colorDisplay.style.backgroundColor = selectedColor;
             colorText.textContent = selectedColor.toUpperCase();
@@ -1791,6 +1722,7 @@ function showTableColorPopover(button) {
 
     // Checkbox event listener
     checkbox.addEventListener("change", () => {
+      pushCurrentSlideState();
       document.getElementById(enableCheckboxId).checked = checkbox.checked;
       controlsDiv.style.opacity = checkbox.checked ? "1" : "0.4";
       controlsDiv.style.pointerEvents = checkbox.checked ? "auto" : "none";

@@ -106,9 +106,7 @@ export function setupMediaAlignmentRadioButtons() {
 export function setupMuteButtons() {
   let volumeBtns = null;
 
-  if (window.selectedElementForUpdate.element.type === "embed-website") {
-    volumeBtns = document.querySelectorAll('input[name="websiteVolume"]');
-  } else if (window.selectedElementForUpdate.element.type === "video") {
+   if (window.selectedElementForUpdate.element.type === "video") {
     volumeBtns = document.querySelectorAll('input[name="videoVolume"]');
   }
 
@@ -122,9 +120,6 @@ export function setupMuteButtons() {
 }
 
 export function initMuteButtons() {
-  const websiteVolumeButtons = document.querySelectorAll(
-    'input[name="websiteVolume"]',
-  );
   const videoVolumeButtons = document.querySelectorAll(
     'input[name="videoVolume"]',
   );
@@ -132,14 +127,24 @@ export function initMuteButtons() {
   function setElementVolumeState(value) {
     if (value === "true") value = true;
     if (value === "false") value = false;
+    // Capture undo snapshot before applying the change
+    pushCurrentSlideState();
+
     window.selectedElementForUpdate.element.muted = value;
+
+    // If this element has a media DOM node, update its muted state immediately
+    try {
+      const container = window.selectedElementForUpdate.container;
+      if (container) {
+        const media = container.querySelector("video, audio");
+        if (media) media.muted = value;
+      }
+    } catch (e) {
+      // Defensive: don't break UI on unexpected structure
+      console.warn("Failed to update media muted state in DOM:", e);
+    }
   }
 
-  websiteVolumeButtons.forEach((radio) => {
-    radio.addEventListener("change", (event) => {
-      setElementVolumeState(event.target.value);
-    });
-  });
 
   videoVolumeButtons.forEach((radio) => {
     radio.addEventListener("change", (event) => {

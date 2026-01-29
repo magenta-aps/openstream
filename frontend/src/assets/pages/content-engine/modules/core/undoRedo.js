@@ -1,10 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 import { store } from "./slideStore.js";
-import { loadSlide } from "./renderSlide.js";
-import { disposeAllTiptapEditors } from "../elements/tiptapTextbox.js";
+import { loadSlide, updateSlideElement } from "./renderSlide.js";
+import { disposeAllTiptapEditors, disposeEditorForElement } from "../elements/tiptapTextbox.js";
+
+// Helper to check deep equality (simple version for POJOs)
+function isDeepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
 export function pushCurrentSlideState() {
+
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.undoStack) slide.undoStack = [];
@@ -15,6 +21,7 @@ export function pushCurrentSlideState() {
     slide.undoStack.shift();
   }
   slide.redoStack = [];
+
 }
 
 export function doUndo() {
@@ -23,38 +30,117 @@ export function doUndo() {
   if (!slide.undoStack || slide.undoStack.length === 0) return;
   if (!slide.redoStack) slide.redoStack = [];
 
-  disposeAllTiptapEditors(false);
-
+  // Capture current state for the redo stack before applying changes
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
+  
+  // Get the state we want to restore
+  const targetSnapshot = slide.undoStack.pop();
+
+  const nextElements = [];
+  const currentMap = new Map(slide.elements.map(el => [el.id, el]));
+  const targetMap = new Map(targetSnapshot.map(el => [el.id, el]));
+
+  function applyChanges() {
+    
+
+    // 1. Handle Removed Elements (Present in current, missing in target)
+    // We must remove these from DOM and clean up their editors if applicable
+    slide.elements.forEach(el => {
+      if (!targetMap.has(el.id)) {
+        document.getElementById("el-" + el.id)?.remove();
+        if (el.type === 'tiptap-textbox') {
+          disposeEditorForElement(el.id);
+        }
+      }
+    });
+
+    // 2. Handle Added, Modified, and Unchanged Elements
+    targetSnapshot.forEach(targetEl => {
+      const currentEl = currentMap.get(targetEl.id);
+
+      if (currentEl) {
+        // Element exists in both. Check if content changed.
+        if (isDeepEqual(currentEl, targetEl)) {
+          // UNCHANGED: Optimization - reuse the *current* object reference.
+          // This keeps the live editor instance bound to the correct object.
+          nextElements.push(currentEl);
+        } else {
+          // MODIFIED: Use the *target* object (snapshot data).
+          // Update DOM. renderSlide will handle cleaning up the old editor and creating a new one.
+          updateSlideElement(targetEl);
+          nextElements.push(targetEl);
+        }
+      } else {
+        // ADDED: Use the target object.
+        // Render new element to DOM.
+        updateSlideElement(targetEl);
+        nextElements.push(targetEl);
+      }
+    });
+  }
+
+  applyChanges();
+
   slide.redoStack.push(currentSnapshot);
-
-  slide.elements = slide.undoStack.pop();
-
-  loadSlide(slide, undefined, undefined, true);
-
-  store.selectedElement = null;
-  store.selectedElementData = null;
-  window.selectedElementForUpdate = null;
+  slide.elements = nextElements;
 }
 
 export function doRedo() {
+  
+
   if (store.currentSlideIndex < 0) return;
   const slide = store.slides[store.currentSlideIndex];
   if (!slide.redoStack || slide.redoStack.length === 0) return;
   if (!slide.undoStack) slide.undoStack = [];
 
-  disposeAllTiptapEditors(false);
-
+  // Capture current state for the undo stack before applying changes
   const currentSnapshot = JSON.parse(JSON.stringify(slide.elements));
+  
+  // Get the state we want to restore
+  const targetSnapshot = slide.redoStack.pop();
+
+  const nextElements = [];
+  const currentMap = new Map(slide.elements.map(el => [el.id, el]));
+  const targetMap = new Map(targetSnapshot.map(el => [el.id, el]));
+
+  function applyChanges() {
+    
+
+    // 1. Handle Removed Elements (Present in current, missing in target)
+    slide.elements.forEach(el => {
+      if (!targetMap.has(el.id)) {
+        document.getElementById("el-" + el.id)?.remove();
+        if (el.type === 'tiptap-textbox') {
+          disposeEditorForElement(el.id);
+        }
+      }
+    });
+
+    // 2. Handle Added, Modified, and Unchanged Elements
+    targetSnapshot.forEach(targetEl => {
+      const currentEl = currentMap.get(targetEl.id);
+
+      if (currentEl) {
+        if (isDeepEqual(currentEl, targetEl)) {
+          // UNCHANGED: Keep current reference
+          nextElements.push(currentEl);
+        } else {
+          // MODIFIED: Use target data, update DOM
+          updateSlideElement(targetEl);
+          nextElements.push(targetEl);
+        }
+      } else {
+        // ADDED: Use target data, update DOM
+        updateSlideElement(targetEl);
+        nextElements.push(targetEl);
+      }
+    });
+  }
+
+  applyChanges();
+
   slide.undoStack.push(currentSnapshot);
-
-  slide.elements = slide.redoStack.pop();
-
-  loadSlide(slide, undefined, undefined, true);
-
-  store.selectedElement = null;
-  store.selectedElementData = null;
-  window.selectedElementForUpdate = null;
+  slide.elements = nextElements;
 }
 
 export function initUndoRedo() {

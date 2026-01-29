@@ -62,7 +62,7 @@ export function initSelectedElementScale() {
       store.selectedElementData.scale = scaleValue;
     });
 
-    slider.addEventListener("change", () => {
+    slider.addEventListener("pointerdown", () => {
       pushCurrentSlideState();
     });
 
