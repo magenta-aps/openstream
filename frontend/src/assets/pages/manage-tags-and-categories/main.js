@@ -67,8 +67,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSignOutButton();
   await fetchUserLangugage();
   translateHTML();
-
   makeActiveInNav("/manage-categories-and-tags");
+  initOrgUrlRouting();
   await validateToken();
   updateNavbarBranchName();
   updateNavbarUsername();
@@ -408,4 +408,4 @@ function renderTags(tags) {
   });
 }
 
-initOrgUrlRouting();
+

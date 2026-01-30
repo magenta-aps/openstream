@@ -19,7 +19,7 @@ import { gettext } from "../../utils/locales";
 document.addEventListener("DOMContentLoaded", async () => {
   validateToken();
   initSignOutButton();
-  makeActiveInNav("user-settings");
+  makeActiveInNav("/user-settings");
   updateNavbarUsername();
   fetchUserLangugage();
   translateHTML();

@@ -77,14 +77,6 @@ class DocumentationApp {
   }
 
   async init() {
-    // Initialize navbar functionality (with error handling)
-    try {
-      makeActiveInNav("/documentation");
-    } catch (error) {
-      console.warn("Navbar initialization failed:", error);
-      // Continue without navbar functionality
-    }
-
     // Initialize documentation functionality
     this.renderTableOfContents();
     await this.buildSearchIndex();
@@ -625,6 +617,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Set up translations first
   fetchUserLangugage();
   translateHTML();
+  makeActiveInNav("/documentation");
   initOrgUrlRouting();
   // Then initialize the app
   new DocumentationApp();

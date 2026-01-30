@@ -46,6 +46,7 @@ const state = {
 const elements = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
+    makeActiveInNav("/emergency-slideshows");
     initOrgUrlRouting();
     initSignOutButton();
     updateNavbarUsername();
@@ -53,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await fetchUserLangugage();
     translateHTML();
-    makeActiveInNav("/emergency-slideshows");
+    
 
     cacheElements();
     bindEventListeners();

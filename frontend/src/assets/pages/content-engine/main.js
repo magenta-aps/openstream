@@ -97,6 +97,8 @@ await Promise.all([fetchAndInitializeFonts(), fetchTextFormattingSettings()]);
   translateHTML();
 })();
 
+let activeNavLink = "";
+
 updateNavbarUsername();
 updateNavbarBranchName();
 
@@ -203,7 +205,7 @@ if (isGlobalTemplateScope) {
 if (queryParams.mode === "edit") {
   disableAspectRatioControls();
 
-  makeActiveInNav("/manage-content");
+  activeNavLink = "/manage-content";
   initSlideshowPlayer();
   const navbar = document.getElementById("navbar");
   if (navbar) {
@@ -238,10 +240,7 @@ if (queryParams.mode === "edit") {
 }
 
 if (queryParams.mode === "template_editor") {
-  const templateNavHref = isGlobalTemplateScope
-    ? "/global-templates?mode=template_editor&template_scope=global"
-    : "/manage-templates?mode=template_editor";
-  makeActiveInNav(templateNavHref);
+  activeNavLink = "/manage-templates?mode=template_editor";
   const navbar = document.getElementById("navbar");
 
   const settingsAndPlayContainer = document.getElementById(
@@ -355,7 +354,7 @@ if (queryParams.mode === "template_editor") {
 }
 
 if (queryParams.mode === "suborg_templates") {
-  makeActiveInNav("/select-sub-org");
+  activeNavLink = "/manage-templates?mode=suborg_templates";
   disableAspectRatioControls();
   const settingsAndPlayBtnContainer = document.getElementById(
     "settings-and-play-btn-container",
@@ -524,6 +523,7 @@ function generalInit() {
       (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
     );
   }, 2000);
+  makeActiveInNav(activeNavLink);
   initOrgUrlRouting();
 }
 

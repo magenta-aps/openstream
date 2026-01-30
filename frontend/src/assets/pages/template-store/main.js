@@ -5,7 +5,7 @@ import "./style.scss";
 
 import { gettext, translateHTML } from "../../utils/locales";
 translateHTML();
-import { token, showToast, parentOrgID, initOrgUrlRouting,  } from "../../utils/utils";
+import { token, showToast, parentOrgID, initOrgUrlRouting, makeActiveInNav,  } from "../../utils/utils";
 import { DEFAULT_ASPECT_RATIO } from "../../utils/availableAspectRatios";
 import { BASE_URL } from "../../utils/constants";
 
@@ -760,4 +760,5 @@ async function parseErrorResponse(response) {
   }
 }
 
+makeActiveInNav("/template-store");
 initOrgUrlRouting();

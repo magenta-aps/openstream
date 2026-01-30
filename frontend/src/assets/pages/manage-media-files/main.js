@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   await fetchUserLangugage();
   translateHTML();
   makeActiveInNav("/manage-media-files");
+  initOrgUrlRouting();
   await validateToken();
   updateNavbarBranchName();
   updateNavbarUsername();
@@ -1014,4 +1015,4 @@ function showLoadingOverlay(show) {
     overlay.style.display = "none";
   }
 }
-initOrgUrlRouting();
+
