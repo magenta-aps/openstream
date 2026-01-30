@@ -948,92 +948,42 @@ export function createUrl(path, includeSubOrg = false, includeBranch = false) {
 }
 
 export function initOrgUrlRouting() {
-  window.addEventListener(
-    "click",
-    (event) => {
-      const anchor = event.target.closest("a");
-      if (!anchor) return;
+  const { ORG_NAME: ORG, SUB_ORG, BRANCH, location } = window;
+  if (!ORG) return;
 
-      const hrefAttr = anchor.getAttribute("href");
-      if (!hrefAttr || hrefAttr.startsWith("#")) return;
-      if (anchor.hasAttribute("download")) return;
+  const process = (a) => {
+    // 1. Validation: Check existence, ignore attribute, same origin, http(s) only
+    if (!a.href || a.hasAttribute("noSlug") || a.origin !== location.origin || !a.protocol.startsWith("http")) return;
 
-      if (hrefAttr.startsWith("mailto:")) return;
-      if (hrefAttr.startsWith("tel:")) return;
+    const path = a.pathname;
+    const segments = path.split("/").filter(Boolean);
 
-      const orgName = window.ORG_NAME;
-      if (!orgName) return;
+    // 2. Filter: Skip if starts with Org, @, assets, or static
+    if (!segments[0] || new RegExp(`^(${ORG}|@|assets|static)$`, "i").test(segments[0])) return;
 
-      let targetUrl;
-      try {
-        targetUrl = new URL(hrefAttr, window.location.href);
-      } catch (error) {
-        return;
-      }
+    // 3. Logic: Check dataset override -> fallback to global var + path check
+    const shouldInclude = (key, globalVal, slug) => {
+      const override = a.dataset[key];
+      if (override === "false") return false;
+      // If override is true, we just need the global val. Else check global val AND ensure slug isn't already in path
+      return !!globalVal && (override === "true" || !segments.some(s => s.toLowerCase() === slug));
+    };
 
-      if (targetUrl.origin !== window.location.origin) return;
-      if (!["http:", "https:"].includes(targetUrl.protocol)) return;
+    // 4. Update HREF (Assuming createUrl is globally available per your original code)
+    a.href = createUrl(
+      path.replace(/^\/+/, "") + a.search,
+      shouldInclude("includeSuborg", SUB_ORG, "suborg"),
+      shouldInclude("includeBranch", BRANCH, "branch")
+    ) + a.hash;
+  };
 
-      const encodedOrg = encodeURIComponent(orgName);
-      const pathSegments = targetUrl.pathname.split("/").filter(Boolean);
+  // 5. Execution & Observation
+  const run = (node) => (node.nodeName === "A" ? [node] : node.querySelectorAll?.("a") || []).forEach(process);
+  
+  run(document); // Initial run
 
-      if (pathSegments.length === 0) return;
-      if (pathSegments[0] === encodedOrg || pathSegments[0] === orgName) return;
-
-      if (pathSegments[0].startsWith("@") || targetUrl.pathname.startsWith("/@")) return;
-
-      if (targetUrl.pathname.startsWith("/assets") || targetUrl.pathname.startsWith("/static")) {
-        return;
-      }
-
-      const isRootRelative = hrefAttr.startsWith("/");
-      const isAbsoluteSameOrigin = hrefAttr.startsWith(window.location.origin);
-
-      if (!isRootRelative && !isAbsoluteSameOrigin) {
-        return;
-      }
-
-      const keepTrailingSlash = targetUrl.pathname.endsWith("/");
-      const innerPath = targetUrl.pathname.replace(/^\/+/, "");
-      if (!innerPath) return;
-
-      const decodedSegments = pathSegments.map((segment) => {
-        try {
-          return decodeURIComponent(segment).toLowerCase();
-        } catch (error) {
-          return segment.toLowerCase();
-        }
-      });
-
-      const pathContainsSubOrg = decodedSegments.includes("suborg");
-      const pathContainsBranch = decodedSegments.includes("branch");
-
-      const includeSubOrg =
-        anchor.dataset.includeSuborg === "true"
-          ? Boolean(window.SUB_ORG)
-          : anchor.dataset.includeSuborg === "false"
-            ? false
-            : Boolean(window.SUB_ORG) && !pathContainsSubOrg;
-
-      const includeBranch =
-        anchor.dataset.includeBranch === "true"
-          ? Boolean(window.BRANCH)
-          : anchor.dataset.includeBranch === "false"
-            ? false
-            : Boolean(window.BRANCH) && !pathContainsBranch;
-
-      const newPath = createUrl(
-        `${innerPath}${keepTrailingSlash ? "/" : ""}${targetUrl.search}`,
-        includeSubOrg,
-        includeBranch,
-      );
-
-      const finalUrl = `${newPath}${targetUrl.hash || ""}`;
-
-      anchor.href = finalUrl;
-    },
-    true,
-  );
+  new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach(run)))
+    .observe(document.body, { childList: true, subtree: true });
 }
 
 export function shouldUseApiKeyInSlideTypeIframe() {
