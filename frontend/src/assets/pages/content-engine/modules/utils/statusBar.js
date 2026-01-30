@@ -14,6 +14,7 @@ import {
 } from "../config/gridConfig.js";
 import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
+import { createToggleButton, createCoherentDropdown } from "./components.js";
 
 let statusBar = null;
 let statusBarContent = null;
@@ -30,97 +31,6 @@ let snapModeButtons = null;
 let currentZoomMode = "fit"; // 'fit' or 'zoom'
 let currentZoomLevel = 100; // percentage
 let zoomChangeCallbacks = [];
-
-/**
- * @param {{ label: string, fn: () => void}} onOptions
- * @param {{ label: string, fn: () => void}} offOptions
- * @param {"sm"} [size]
- * @param {boolean} [isAlt] - determiens if the alt variant should be used
- * @returns
- */
-function createToggleButton(onOptions, offOptions, size, isAlt) {
-  const rootClassName = ["toggle-btn", "toggle-btn-sm"];
-  if (isAlt) {
-    rootClassName.push("toggle-btn-alt");
-  }
-
-  if (size) {
-    rootClassName.push("toggle-btn-sm");
-  }
-
-  const container = document.createElement("div");
-  container.classList.add("toggle-btn-container");
-
-  const onBtn = document.createElement("button");
-  onBtn.classList.add(...rootClassName, "toggle-btn-left", "toggle-btn-on");
-  onBtn.innerHTML = onOptions.label;
-
-  const offBtn = document.createElement("button");
-  offBtn.classList.add(...rootClassName, "toggle-btn-right");
-  offBtn.innerHTML = offOptions.label;
-
-  /** @type {(event: Event, otherSwitch: HTMLButtonElement, fn: () => void)} */
-  const switcher = (event, otherSwitch, fn) => {
-    const target = event.target;
-    if (target.classList.contains("toggle-btn-on")) {
-      return;
-    }
-
-    fn();
-
-    otherSwitch.classList.remove("toggle-btn-on");
-    target.classList.add("toggle-btn-on");
-  };
-
-  onBtn.addEventListener("click", (event) =>
-    switcher(event, offBtn, onOptions.fn),
-  );
-  offBtn.addEventListener("click", (event) =>
-    switcher(event, onBtn, offOptions.fn),
-  );
-
-  container.appendChild(onBtn);
-  container.appendChild(offBtn);
-
-  return { container, onBtn, offBtn };
-}
-
-/**
- * @param {boolean} isAlt - determines if the dropdown is of the alt variant
- */
-function createDropdown(isAlt) {
-  /** @type {HTMLSelectElement | HTMLInputElement} */
-  let dropdown;
-  if (isAlt) {
-    dropdownContainer = document.createElement("div");
-    dropdownPrefix = document.createElement("span");
-    dropdownSufix = document.createElement("span");
-
-    dropdown = document.createElement("input");
-    dropdown.classList.add("dropdown");
-    
-    dropdown
-  } else {
-    dropdown = document.createElement("select");
-    dropdown.type = "number";
-    dropdown.classList.add("dropdown-alt");
-  }
-
-  return dropdown;
-}
-
-function createCoherentDropdown() {
-  const coherentContainer = document.createElement("div");
-
-  const dropdown = createDropdown(false);
-
-  const altDropdown = createDropdown(true);
-
-  coherentContainer.appendChild(dropdown);
-  coherentContainer.appendChild(altDropdown);
-
-  return coherentContainer;
-}
 
 /**
  * Register a callback to be called when zoom changes
@@ -277,12 +187,33 @@ function createSnapControls(rightSection) {
   );
 
   const snapLabel = document.createElement("span");
-  snapLabel.textContent = gettext("Snap");
+  snapLabel.textContent = `${gettext("Snap to")}:`;
   snapLabel.style.fontWeight = "600";
 
-  const snapModeToggle = createCoherentDropdown();
-  /* TODO: Remove
-  const snapModeToggle = createCoherentDropdown();
+  const snapModeToggle = createCoherentDropdown(
+    {
+      type: "reg",
+      options: [
+        { name: gettext("Grid"), value: "grid" },
+        { name: gettext("Pixels"), value: "pixels" },
+      ],
+      onUpdate: (name, value) => {
+        console.log(value);
+      },
+    },
+    { row: "top", column: "center" },
+    {
+      type: "alt",
+      options: [
+        { name: "foo", value: "v:foo" },
+        { name: "bar", value: "v:bar" },
+      ],
+      onUpdate: (name, value) => {
+        console.log(value);
+      },
+    },
+    { row: "top", column: "center" },
+  );
   /* TODO: Remove
   const snapAmountGroup = document.createElement("div");
   snapAmountGroup.className = "snap-amount-group";

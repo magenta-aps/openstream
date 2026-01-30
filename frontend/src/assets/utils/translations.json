@@ -4141,5 +4141,14 @@
   },
   "snapping": {
     "da": "Snapping"
+  },
+  "Snap to": {
+    "da": "Snap til"
+  },
+  "Grid": {
+    "da": "Grid"
+  },
+  "Pixels": {
+    "da": "Pixels"
   }
 }    

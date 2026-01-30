@@ -4,6 +4,7 @@
 import { store } from "./slideStore.js";
 import { gettext } from "../../../../utils/locales.js";
 import { queryParams } from "../../../../utils/utils.js";
+import { createPopover, createCollapse } from "../utils/components.js";
 
 const FILTER_EVENT = "os:templateFiltersChanged";
 const DEFAULT_SORT_KEY = "name:asc";
@@ -46,105 +47,6 @@ let availableCategories = new Map();
 let availableTags = new Map();
 /** @type {FilterOptionMap} */
 let availableAspectRatios = new Map();
-
-/**
- * @typedef {Object} ComponentOptions
- * @property {string} Component.id
- * @property {string} [Component.classNames]
- * @property {string} Component.content
- */
-
-/**
- * @description
- * Creates a popover that is compatible with the popover API.
- * @param {ComponentOptions} triggerOptions
- * @param {ComponentOptions} popoverOptions
- * @returns A trigger element for the popover as well as the popover itself
- */
-function createPopover(triggerOptions, popoverOptions) {
-  const trigger = document.createElement("button");
-  trigger.id = triggerOptions.id;
-  trigger.classList.add("btn");
-  if (triggerOptions.classNames) {
-    trigger.classList.add(...triggerOptions.classNames.split(" "));
-  }
-  trigger.setAttribute("popovertarget", popoverOptions.id);
-  trigger.innerHTML = triggerOptions.content;
-
-  const popover = document.createElement("div");
-  popover.id = popoverOptions.id;
-  popover.setAttribute("popover", "auto");
-  if (popoverOptions.classNames) {
-    popover.classList.add(...popoverOptions.classNames.split(" "));
-  }
-  popover.innerHTML = popoverOptions.content;
-
-  return { trigger, popover };
-}
-
-/**
- * @description
- * Creates a bootstrap collapse element
- * @param {ComponentOptions} triggerOptions
- * @param {ComponentOptions} contentOptions
- * @returns A trigger for the collapse element as well as the collapse element itself
- */
-function createCollapse(triggerOptions, contentOptions) {
-  const collapseOpendIcon =
-    "<i class='material-symbols-outlined'>keyboard_arrow_up</i>";
-  const collapseClosedIcon =
-    "<i class='material-symbols-outlined'>keyboard_arrow_down</i>";
-  let isCollapseOpen = true;
-
-  const collapseTrigger = document.createElement("button");
-  collapseTrigger.id = triggerOptions.id;
-  collapseTrigger.type = "button";
-  collapseTrigger.classList.add(
-    "btn",
-    "btn-sm",
-    "w-100",
-    "d-flex",
-    "justify-content-between",
-  );
-  if (triggerOptions.classNames) {
-    collapseTrigger.classList.add(triggerOptions.classNames);
-  }
-  collapseTrigger.setAttribute("data-bs-toggle", "collapse");
-  collapseTrigger.setAttribute("data-bs-target", `#${contentOptions.id}`);
-  collapseTrigger.setAttribute("aria-expanded", contentOptions.id);
-  collapseTrigger.setAttribute("aria-control", contentOptions.id);
-  collapseTrigger.innerHTML = triggerOptions.content + collapseOpendIcon;
-
-  const collapseContent = document.createElement("div");
-  collapseContent.id = contentOptions.id;
-  collapseContent.classList.add("collapse", "show");
-  if (contentOptions.classNames) {
-    collapseContent.classList.add(contentOptions.classNames);
-  }
-  collapseContent.innerHTML = contentOptions.content;
-
-  /** @type {(content: string) => void} */
-  const setButtonContent = (icon) => {
-    collapseTrigger.innerHTML = `
-    ${triggerOptions.content}
-    ${icon}
-  `;
-  };
-
-  const setTextFolded = () => setButtonContent(collapseClosedIcon);
-  const setTextExpanded = () => setButtonContent(collapseOpendIcon);
-
-  collapseTrigger.addEventListener("click", () => {
-    isCollapseOpen = !isCollapseOpen;
-    if (isCollapseOpen) {
-      setTextExpanded();
-    } else {
-      setTextFolded();
-    }
-  });
-
-  return { trigger: collapseTrigger, content: collapseContent };
-}
 
 /**
  * @description
@@ -413,7 +315,7 @@ function renderFilterPanel() {
   const categoryCollapse = createCollapse(
     {
       id: "templateFilterCategoryToggle",
-      classNames: "template-filter-panel__toggle",
+      classNames: ["template-filter-panel__toggle"],
       content: categoriesLabel,
     },
     {
@@ -426,7 +328,7 @@ function renderFilterPanel() {
   const tagCollapse = createCollapse(
     {
       id: "templateFilterTagToggle",
-      classNames: "template-filter-panel__toggle",
+      classNames: ["template-filter-panel__toggle"],
       content: tagsLabel,
     },
     {
@@ -439,7 +341,7 @@ function renderFilterPanel() {
   const aspectCollapse = createCollapse(
     {
       id: "templateFilterAspectToggle",
-      classNames: "template-filter-panel__toggle",
+      classNames: ["template-filter-panel__toggle"],
       content: aspectLabel,
     },
     {
@@ -491,8 +393,15 @@ function renderFilterPanel() {
   const popover = createPopover(
     {
       id: "templateFilterPopoverBtn",
-      classNames:
-        "btn btn-sm d-flex align-items-center row-gap-1 text-black template-filter-panel__popover-trigger",
+      classNames: [
+        "btn",
+        "btn-sm",
+        "d-flex",
+        "align-items-center",
+        "row-gap-1",
+        "text-black",
+        "template-filter-panel__popover-trigger",
+      ],
       content: `
         <i class="material-symbols-outlined">tune</i>
         ${gettext("Filters")}
@@ -500,7 +409,8 @@ function renderFilterPanel() {
     },
     {
       id: "templateFilterPopoverContent",
-      classNames: "template-filter-panel__popover-content",
+      classNames: ["template-filter-panel__popover-content"],
+      position: { row: "bottom", column: "span-left" },
       content: `
         <div class="d-flex justify-content-end">
           <button class="btn btn-sm btn-link template-filter-panel__reset" type="button" id="templateFilterReset">${resetLabel}</button>
