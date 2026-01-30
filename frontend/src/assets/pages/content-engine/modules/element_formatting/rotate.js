@@ -58,10 +58,10 @@ function showRotatePopover(button, callback, initialRotation) {
     callback(degree);
   });
 
-  slider.addEventListener("change", () => {
+  slider.addEventListener("pointerdown", () => {
     pushCurrentSlideState();
   });
-  manualInput.addEventListener("change", () => {
+  manualInput.addEventListener("focus", () => {
     pushCurrentSlideState();
   });
 
