@@ -90,6 +90,8 @@ import {
   openGlobalTemplateCreationModal,
 } from "./modules/modals/globalTemplateCreationModal.js";
 import * as bootstrap from "bootstrap";
+import { openCreateSuborgTemplateModal } from "./modules/modals/suborgTemplatesModal.js";
+
 
 await Promise.all([fetchAndInitializeFonts(), fetchTextFormattingSettings()]);
 (async () => {
@@ -444,10 +446,7 @@ if (queryParams.mode === "suborg_templates") {
     )}</button>`;
 
     addTemplateBtn.addEventListener("click", () => {
-      // Import and open modal for selecting global template
-      import("./modules/modals/suborgTemplatesModal.js").then((module) => {
-        module.openCreateSuborgTemplateModal(suborgId);
-      });
+        openCreateSuborgTemplateModal(suborgId);
     });
 
     const sectionButtons = document.querySelector(".section-buttons");

@@ -143,7 +143,7 @@ function isSuborgContentCreationMode() {
   return true;
 }
 
-function updateCategorySidebar(templates) {
+function updateCategoryFilters(templates) {
   // Create a map of unique categories (id => name)
   const categoriesMap = new Map();
   templates.forEach((t) => {
@@ -152,13 +152,9 @@ function updateCategorySidebar(templates) {
     }
   });
 
-  const sidebar = document.getElementById("categorySidebar");
-  sidebar.innerHTML =
-    '<h6 class="border-bottom secondary p-2">' +
-    gettext("Filter by Category") +
-    '<span class="material-symbols-outlined">\n' +
-    "category_search\n" +
-    "</span></h6>";
+  const sidebar = document.getElementById("category-filter");
+  sidebar.innerHTML = "";
+    
 
   categoriesMap.forEach((name, id) => {
     const div = document.createElement("div");
@@ -261,7 +257,7 @@ async function fetchUnifiedTemplates() {
 
     templateMiniSearcher.removeAll();
     templateMiniSearcher.addAll(unifiedTemplates);
-    updateCategorySidebar(unifiedTemplates);
+    updateCategoryFilters(unifiedTemplates);
     filteredTemplates = unifiedTemplates;
     sortAndRenderTemplates();
   } catch (err) {

@@ -20,7 +20,7 @@ import { store } from "../core/slideStore.js";
 import { updateAllSlidesZoom } from "../utils/zoomController.js";
 import { syncGridToCurrentSlide } from "../config/gridConfig.js";
 
-const modalId = "createSuborgTemplateModal";
+const modalId = "unifiedSlideModal";
 
 function customTagsExtractField(document, fieldName) {
   if (fieldName === "tags") {
@@ -66,7 +66,6 @@ function ensureInitialTemplateSelection(modal) {
   }
 }
 
-
 function buildTemplateSearchIndex(templates) {
   templateMiniSearcher.removeAll();
   if (Array.isArray(templates) && templates.length > 0) {
@@ -74,8 +73,8 @@ function buildTemplateSearchIndex(templates) {
   }
 }
 
-function renderCategorySidebar(modal, templates) {
-  const sidebar = modal.querySelector("#suborgCategorySidebar");
+function renderCategoryFilters(modal, templates) {
+  const sidebar = modal.querySelector("#category-filter");
   if (!sidebar) {
     return;
   }
@@ -87,12 +86,7 @@ function renderCategorySidebar(modal, templates) {
     }
   });
 
-  sidebar.innerHTML = `
-    <h6 class="border-bottom secondary p-2 d-flex justify-content-between align-items-center">
-      ${gettext("Filter by Category")}
-      <span class="material-symbols-outlined">category_search</span>
-    </h6>
-  `;
+  sidebar.innerHTML = "";
 
   if (categoriesMap.size === 0) {
     const emptyState = document.createElement("p");
@@ -108,7 +102,7 @@ function renderCategorySidebar(modal, templates) {
 
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.className = "form-check-input suborg-category-filter";
+    input.className = "form-check-input unified-category-filter";
     input.value = id;
     input.id = `suborg-cat-${id}`;
 
@@ -123,7 +117,7 @@ function renderCategorySidebar(modal, templates) {
   });
 
   sidebar
-    .querySelectorAll(".suborg-category-filter")
+    .querySelectorAll(".unified-category-filter")
     .forEach((checkbox) => {
       checkbox.addEventListener("change", () => applyTemplateFilters(modal));
     });
@@ -131,14 +125,14 @@ function renderCategorySidebar(modal, templates) {
 
 function getSelectedCategoryFilterIds(modal) {
   return Array.from(
-    modal.querySelectorAll(".suborg-category-filter:checked"),
+    modal.querySelectorAll(".unified-category-filter:checked"),
   )
     .map((checkbox) => parseInt(checkbox.value, 10))
     .filter((value) => !Number.isNaN(value));
 }
 
 function renderAspectRatioFilters(modal, templates) {
-  const container = modal.querySelector("#suborgAspectRatioFilters");
+  const container = modal.querySelector("#aspect-ratio-filter");
   if (!container) {
     return;
   }
@@ -165,8 +159,8 @@ function renderAspectRatioFilters(modal, templates) {
 
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.className = "form-check-input suborg-aspect-filter";
-    input.id = `suborg-aspect-${index}`;
+    input.className = "form-check-input unified-aspect-filter";
+    input.id = `unified-aspect-${index}`;
     input.value = ratio;
 
     const label = document.createElement("label");
@@ -180,7 +174,7 @@ function renderAspectRatioFilters(modal, templates) {
   });
 
   container
-    .querySelectorAll(".suborg-aspect-filter")
+    .querySelectorAll(".unified-aspect-filter")
     .forEach((checkbox) => {
       checkbox.addEventListener("change", () => applyTemplateFilters(modal));
     });
@@ -188,72 +182,30 @@ function renderAspectRatioFilters(modal, templates) {
 
 function getSelectedAspectRatios(modal) {
   return Array.from(
-    modal.querySelectorAll(".suborg-aspect-filter:checked"),
+    modal.querySelectorAll(".unified-aspect-filter:checked"),
   ).map((checkbox) => checkbox.value);
 }
 
 function clearPreviewAndInfo(modal) {
-  const preview = modal.querySelector("#suborgTemplatePreview");
+  const preview = modal.querySelector("#unifiedTemplatePreview");
   if (preview) {
     preview.innerHTML = `<p class="text-muted mb-0">${gettext("Select a template to see preview")}</p>`;
   }
 
-  updateTemplateInfo(modal, null);
   updateAspectRatioBadge(modal, null);
   selectedTemplate = null;
 }
 
 function updateAspectRatioBadge(modal, template) {
-  const badge = modal.querySelector("#suborgAspectRatioValue");
+  const badge = modal.querySelector("#aspect-ratio");
   if (!badge) {
     return;
   }
   badge.textContent = template?.aspect_ratio || "—";
 }
 
-function updateTemplateInfo(modal, template) {
-  const infoContainer = modal.querySelector("#suborgTemplateInfo");
-  if (!infoContainer) {
-    return;
-  }
-
-  if (!template) {
-    infoContainer.innerHTML = `<p class="text-muted mb-0">${gettext("Select a template to see details")}</p>`;
-    return;
-  }
-
-  const gridModeLabel = template.is_legacy
-    ? gettext("Legacy grid (200×200)")
-    : gettext("Per-pixel grid");
-  const categoryLabel = template.category
-    ? template.category.name
-    : gettext("(none)");
-  const tagNames = (template.tags || []).map((tag) => tag.name);
-
-  infoContainer.innerHTML = `
-    <div class="card">
-      <div class="card-body">
-        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
-          <span class="material-symbols-outlined">info</span>${gettext("Template Details")}
-        </h6>
-        <p class="mb-1"><strong>${gettext("Name")}:</strong> ${template.name}</p>
-        <p class="mb-1"><strong>${gettext("Category")}:</strong> ${categoryLabel}</p>
-        <p class="mb-1"><strong>${gettext("Tags")}:</strong> ${
-          tagNames.length > 0 ? tagNames.join(", ") : gettext("(none)")
-        }</p>
-        <p class="mb-1"><strong>${gettext("Grid Mode")}:</strong> ${gridModeLabel}</p>
-        ${
-          template.aspect_ratio
-            ? `<p class="mb-0"><strong>${gettext("Aspect Ratio")}:</strong> ${template.aspect_ratio}</p>`
-            : ""
-        }
-      </div>
-    </div>
-  `;
-}
-
 function renderTemplatePreview(modal, template) {
-  const previewContainer = modal.querySelector("#suborgTemplatePreview");
+  const previewContainer = modal.querySelector("#unifiedTemplatePreview");
   if (!previewContainer) {
     return;
   }
@@ -262,6 +214,8 @@ function renderTemplatePreview(modal, template) {
     previewContainer.innerHTML = `<p class="text-muted mb-0">${gettext("Select a template to see preview")}</p>`;
     return;
   }
+
+  document.querySelector(".aspect-ratio-th").classList.remove("d-none");
 
   previewContainer.innerHTML = "";
   previewContainer.style.backgroundColor = "#f8f9fa";
@@ -312,7 +266,7 @@ function selectTemplate(template, modal) {
   }
 
   selectedTemplate = template;
-  const rows = modal.querySelectorAll("#suborgTemplateTable tbody tr");
+  const rows = modal.querySelectorAll("#unifiedTemplateTable tbody tr");
   rows.forEach((row) => {
     row.classList.toggle(
       "table-active",
@@ -321,7 +275,6 @@ function selectTemplate(template, modal) {
   });
 
   renderTemplatePreview(modal, template);
-  updateTemplateInfo(modal, template);
   updateAspectRatioBadge(modal, template);
 }
 
@@ -361,8 +314,8 @@ function sortFilteredTemplates() {
 }
 
 function renderTemplateTable(modal) {
-  const tableBody = modal.querySelector("#suborgTemplateTable tbody");
-  const noResultsAlert = modal.querySelector("#suborgNoTemplatesAlert");
+  const tableBody = modal.querySelector("#unifiedTemplateTable tbody");
+  const noResultsAlert = modal.querySelector("#no-templates-found-alert");
   if (!tableBody) {
     return;
   }
@@ -413,7 +366,7 @@ function renderTemplateTable(modal) {
 
   const preservedSelection =
     selectedTemplate &&
-    filteredTemplates.some((template) => template.id === selectedTemplate.id)
+      filteredTemplates.some((template) => template.id === selectedTemplate.id)
       ? selectedTemplate
       : null;
 
@@ -424,7 +377,7 @@ function renderTemplateTable(modal) {
 }
 
 function applyTemplateFilters(modal) {
-  const searchInput = modal.querySelector("#suborgTemplateSearch");
+  const searchInput = modal.querySelector("#templateSearch");
   const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
   const searchResults = query
@@ -458,7 +411,7 @@ function applyTemplateFilters(modal) {
 
 function attachSortHandlers(modal) {
   modal
-    .querySelectorAll("#suborgTemplateTable th[data-sort]")
+    .querySelectorAll("#unifiedTemplateTable th[data-sort]")
     .forEach((th) => {
       th.style.cursor = "pointer";
       th.addEventListener("click", () => {
@@ -486,11 +439,11 @@ function initializeTemplateInteractions(modal, templates) {
   currentSort = { column: "name", order: "asc" };
 
   buildTemplateSearchIndex(globalTemplatesCache);
-  renderCategorySidebar(modal, globalTemplatesCache);
+  renderCategoryFilters(modal, globalTemplatesCache);
   renderAspectRatioFilters(modal, globalTemplatesCache);
   attachSortHandlers(modal);
 
-  const searchInput = modal.querySelector("#suborgTemplateSearch");
+  const searchInput = modal.querySelector("#templateSearch");
   if (searchInput) {
     searchInput.addEventListener("input", () => applyTemplateFilters(modal));
   }
@@ -601,17 +554,12 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     height: store.emulatedHeight,
   };
 
-  // Create modal HTML dynamically
-  let modal = document.getElementById(modalId);
+  // Use existing modal markup from the page
+  const modal = document.getElementById(modalId);
 
   if (!modal) {
-    modal = document.createElement("div");
-    modal.className = "modal fade";
-    modal.id = modalId;
-    modal.setAttribute("tabindex", "-1");
-    modal.setAttribute("aria-labelledby", modalId + "Label");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.appendChild(modal);
+    showToast(gettext("Modal template not present on page."), "Error");
+    return;
   }
 
   // Fetch global templates
@@ -625,113 +573,20 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     return;
   }
 
-  // Build modal content
-  modal.innerHTML = `
-    <div class="modal-dialog modal-fullscreen">
-      <div class="modal-content">
-        <div class="modal-header bg-light">
-          <h5 class="modal-title" id="${modalId}Label">${gettext("Create Template from Global Template")}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 py-2 mb-2" style="background-color: var(--lightest-gray, #f5f6f8);">
-            <p class="semibold my-0">${gettext("Select a global template to create a copy for this suborganisation.")}</p>
-            <p class="semibold my-0">
-              ${gettext("Selected template aspect ratio:")}
-              <span class="badge bg-info text-dark d-inline-flex align-items-center gap-1">
-                <span id="suborgAspectRatioValue">—</span>
-                <span class="material-symbols-outlined">aspect_ratio</span>
-              </span>
-            </p>
-          </div>
-          <div class="row border-top">
-            <div class="col-md-2 border-end rounded p-3" id="suborgCategorySidebar"></div>
-            <div class="col-md-10">
-              <div class="row">
-                <div class="col-lg-6 p-3">
-                  <div class="mb-3">
-                    <input type="text" id="suborgTemplateSearch" class="form-control" placeholder="${gettext("Search by name, category, tags or aspect ratio...")}">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label fw-semibold d-flex align-items-center gap-2">
-                      <span class="material-symbols-outlined">tune</span>${gettext("Filter by Aspect Ratio")}
-                    </label>
-                    <div id="suborgAspectRatioFilters" class="d-flex flex-wrap gap-2"></div>
-                  </div>
-                  <div class="table-responsive">
-                    <table class="table table-hover table-bordered" id="suborgTemplateTable">
-                      <thead>
-                        <tr>
-                          <th role="button" data-sort="name">
-                            <span class="material-symbols-outlined me-1">signature</span>${gettext("Name")}
-                          </th>
-                          <th role="button" data-sort="category">
-                            <span class="material-symbols-outlined me-1">category</span>${gettext("Category")}
-                          </th>
-                          <th role="button" data-sort="tags">
-                            <span class="material-symbols-outlined me-1">shoppingmode</span>${gettext("Tags")}
-                          </th>
-                          <th role="button" data-sort="aspect_ratio">
-                            <span class="material-symbols-outlined me-1">aspect_ratio</span>${gettext("Aspect Ratio")}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody></tbody>
-                    </table>
-                    <div id="suborgNoTemplatesAlert" class="alert alert-primary d-none mt-2">${gettext(
-                      "No templates match your filters."
-                    )}</div>
-                  </div>
-                </div>
-                <div class="col-lg-6 p-3">
-                  <h6>${gettext("Template Preview")}</h6>
-                  <div id="suborgTemplatePreview" class="bg-light p-2 border rounded d-flex align-items-center justify-content-center" style="min-height: 430px;">
-                    <p class="text-muted mb-0">${gettext("Select a template to see preview")}</p>
-                  </div>
-                  <div id="suborgTemplateInfo" class="mt-3"></div>
-                </div>
-              </div>
-              <div class="row mt-4 border-top pt-3 g-3">
-                <div class="col-md-8">
-                  <label for="newTemplateName" class="form-label fw-semibold d-flex align-items-center gap-2">
-                    <span class="material-symbols-outlined">signature</span>${gettext("New Template Name")}
-                  </label>
-                  <input type="text" class="form-control" id="newTemplateName" placeholder="${gettext("Enter template name")}">
-                  <small class="text-muted">${gettext("Leave empty to use original name with '(Copy)' suffix")}</small>
-                </div>
-                <div class="col-md-4">
-                  <div class="alert alert-secondary py-2 px-3 small mb-0 d-flex align-items-start gap-2">
-                    <span class="material-symbols-outlined">lock</span>
-                    <span>${gettext("Grid, resolution, and locks follow the selected global template.")}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <span class="material-symbols-outlined">cancel</span> ${gettext("Cancel")}
-          </button>
-          <button type="button" class="btn btn-primary" id="createSuborgTemplateBtn">
-            <span class="material-symbols-outlined">add</span> ${gettext("Create Template")}
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-
+  // Initialize interactions using unified modal DOM
   initializeTemplateInteractions(modal, globalTemplates);
   ensureInitialTemplateSelection(modal);
 
-  // Handle create button
-  const createBtn = modal.querySelector("#createSuborgTemplateBtn");
-  createBtn.addEventListener("click", async () => {
+  // Handle create button — reuse unified modal's save button
+  const createBtn = modal.querySelector("#unifiedSaveSlideBtn");
+  if (createBtn && !createBtn.dataset.createHandlerAttached) {
+    createBtn.addEventListener("click", async () => {
     if (!selectedTemplate) {
       showToast(gettext("Please select a global template."), "Warning");
       return;
     }
-    const manualName = modal.querySelector("#newTemplateName").value.trim();
+    const manualNameElement = modal.querySelector("#templateSlideName");
+    const manualName = manualNameElement ? manualNameElement.value.trim() : "";
     const slideName = manualName
       ? manualName
       : selectedTemplate.name + gettext(" (Copy)");
@@ -767,7 +622,9 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       createBtn.disabled = false;
       createBtn.textContent = gettext("Create Template");
     }
-  });
+    });
+    createBtn.dataset.createHandlerAttached = "true";
+  }
 
   if (!modal.dataset.restoreHandlerAttached) {
     modal.addEventListener("hidden.bs.modal", () => {
