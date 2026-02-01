@@ -1,7 +1,7 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
     {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
     <div class="modal fade" id="unifiedSlideModal" tabindex="-1" aria-labelledby="unifiedSlideModalLabel">
-        <div class="modal-dialog modal-fullscreen">
+        <div class="modal-dialog" style="--bs-modal-width: 1300px;">
             <div class="modal-content">
                 <div class="modal-header bg-light">
                     <h5 class="modal-title" id="unifiedSlideModalLabel">{% trans "Add Slide Menu" %}</h5>
@@ -10,130 +10,95 @@
                 </div>
                 <div class="modal-body">
                     <!-- Template Selection Section -->
+
+<h5 class="py-3"><strong>Select Template</strong></h5>
                     <div id="templateSlideSection" class="mb-0">
-                        <div style="background-color: var(--lightest-gray)"
-                            class="py-1 d-flex justify-content-between align-items-center">
-                            <p class="semibold my-0">{% trans "Select a template to create a new slide from" %}</p>
-                            <p class="semibold my-0">
-                                {% trans "Showing templates compatible with aspect ratio:" %}
-                                <span class="badge fs-large bg-info text-dark">
-                                    <span id="aspect-ratio"></span>&nbsp;<span
-                                        class="material-symbols-outlined me-1">aspect_ratio</span>
-                                </span>
-                            </p>
-                        </div>
-                        <div class="row border-top">
-                            
-                            <div class="col-md-1 border-end rounded p-3" id="filtersSidebar">
-
+                        <div class="d-flex gap-3">
+                            <!-- Filters -->
+                            <div class="rounded gap-4 d-flex flex-column" id="filtersSidebar">
                                 <!-- Category Filters -->
-                                <h6 class="border-bottom secondary p-2">{%trans "Filter by Category" %}<span
-                                        class="material-symbols-outlined">category_search</span></h6></span></h6>
-                                <div id="category-filter">
-                                    <!-- Sidebar checkboxes will be injected here via JS -->
+                                <div>
+                                    <h6 class="secondary">{% trans "Filter by Category" %}</h6>
+                                    <div id="category-filter">
+                                        <!-- Sidebar checkboxes will be injected here via JS -->
+                                    </div>
                                 </div>
-
                                 <!-- Tags Filters -->
-                                <h6 class="border-bottom secondary p-2">{%trans "Filter by Tags" %}<span
-                                        class="material-symbols-outlined">tag</span></h6>
-                                <div id="tags-filter">
-                                    <!-- Sidebar checkboxes will be injected here via JS -->
+                                <div>
+                                    <h6 class="secondary">{% trans "Filter by Tags" %}</h6>
+                                    <div id="tags-filter">
+                                        <!-- Sidebar checkboxes will be injected here via JS -->
+                                    </div>
                                 </div>
-
                                 <!-- Aspect Ratio Filters -->
-                                <h6 class="border-bottom secondary p-2">{%trans "Filter by Aspect Ratio" %}<span
-                                        class="material-symbols-outlined">aspect_ratio</span></h6>
-                                <div id="aspect-ratio-filter">
-                                    <!-- Sidebar checkboxes will be injected here via JS -->
-                                </div>
-
-                                
-                            </div>
-                            <!-- Main Content: Table and Preview -->
-                            <div class="col-md-11">
-                                <div class="row">
-                                    <!-- Table Column -->
-                                    <div class="col-md-6 p-3">
-                                        <!-- Search Bar -->
-                                        <div class="mb-3">
-                                            <input type="text" id="templateSearch" class="form-control"
-                                                placeholder='{% trans "🔎 Search by name, category or tags..." %}'>
-                                        </div>
-                                        <!-- Template List Table -->
-                                        <div id="template-list-table" class="table-responsive">
-                                            <table class="table table-hover table-bordered" id="unifiedTemplateTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th role="button" data-sort="name">
-                                                            <span
-                                                                class="material-symbols-outlined me-1">signature</span>{%
-                                                            trans "Name" %}
-                                                        </th>
-                                                        <th role="button" data-sort="category">
-                                                            <span
-                                                                class="material-symbols-outlined me-1">category</span>{%
-                                                            trans "Category" %}
-                                                        </th>
-                                                        <th role="button" data-sort="tags">
-                                                            <span
-                                                                class="material-symbols-outlined me-1">shoppingmode</span>{%
-                                                            trans "Tags" %}
-                                                        </th>
-                                                        <th role="button" data-sort="tags" class="aspect-ratio-th d-none">
-                                                            <span
-                                                                class="material-symbols-outlined me-1">aspect_ratio</span>{%
-                                                            trans "Aspect Ratio" %}
-                                                        </th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Rows will be added via JS -->
-                                                </tbody>
-                                            </table>
-                                            <div id="no-templates-found-alert" class="alert alert-primary d-none">{%
-                                                trans "No templates found" %}</div>
-                                        </div>
-                                    </div>
-                                    <!-- Preview Column -->
-                                    <div class="col-md-6">
-                                        <div id="unifiedTemplatePreview"
-                                            class="bg-light p-1 border rounded d-flex align-items-center justify-content-center">
-                                            <!-- Preview content will be loaded here -->
-                                        </div>
+                                <div>
+                                    <h6 class="secondary">{% trans "Filter by Aspect Ratio" %}</h6>
+                                    <div id="aspect-ratio-filter">
+                                        <!-- Sidebar checkboxes will be injected here via JS -->
                                     </div>
                                 </div>
                             </div>
-                            <p style="background-color: var(--lightest-gray)"
-                                class="px-3 py-2 border-top border-bottom">
-                                <strong>{% trans "Enter name and duration for the slide" %}</strong>
+                            <div class="vr"></div>
+                            <!-- Table -->
+                            <div style="width: 43%;" class="ms-1">
+                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover text-center rounded p-2 mb-3">
+                                    {% trans "Showing templates compatible with aspect ratio:" %}
+                                    <span class="fs-large">
+                                        <span id="aspect-ratio"></span>&nbsp;</span>
+                                </p>
+                                <!-- Search Bar -->
+                                <div class="mb-3">
+                                    <input type="text" id="templateSearch" class="form-control"
+                                        placeholder='{% trans "🔎 Search by name, category or tags..." %}'>
+                                </div>
+                                <!-- Template List Table -->
+                                <div id="template-list-table" class="table-responsive">
+                                    <table class="table table-hover" id="unifiedTemplateTable">
+                                        <thead>
+                                            <tr>
+                                                <th role="button" data-sort="name">{% trans "Name" %}
+                                                </th>
+                                                <th role="button" data-sort="category">{% trans "Category" %}</th>
+                                                <th role="button" data-sort="tags">{% trans "Tags" %}</th>
+                                                <th role="button" data-sort="tags" class="aspect-ratio-th d-none">{%
+                                                    trans "Aspect Ratio" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Rows will be added via JS -->
+                                        </tbody>
+                                    </table>
+                                    <div id="no-templates-found-alert" class="alert alert-primary d-none">{% trans "No
+                                        templates found" %}</div>
+                                </div>
+                            </div>
+                            <!-- Preview -->
+                            <div id="unifiedTemplatePreview"
+                                class="bg-light p-1 border rounded d-flex align-items-center justify-content-center">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <p style="background-color: var(--lightest-gray)" class="pt-2 pb-1">{% trans "Name and duration" %}
                             </p>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div>
-                                        <label for="templateSlideName" class="form-label">
-                                            <strong><span class="material-symbols-outlined">signature</span> {% trans
-                                                "Slide Name" %}
-                                            </strong>
-                                        </label>
-                                        <input type="text" class="form-control" id="templateSlideName"
-                                            placeholder='{% trans "Enter slide name" %}'>
-                                    </div>
+                            <div class="col-md-6">
+                                <div>
+                                    <label for="templateSlideName" class="form-label">{% trans "Slide Name" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="templateSlideName"
+                                        placeholder='{% trans "Enter slide name" %}'>
                                 </div>
-                                <div class="col-md-6">
-                                    <div>
-                                        <label for="templateSlideDuration" class="form-label">
-                                            <strong><span class="material-symbols-outlined">timer</span> {% trans
-                                                "Duration (seconds)" %}
-                                            </strong>
-                                        </label>
-                                        <input type="number" class="form-control" id="templateSlideDuration" value="5">
-                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div>
+                                    <label for="templateSlideDuration" class="form-label">{% trans "Duration (seconds)"
+                                        %}
+                                    </label>
+                                    <input type="number" class="form-control" id="templateSlideDuration" value="5">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- End Modal Body -->
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <span class="material-symbols-outlined">cancel</span> {% trans "Cancel" %}
@@ -143,6 +108,5 @@
                     </button>
                 </div>
             </div>
-            <!-- End Modal Content -->
         </div>
     </div>

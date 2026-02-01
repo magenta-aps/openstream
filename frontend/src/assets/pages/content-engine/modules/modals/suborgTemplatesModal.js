@@ -98,7 +98,7 @@ function renderCategoryFilters(modal, templates) {
 
   categoriesMap.forEach((name, id) => {
     const wrapper = document.createElement("div");
-    wrapper.className = "form-check form-switch py-1";
+    wrapper.className = "form-check py-1";
 
     const input = document.createElement("input");
     input.type = "checkbox";
@@ -226,9 +226,8 @@ function renderTemplatePreview(modal, template) {
   wrapper.classList.add("template-preview-wrapper");
   wrapper.style.position = "relative";
   wrapper.style.width = "100%";
-  const fallbackHeight = 430;
-  const measuredHeight = previewContainer.clientHeight;
-  const resolvedHeight = Math.max(measuredHeight, fallbackHeight);
+  const measuredHeight = document.querySelector("#templateSlideSection").clientHeight;
+  const resolvedHeight = measuredHeight;
   wrapper.style.height = `${resolvedHeight}px`;
   wrapper.style.display = "flex";
   wrapper.style.alignItems = "center";
