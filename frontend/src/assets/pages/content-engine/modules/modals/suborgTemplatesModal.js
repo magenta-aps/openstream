@@ -48,6 +48,7 @@ let savedResolution = null;
 let globalTemplatesCache = [];
 let filteredTemplates = [];
 let selectedTemplate = null;
+let lastRenderedTemplateId = null;
 let currentSort = { column: "name", order: "asc" };
 
 // Ensure a template is active so the preview renders immediately once the modal is visible.
@@ -98,7 +99,7 @@ function renderCategoryFilters(modal, templates) {
 
   categoriesMap.forEach((name, id) => {
     const wrapper = document.createElement("div");
-    wrapper.className = "form-check py-1";
+    wrapper.className = "form-check";
 
     const input = document.createElement("input");
     input.type = "checkbox";
@@ -192,16 +193,8 @@ function clearPreviewAndInfo(modal) {
     preview.innerHTML = `<p class="text-muted mb-0">${gettext("Select a template to see preview")}</p>`;
   }
 
-  updateAspectRatioBadge(modal, null);
   selectedTemplate = null;
-}
-
-function updateAspectRatioBadge(modal, template) {
-  const badge = modal.querySelector("#aspect-ratio");
-  if (!badge) {
-    return;
-  }
-  badge.textContent = template?.aspect_ratio || "—";
+  lastRenderedTemplateId = null;
 }
 
 function renderTemplatePreview(modal, template) {
@@ -212,10 +205,12 @@ function renderTemplatePreview(modal, template) {
 
   if (!template) {
     previewContainer.innerHTML = `<p class="text-muted mb-0">${gettext("Select a template to see preview")}</p>`;
+    lastRenderedTemplateId = null;
     return;
   }
 
   document.querySelector(".aspect-ratio-th").classList.remove("d-none");
+  document.querySelector(".aspect-ratio-info").classList.add("d-none");
 
   previewContainer.innerHTML = "";
   previewContainer.style.backgroundColor = "#f8f9fa";
@@ -226,9 +221,7 @@ function renderTemplatePreview(modal, template) {
   wrapper.classList.add("template-preview-wrapper");
   wrapper.style.position = "relative";
   wrapper.style.width = "100%";
-  const measuredHeight = document.querySelector("#templateSlideSection").clientHeight;
-  const resolvedHeight = measuredHeight;
-  wrapper.style.height = `${resolvedHeight}px`;
+  wrapper.style.height = "320px";
   wrapper.style.display = "flex";
   wrapper.style.alignItems = "center";
   wrapper.style.justifyContent = "center";
@@ -252,6 +245,7 @@ function renderTemplatePreview(modal, template) {
   };
 
   loadSlide(slideObject, "#suborg-template-preview", true);
+  lastRenderedTemplateId = template.id;
 
   setTimeout(() => {
     scaleSlide(wrapper);
@@ -264,6 +258,8 @@ function selectTemplate(template, modal) {
     return;
   }
 
+  const wasSameTemplate =
+    selectedTemplate && selectedTemplate.id === template.id;
   selectedTemplate = template;
   const rows = modal.querySelectorAll("#unifiedTemplateTable tbody tr");
   rows.forEach((row) => {
@@ -273,8 +269,11 @@ function selectTemplate(template, modal) {
     );
   });
 
+  if (wasSameTemplate && lastRenderedTemplateId === template.id) {
+    return;
+  }
+
   renderTemplatePreview(modal, template);
-  updateAspectRatioBadge(modal, template);
 }
 
 function sortFilteredTemplates() {

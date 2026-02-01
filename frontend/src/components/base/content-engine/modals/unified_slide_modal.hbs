@@ -33,15 +33,15 @@
                                 <!-- Aspect Ratio Filters -->
                                 <div>
                                     <h6 class="secondary">{% trans "Filter by Aspect Ratio" %}</h6>
-                                    <div id="aspect-ratio-filter">
+                                    <div id="aspect-ratio-filter" class="d-flex flex-column">
                                         <!-- Sidebar checkboxes will be injected here via JS -->
                                     </div>
                                 </div>
                             </div>
                             <div class="vr"></div>
                             <!-- Table -->
-                            <div style="width: 43%;" class="ms-1">
-                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover text-center rounded p-2 mb-3">
+                            <div style="width: 43%; height: 320px;" class="ms-1 d-flex flex-column">
+                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover text-center rounded p-2 mb-3 aspect-ratio-info">
                                     {% trans "Showing templates compatible with aspect ratio:" %}
                                     <span class="fs-large">
                                         <span id="aspect-ratio"></span>&nbsp;</span>
