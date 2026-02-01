@@ -219,12 +219,7 @@ function renderTemplatePreview(modal, template) {
 
   const wrapper = document.createElement("div");
   wrapper.classList.add("template-preview-wrapper");
-  wrapper.style.position = "relative";
-  wrapper.style.width = "100%";
-  wrapper.style.height = "320px";
-  wrapper.style.display = "flex";
-  wrapper.style.alignItems = "center";
-  wrapper.style.justifyContent = "center";
+
 
   const previewSlide = document.createElement("div");
   previewSlide.classList.add("preview-slide");

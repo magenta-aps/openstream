@@ -1950,6 +1950,15 @@ span {
   max-width: 200px;
 }
 
+.template-preview-wrapper {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #img-align-left-btn,
 #video-align-left-btn {
   transform: rotate(270deg);

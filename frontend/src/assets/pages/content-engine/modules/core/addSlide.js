@@ -402,12 +402,6 @@ function loadUnifiedTemplatePreview(template) {
 
   const wrapper = document.createElement("div");
   wrapper.classList.add("template-preview-wrapper");
-  wrapper.style.position = "relative";
-  wrapper.style.width = "100%";
-  wrapper.style.height = "100%";
-  wrapper.style.display = "flex";
-  wrapper.style.alignItems = "center";
-  wrapper.style.justifyContent = "center";
 
   previewContainer.appendChild(wrapper);
 
