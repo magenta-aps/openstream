@@ -2156,6 +2156,15 @@ span {
   margin: 0 !important;
 }
 
+.table-active {
+  --bs-table-bg-state: #{$lighter-gray} !important;
+}
+
+.table tbody tr td,
+.table tbody tr th {
+  padding: 1rem 0.5rem; // top/bottom 1rem, left/right 0.5rem
+}
+
 /* Persist element button - make pinned state look like hover state */
 #persist-element-btn.btn-primary {
   background-color: $primary !important;
@@ -2164,6 +2173,8 @@ span {
   transform: translateY(-1px);
   transition: all 0.2s ease;
 }
+
+
 
 #persist-element-btn.btn-primary:hover {
   transform: translateY(-2px);

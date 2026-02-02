@@ -38,22 +38,22 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="vr"></div>
+                            <div class="vr bg-gray text-gray"></div>
                             <!-- Table -->
-                            <div style="width: 43%; height: 320px;" class="ms-1 d-flex flex-column">
-                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover text-center rounded p-2 mb-3 aspect-ratio-info">
-                                    {% trans "Showing templates compatible with aspect ratio:" %}
-                                    <span class="fs-large">
-                                        <span id="aspect-ratio"></span>&nbsp;</span>
+                            <div style="width: 40%; height: 320px;" class="ms-1 d-flex flex-column">
+                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover rounded mb-3 aspect-ratio-info" style="padding: 1rem 1.5rem">
+                                    {% trans "Showing templates compatible with aspect ratio " %}
+                                        <span id="aspect-ratio" style="vertical-align: unset;"></span>
                                 </p>
                                 <!-- Search Bar -->
-                                <div class="mb-3">
-                                    <input type="text" id="templateSearch" class="form-control"
-                                        placeholder='{% trans "🔎 Search by name, category or tags..." %}'>
+                                <div class="mb-3 position-relative">
+                                    <span class="material-symbols-outlined" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--bs-secondary-color);">search</span>
+                                    <input type="text" id="templateSearch" class="form-control ps-5"
+                                        placeholder='{% trans "Search by name, category or tags" %}'>
                                 </div>
                                 <!-- Template List Table -->
                                 <div id="template-list-table" class="table-responsive">
-                                    <table class="table table-hover" id="unifiedTemplateTable">
+                                    <table class="table table-hover table-borderless" id="unifiedTemplateTable">
                                         <thead>
                                             <tr>
                                                 <th role="button" data-sort="name">{% trans "Name" %}
@@ -74,11 +74,12 @@
                             </div>
                             <!-- Preview -->
                             <div id="unifiedTemplatePreview"
-                                class="bg-light p-1 border rounded d-flex align-items-center justify-content-center">
+                                class="bg-light border d-flex align-items-center justify-content-center">
                             </div>
                         </div>
+                        <hr class="bg-gray text-gray">
                         <div class="row">
-                            <p style="background-color: var(--lightest-gray)" class="pt-2 pb-1">{% trans "Name and duration" %}
+                            <p style="background-color: var(--lightest-gray)" class="pt-2 pb-1"><strong>{% trans "Name and duration" %}</strong>
                             </p>
                             <div class="col-md-6">
                                 <div>
