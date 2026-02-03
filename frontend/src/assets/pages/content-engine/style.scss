@@ -147,7 +147,35 @@ body.player-mode .persistent-elements-container {
     background-color: $white;
     font-size: 0.75rem;
 
-    .os-dropdown-trigger {
+    & i {
+        font-size: 14px;
+    }
+
+    &.os-dropdown-alt {
+        & .arrow-container {
+            display: flex;
+            flex-direction: column;
+
+            padding-top: 0.375rem;
+            padding-bottom: 0.375rem;
+            padding-right: 0.5rem;
+
+            & .arrow {
+                cursor: pointer;
+            }
+        }
+
+        & .os-dropdown-trigger {
+            display: flex;
+            justify-content: start;
+        }
+
+        & .os-dropdown-alt-input {
+            color: $dark-gray;
+        }
+    }
+
+    & .os-dropdown-trigger {
         width: 3.81rem;
         display: flex;
         align-items: center;
@@ -155,13 +183,10 @@ body.player-mode .persistent-elements-container {
         padding: 0.375rem 0.5rem;
         background-color: transparent;
         border: none;
-
-        & i {
-            font-size: 14px;
-        }
+        font-size: 0.75rem;
     }
 
-    .os-dropdown-popover {
+    & .os-dropdown-popover {
         gap: 0.2rem;
         padding: 0.3rem;
         background-color: #ffffff;
@@ -171,7 +196,7 @@ body.player-mode .persistent-elements-container {
             0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
-    .os-dropdown-content {
+    & .os-dropdown-content {
         display: flex;
         flex-direction: column;
 

@@ -197,22 +197,43 @@ function createSnapControls(rightSection) {
         { name: gettext("Grid"), value: "grid" },
         { name: gettext("Pixels"), value: "pixels" },
       ],
-      onUpdate: (name, value) => {
-        console.log(value);
+      onUpdate: (_name, value) => {
+        const setAltMode = snapModeToggle.rightDropdown.setMode;
+        if (value === "grid") {
+          setAltMode("set-value");
+        } else {
+          setAltMode("set-max");
+        }
       },
+      position: { row: "top", column: "center" },
     },
-    { row: "top", column: "center" },
     {
       type: "alt",
+      mode: "set-value",
       options: [
-        { name: "foo", value: "v:foo" },
-        { name: "bar", value: "v:bar" },
+        { name: "1", value: "1" },
+        { name: "2", value: "2" },
+        { name: "3", value: "3" },
+        { name: "4", value: "4" },
+        { name: "5", value: "5" },
+        { name: "6", value: "6" },
+        { name: "7", value: "7" },
+        { name: "8", value: "8" },
+        { name: "9", value: "9" },
+        { name: "10", value: "10" },
+        { name: "12", value: "12" },
+        { name: "15", value: "15" },
+        { name: "20", value: "20" },
+        { name: "20", value: "20" },
+        { name: "24", value: "24", defaultMax: true },
+        { name: "30", value: "30" },
+        { name: "40", value: "40" },
+        { name: "60", value: "60" },
+        { name: "120", value: "120" },
       ],
-      onUpdate: (name, value) => {
-        console.log(value);
-      },
+      onUpdate: (name, value) => {},
+      position: { row: "top", column: "center" },
     },
-    { row: "top", column: "center" },
   );
   /* TODO: Remove
   const snapAmountGroup = document.createElement("div");
@@ -296,7 +317,7 @@ function createSnapControls(rightSection) {
 
   snapControlsContainer.appendChild(snapToggle.container);
   snapControlsContainer.appendChild(snapLabel);
-  snapControlsContainer.appendChild(snapModeToggle);
+  snapControlsContainer.appendChild(snapModeToggle.container);
   //snapControlsContainer.appendChild(snapAmountGroup);
   //snapControlsContainer.appendChild(snapAmountGroup);
 
