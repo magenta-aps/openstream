@@ -326,7 +326,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
 
     try {
       createBtn.disabled = true;
-      createBtn.textContent = gettext("Creating...");
+      createBtn.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span> ' + gettext("Creating...");
 
       const newTemplate = await createSuborgTemplate(
         currentSuborgId,
@@ -353,7 +353,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
     } catch (err) {
       showToast(gettext("Error creating template: ") + err.message, "Error");
       createBtn.disabled = false;
-      createBtn.textContent = gettext("Create Template");
+      createBtn.innerHTML = '<span class="material-symbols-outlined">add</span> ' + gettext("Add Slide");
     }
     });
     createBtn.dataset.createHandlerAttached = "true";
@@ -366,6 +366,7 @@ export async function openCreateSuborgTemplateModal(suborgId) {
         savedResolution = null;
       }
       selectedTemplate = null;
+      lastRenderedTemplateId = null;
     });
     modal.dataset.restoreHandlerAttached = "true";
   }
@@ -373,6 +374,11 @@ export async function openCreateSuborgTemplateModal(suborgId) {
   if (!modal.dataset.initialPreviewHandlerAttached) {
     modal.addEventListener("shown.bs.modal", () => {
       setTimeout(() => ensureInitialTemplateSelection(modal), 50);
+      // Reset button state when modal is opened
+      if (createBtn) {
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<span class="material-symbols-outlined">add</span> ' + gettext("Add Slide");
+      }
     });
     modal.dataset.initialPreviewHandlerAttached = "true";
   }

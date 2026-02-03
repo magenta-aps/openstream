@@ -356,6 +356,7 @@ export function initAddSlide() {
     });
 
     unifiedSlideModalEl.addEventListener("hidden.bs.modal", () => {
+      selectedUnifiedTemplate = null;
       const activePreviewContainer =
         document.querySelector(".preview-column .preview-container") ||
         document.querySelector(".slide-canvas .preview-container");
