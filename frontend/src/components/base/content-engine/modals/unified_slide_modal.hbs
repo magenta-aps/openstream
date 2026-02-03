@@ -1,7 +1,7 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
     {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
     <div class="modal fade" id="unifiedSlideModal" tabindex="-1" aria-labelledby="unifiedSlideModalLabel">
-        <div class="modal-dialog" style="--bs-modal-width: 1300px;">
+        <div class="modal-dialog" style="--bs-modal-width: 1380px;">
             <div class="modal-content">
                 <div class="modal-header bg-light">
                     <h5 class="modal-title" id="unifiedSlideModalLabel">{% trans "Add Slide Menu" %}</h5>
@@ -26,8 +26,8 @@
                                 <!-- Tags Filters -->
                                 <div>
                                     <h6 class="secondary">{% trans "Filter by Tags" %}</h6>
-                                    <div id="tags-filter">
-                                        <!-- Sidebar checkboxes will be injected here via JS -->
+                                    <div id="tags-filter" class="d-flex flex-wrap gap-1" aria-label="Template tags filter">
+                                        <!-- Sidebar tag checkboxes will be injected here via JS -->
                                     </div>
                                 </div>
                                 <!-- Aspect Ratio Filters -->
@@ -40,7 +40,7 @@
                             </div>
                             <div class="vr bg-gray text-gray"></div>
                             <!-- Table -->
-                            <div style="width: 40%; height: 320px;" class="ms-1 d-flex flex-column">
+                            <div style="width: 44%; height: 440px;" class="ms-1 d-flex flex-column">
                                 <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover rounded mb-3 aspect-ratio-info" style="padding: 1rem 1.5rem">
                                     {% trans "Showing templates compatible with aspect ratio " %}
                                         <span id="aspect-ratio" style="vertical-align: unset;"></span>
@@ -61,7 +61,7 @@
                                                 <th role="button" data-sort="category">{% trans "Category" %}</th>
                                                 <th role="button" data-sort="tags">{% trans "Tags" %}</th>
                                                 <th role="button" data-sort="tags" class="aspect-ratio-th d-none">{%
-                                                    trans "Aspect Ratio" %}</th>
+                                                    trans "Size&nbsp;" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
