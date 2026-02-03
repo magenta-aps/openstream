@@ -19,6 +19,18 @@ import {
   getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
 import * as bootstrap from "bootstrap";
+import {
+  customTagsExtractField,
+  buildTemplateSearchIndex,
+  renderCategoryFilters,
+  getSelectedCategoryFilterIds,
+  renderTagsFilters,
+  getSelectedTagFilters,
+  sortFilteredTemplates,
+  renderTemplateTable,
+  attachSortHandlers,
+} from "../modals/unifiedModalHelpers.js";
+
 let unifiedTemplates = [];
 let selectedUnifiedTemplate = null;
 
@@ -97,13 +109,11 @@ let filteredTemplates = [];
 let currentSort = { column: null, order: "asc" };
 let legacyFilterMessage = null;
 
-// MiniSearch instance
-function customTagsExtractField(document, fieldName) {
-  if (fieldName === "tags") {
-    return document.tags.map((tag) => tag.name); // Extract tag names as an array
-  }
-  return document[fieldName]; // Default extraction
-}
+// MiniSearch instance using shared custom extractor
+const templateMiniSearcher = createMiniSearchInstance(
+  ["name", "category", "tags"],
+  { extractField: customTagsExtractField },
+);
 
 export function getCurrentAspectRatio() {
   if (!store.emulatedWidth || !store.emulatedHeight) {
@@ -115,11 +125,6 @@ export function getCurrentAspectRatio() {
     store.emulatedHeight,
   );
 }
-
-const templateMiniSearcher = createMiniSearchInstance(
-  ["name", "category", "tags"],
-  { extractField: customTagsExtractField },
-);
 
 const noTemplatesFoundAlert = document.getElementById(
   "no-templates-found-alert",
@@ -141,49 +146,6 @@ function isSuborgContentCreationMode() {
   // If we have a suborg selected but we're not managing templates,
   // then we're creating content for the suborg branch
   return true;
-}
-
-function updateCategoryFilters(templates) {
-  // Create a map of unique categories (id => name)
-  const categoriesMap = new Map();
-  templates.forEach((t) => {
-    if (t.category) {
-      categoriesMap.set(t.category.id, t.category.name);
-    }
-  });
-
-  const sidebar = document.getElementById("category-filter");
-  sidebar.innerHTML = "";
-    
-
-  categoriesMap.forEach((name, id) => {
-    const div = document.createElement("div");
-    div.className = "form-check";
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.className = "form-check-input category-filter";
-    input.value = id;
-    input.id = "cat-" + id;
-    input.checked = false; // default: show all categories
-
-    const label = document.createElement("label");
-    label.className = "form-check-label";
-    label.htmlFor = "cat-" + id;
-    label.textContent = name;
-
-    div.appendChild(input);
-    div.appendChild(label);
-    sidebar.appendChild(div);
-  });
-
-  const checkboxes = document.querySelectorAll(".category-filter");
-  checkboxes.forEach((cb) => {
-    cb.addEventListener("change", () => {
-      filterTemplates();
-      sortAndRenderTemplates();
-    });
-  });
 }
 
 async function fetchUnifiedTemplates() {
@@ -255,9 +217,26 @@ async function fetchUnifiedTemplates() {
     // Templates now set their own aspect ratio automatically, so no filtering needed
     document.getElementById("aspect-ratio").innerText = getCurrentAspectRatio();
 
-    templateMiniSearcher.removeAll();
-    templateMiniSearcher.addAll(unifiedTemplates);
-    updateCategoryFilters(unifiedTemplates);
+    buildTemplateSearchIndex(templateMiniSearcher, unifiedTemplates);
+    
+    renderCategoryFilters(document, unifiedTemplates, {
+      checkboxClass: "category-filter",
+      idPrefix: "cat-",
+      onChangeCallback: () => {
+        filterTemplates();
+        sortAndRenderTemplates();
+      },
+    });
+    
+    renderTagsFilters(document, unifiedTemplates, {
+      checkboxClass: "tag-filter",
+      idPrefix: "tag-",
+      onChangeCallback: () => {
+        filterTemplates();
+        sortAndRenderTemplates();
+      },
+    });
+    
     filteredTemplates = unifiedTemplates;
     sortAndRenderTemplates();
   } catch (err) {
@@ -272,9 +251,8 @@ function filterTemplates() {
     unifiedTemplates,
     templateMiniSearcher,
   );
-  const selectedCategoryIds = Array.from(
-    document.querySelectorAll(".category-filter:checked"),
-  ).map((cb) => parseInt(cb.value, 10));
+  const selectedCategoryIds = getSelectedCategoryFilterIds(document, "category-filter");
+  const selectedTags = getSelectedTagFilters(document, "tag-filter");
 
   // Get the current aspect ratio for filtering
   const currentAspectRatio = getCurrentAspectRatio();
@@ -284,116 +262,50 @@ function filterTemplates() {
       selectedCategoryIds.length === 0 ||
       selectedCategoryIds.includes(t.category?.id);
 
+    if (!categoryMatch) {
+      return false;
+    }
+
+    const passesTagFilter = !selectedTags.length || (t.tags || []).some((tag) => {
+      const tagId = typeof tag === "string" ? tag : String(tag.id);
+      const tagName = typeof tag === "string" ? tag : tag.name;
+      return selectedTags.includes(tagId) || selectedTags.includes(tagName);
+    });
+
+    if (!passesTagFilter) {
+      return false;
+    }
+
     // Filter by aspect ratio - template must match current aspect ratio
     const aspectRatioMatch = t.aspect_ratio === currentAspectRatio;
-    return categoryMatch && aspectRatioMatch;
+    return aspectRatioMatch;
   });
 }
 
 function sortAndRenderTemplates() {
-  if (currentSort.column) {
-    filteredTemplates.sort((a, b) => {
-      let aVal, bVal;
-      if (currentSort.column === "name") {
-        aVal = a.name.toLowerCase();
-        bVal = b.name.toLowerCase();
-      } else if (currentSort.column === "category") {
-        aVal = (a.category ? a.category.name : "").toLowerCase();
-        bVal = (b.category ? b.category.name : "").toLowerCase();
-      } else if (currentSort.column === "tags") {
-        const normalizeTags = (template) => {
-          if (!Array.isArray(template.tags)) {
-            return "";
-          }
-          return template.tags
-            .map((tag) => {
-              if (typeof tag === "string") {
-                return tag;
-              }
-              return tag?.name || "";
-            })
-            .filter(Boolean)
-            .join(", ");
-        };
-        aVal = normalizeTags(a).toLowerCase();
-        bVal = normalizeTags(b).toLowerCase();
+  const sorted = sortFilteredTemplates(filteredTemplates, currentSort);
+  filteredTemplates = sorted;
+  
+  renderTemplateTable(
+    document,
+    filteredTemplates,
+    (template) => {
+      document
+        .querySelectorAll("#unifiedTemplateTable tbody tr")
+        .forEach((row) => row.classList.remove("table-active"));
+      const clickedRow = document.querySelector(
+        `#unifiedTemplateTable tbody tr[data-template-id="${template.id}"]`,
+      );
+      if (clickedRow) {
+        clickedRow.classList.add("table-active");
       }
-      if (aVal < bVal) return currentSort.order === "asc" ? -1 : 1;
-      if (aVal > bVal) return currentSort.order === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
-  renderUnifiedTemplateTable(filteredTemplates);
-}
-
-function renderUnifiedTemplateTable(templates) {
-  const tableBody = document.querySelector("#unifiedTemplateTable tbody");
-  tableBody.innerHTML = "";
-  if (templates.length === 0) {
-    if (noTemplatesFoundAlert) {
-      if (legacyFilterMessage) {
-        noTemplatesFoundAlert.textContent = legacyFilterMessage;
-      } else if (!noTemplatesFoundAlert.textContent) {
-        noTemplatesFoundAlert.textContent = gettext("No templates found.");
-      }
-      noTemplatesFoundAlert.classList.remove("d-none");
-    }
-    return;
-  } else {
-    if (noTemplatesFoundAlert) {
-      noTemplatesFoundAlert.classList.add("d-none");
-      noTemplatesFoundAlert.textContent = "";
-    }
-    legacyFilterMessage = null;
-    templates.forEach((t) => {
-      const tr = document.createElement("tr");
-
-      const tdName = document.createElement("td");
-      tdName.textContent = t.name;
-      tr.appendChild(tdName);
-
-      const tdCat = document.createElement("td");
-      tdCat.textContent = t.category ? t.category.name : gettext("(none)");
-      tr.appendChild(tdCat);
-
-      const tdTags = document.createElement("td");
-      if (t.tags && t.tags.length > 0) {
-        const tagNames = t.tags.map((tag) => tag.name);
-        const visibleTags = tagNames.slice(0, 3);
-        tdTags.textContent = visibleTags.join(", ");
-        if (tagNames.length > 3) {
-          const moreCount = tagNames.length - 3;
-          tdTags.appendChild(
-            document.createTextNode(
-              ` ${gettext("and")} ${moreCount} ${gettext("more")}. `,
-            ),
-          );
-          const showAllLink = document.createElement("a");
-          showAllLink.href = "#";
-          showAllLink.textContent = gettext("Show All");
-          showAllLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            tdTags.textContent = tagNames.join(", ");
-          });
-          tdTags.appendChild(showAllLink);
-        }
-      } else {
-        tdTags.textContent = "-";
-      }
-      tr.appendChild(tdTags);
-
-      tr.addEventListener("click", () => {
-        document
-          .querySelectorAll("#unifiedTemplateTable tbody tr")
-          .forEach((row) => row.classList.remove("table-active"));
-        tr.classList.add("table-active");
-        selectedUnifiedTemplate = t;
-        loadUnifiedTemplatePreview(t);
-      });
-
-      tableBody.appendChild(tr);
-    });
-  }
+      selectedUnifiedTemplate = template;
+      loadUnifiedTemplatePreview(template);
+    },
+    {
+      noResultsMessage: legacyFilterMessage || gettext("No templates found."),
+    },
+  );
 }
 
 function loadUnifiedTemplatePreview(template) {
@@ -578,21 +490,10 @@ export function initAddSlide() {
     unifiedModal.show();
   });
 
-  document
-    .querySelectorAll("#unifiedTemplateTable th[data-sort]")
-    .forEach((th) => {
-      th.style.cursor = "pointer";
-      th.addEventListener("click", function () {
-        const sortKey = this.getAttribute("data-sort");
-        if (currentSort.column === sortKey) {
-          currentSort.order = currentSort.order === "asc" ? "desc" : "asc";
-        } else {
-          currentSort.column = sortKey;
-          currentSort.order = "asc";
-        }
-        sortAndRenderTemplates();
-      });
-    });
+  attachSortHandlers(document, currentSort, (newSortState) => {
+    currentSort = newSortState;
+    sortAndRenderTemplates();
+  });
 }
 
 // Function to open the add slide modal programmatically
