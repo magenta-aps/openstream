@@ -2655,3 +2655,47 @@ span {
   color: $darkest-gray;
   margin: 0;
 }
+
+/* Unified slide modal layout */
+#unifiedSlideModal {
+  .modal-dialog {
+    --bs-modal-width: 95vw;
+  }
+
+  .unified-slide-modal__content {
+    height: calc(70vh - 10rem);
+  }
+
+  .unified-slide-modal__filter-heading {
+    cursor: pointer;
+  }
+
+  .unified-slide-modal__filter-icon {
+    font-size: 1.25rem;
+  }
+
+  .unified-slide-modal__table {
+    width: 44%;
+  }
+
+  .aspect-ratio-info {
+    padding: 1rem 1.5rem;
+  }
+
+  #aspect-ratio {
+    vertical-align: unset;
+  }
+
+  .unified-slide-modal__search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--bs-secondary-color);
+  }
+
+  .unified-slide-modal__section-heading {
+    background-color: var(--lightest-gray);
+  }
+}

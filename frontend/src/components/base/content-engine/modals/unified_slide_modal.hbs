@@ -1,7 +1,7 @@
 {{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
     {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
     <div class="modal fade" id="unifiedSlideModal" tabindex="-1" aria-labelledby="unifiedSlideModalLabel">
-        <div class="modal-dialog" style="--bs-modal-width: 95vw;">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-light">
                     <h5 class="modal-title" id="unifiedSlideModalLabel">{% trans "Select Template" %}</h5>
@@ -10,14 +10,14 @@
                 </div>
                 <div class="modal-body">
                     <div id="templateSlideSection" class="mb-0" >
-                        <div class="d-flex gap-3" style="height: calc(70vh - 10rem);">
+                        <div class="d-flex gap-3 unified-slide-modal__content">
                             <!-- Filters -->
                             <div class="rounded gap-4 d-flex flex-column h-100" id="filtersSidebar">
                                 <!-- Category Filters -->
                                 <div>
-                                    <h6 class="secondary d-flex align-items-center justify-content-between" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#category-filter-collapse" aria-expanded="false" aria-controls="category-filter-collapse">
+                                    <h6 class="secondary d-flex align-items-center justify-content-between unified-slide-modal__filter-heading" data-bs-toggle="collapse" data-bs-target="#category-filter-collapse" aria-expanded="false" aria-controls="category-filter-collapse">
                                         <span>{% trans "Filter by Category" %}</span>
-                                        <span class="material-symbols-outlined" style="font-size: 1.25rem;">expand_more</span>
+                                        <span class="material-symbols-outlined unified-slide-modal__filter-icon">expand_more</span>
                                     </h6>
                                     <div id="category-filter-collapse" class="collapse">
                                         <div id="category-filter">
@@ -27,9 +27,9 @@
                                 </div>
                                 <!-- Tags Filters -->
                                 <div>
-                                    <h6 class="secondary d-flex align-items-center justify-content-between" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#tags-filter-collapse" aria-expanded="false" aria-controls="tags-filter-collapse">
+                                    <h6 class="secondary d-flex align-items-center justify-content-between unified-slide-modal__filter-heading" data-bs-toggle="collapse" data-bs-target="#tags-filter-collapse" aria-expanded="false" aria-controls="tags-filter-collapse">
                                         <span>{% trans "Filter by Tags" %}</span>
-                                        <span class="material-symbols-outlined" style="font-size: 1.25rem;">expand_more</span>
+                                        <span class="material-symbols-outlined unified-slide-modal__filter-icon">expand_more</span>
                                     </h6>
                                     <div id="tags-filter-collapse" class="collapse">
                                         <div id="tags-filter" class="d-flex flex-column gap-1" aria-label="Template tags filter">
@@ -39,9 +39,9 @@
                                 </div>
                                 <!-- Aspect Ratio Filters -->
                                 <div>
-                                    <h6 class="secondary d-flex align-items-center justify-content-between" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#aspect-ratio-filter-collapse" aria-expanded="false" aria-controls="aspect-ratio-filter-collapse">
+                                    <h6 class="secondary d-flex align-items-center justify-content-between unified-slide-modal__filter-heading" data-bs-toggle="collapse" data-bs-target="#aspect-ratio-filter-collapse" aria-expanded="false" aria-controls="aspect-ratio-filter-collapse">
                                         <span>{% trans "Filter by Aspect Ratio" %}</span>
-                                        <span class="material-symbols-outlined" style="font-size: 1.25rem;">expand_more</span>
+                                        <span class="material-symbols-outlined unified-slide-modal__filter-icon">expand_more</span>
                                     </h6>
                                     <div id="aspect-ratio-filter-collapse" class="collapse">
                                         <div id="aspect-ratio-filter" class="d-flex flex-column">
@@ -52,14 +52,14 @@
                             </div>
                             <div class="vr bg-gray text-gray"></div>
                             <!-- Table -->
-                            <div style="width: 44%;" class="ms-1 d-flex flex-column h-100">
-                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover rounded mb-3 aspect-ratio-info" style="padding: 1rem 1.5rem">
+                            <div class="ms-1 d-flex flex-column h-100 unified-slide-modal__table">
+                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover rounded mb-3 aspect-ratio-info">
                                     {% trans "Showing templates compatible with aspect ratio " %}
-                                        <span id="aspect-ratio" style="vertical-align: unset;"></span>
+                                        <span id="aspect-ratio"></span>
                                 </p>
                                 <!-- Search Bar -->
                                 <div class="mb-3 position-relative">
-                                    <span class="material-symbols-outlined" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--bs-secondary-color);">search</span>
+                                    <span class="material-symbols-outlined unified-slide-modal__search-icon">search</span>
                                     <input type="text" id="templateSearch" class="form-control ps-5"
                                         placeholder='{% trans "Search by name, category or tags" %}'>
                                 </div>
@@ -91,7 +91,7 @@
                         </div>
                         <hr class="bg-gray text-gray">
                         <div class="row">
-                            <p style="background-color: var(--lightest-gray)" class="pt-2 pb-1"><strong>{% trans "Name and duration" %}</strong>
+                            <p class="pt-2 pb-1 unified-slide-modal__section-heading"><strong>{% trans "Name and duration" %}</strong>
                             </p>
                             <div class="col-md-6">
                                 <div>
