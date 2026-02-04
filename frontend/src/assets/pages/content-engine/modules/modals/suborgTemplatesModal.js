@@ -373,6 +373,8 @@ export async function openCreateSuborgTemplateModal(suborgId) {
 
   if (!modal.dataset.initialPreviewHandlerAttached) {
     modal.addEventListener("shown.bs.modal", () => {
+      // Force a re-render after the modal is visible so the preview scales correctly
+      lastRenderedTemplateId = null;
       setTimeout(() => ensureInitialTemplateSelection(modal), 50);
       // Reset button state when modal is opened
       if (createBtn) {
