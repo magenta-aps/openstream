@@ -221,23 +221,13 @@ function createSnapControls(rightSection) {
         { name: "60", value: "60" },
         { name: "120", value: "120" },
       ],
-      onUpdate: (name, value) => {},
+      onUpdate: (_name, value) => {
+        const sanitizedValue = sanitizeSnapAmount(value);
+        setSnapSettings({ amount: sanitizedValue });
+      },
       position: { row: "top", column: "center" },
     },
   );
-  /* TODO: Remove
-  snapAmountManualInput.addEventListener("change", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
-    snapAmountManualInput.value = sanitized.toString();
-    setSnapSettings({ amount: sanitized });
-  });
-
-  snapAmountSelect.addEventListener("change", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountSelect.value);
-    setSnapSettings({ amount: sanitized });
-  });
-  */
-  */
 
   snapControlsContainer.appendChild(snapToggle.container);
 
