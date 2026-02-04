@@ -169,15 +169,6 @@ function createSnapControls(rightSection) {
 
   snapControlsContainer = document.createElement("div");
   snapControlsContainer.className = "snap-controls";
-  snapControlsContainer.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--bs-darkest-gray);
-    background: var(--bs-gray);
-    border-radius: 6px;
-  `;
 
   // Snap toggle button (on/off)
   const snapToggle = createToggleButton(
@@ -249,10 +240,12 @@ function createSnapControls(rightSection) {
   */
 
   snapControlsContainer.appendChild(snapToggle.container);
-  snapControlsContainer.appendChild(snapLabel);
-  snapControlsContainer.appendChild(snapModeToggle.container);
-  //snapControlsContainer.appendChild(snapAmountGroup);
-  //snapControlsContainer.appendChild(snapAmountGroup);
+
+  const snapOptionsContainer = document.createElement("div");
+  snapOptionsContainer.classList.add("snap-options-container");
+  snapOptionsContainer.appendChild(snapLabel);
+  snapOptionsContainer.appendChild(snapModeToggle.container);
+  snapControlsContainer.appendChild(snapOptionsContainer);
 
   rightSection.appendChild(snapControlsContainer);
   updateSnapAmountOptions();

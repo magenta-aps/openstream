@@ -146,6 +146,7 @@ body.player-mode .persistent-elements-container {
     border: 0.5px solid $gray;
     background-color: $white;
     font-size: 0.75rem;
+    width: 6rem;
 
     & i {
         font-size: 14px;
@@ -166,8 +167,8 @@ body.player-mode .persistent-elements-container {
         }
 
         & .os-dropdown-trigger {
-            display: flex;
             justify-content: start;
+            padding: 0.375rem 0.5rem;
 
             & > span {
                 display: flex;
@@ -180,11 +181,11 @@ body.player-mode .persistent-elements-container {
     }
 
     & .os-dropdown-trigger {
-        width: 3.81rem;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.375rem 0.5rem;
+        padding: 0.375rem 0.75rem;
         background-color: transparent;
         border: none;
         font-size: 0.75rem;
@@ -237,7 +238,6 @@ body.player-mode .persistent-elements-container {
     /* Tabular numbers for consistent spacing */
 
     flex: 0 0 32px;
-    height: 32px;
     background-color: $gray;
     /* border-top: 1px solid var(--bs-darker-gray); */
     display: flex;
@@ -275,7 +275,7 @@ body.player-mode .persistent-elements-container {
 .status-bar-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 6rem;
 }
 
 .status-bar-info {
@@ -284,6 +284,22 @@ body.player-mode .persistent-elements-container {
     gap: 6px;
     font-weight: 500;
     min-width: 0;
+}
+
+.snap-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: 11px;
+    color: $darkest-gray;
+    background: $gray;
+    border-radius: 6px;
+}
+
+.snap-options-container {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5rem;
 }
 
 .grid-info-text {
