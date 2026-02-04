@@ -200,6 +200,7 @@ export function getSelectedTagFilters(modal, checkboxClass = "unified-tag-filter
  * Render aspect ratio filter checkboxes
  */
 export function renderAspectRatioFilters(modal, templates, options = {}) {
+  document.getElementById("aspect-ratio-filters")?.classList.remove("d-none");
   const {
     containerSelector = "#aspect-ratio-filter",
     checkboxClass = "unified-aspect-filter",

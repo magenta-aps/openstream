@@ -501,7 +501,6 @@ export function initAddSlide() {
 export function openAddSlideModal() {
   const modalElement = document.getElementById("unifiedSlideModal");
   if (modalElement) {
-    document.getElementById("aspect-ratio-filters").style.display = "none";
     const unifiedModal = new bootstrap.Modal(modalElement);
     unifiedModal.show();
   } else {

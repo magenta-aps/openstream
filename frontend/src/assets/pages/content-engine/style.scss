@@ -2662,6 +2662,10 @@ span {
     --bs-modal-width: 95vw;
   }
 
+  .unified-slide-modal__content .vr {
+    width: 2px;
+  }
+
   .unified-slide-modal__content {
     height: calc(70vh - 10rem);
   }
@@ -2669,6 +2673,12 @@ span {
   .unified-slide-modal__filter-heading {
     cursor: pointer;
     font-weight: 600;
+  }
+
+  #vertical-section-divider-unified-modal {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    height: 2px;
   }
 
   .unified-slide-modal__filter-icon {
