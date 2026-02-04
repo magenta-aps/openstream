@@ -314,8 +314,8 @@ export function createDropdown(dropdownOptions) {
   return { dropdown };
 }
 
-/** @typedef {"set-max" | "set-value"} AltDropdownMode */
-/** @typedef {{dropdown: HTMLDivElement, setMode: (mode: AltDropdownMode) => void}} DropdownAlt */
+/** @typedef {"reg" | "divided"} AltDropdownDisplayMode */
+/** @typedef {{dropdown: HTMLDivElement, setDisplayMode: (mode: AltDropdownDisplayMode) => void}} DropdownAlt */
 
 /**
  * @typedef {Object} AltDropdownFunctions
@@ -326,22 +326,9 @@ export function createDropdown(dropdownOptions) {
  */
 
 /**
-/* @typedef {Object} AltDropdownCtx
-/* @property {AltDropdownMode} AltDropdownCtx.mode
-/* @property {number} AltDropdownCtx.currentIndex
-/* @property {AltDropdownFunctions["onTextUpdate"]} AltDropdownCtx.onTextUpdate
-/* @property {AltDropdownFunctions["onUpdate"]} AltDropdownCtx.onUpdate
-/* @property {AltDropdownFunctions["onRender"]} AltDropdownCtx.onRender
-* @property {{index: number, name: string}} AltDropdownCtx.selected
-* @property {{index: number, name: string}} AltDropdownCtx.max
-/* @property {Array<{name: string, value: string}>} AltDropdownCtx.options
-/* @property {Array<{name: string, value: string}>} AltDropdownCtx.availableOptions
-*/
-
-/**
  * @typedef {Object} AltDropdownOptionsPrimitive
- * @property {AltDropdownMode} mode - The mode that the alt dropdown will start in
- * @property {Array<{name: string, value: string, defaultMax?: boolean}>} options - The first element with "defaultMax=true" will be used as the default maximum, otherwise the last element is used
+ * @property {AltDropdownDisplayMode} displayMode - The mode that the alt dropdown will start in
+ * @property {Array<{name: string, value: string, default?: boolean}>} options - The first element with "default=true" will be used as the default value, otherwise the first element is used
  */
 
 /**
@@ -353,11 +340,47 @@ export function createDropdown(dropdownOptions) {
  * @returns {DropdownAlt}
  */
 export function createAltDropdown(dropdownOptions) {
+  /** @type {AltDropdownDisplayMode} */
+  let displayMode = dropdownOptions.displayMode;
+
+  const defaultIndex = dropdownOptions.options.findIndex(
+    (option) => option.default,
+  );
+  let currentIndex = defaultIndex < 0 ? 0 : defaultIndex;
+
+  const size = dropdownOptions.options.length;
+
+  /** @type {(mode: AltDropdownDisplayMode) => void} */
+  const setDisplayMode = (mode) => {
+    if (displayMode === mode) {
+      return;
+    }
+
+    displayMode = mode;
+    onTextupdate(dropdownOptions.options.at(currentIndex)?.name);
+  };
+
+  /** @type {(name: string) => void} */
+  const onTextupdate = (name) => {
+    /** @type {string} */
+    let text;
+    if (displayMode === "reg") {
+      text = name;
+    } else {
+      text = `<span><span class="os-dropdown-alt-input">1 / &nbsp</span>${name}</span>`;
+    }
+
+    popover.trigger.innerHTML = text;
+  };
+
   const onUpdatePrimitive = dropdownOptions.onUpdate;
   /** @type {DropdownOptions["onUpdate"]} */
   const onUpdate = (name, value) => {
-    ctx.onUpdate(name, value);
+    currentIndex = dropdownOptions.options.findIndex(
+      (option) => option.name === name,
+    );
 
+    onTextupdate(name);
     onUpdatePrimitive(name, value);
   };
 
@@ -370,70 +393,8 @@ export function createAltDropdown(dropdownOptions) {
   );
   dropdown.classList.add("os-dropdown-alt");
 
-  const defaultMax = {
-    index: dropdownOptions.options.length - 1,
-    name: dropdownOptions.options.at(-1)?.name,
-  };
-  const defaultMaxIndex = dropdownOptions.options.findIndex(
-    (option) => option.defaultMax,
-  );
-  if (defaultMaxIndex >= 0) {
-    defaultMax.index = defaultMaxIndex;
-    defaultMax.name = dropdownOptions.options[defaultMaxIndex].name;
-  }
-
-  // init context
-  /** @type {AltDropdownCtx} */
-  const ctx = {
-    mode: dropdownOptions.mode,
-    currentIndex: 0,
-    onTextUpdate: () => {},
-    onUpdate: () => {},
-    onRender: () => {},
-    selected: {
-      index: 0,
-      name: dropdownOptions.options.at(0)?.name,
-    },
-    max: {
-      index: defaultMax.index,
-      name: defaultMax.name,
-    },
-    options: dropdownOptions.options,
-    availableOptions: [],
-  };
-
-  // init available options
-  ctx.availableOptions = dropdownOptions.options.filter(
-    (_option, i) => i <= ctx.max.index,
-  );
-
-  /** @type {(mode: AltDropdownMode) => void} */
-  const setMode = (mode) => {
-    if (ctx.mode === mode) {
-      return;
-    }
-
-    ctx.mode = mode;
-
-    if (ctx.mode === "set-max") {
-      setMax.onSwitch();
-    } else {
-      setValue.onSwitch();
-    }
-  };
-
-  const setMax = createAltDropdownSetMax(ctx, popover, onUpdate);
-  const setValue = createAltDropdownSetValue(ctx, popover, onUpdate);
-
-  // init intial ctx functions
-  if (ctx.mode === "set-max") {
-    setMax.onSwitch();
-  } else {
-    setValue.onSwitch();
-  }
-
-  // set initial text
-  ctx.onTextUpdate(ctx.selected.name);
+  // init text
+  onTextupdate(dropdownOptions.options.at(currentIndex)?.name);
 
   /** @type {(i: number) => void} */
   const onIncrDecr = (i) => {
@@ -447,29 +408,25 @@ export function createAltDropdown(dropdownOptions) {
     content: "keyboard_arrow_up",
   });
   incrementBtn.addEventListener("click", () => {
-    ctx.currentIndex += 1;
-    const maxValue =
-      ctx.mode === "set-max" ? ctx.options.length - 1 : ctx.max.index;
+    currentIndex += 1;
 
-    if (ctx.currentIndex > maxValue) {
-      ctx.currentIndex = 0;
+    if (currentIndex > size) {
+      currentIndex = 0;
     }
 
-    onIncrDecr(ctx.currentIndex);
+    onIncrDecr(currentIndex);
   });
   const decrementBtn = createElement("i", {
     classNames: ["arrow", "material-symbols-outlined"],
     content: "keyboard_arrow_down",
   });
   decrementBtn.addEventListener("click", () => {
-    ctx.currentIndex -= 1;
-    if (ctx.currentIndex < 0) {
-      const size = (ctx.mode === "set-max" ? ctx.options : ctx.availableOptions)
-        .length;
-      ctx.currentIndex = size - 1;
+    currentIndex -= 1;
+    if (currentIndex < 0) {
+      currentIndex = size - 1;
     }
 
-    onIncrDecr(ctx.currentIndex);
+    onIncrDecr(currentIndex);
   });
 
   const arrowContainer = createElement("div", {
@@ -480,116 +437,7 @@ export function createAltDropdown(dropdownOptions) {
 
   dropdown.appendChild(arrowContainer);
 
-  return { dropdown, setMode };
-}
-
-/**
- * @param {AltDropdownCtx} ctx
- * @param {{trigger: HTMLButtonElement, popover: HTMLDivElement}} popover
- * @param {DropdownOptions["onUpdate"]} onUpdatePrimitive
- * @returns {AltDropdownFunctions}}
- */
-function createAltDropdownSetMax(ctx, popover, onUpdatePrimitive) {
-  /** @type {AltDropdownFunctions["onTextUpdate"]} */
-  const onTextUpdate = (text) => {
-    popover.trigger.innerHTML = text;
-  };
-
-  /** @type {AltDropdownFunctions["onUpdate"]} */
-  const onUpdate = (name, _value) => {
-    ctx.max.index = ctx.options.findIndex((option) => option.name === name);
-    ctx.max.name = name;
-
-    ctx.availableOptions = ctx.options.filter(
-      (_option, i) => i <= ctx.max.index,
-    );
-
-    ctx.onTextUpdate(ctx.max.name);
-  };
-
-  /** @type {AltDropdownFunctions["onSwitch"]} */
-  const onSwitch = () => {
-    ctx.onTextUpdate = onTextUpdate;
-    ctx.onUpdate = onUpdate;
-    ctx.onRender = onRender;
-
-    ctx.currentIndex = ctx.max.index;
-    ctx.onTextUpdate(ctx.max.name);
-    ctx.onRender();
-  };
-
-  /** @type {AltDropdownFunctions["onRender"]} */
-  const onRender = () => {
-    const itemElements = ctx.options.map((option, i) =>
-      createDropdownItems(option, i),
-    );
-
-    renderDropDownItems(popover.popover, itemElements);
-  };
-
-  return {
-    onTextUpdate,
-    onUpdate,
-    onSwitch,
-    onRender,
-  };
-}
-
-/**
- * @param {AltDropdownCtx} ctx
- * @param {{trigger: HTMLButtonElement, popover: HTMLDivElement}} popover
- * @param {DropdownOptions["onUpdate"]} onUpdatePrimitive
- * @returns {AltDropdownFunctions}}
- */
-function createAltDropdownSetValue(ctx, popover, onUpdatePrimitive) {
-  /** @type {AltDropdownFunctions["onTextUpdate"]} */
-  const onTextUpdate = (text) => {
-    const formattedText = `<span class="os-dropdown-alt-input">${text} &nbsp;/&nbsp;</span> <span>${ctx.max.name}</span>`;
-
-    popover.trigger.innerHTML = formattedText;
-  };
-
-  /** @type {AltDropdownFunctions["onUpdate"]} */
-  const onUpdate = (name, value) => {
-    ctx.selected.name = name;
-    ctx.selected.index = ctx.availableOptions.findIndex(
-      (option) => option.value === value,
-    );
-
-    ctx.onTextUpdate(name);
-  };
-
-  /** @type {AltDropdownFunctions["onSwitch"]} */
-  const onSwitch = () => {
-    ctx.onTextUpdate = onTextUpdate;
-    ctx.onUpdate = onUpdate;
-    ctx.onRender = onRender;
-
-    if (ctx.max.index < ctx.selected.index) {
-      ctx.selected.index = ctx.max.index;
-      ctx.selected.name = ctx.max.name;
-    }
-
-    ctx.currentIndex = ctx.selected.index;
-    ctx.onTextUpdate(ctx.selected.name);
-    ctx.onRender();
-  };
-
-  /** @type {AltDropdownFunctions["onRender"]} */
-  const onRender = () => {
-    const itemElements = ctx.availableOptions.map((option, i) =>
-      createDropdownItems(option, i),
-    );
-
-    renderDropDownItems(popover.popover, itemElements);
-  };
-
-  return {
-    onTextUpdate,
-    onUpdate,
-    onSwitch,
-    onRender,
-  };
+  return { dropdown, setDisplayMode };
 }
 
 /**

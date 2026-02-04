@@ -168,6 +168,10 @@ body.player-mode .persistent-elements-container {
         & .os-dropdown-trigger {
             display: flex;
             justify-content: start;
+
+            & > span {
+                display: flex;
+            }
         }
 
         & .os-dropdown-alt-input {

@@ -183,7 +183,6 @@ function createSnapControls(rightSection) {
   const snapToggle = createToggleButton(
     { label: gettext("free-movement"), fn: toggleSnapEnabled },
     { label: gettext("snapping"), fn: toggleSnapEnabled },
-    true,
   );
 
   const snapLabel = document.createElement("span");
@@ -198,18 +197,18 @@ function createSnapControls(rightSection) {
         { name: gettext("Pixels"), value: "pixels" },
       ],
       onUpdate: (_name, value) => {
-        const setAltMode = snapModeToggle.rightDropdown.setMode;
+        const setAltDisplayMode = snapModeToggle.rightDropdown.setDisplayMode;
         if (value === "grid") {
-          setAltMode("set-value");
+          setAltDisplayMode("divided");
         } else {
-          setAltMode("set-max");
+          setAltDisplayMode("reg");
         }
       },
       position: { row: "top", column: "center" },
     },
     {
       type: "alt",
-      mode: "set-value",
+      displayMode: "divided",
       options: [
         { name: "1", value: "1" },
         { name: "2", value: "2" },
@@ -225,7 +224,7 @@ function createSnapControls(rightSection) {
         { name: "15", value: "15" },
         { name: "20", value: "20" },
         { name: "20", value: "20" },
-        { name: "24", value: "24", defaultMax: true },
+        { name: "24", value: "24", default: true },
         { name: "30", value: "30" },
         { name: "40", value: "40" },
         { name: "60", value: "60" },
@@ -236,77 +235,11 @@ function createSnapControls(rightSection) {
     },
   );
   /* TODO: Remove
-  const snapAmountGroup = document.createElement("div");
-  snapAmountGroup.className = "snap-amount-group";
-  snapAmountGroup.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid var(--bs-darker-gray);
-    border-radius: 4px;
-    padding: 2px 6px;
-    background: var(--bs-white);
-  `;
-
-  snapAmountPrefix = document.createElement("span");
-  snapAmountPrefix.style.cssText = `
-    font-weight: 600;
-    color: var(--bs-darkest-gray);
-    font-variant-numeric: tabular-nums;
-  `;
-
-  snapAmountSelect = document.createElement("select");
-  snapAmountSelect.className = "snap-amount-select";
-  snapAmountSelect.style.cssText = `
-    border: none;
-    outline: none;
-    font-size: 11px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    background: transparent;
-    appearance: none;
-    padding: 2px 16px 2px 6px;
-    min-width: 64px;
-    cursor: pointer;
-  `;
-
-  snapAmountSuffix = document.createElement("span");
-  snapAmountSuffix.style.cssText = `
-    font-weight: 600;
-    color: var(--bs-darkest-gray);
-  `;
-
-  snapAmountGroup.appendChild(snapAmountPrefix);
-  snapAmountGroup.appendChild(snapAmountSelect);
-
-  snapAmountManualInput = document.createElement("input");
-  snapAmountManualInput.type = "number";
-  snapAmountManualInput.min = "1";
-  snapAmountManualInput.step = "1";
-  snapAmountManualInput.style.cssText = `
-    width: 48px;
-    border: none;
-    outline: none;
-    font-size: 11px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    background: transparent;
-    display: none;
-  `;
-
   snapAmountManualInput.addEventListener("change", () => {
     const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
     snapAmountManualInput.value = sanitized.toString();
     setSnapSettings({ amount: sanitized });
   });
-
-  snapAmountManualInput.addEventListener("blur", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
-    snapAmountManualInput.value = sanitized.toString();
-  });
-
-  snapAmountGroup.appendChild(snapAmountManualInput);
-  snapAmountGroup.appendChild(snapAmountSuffix);
 
   snapAmountSelect.addEventListener("change", () => {
     const sanitized = sanitizeSnapAmount(snapAmountSelect.value);
