@@ -480,7 +480,7 @@ export function renderTemplateTable(modal, templates, onSelectCallback, options 
     const categoryTd = document.createElement("td");
     categoryTd.textContent = template.category
       ? template.category.name
-      : gettext("(none)");
+      : "-";
     tr.appendChild(categoryTd);
 
     const tagsTd = document.createElement("td");
