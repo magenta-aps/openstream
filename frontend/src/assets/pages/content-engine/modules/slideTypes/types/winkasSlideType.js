@@ -115,9 +115,9 @@ export const WinkasSlideType = {
       const items = (hidden.value || "").split(",").map((s) => s.trim()).filter(Boolean);
       items.forEach((it) => {
         const li = document.createElement("div");
-        li.className = "d-flex align-items-center gap-2 mb-1 skipped-event-item";
+        li.className = "d-flex align-items-center mb-1 skipped-event-item";
         li.dataset.value = it;
-        li.innerHTML = `<span class=\"badge bg-secondary\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
+        li.innerHTML = `<span class=\"badge bg-secondary py-2\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
         list.appendChild(li);
       });
     };
@@ -159,13 +159,15 @@ export const WinkasSlideType = {
       inputGroup.appendChild(addBtn);
 
       const help = document.createElement("div");
-      help.className = "form-text mb-2";
+      help.className = "mb-2 bg-secondary-accent p-2 rounded text-black";
       help.textContent = gettext(
         "Events with these exact titles will be hidden from the display.",
       );
 
       const list = document.createElement("div");
       list.id = "skipped-events-list";
+
+      list.className = "d-flex gap-2 flex-wrap";
 
       // Hidden input used by existing extractFormData
       const hidden = document.createElement("input");
@@ -315,9 +317,9 @@ export const WinkasSlideType = {
       const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean);
       items.forEach((it) => {
         const li = document.createElement("div");
-        li.className = "d-flex align-items-center gap-2 mb-1 skipped-event-item";
+        li.className = "d-flex align-items-center mb-1 skipped-event-item";
         li.dataset.value = it;
-        li.innerHTML = `<span class=\"badge bg-secondary\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
+        li.innerHTML = `<span class=\"badge bg-secondary py-2\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
         skippedList.appendChild(li);
       });
     };

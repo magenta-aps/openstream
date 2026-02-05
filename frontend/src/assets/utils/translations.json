@@ -4096,5 +4096,41 @@
   },
   "": {
     "da": "Emergency Slideshows"
+  },
+  "iframe": {
+    "da": "iframe"
+  },
+  "API & RSS": {
+    "da": "API & RSS"
+  },
+  "Widgets": {
+    "da": "Widgets"
+  },
+  "WinKAS - Bookingoversigt": {
+    "da": "WinKAS - Bookingoversigt"
+  },
+  "KMD - Foreningsportalen": {
+    "da": "KMD - Foreningsportalen"
+  },
+  "Speed Admin": {
+    "da": "Speed Admin"
+  },
+  "Frontdesk LTK Borgerservice": {
+    "da": "Frontdesk LTK Borgerservice"
+  },
+  "Dreambroker": {
+    "da": "Dreambroker"
+  },
+  "DR Video Streams": {
+    "da": "DR Video Streams"
+  },
+  "Skipped Events": {
+    "da": "Skjul begivenheder"
+  },
+  "Add event title, press + to add": {
+    "da": "Tilføj begivenhedstitel, tryk + for at tilføje"
+  },
+  "Events with these exact titles will be hidden from the display.": {
+    "da": "Begivenheder med disse præcise titler vil blive skjult på skærmen."
   }
 }
