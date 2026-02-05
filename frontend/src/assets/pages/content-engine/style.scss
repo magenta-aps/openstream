@@ -1938,8 +1938,8 @@ span {
 }
 
 #unifiedTemplatePreview {
-  width: 44vw;
-  height: 24.75vw;
+  flex: 1;
+  height: 100%;
 }
 
 #templateSlideSection {
@@ -1948,6 +1948,15 @@ span {
 
 #elementLinkDropdown {
   max-width: 200px;
+}
+
+.template-preview-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #img-align-left-btn,
@@ -1961,7 +1970,7 @@ span {
 }
 
 #template-list-table {
-  max-height: 300px;
+  flex: 1;
   overflow-y: auto;
 }
 
@@ -2147,6 +2156,15 @@ span {
   margin: 0 !important;
 }
 
+.table-active {
+  --bs-table-bg-state: #{$lighter-gray} !important;
+}
+
+.table tbody tr td,
+.table tbody tr th {
+  padding: 1rem 0.5rem; // top/bottom 1rem, left/right 0.5rem
+}
+
 /* Persist element button - make pinned state look like hover state */
 #persist-element-btn.btn-primary {
   background-color: $primary !important;
@@ -2155,6 +2173,8 @@ span {
   transform: translateY(-1px);
   transition: all 0.2s ease;
 }
+
+
 
 #persist-element-btn.btn-primary:hover {
   transform: translateY(-2px);
@@ -2635,3 +2655,62 @@ span {
   color: $darkest-gray;
   margin: 0;
 }
+
+/* Unified slide modal layout */
+#unifiedSlideModal {
+  .modal-dialog {
+    --bs-modal-width: 95vw;
+  }
+
+  .unified-slide-modal__content .vr {
+    width: 2px;
+  }
+
+  .unified-slide-modal__content {
+    height: calc(70vh - 10rem);
+  }
+
+  .unified-slide-modal__filter-heading {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  #vertical-section-divider-unified-modal {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    height: 2px;
+  }
+
+  .unified-slide-modal__filter-icon {
+    font-size: 1.25rem;
+  }
+
+  .unified-slide-modal__table {
+    width: 44%;
+  }
+
+  .aspect-ratio-info {
+    padding: 1rem 1.5rem;
+  }
+
+  #aspect-ratio {
+    vertical-align: unset;
+  }
+
+  .unified-slide-modal__search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--bs-secondary-color);
+  }
+
+  .unified-slide-modal__section-heading {
+    background-color: var(--lightest-gray);
+  }
+}
+
+  #filtersSidebar {
+    overflow-y: auto;
+  }

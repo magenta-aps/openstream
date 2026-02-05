@@ -1,124 +1,125 @@
-{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
-{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
-<div class="modal fade"
-     id="unifiedSlideModal"
-     tabindex="-1"
-     aria-labelledby="unifiedSlideModalLabel">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title" id="unifiedSlideModalLabel">{% trans "Add Slide Menu" %}</h5>
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+    {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+    <div class="modal fade" id="unifiedSlideModal" tabindex="-1" aria-labelledby="unifiedSlideModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title" id="unifiedSlideModalLabel">{% trans "Select template" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label='{% trans "Close" %}'></button>
-            </div>
-            <div class="modal-body">
-                <!-- Template Selection Section -->
-                <div id="templateSlideSection" class="mb-0">
-                    <div style="background-color: var(--lightest-gray)"
-                         class="py-1 d-flex justify-content-between align-items-center">
-                        <p class="semibold my-0">{% trans "Select a template to create a new slide from" %}</p>
-                        <p class="semibold my-0">
-                            {% trans "Showing templates compatible with aspect ratio:" %}
-                            <span class="badge fs-large bg-info text-dark">
-                                <span id="aspect-ratio"></span>&nbsp;<span class="material-symbols-outlined me-1">aspect_ratio</span>
-                            </span>
-                        </p>
-                    </div>
-                    <div class="row border-top">
-                        <!-- Sidebar: Category Filters -->
-                        <div class="col-md-1 border-end rounded p-3" id="categorySidebar">
-                            <!-- Sidebar checkboxes will be injected here via JS -->
-                        </div>
-                        <!-- Main Content: Table and Preview -->
-                        <div class="col-md-11">
-                            <div class="row">
-                                <!-- Table Column -->
-                                <div class="col-md-6 p-3">
-                                    <!-- Search Bar -->
-                                    <div class="mb-3">
-                                        <input type="text"
-                                               id="templateSearch"
-                                               class="form-control"
-                                               placeholder='{% trans "🔎 Search by name, category or tags..." %}'>
-                                    </div>
-                                    <!-- Template List Table -->
-                                    <div id="template-list-table" class="table-responsive">
-                                        <table class="table table-hover table-bordered" id="unifiedTemplateTable">
-                                            <thead>
-                                                <tr>
-                                                    <th role="button" data-sort="name">
-                                                        <span class="material-symbols-outlined me-1">signature</span>{% trans "Name" %}
-                                                    </th>
-                                                    <th role="button" data-sort="category">
-                                                        <span class="material-symbols-outlined me-1">category</span>{% trans "Category" %}
-                                                    </th>
-                                                    <th role="button" data-sort="tags">
-                                                        <span class="material-symbols-outlined me-1">shoppingmode</span>{% trans "Tags" %}
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Rows will be added via JS -->
-                                            </tbody>
-                                        </table>
-                                        <div id="no-templates-found-alert" class="alert alert-primary d-none">{% trans "No templates found" %}</div>
+                </div>
+                <div class="modal-body">
+                    <div id="templateSlideSection" class="mb-0" >
+                        <div class="d-flex gap-4 unified-slide-modal__content">
+                            <!-- Filters -->
+                            <div class="rounded gap-4 d-flex flex-column h-100" id="filtersSidebar">
+                                <!-- Category Filters -->
+                                <div>
+                                    <h6 class="secondary d-flex align-items-center justify-content-between unified-slide-modal__filter-heading" data-bs-toggle="collapse" data-bs-target="#category-filter-collapse" aria-expanded="false" aria-controls="category-filter-collapse">
+                                        <span>{% trans "Filter by Category" %}</span>
+                                        <span class="material-symbols-outlined unified-slide-modal__filter-icon">expand_more</span>
+                                    </h6>
+                                    <div id="category-filter-collapse" class="collapse">
+                                        <div id="category-filter">
+                                            <!-- Sidebar checkboxes will be injected here via JS -->
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Preview Column -->
-                                <div class="col-md-6">
-                                    <div id="unifiedTemplatePreview"
-                                         class="bg-light p-1 border rounded d-flex align-items-center justify-content-center">
-                                        <!-- Preview content will be loaded here -->
+                                <!-- Tags Filters -->
+                                <div>
+                                    <h6 class="secondary d-flex align-items-center justify-content-between unified-slide-modal__filter-heading" data-bs-toggle="collapse" data-bs-target="#tags-filter-collapse" aria-expanded="false" aria-controls="tags-filter-collapse">
+                                        <span>{% trans "Filter by Tags" %}</span>
+                                        <span class="material-symbols-outlined unified-slide-modal__filter-icon">expand_more</span>
+                                    </h6>
+                                    <div id="tags-filter-collapse" class="collapse">
+                                        <div id="tags-filter" class="d-flex flex-column gap-1" aria-label="Template tags filter">
+                                            <!-- Sidebar tag checkboxes will be injected here via JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Aspect Ratio Filters -->
+                                <div class="d-none" id="aspect-ratio-filters">
+                                    <h6 class="secondary d-flex align-items-center justify-content-between unified-slide-modal__filter-heading" data-bs-toggle="collapse" data-bs-target="#aspect-ratio-filter-collapse" aria-expanded="false" aria-controls="aspect-ratio-filter-collapse">
+                                        <span>{% trans "Filter by Aspect Ratio" %}</span>
+                                        <span class="material-symbols-outlined unified-slide-modal__filter-icon">expand_more</span>
+                                    </h6>
+                                    <div id="aspect-ratio-filter-collapse" class="collapse">
+                                        <div id="aspect-ratio-filter" class="d-flex flex-column">
+                                            <!-- Sidebar checkboxes will be injected here via JS -->
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="vr bg-gray text-gray"></div>
+                            <!-- Table -->
+                            <div class="ms-1 d-flex flex-column h-100 unified-slide-modal__table">
+                                <p class="semibold my-0 border bg-secondary-accent-lighter border-secondary-accent-hover rounded mb-3 aspect-ratio-info">
+                                    {% trans "Showing templates compatible with aspect ratio " %}
+                                        <span id="aspect-ratio"></span>
+                                </p>
+                                <!-- Search Bar -->
+                                <div class="mb-3 position-relative">
+                                    <span class="material-symbols-outlined unified-slide-modal__search-icon">search</span>
+                                    <input type="text" id="templateSearch" class="form-control ps-5"
+                                        placeholder='{% trans "Search by name, category or tags" %}'>
+                                </div>
+                                <!-- Template List Table -->
+                                <div id="template-list-table" class="table-responsive">
+                                    <table class="table table-hover table-borderless" id="unifiedTemplateTable">
+                                        <thead>
+                                            <tr>
+                                                <th role="button" data-sort="name">{% trans "Name" %}
+                                                </th>
+                                                <th role="button" data-sort="category">{% trans "Category" %}</th>
+                                                <th role="button" data-sort="tags">{% trans "Tags" %}</th>
+                                                <th role="button" data-sort="tags" class="aspect-ratio-th d-none">{%
+                                                    trans "Size&nbsp;" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Rows will be added via JS -->
+                                        </tbody>
+                                    </table>
+                                    <div id="no-templates-found-alert" class="alert alert-primary d-none">{% trans "No
+                                        templates found" %}</div>
+                                </div>
+                            </div>
+                            <!-- Preview -->
+                            <div id="unifiedTemplatePreview"
+                                class="bg-light border d-flex align-items-center justify-content-center h-100">
+                            </div>
                         </div>
-                        <p style="background-color: var(--lightest-gray)"
-                           class="px-3 py-2 border-top border-bottom">
-                            <strong>{% trans "Enter name and duration for the slide" %}</strong>
-                        </p>
+                        <hr id="vertical-section-divider-unified-modal" class="bg-gray text-gray">
                         <div class="row">
+                            <p class="pt-2 pb-1 unified-slide-modal__section-heading"><strong>{% trans "Name and duration" %}</strong>
+                            </p>
                             <div class="col-md-6">
                                 <div>
-                                    <label for="templateSlideName" class="form-label">
-                                        <strong><span class="material-symbols-outlined">signature</span> {% trans "Slide Name" %}
-                                        </strong>
+                                    <label for="templateSlideName" class="form-label">{% trans "Slide Name" %}
                                     </label>
-                                    <input type="text"
-                                           class="form-control"
-                                           id="templateSlideName"
-                                           placeholder='{% trans "Enter slide name" %}'>
+                                    <input type="text" class="form-control" id="templateSlideName"
+                                        placeholder='{% trans "Enter slide name" %}'>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div>
-                                    <label for="templateSlideDuration" class="form-label">
-                                        <strong><span class="material-symbols-outlined">timer</span> {% trans "Duration (seconds)" %}
-                                        </strong>
+                                    <label for="templateSlideDuration" class="form-label">{% trans "Duration (seconds)"
+                                        %}
                                     </label>
-                                    <input type="number"
-                                           class="form-control"
-                                           id="templateSlideDuration"
-                                           value="5">
+                                    <input type="number" class="form-control" id="templateSlideDuration" value="5">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- End Modal Body -->
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <span class="material-symbols-outlined">cancel</span> {% trans "Cancel" %}
-                </button>
-                <button type="button" class="btn btn-primary" id="unifiedSaveSlideBtn">
-                    <span class="material-symbols-outlined">add</span> {% trans "Add Slide" %}
-                </button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <span class="material-symbols-outlined">cancel</span> {% trans "Cancel" %}
+                    </button>
+                    <button type="button" class="btn btn-primary" id="unifiedSaveSlideBtn">
+                        <span class="material-symbols-outlined">add</span> {% trans "Add Slide" %}
+                    </button>
+                </div>
             </div>
         </div>
-        <!-- End Modal Content -->
     </div>
-    <!-- End Modal Dialog -->
-</div>

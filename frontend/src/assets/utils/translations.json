@@ -3991,5 +3991,110 @@
   },
   "straight-parallelogram-inverse": {
     "da": "omvendt lige parallelogram"
+  },
+  "Grid": {
+    "da": "Gitter"
+  },
+  "Grid size": {
+    "da": "Gitterstørrelse"
+  },
+  "Toggle Snap": {
+    "da": "Slå snap til/fra"
+  },
+  "Snap": {
+    "da": "Snap"
+  },
+  "Cells": {
+    "da": "Celler"
+  },
+  "Division": {
+    "da": "Inddeling"
+  },
+  "Snap: On": {
+    "da": "Snap: Til"
+  },
+  "cells": {
+    "da": "celler"
+  },
+  "Store": {
+    "da": "Store"
+  },
+  "Play content": {
+    "da": "Afspil indhold"
+  },
+  "Last autosave": {
+    "da": "Sidste autogem"
+  },
+  "Undo/Redo": {
+    "da": "Fortryd/Gendan"
+  },
+  "Change Image": {
+    "da": "Skift billede"
+  },
+  "Open Editor": {
+    "da": "Åbn editor"
+  },
+  "Image Editor": {
+    "da": "Billededitor"
+  },
+  "Loading": {
+    "da": "Indlæser"
+  },
+  "Preparing editor...": {
+    "da": "Forbereder editor..."
+  },
+  "Save Edited Image": {
+    "da": "Gem redigeret billede"
+  },
+  "Global Template Thumbnail (optional)": {
+    "da": "Global skabelon miniaturebillede (valgfrit)"
+  },
+  "Upload a thumbnail image to help other editors recognize this global template. Images up to 1 MB are embedded as data URLs.": {
+    "da": "Upload et miniaturebillede for at hjælpe andre redaktører med at genkende denne globale skabelon. Billeder op til 1 MB indlejres som data-URL'er."
+  },
+  "No thumbnail selected.": {
+    "da": "Intet miniaturebillede valgt."
+  },
+  "Choose Image": {
+    "da": "Vælg billede"
+  },
+  "Remove Thumbnail": {
+    "da": "Fjern miniaturebillede"
+  },
+  "Select template": {
+    "da": "Vælg skabelon"
+  },
+  "Filter by Tags": {
+    "da": "Filtrer efter tags"
+  },
+  "Filter by Aspect Ratio": {
+    "da": "Filtrer efter størrelsesforhold"
+  },
+  "Showing templates compatible with aspect ratio ": {
+    "da": "Viser skabeloner kompatible med størrelsesforholdet"
+  },
+  "Size ": {
+    "da": "Størrelse "
+  },
+  "Name and duration": {
+    "da": "Navn og varighed"
+  },
+  " Add Mask": {
+    "da": " Tilføj maske"
+  },
+  "Search by name, category or tags": {
+    "da": "Søg efter navn, kategori eller tags"
+  },
+  "Up to date": {
+    "da": "Opdateret"
+  },
+  "angled-top-square": {
+    "da": "vinklet top-kvadrat"
+  },
+  "Additional Tags": {
+    "da": "Yderligere tags"
+  },
+  "": {
+    "da": "Emergency Slideshows"
   }
 }

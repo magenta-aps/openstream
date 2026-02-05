@@ -454,6 +454,8 @@ export async function initSuborgTemplateEditor(suborgIdToUse) {
   suborgId = suborgIdToUse;
   store.editorMode = "suborg_templates";
   store.globalTemplateContext = false;
+  const templateEditorLink  = document.querySelector('a[href="/manage-templates?mode=template_editor"]');
+  templateEditorLink.href = '/manage-templates?mode=suborg_templates';
   try {
     // Ensure 'suborg_templates' branch exists and get its ID
     const suborgTemplatesBranchId = await ensureSuborgTemplatesBranch(suborgId);
@@ -537,6 +539,4 @@ export async function deleteSuborgTemplate(templateId) {
   }
 }
 
-const templateEditorLink  = document.querySelector('a[href="/manage-templates?mode=template_editor"]');
 
-  templateEditorLink.href = '/manage-templates?mode=suborg_templates';
