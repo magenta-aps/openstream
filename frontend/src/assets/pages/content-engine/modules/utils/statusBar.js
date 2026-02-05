@@ -172,8 +172,20 @@ function createSnapControls(rightSection) {
 
   // Snap toggle button (on/off)
   const snapToggle = createToggleButton(
-    { label: gettext("free-movement"), fn: toggleSnapEnabled },
-    { label: gettext("snapping"), fn: toggleSnapEnabled },
+    {
+      label: gettext("free-movement"),
+      fn: () => {
+        toggleSnapEnabled();
+        snapModeToggle.toggleDisabled();
+      },
+    },
+    {
+      label: gettext("snapping"),
+      fn: () => {
+        toggleSnapEnabled();
+        snapModeToggle.toggleDisabled();
+      },
+    },
   );
 
   const snapLabel = document.createElement("span");
@@ -214,7 +226,6 @@ function createSnapControls(rightSection) {
         { name: "12", value: "12" },
         { name: "15", value: "15" },
         { name: "20", value: "20" },
-        { name: "20", value: "20" },
         { name: "24", value: "24", default: true },
         { name: "30", value: "30" },
         { name: "40", value: "40" },
@@ -227,6 +238,7 @@ function createSnapControls(rightSection) {
       },
       position: { row: "top", column: "center" },
     },
+    true,
   );
 
   snapControlsContainer.appendChild(snapToggle.container);

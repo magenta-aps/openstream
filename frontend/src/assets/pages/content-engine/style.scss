@@ -148,6 +148,19 @@ body.player-mode .persistent-elements-container {
     font-size: 0.75rem;
     width: 6rem;
 
+    &.os-dropdown-disabled {
+        background-color: $gray;
+
+        & span,
+        & i {
+            color: $dark-gray;
+        }
+
+        i {
+            pointer-events: none;
+        }
+    }
+
     & i {
         font-size: 14px;
     }

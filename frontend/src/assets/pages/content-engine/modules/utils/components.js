@@ -193,13 +193,22 @@ export function createToggleButton(onOptions, offOptions, size, isAlt) {
  * @property {(name: string, value: string) => void} DropDownOptionsPrimitive.onUpdate
  * @property {Array<{name: string, value: string}>} DropDownOptionsPrimitive.options
  * @property {PopoverOptions["position"]} DropDownOptionsPrimitive.position
+ * @property {boolean} [DropDownOptionsPrimitive.isDisabled]
  */
 
 /** @typedef {DropDownOptionsPrimitive & ComponentOptions} DropdownOptions */
 
 /**
+ * @typedef {Object} DropdownPrimitive
+ * @property {HTMLDivElement} DropdownPrimitive.element
+ * @property {{trigger: HTMLButtonElement, popover: HTMLDivElement}} DropdownPrimitive.popover
+ * @property {() => void} DropdownPrimitive.toggleDisabled
+ */
+
+/**
  * @param {DropdownOptions} dropdownOptions
  * @param {boolean} [indexItems=false] - if set to true, each item will be index by a "data-index" attribute
+ * @returns {DropdownPrimitive}
  */
 export function createDropdownPrimitive(dropdownOptions, indexItems = false) {
   const dropdown = createElement("div", {
@@ -243,7 +252,22 @@ export function createDropdownPrimitive(dropdownOptions, indexItems = false) {
   dropdown.appendChild(popover.trigger);
   dropdown.appendChild(popover.popover);
 
-  return { dropdown, popover };
+  const toggleDisabled = () => {
+    const disabledClass = "os-dropdown-disabled";
+    if (dropdown.classList.contains(disabledClass)) {
+      dropdown.classList.remove(disabledClass);
+      popover.trigger.disabled = false;
+    } else {
+      dropdown.classList.add(disabledClass);
+      popover.trigger.disabled = true;
+    }
+  };
+  console.log(dropdownOptions);
+  if (dropdownOptions.isDisabled) {
+    toggleDisabled();
+  }
+
+  return { element: dropdown, popover, toggleDisabled };
 }
 
 /**
@@ -285,7 +309,7 @@ function renderDropDownItems(popover, optionElements) {
   });
 }
 
-/** @typedef {{dropdown: HTMLDivElement}} Dropdown */
+/** @typedef {DropdownPrimitive} Dropdown */
 
 /**
  * @param {DropdownOptions} dropdownOptions
@@ -295,13 +319,13 @@ export function createDropdown(dropdownOptions) {
   const onUpdatePrimitive = dropdownOptions.onUpdate;
   /** @type (name: string) => void */
   const setTextOnUpdate = (name) => {
-    popover.trigger.innerHTML = `
+    dropdown.popover.trigger.innerHTML = `
         <span>${name}</span>
 
         <i class="material-symbols-outlined">arrow_drop_down</i>
       `;
   };
-  const { dropdown, popover } = createDropdownPrimitive({
+  const dropdown = createDropdownPrimitive({
     ...dropdownOptions,
     onUpdate: (name, value) => {
       setTextOnUpdate(name);
@@ -311,19 +335,11 @@ export function createDropdown(dropdownOptions) {
   // set text initially
   setTextOnUpdate(dropdownOptions.options.at(0)?.name);
 
-  return { dropdown };
+  return dropdown;
 }
 
 /** @typedef {"reg" | "divided"} AltDropdownDisplayMode */
-/** @typedef {{dropdown: HTMLDivElement, setDisplayMode: (mode: AltDropdownDisplayMode) => void}} DropdownAlt */
-
-/**
- * @typedef {Object} AltDropdownFunctions
- * @property {(text: string) => void} AltDropdownFunctions.onTextUpdate
- * @property {(name: string, value: string) => void} AltDropdownFunctions.onUpdate
- * @property {() => void} AltDropdownFunctions.onSwitch
- * @property {() => void} AltDropdownFunctions.onRender
- */
+/** @typedef {DropdownPrimitive & {setDisplayMode: (mode: AltDropdownDisplayMode) => void}} DropdownAlt */
 
 /**
  * @typedef {Object} AltDropdownOptionsPrimitive
@@ -370,7 +386,7 @@ export function createAltDropdown(dropdownOptions) {
       text = `<span><span class="os-dropdown-alt-input">1 / &nbsp</span>${name}</span>`;
     }
 
-    popover.trigger.innerHTML = text;
+    dropdown.popover.trigger.innerHTML = text;
   };
 
   const onUpdatePrimitive = dropdownOptions.onUpdate;
@@ -384,21 +400,21 @@ export function createAltDropdown(dropdownOptions) {
     onUpdatePrimitive(name, value);
   };
 
-  const { dropdown, popover } = createDropdownPrimitive(
+  const dropdown = createDropdownPrimitive(
     {
       ...dropdownOptions,
       onUpdate,
     },
     true,
   );
-  dropdown.classList.add("os-dropdown-alt");
+  dropdown.element.classList.add("os-dropdown-alt");
 
   // init text
   onTextupdate(dropdownOptions.options.at(currentIndex)?.name);
 
   /** @type {(i: number) => void} */
   const onIncrDecr = (i) => {
-    const target = dropdown.querySelector(`[data-index="${i}"]`);
+    const target = dropdown.element.querySelector(`[data-index="${i}"]`);
 
     onUpdate(target.textContent, target.getAttribute("data-value"));
   };
@@ -407,7 +423,7 @@ export function createAltDropdown(dropdownOptions) {
     classNames: ["arrow", "material-symbols-outlined"],
     content: "keyboard_arrow_up",
   });
-  incrementBtn.addEventListener("click", () => {
+  const onIncrement = () => {
     currentIndex += 1;
 
     if (currentIndex > size) {
@@ -415,19 +431,37 @@ export function createAltDropdown(dropdownOptions) {
     }
 
     onIncrDecr(currentIndex);
-  });
+  };
+  incrementBtn.addEventListener("click", onIncrement);
+
   const decrementBtn = createElement("i", {
     classNames: ["arrow", "material-symbols-outlined"],
     content: "keyboard_arrow_down",
   });
-  decrementBtn.addEventListener("click", () => {
+  const onDecrement = () => {
     currentIndex -= 1;
     if (currentIndex < 0) {
       currentIndex = size - 1;
     }
 
     onIncrDecr(currentIndex);
-  });
+  };
+  decrementBtn.addEventListener("click", onDecrement);
+
+  /*
+  const toggleDisabledPrimitive = dropdown.toggleDisabled;
+  const toggleDisabled = () => {
+    toggleDisabledPrimitive();
+
+    if (dropdown.element.classList.contains("os-dropdown-disabled")) {
+      incrementBtn.removeEventListener("click", onIncrement);
+      decrementBtn.removeEventListener("click", onDecrement);
+    } else {
+      incrementBtn.addEventListener("click", onIncrement);
+      decrementBtn.addEventListener("click", onDecrement);
+    }
+  };
+  */
 
   const arrowContainer = createElement("div", {
     classNames: ["arrow-container"],
@@ -435,9 +469,9 @@ export function createAltDropdown(dropdownOptions) {
   arrowContainer.appendChild(incrementBtn);
   arrowContainer.appendChild(decrementBtn);
 
-  dropdown.appendChild(arrowContainer);
+  dropdown.element.appendChild(arrowContainer);
 
-  return { dropdown, setDisplayMode };
+  return { ...dropdown, setDisplayMode };
 }
 
 /**
@@ -457,21 +491,37 @@ export function createAltDropdown(dropdownOptions) {
  * @param {DropdownOptionsMap[TLeft] & {type: TLeft}} leftOptions
  * @template {keyof DropdownMap} TRight
  * @param {DropdownOptionsMap[TRight] & {type: TRight}} rightOptions
- * @returns {{container: HTMLDivElement, leftDropdown: DropdownMap[TLeft], rightDropdown: DropdownMap[TRight]}}
+ * @param {boolean} [isDisabled] - Will override the disabled state of both dropdowns
+ * @returns {{container: HTMLDivElement, leftDropdown: DropdownMap[TLeft], rightDropdown: DropdownMap[TRight], toggleDisabled: () => void}}
  */
-export function createCoherentDropdown(leftOptions, rightOptions) {
+export function createCoherentDropdown(leftOptions, rightOptions, isDisabled) {
   const coherentContainer = createElement("div", {
     classNames: ["os-dropdown-coherent"],
   });
+
+  if (isDisabled) {
+    leftOptions.isDisabled = isDisabled;
+    rightOptions.isDisabled = isDisabled;
+  }
 
   const leftDropdown = getDropdownFromType(leftOptions);
 
   const rightDropdown = getDropdownFromType(rightOptions);
 
-  coherentContainer.appendChild(leftDropdown.dropdown);
-  coherentContainer.appendChild(rightDropdown.dropdown);
+  const toggleDisabled = () => {
+    leftDropdown.toggleDisabled();
+    rightDropdown.toggleDisabled();
+  };
 
-  return { container: coherentContainer, leftDropdown, rightDropdown };
+  coherentContainer.appendChild(leftDropdown.element);
+  coherentContainer.appendChild(rightDropdown.element);
+
+  return {
+    container: coherentContainer,
+    leftDropdown,
+    rightDropdown,
+    toggleDisabled,
+  };
 }
 
 /**
