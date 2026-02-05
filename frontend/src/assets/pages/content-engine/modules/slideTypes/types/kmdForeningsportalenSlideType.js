@@ -18,9 +18,9 @@ export const KmdForeningsportalenSlideType = {
 
   _locationsData: null,
 
-  // Helper method to parse comma-separated strings into arrays
-  _parseCommaSeparated(value) {
-    return (value || "").split(",").map((s) => s.trim()).filter(Boolean);
+  // Helper method to parse double-underscore separated strings into arrays
+  _parseSeparatedValues(value) {
+    return (value || "").split("__").map((s) => s.trim()).filter(Boolean);
   },
 
   async fetchLocationsData() {
@@ -110,7 +110,7 @@ export const KmdForeningsportalenSlideType = {
     const list = document.getElementById("skipped-events-list");
     if (!hidden || !list) return;
 
-    const items = this._parseCommaSeparated(hidden.value);
+    const items = this._parseSeparatedValues(hidden.value);
     
     list.innerHTML = items.map(item => `
       <div class="d-flex align-items-center mb-1 skipped-event-item" data-value="${item}">
@@ -266,10 +266,10 @@ export const KmdForeningsportalenSlideType = {
       const val = elements.skippedTextField.value.trim();
       if (!val) return;
       
-      const items = this._parseCommaSeparated(elements.skippedField.value);
+      const items = this._parseSeparatedValues(elements.skippedField.value);
       if (!items.includes(val)) {
         items.push(val);
-        elements.skippedField.value = items.join(",");
+        elements.skippedField.value = items.join("__");
         elements.skippedTextField.value = "";
         this._renderSkippedEventsList();
       }
@@ -290,9 +290,9 @@ export const KmdForeningsportalenSlideType = {
         const item = e.target.closest(".skipped-event-item");
         if (!item) return;
         
-        const items = this._parseCommaSeparated(elements.skippedField.value)
+        const items = this._parseSeparatedValues(elements.skippedField.value)
           .filter((i) => i !== item.dataset.value);
-        elements.skippedField.value = items.join(",");
+        elements.skippedField.value = items.join("__");
         this._renderSkippedEventsList();
       });
     }
@@ -362,7 +362,7 @@ export const KmdForeningsportalenSlideType = {
   async generateSlide(config) {
     const params = {
       location: config.location || "",
-      sub_locations: (config.sub_locations || []).join(","),
+      sub_locations: (config.sub_locations || []).join("__"),
       // marquee mode
       continuous_scroll: "1",
       scroll_speed: config.scroll_speed || 5,

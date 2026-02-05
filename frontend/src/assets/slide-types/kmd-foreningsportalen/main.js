@@ -10,7 +10,7 @@ import InfiniteMarquee from "vanilla-infinite-marquee";
 const config = {
   location: queryParams.location || "",
   sub_locations: queryParams.sub_locations
-    ? queryParams.sub_locations.split(",")
+    ? queryParams.sub_locations.split("__")
     : [],
   // Get skipped events from URL, default to empty string
   skipped_events: queryParams.skipped_events || "",
@@ -116,7 +116,7 @@ function filterSkippedEvents(bookings) {
 
   // Split, trim, and lowercase the skipped events list
   const skippedList = config.skipped_events
-    .split(",")
+    .split("__")
     .map((name) => name.trim().toLowerCase())
     .filter((name) => name.length > 0);
 
@@ -135,7 +135,6 @@ function filterSkippedEvents(bookings) {
 
 async function fetchAndDisplayBookings() {
   try {
-    const subLocationsParam = config.sub_locations.join(",");
     // KMD backend expects a POST to /api/kmd/ with JSON body { location, sub_locations }
     const response = await fetch(`${baseUrl}/api/kmd/`, {
       method: "POST",
