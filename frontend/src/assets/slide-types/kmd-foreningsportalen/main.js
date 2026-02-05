@@ -12,6 +12,8 @@ const config = {
   sub_locations: queryParams.sub_locations
     ? queryParams.sub_locations.split(",")
     : [],
+  // Get skipped events from URL, default to empty string
+  skipped_events: queryParams.skipped_events || "",
 };
 
 // Marquee options from query params
@@ -103,6 +105,34 @@ async function fetchLocationData() {
   }
 }
 
+/**
+ * Filters the list of bookings based on the skipped_events config.
+ * Performs a case-insensitive match on the booking Activity (subject).
+ */
+function filterSkippedEvents(bookings) {
+  if (!config.skipped_events || !Array.isArray(bookings)) {
+    return bookings;
+  }
+
+  // Split, trim, and lowercase the skipped events list
+  const skippedList = config.skipped_events
+    .split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter((name) => name.length > 0);
+
+  if (skippedList.length === 0) {
+    return bookings;
+  }
+
+  return bookings.filter((booking) => {
+    // Check Activity/ActivityType against skipped list
+    const subject = (booking.Activity || booking.ActivityType || "").trim().toLowerCase();
+    
+    // If subject is in the skipped list, filter it out (return false)
+    return !skippedList.includes(subject);
+  });
+}
+
 async function fetchAndDisplayBookings() {
   try {
     const subLocationsParam = config.sub_locations.join(",");
@@ -127,6 +157,12 @@ async function fetchAndDisplayBookings() {
     }
 
     const data = await response.json();
+    
+    // Filter data before displaying
+    if (data && data.data) {
+      data.data = filterSkippedEvents(data.data);
+    }
+
     // KMD returns shape like { loc_name: "Facility X", data: [...], is_sub_loc: bool }
     displayBookingsInCarousel(data);
   } catch (error) {
@@ -183,12 +219,37 @@ function displayBookingsInCarousel(locationBookings) {
 
   bookingBody.style.height = "100%";
 
-  new InfiniteMarquee({
-    element: "#booking-body",
-    speed: pxPrSec,
-    direction: "top",
-    duplicateCount: 10,
-  });
+  const headerHeight = document.getElementById("header").clientHeight;
+
+  if (list.clientHeight > (bookingBody.clientHeight - headerHeight)) {
+    // Add one empty booking entry to the end of the list if the marquee is running.
+    // This creates a visual spacer when the list loops.
+    const emptyBooking = document.createElement("div");
+    emptyBooking.className = "booking-entry empty-booking-spacer";
+
+    // Add minimal structure to mimic a real booking's height/padding
+    emptyBooking.innerHTML = `
+      <div class="booking-details">
+        <div class="time-column">
+          <div class="start-time">&nbsp;</div>
+          <div class="time-divider" style="visibility: hidden;"></div>
+          <div class="end-time">&nbsp;</div>
+        </div>
+        <div class="booking-info">
+          <div class="booking-title">&nbsp;</div>
+          <div class="booking-location">&nbsp;</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(emptyBooking);
+
+    new InfiniteMarquee({
+      element: "#booking-body",
+      speed: pxPrSec,
+      direction: "top",
+      duplicate: 0, // Set to 0 because we handle content duplication or just scrolling loop
+    });
+  }
 }
 
 // KMD time strings are like "HH:MM" (FomKlo/TomKlo). Parse them as today with given time.
