@@ -18,6 +18,11 @@ export const WinkasSlideType = {
 
   _locationsData: null,
 
+  // Helper method to parse comma-separated strings into arrays
+  _parseCommaSeparated(value) {
+    return (value || "").split(",").map((s) => s.trim()).filter(Boolean);
+  },
+
   async fetchLocationsData() {
     if (this._locationsData) return this._locationsData;
 
@@ -31,11 +36,7 @@ export const WinkasSlideType = {
         },
       });
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch locations data: ${response.statusText}`,
-        );
-      }
+      if (!response.ok) throw new Error(`Failed to fetch locations data: ${response.statusText}`);
 
       this._locationsData = await response.json();
       return this._locationsData;
@@ -46,27 +47,24 @@ export const WinkasSlideType = {
   },
 
   getDefaultConfig(existingConfig = {}) {
-    const config = existingConfig || {};
     return {
-      location: config.location || "",
-      sub_locations: config.sub_locations || [],
-      // Marquee-only: we no longer offer a paginated mode, only scroll speed (1-10)
-      scroll_speed: config.scroll_speed || 5,
-      skipped_events: config.skipped_events || "",
+      location: existingConfig.location || "",
+      sub_locations: existingConfig.sub_locations || [],
+      scroll_speed: existingConfig.scroll_speed || 5,
+      skipped_events: existingConfig.skipped_events || "",
     };
   },
 
   async generateForm(existingConfig = null) {
     try {
-      const locationsData = await this.fetchLocationsData();
-      this.currentLocationsData = locationsData;
+      this.currentLocationsData = await this.fetchLocationsData();
       const config = this.getDefaultConfig(existingConfig);
 
       return await SlideTypeUtils.loadFormTemplateWithCallback(
         "/slide-types/winkas-form",
         "WinKAS Form",
         () => {
-          translateHTML(); // Translate after loading template
+          translateHTML();
           this.populateFormData(config);
           this.setupFormEventListeners();
         },
@@ -83,286 +81,182 @@ export const WinkasSlideType = {
   populateFormData(config) {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
-
-    // Inject and populate skipped events input
     this.ensureSkippedEventsInput(config.skipped_events);
 
-    // Populate marquee (scroll speed) control
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
 
-    if (scrollSpeedInput) {
-      scrollSpeedInput.value = config.scroll_speed || 5;
-    }
-    if (scrollSpeedValue) {
-      scrollSpeedValue.textContent = scrollSpeedInput
-        ? scrollSpeedInput.value
-        : config.scroll_speed || 5;
-    }
+    if (scrollSpeedInput) scrollSpeedInput.value = config.scroll_speed;
+    if (scrollSpeedValue) scrollSpeedValue.textContent = config.scroll_speed;
+  },
+
+  // Render skipped events list from hidden input value
+  _renderSkippedEventsList() {
+    const hidden = document.getElementById("skipped-events-input");
+    const list = document.getElementById("skipped-events-list");
+    if (!hidden || !list) return;
+
+    const items = this._parseCommaSeparated(hidden.value);
+    
+    list.innerHTML = items.map(item => `
+      <div class="d-flex align-items-center mb-1 skipped-event-item" data-value="${item}">
+        <span class="badge bg-secondary py-2">${item}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger remove-skipped-event" aria-label="Remove">&minus;</button>
+      </div>
+    `).join('');
   },
 
   ensureSkippedEventsInput(value) {
-    // If hidden input exists, update and re-render list
+    const container = document.getElementById("skipped-events-container");
     const existingHidden = document.getElementById("skipped-events-input");
-    const containerPlaceholder =
-      document.getElementById("skipped-events-container");
-
-    const renderListFromHidden = () => {
-      const hidden = document.getElementById("skipped-events-input");
-      const list = document.getElementById("skipped-events-list");
-      if (!hidden || !list) return;
-      list.innerHTML = "";
-      const items = (hidden.value || "").split(",").map((s) => s.trim()).filter(Boolean);
-      items.forEach((it) => {
-        const li = document.createElement("div");
-        li.className = "d-flex align-items-center mb-1 skipped-event-item";
-        li.dataset.value = it;
-        li.innerHTML = `<span class=\"badge bg-secondary py-2\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
-        list.appendChild(li);
-      });
-    };
-
+    
     if (existingHidden) {
       existingHidden.value = value || "";
-      // If list container exists, render from hidden
-      const list = document.getElementById("skipped-events-list");
-      if (list) renderListFromHidden();
+      this._renderSkippedEventsList();
       return;
     }
 
-    // Build UI: visible input + add button, list, and hidden input for form extraction
-    if (containerPlaceholder) {
-      const wrapper = document.createElement("div");
-      wrapper.className = "mb-3";
+    if (!container) return;
 
-      const label = document.createElement("label");
-      label.className = "form-label";
-      label.htmlFor = "skipped-events-input-field";
-      label.textContent = gettext("Skipped Events");
+    container.innerHTML = `
+      <div class="mb-3">
+        <label class="form-label" for="skipped-events-input-field">${gettext("Skipped Events")}</label>
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" id="skipped-events-input-field" placeholder="${gettext("Add event title, press + to add")}">
+          <button type="button" id="add-skipped-event-btn" class="btn btn-primary">+</button>
+        </div>
+        <div class="mb-2 bg-secondary-accent p-2 rounded text-black">${gettext("Events with these exact titles will be hidden from the display.")}</div>
+        <div id="skipped-events-list" class="d-flex gap-2 flex-wrap"></div>
+        <input type="hidden" id="skipped-events-input" value="${value || ""}">
+      </div>
+    `;
 
-      const inputGroup = document.createElement("div");
-      inputGroup.className = "d-flex gap-2 mb-2";
-
-      const input = document.createElement("input");
-      input.type = "text";
-      input.className = "form-control";
-      input.id = "skipped-events-input-field";
-      input.placeholder = gettext("Add event title, press + to add");
-
-      const addBtn = document.createElement("button");
-      addBtn.type = "button";
-      addBtn.id = "add-skipped-event-btn";
-      addBtn.className = "btn btn-primary";
-      addBtn.innerHTML = "+";
-
-      inputGroup.appendChild(input);
-      inputGroup.appendChild(addBtn);
-
-      const help = document.createElement("div");
-      help.className = "mb-2 bg-secondary-accent p-2 rounded text-black";
-      help.textContent = gettext(
-        "Events with these exact titles will be hidden from the display.",
-      );
-
-      const list = document.createElement("div");
-      list.id = "skipped-events-list";
-
-      list.className = "d-flex gap-2 flex-wrap";
-
-      // Hidden input used by existing extractFormData
-      const hidden = document.createElement("input");
-      hidden.type = "hidden";
-      hidden.id = "skipped-events-input";
-      hidden.value = value || "";
-
-      wrapper.appendChild(label);
-      wrapper.appendChild(inputGroup);
-      wrapper.appendChild(help);
-      wrapper.appendChild(list);
-      wrapper.appendChild(hidden);
-
-      containerPlaceholder.appendChild(wrapper);
-
-      renderListFromHidden();
-    }
+    this._renderSkippedEventsList();
   },
 
   populateLocationOptions(selectedLocation) {
     const locationSelect = document.getElementById("location-input");
     if (!locationSelect || !this.currentLocationsData) return;
 
-    locationSelect.innerHTML = `<option value="">${gettext("Select a location...")}</option>`;
+    locationSelect.innerHTML = "";
+    locationSelect.add(new Option(gettext("Select a location..."), ""));
 
     Object.entries(this.currentLocationsData).forEach(([key, value]) => {
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = value.location_name;
-      option.selected = key === selectedLocation;
-      locationSelect.appendChild(option);
+      locationSelect.add(new Option(value.location_name, key, false, key === selectedLocation));
     });
   },
 
   updateSubLocationOptions(selectedLocation, selectedSubLocations = []) {
-    const subLocationsSection = document.getElementById(
-      "sub-locations-section",
-    );
-    const multiSelectContainer = document.getElementById(
-      "multiSelectContainer",
-    );
+    const subLocationsSection = document.getElementById("sub-locations-section");
+    const multiSelectContainer = document.getElementById("multiSelectContainer");
     const noLocationsMessage = document.getElementById("no-locations-message");
+    const allSelector = document.getElementById("all-selector");
 
-    if (!selectedLocation || !this.currentLocationsData[selectedLocation]) {
-      if (subLocationsSection) subLocationsSection.style.display = "none";
-      return;
-    }
+    if (subLocationsSection) subLocationsSection.style.display = "none";
+    if (noLocationsMessage) noLocationsMessage.style.display = "none";
+    if (multiSelectContainer) multiSelectContainer.innerHTML = "";
+    if (allSelector) allSelector.checked = false;
 
-    // Show sub-locations section
+    const locationData = this.currentLocationsData?.[selectedLocation];
+    if (!locationData) return;
+
     if (subLocationsSection) subLocationsSection.style.display = "block";
 
-    // Clear existing sub-locations
-    if (multiSelectContainer) multiSelectContainer.innerHTML = "";
-    if (noLocationsMessage) noLocationsMessage.style.display = "none";
-
-    const bookables = this.currentLocationsData[selectedLocation]["bookables"];
-
+    const bookables = locationData.bookables;
     if (!bookables || Object.keys(bookables).length === 0) {
       if (noLocationsMessage) {
-        noLocationsMessage.textContent =
-          "No sub-locations available for this location.";
+        noLocationsMessage.textContent = "No sub-locations available for this location.";
         noLocationsMessage.style.display = "block";
       }
       return;
     }
 
-    // Create checkboxes in a grid layout
-    Object.entries(bookables).forEach(([key, value]) => {
-      const isChecked = selectedSubLocations.includes(key);
-      const checkboxHtml = `
+    if (multiSelectContainer) {
+      multiSelectContainer.innerHTML = Object.entries(bookables).map(([key, value]) => `
         <div class="col-md-6 col-lg-4 mb-2">
           <div class="form-check">
-            <input class="form-check-input sub_loc_box" type="checkbox" value="${key}" id="sub-loc-${key}" ${isChecked ? "checked" : ""}>
-            <label class="form-check-label" for="sub-loc-${key}">
-              ${value.name}
-            </label>
+            <input class="form-check-input sub_loc_box" type="checkbox" value="${key}" id="sub-loc-${key}" ${selectedSubLocations.includes(key) ? "checked" : ""}>
+            <label class="form-check-label" for="sub-loc-${key}">${value.name}</label>
           </div>
         </div>
-      `;
-      if (multiSelectContainer) {
-        multiSelectContainer.insertAdjacentHTML("beforeend", checkboxHtml);
-      }
-    });
+      `).join("");
+    }
+  },
 
-    // Reset "Select All" checkbox
-    const allSelector = document.querySelector("#all-selector");
-    if (allSelector) allSelector.checked = false;
+  // Helper to add event listener with cleanup tracking
+  _addListener(element, event, handler) {
+    if (!element) return;
+    element.addEventListener(event, handler);
+    this.eventListenerCleanup.push(() => element.removeEventListener(event, handler));
   },
 
   setupFormEventListeners() {
-    const locationSelect = document.getElementById("location-input");
-    const allSelector = document.getElementById("all-selector");
-    const scrollSpeedInput = document.getElementById("scroll-speed");
-    const scrollSpeedValue = document.getElementById("scroll-speed-value");
-
-    if (!locationSelect) {
-      setTimeout(() => this.setupFormEventListeners(), 100);
-      return;
-    }
-
-    // Store cleanup functions
     this.eventListenerCleanup = [];
 
-    // Location change listener
-    const locationChangeHandler = (event) => {
-      this.updateSubLocationOptions(event.target.value);
-    };
-    locationSelect.addEventListener("change", locationChangeHandler);
-    this.eventListenerCleanup.push(() =>
-      locationSelect.removeEventListener("change", locationChangeHandler),
-    );
+    const locationSelect = document.getElementById("location-input");
+    this._addListener(locationSelect, "change", (e) => this.updateSubLocationOptions(e.target.value));
 
-    // Select all toggle listener
-    if (allSelector) {
-      const toggleAllHandler = () => {
-        const allStatus = allSelector.checked;
-        document.querySelectorAll("input.sub_loc_box").forEach((ele) => {
-          ele.checked = allStatus;
-        });
-      };
-      allSelector.addEventListener("click", toggleAllHandler);
-      this.eventListenerCleanup.push(() =>
-        allSelector.removeEventListener("click", toggleAllHandler),
-      );
-    }
+    const allSelector = document.getElementById("all-selector");
+    this._addListener(allSelector, "click", () => {
+      const isChecked = allSelector.checked;
+      document.querySelectorAll(".sub_loc_box").forEach((box) => box.checked = isChecked);
+    });
 
-    // Scroll speed listener
-    if (scrollSpeedInput && scrollSpeedValue) {
-      const speedHandler = (e) => {
-        scrollSpeedValue.textContent = e.target.value;
-      };
-      scrollSpeedInput.addEventListener("input", speedHandler);
-      this.eventListenerCleanup.push(() =>
-        scrollSpeedInput.removeEventListener("input", speedHandler),
-      );
-    }
+    const scrollSpeedInput = document.getElementById("scroll-speed");
+    this._addListener(scrollSpeedInput, "input", (e) => {
+      const display = document.getElementById("scroll-speed-value");
+      if (display) display.textContent = e.target.value;
+    });
 
-    // Skipped events UI listeners (add, enter, remove)
-    const addBtn = document.getElementById("add-skipped-event-btn");
-    const skippedField = document.getElementById("skipped-events-input");
-    const skippedTextField = document.getElementById("skipped-events-input-field");
-    const skippedList = document.getElementById("skipped-events-list");
+    this._setupSkippedEventsListeners();
+  },
 
-    const renderFromHidden = () => {
-      if (!skippedField || !skippedList) return;
-      skippedList.innerHTML = "";
-      const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean);
-      items.forEach((it) => {
-        const li = document.createElement("div");
-        li.className = "d-flex align-items-center mb-1 skipped-event-item";
-        li.dataset.value = it;
-        li.innerHTML = `<span class=\"badge bg-secondary py-2\">${it}</span><button type=\"button\" class=\"btn btn-sm btn-outline-danger remove-skipped-event\" aria-label=\"Remove\">&minus;</button>`;
-        skippedList.appendChild(li);
-      });
+  _setupSkippedEventsListeners() {
+    const elements = {
+      addBtn: document.getElementById("add-skipped-event-btn"),
+      skippedField: document.getElementById("skipped-events-input"),
+      skippedTextField: document.getElementById("skipped-events-input-field"),
+      skippedList: document.getElementById("skipped-events-list"),
     };
 
-    if (addBtn && skippedTextField && skippedField) {
-      const addHandler = () => {
-        const val = skippedTextField.value.trim();
-        if (!val) return;
-        const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean);
-        if (!items.includes(val)) items.push(val);
-        skippedField.value = items.join(",");
-        skippedTextField.value = "";
-        renderFromHidden();
-      };
-      addBtn.addEventListener("click", addHandler);
-      this.eventListenerCleanup.push(() => addBtn.removeEventListener("click", addHandler));
+    if (!elements.addBtn || !elements.skippedTextField || !elements.skippedField) return;
 
-      const enterHandler = (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          addHandler();
-        }
-      };
-      skippedTextField.addEventListener("keydown", enterHandler);
-      this.eventListenerCleanup.push(() => skippedTextField.removeEventListener("keydown", enterHandler));
+    const addHandler = () => {
+      const val = elements.skippedTextField.value.trim();
+      if (!val) return;
+      
+      const items = this._parseCommaSeparated(elements.skippedField.value);
+      if (!items.includes(val)) {
+        items.push(val);
+        elements.skippedField.value = items.join(",");
+        elements.skippedTextField.value = "";
+        this._renderSkippedEventsList();
+      }
+    };
 
-      // Initial render
-      renderFromHidden();
-    }
+    this._addListener(elements.addBtn, "click", addHandler);
+    this._addListener(elements.skippedTextField, "keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addHandler();
+      }
+    });
 
-    if (skippedList && skippedField) {
-      const removeDelegate = (e) => {
+    if (elements.skippedList) {
+      this._addListener(elements.skippedList, "click", (e) => {
         if (!e.target.classList.contains("remove-skipped-event")) return;
+        
         const item = e.target.closest(".skipped-event-item");
         if (!item) return;
-        const val = item.dataset.value;
-        const items = (skippedField.value || "").split(",").map((s) => s.trim()).filter(Boolean).filter((i) => i !== val);
-        skippedField.value = items.join(",");
-        renderFromHidden();
-      };
-      skippedList.addEventListener("click", removeDelegate);
-      this.eventListenerCleanup.push(() => skippedList.removeEventListener("click", removeDelegate));
+        
+        const items = this._parseCommaSeparated(elements.skippedField.value)
+          .filter((i) => i !== item.dataset.value);
+        elements.skippedField.value = items.join(",");
+        this._renderSkippedEventsList();
+      });
     }
+
+    this._renderSkippedEventsList();
   },
 
   cleanupFormEventListeners() {
@@ -391,48 +285,32 @@ export const WinkasSlideType = {
   },
 
   extractFormData() {
-    const locationSelect = document.getElementById("location-input");
-    const subLocationCheckboxes = document.querySelectorAll(
-      ".sub_loc_box:checked",
-    );
-    const scrollSpeedInput = document.getElementById("scroll-speed");
-    const skippedEventsInput = document.getElementById("skipped-events-input");
-
-    const subLocations = Array.from(subLocationCheckboxes).map(
-      (checkbox) => checkbox.value,
-    );
+    const subLocations = Array.from(document.querySelectorAll(".sub_loc_box:checked"))
+      .map((cb) => cb.value);
 
     return {
-      location: locationSelect?.value || "",
+      location: document.getElementById("location-input")?.value || "",
       sub_locations: subLocations,
-      // Marquee-only: always enabled
       continuous_scroll: true,
-      scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 5,
-      skipped_events: skippedEventsInput ? skippedEventsInput.value.trim() : "",
+      scroll_speed: Number(document.getElementById("scroll-speed")?.value || 5),
+      skipped_events: document.getElementById("skipped-events-input")?.value.trim() || "",
     };
   },
 
   validateSlide() {
     const data = this.extractFormData();
 
-    // Check if location is selected
     if (!data.location) {
       alert("Please select a location.");
       return false;
     }
 
-    // Check if at least one sub-location is selected
-    if (!data.sub_locations || data.sub_locations.length === 0) {
+    if (!data.sub_locations?.length) {
       alert("Please select at least one sub-location to display bookings.");
       return false;
     }
 
-    // Ensure scroll speed is within the allowed 1..10 range
-    if (
-      isNaN(data.scroll_speed) ||
-      data.scroll_speed < 1 ||
-      data.scroll_speed > 10
-    ) {
+    if (isNaN(data.scroll_speed) || data.scroll_speed < 1 || data.scroll_speed > 10) {
       alert("Please set a valid scroll speed between 1 and 10.");
       return false;
     }
