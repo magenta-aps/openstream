@@ -27,6 +27,9 @@ let snapAmountPrefix = null;
 let snapAmountSuffix = null;
 let snapModeButtons = null;
 
+// Snap unit tracking – must match the initial UI default ("Grid" → "division")
+let activeSnapUnit = "division";
+
 // Zoom state
 let currentZoomMode = "fit"; // 'fit' or 'zoom'
 let currentZoomLevel = 100; // percentage
@@ -205,8 +208,12 @@ function createSnapControls(rightSection) {
         const setAltDisplayMode = snapModeToggle.rightDropdown.setDisplayMode;
         if (value === "grid") {
           setAltDisplayMode("divided");
+          activeSnapUnit = "division";
+          setSnapSettings({ unit: "division" });
         } else {
           setAltDisplayMode("reg");
+          activeSnapUnit = "cells";
+          setSnapSettings({ unit: "cells" });
         }
       },
       position: { row: "top", column: "center" },
@@ -236,7 +243,7 @@ function createSnapControls(rightSection) {
       ],
       onUpdate: (_name, value) => {
         const sanitizedValue = sanitizeSnapAmount(value);
-        setSnapSettings({ amount: sanitizedValue });
+        setSnapSettings({ unit: activeSnapUnit, amount: sanitizedValue });
       },
       position: { row: "top", column: "center" },
     },
