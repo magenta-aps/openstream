@@ -781,34 +781,6 @@ function createZoomControls(rightSection) {
     true,
     true,
   );
-  /* TODO: Remove
-  // Event handlers
-  fitButton.addEventListener("click", () => {
-    if (currentZoomMode !== "fit") {
-      currentZoomMode = "fit";
-
-      document
-        .getElementById("right-content-container")
-        .classList.remove("resize-for-zoom");
-
-      zoomSliderContainer.style.display = "none";
-      notifyZoomChange("fit", 100);
-    }
-  });
-
-  zoomButton.addEventListener("click", () => {
-    if (currentZoomMode !== "zoom") {
-      currentZoomMode = "zoom";
-
-      document
-        .getElementById("right-content-container")
-        .classList.add("resize-for-zoom");
-
-      zoomSliderContainer.style.display = "flex";
-      notifyZoomChange("zoom", currentZoomLevel);
-    }
-  });
-  */
 
   zoomSlider.addEventListener("input", (e) => {
     currentZoomLevel = parseInt(e.target.value);
