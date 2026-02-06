@@ -14,7 +14,7 @@ import {
 } from "../config/gridConfig.js";
 import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
-import { createToggleButton, createCoherentDropdown } from "./components.js";
+import { createToggleButton, createCoherentDropdown } from "./domUtils.js";
 
 let statusBar = null;
 let statusBarContent = null;

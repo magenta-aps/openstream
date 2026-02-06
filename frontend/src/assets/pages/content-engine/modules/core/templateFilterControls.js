@@ -4,7 +4,7 @@
 import { store } from "./slideStore.js";
 import { gettext } from "../../../../utils/locales.js";
 import { queryParams } from "../../../../utils/utils.js";
-import { createPopover, createCollapse } from "../utils/components.js";
+import { createPopover, createCollapse } from "../utils/domUtils.js";
 
 const FILTER_EVENT = "os:templateFiltersChanged";
 const DEFAULT_SORT_KEY = "name:asc";

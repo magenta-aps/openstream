@@ -105,40 +105,43 @@ body.player-mode .persistent-elements-container {
     box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.2);
 }
 
-.toggle-btn {
-    padding: 0.5rem 0.75rem;
-    border-width: 0.5px;
-    border-style: solid;
-    border-color: $lighter-gray;
-    background-color: $lighter-gray;
-    color: $darkest-gray;
-    transition:
-        background 0.2s,
-        color 0.2s;
-
-    &.toggle-btn-alt:not(&.toggle-btn-on) {
-        background-color: transparent;
-        border-color: $dark-gray;
-    }
-
-    &.toggle-btn-on {
-        background-color: $secondary;
-        border-color: $secondary;
-        color: $white;
-    }
-
-    &.toggle-btn-left {
+.toggle-btn-container {
+    & > :first-child {
         border-radius: 0.375rem 0 0 0.375rem;
     }
-    &.toggle-btn-right {
+
+    & > :last-child {
         border-radius: 0 0.375rem 0.375rem 0;
     }
 
-    &.toggle-btn-sm {
-        padding: 0.375rem 0.75rem;
+    .toggle-btn {
+        padding: 0.5rem 0.75rem;
+        border-width: 0.5px;
+        border-style: solid;
+        border-color: $lighter-gray;
+        background-color: $lighter-gray;
+        color: $darkest-gray;
+        transition:
+            background 0.2s,
+            color 0.2s;
+        font-size: 0.75rem;
+
+        &.toggle-btn-alt:not(&.toggle-btn-on) {
+            background-color: transparent;
+            border-color: $dark-gray;
+        }
+
+        &.toggle-btn-on {
+            background-color: $secondary;
+            border-color: $secondary;
+            color: $white;
+        }
+
+        &.toggle-btn-sm {
+            padding: 0.375rem 0.75rem;
+        }
     }
 }
-
 /* bootstrap has a class called dropdown hence the os- */
 .os-dropdown {
     display: flex;
@@ -168,6 +171,7 @@ body.player-mode .persistent-elements-container {
     &.os-dropdown-alt {
         width: auto;
         column-gap: 0.5rem;
+        align-items: center;
 
         & .arrow-container {
             display: flex;
@@ -185,6 +189,11 @@ body.player-mode .persistent-elements-container {
         & .os-dropdown-trigger {
             justify-content: start;
             padding: 0.375rem 0.5rem;
+
+            &.os-dropdown-trigger-alt {
+                width: 3rem;
+                padding-right: 0;
+            }
 
             & > span {
                 display: flex;
@@ -208,7 +217,7 @@ body.player-mode .persistent-elements-container {
     }
 
     & .os-dropdown-popover {
-        gap: 0.2rem;
+        width: 4rem;
         padding: 0.3rem;
         background-color: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.08);
@@ -222,7 +231,7 @@ body.player-mode .persistent-elements-container {
         flex-direction: column;
 
         & .os-dropdown-item {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             text-align: start;
             cursor: default;
             width: 100%;
@@ -291,7 +300,8 @@ body.player-mode .persistent-elements-container {
 .status-bar-right {
     display: flex;
     align-items: center;
-    gap: 6rem;
+    width: 35rem;
+    justify-content: space-between;
 }
 
 .status-bar-info {
@@ -306,7 +316,6 @@ body.player-mode .persistent-elements-container {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    font-size: 11px;
     color: $darkest-gray;
     background: $gray;
     border-radius: 6px;
