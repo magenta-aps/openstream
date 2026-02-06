@@ -34,6 +34,7 @@ import {
   renderTemplateTable,
   attachSortHandlers,
   ensureInitialTemplateSelection as ensureInitialTemplateSelectionHelper,
+  initFilterCollapseIcons,
 } from "./unifiedModalHelpers.js";
 
 const modalId = "unifiedSlideModal";
@@ -142,6 +143,7 @@ function applyTemplateFilters(modal) {
 }
 
 function initializeTemplateInteractions(modal, templates) {
+  initFilterCollapseIcons(modal);
   globalTemplatesCache = Array.isArray(templates) ? [...templates] : [];
   filteredTemplates = [...globalTemplatesCache];
   selectedTemplate = null;
@@ -380,6 +382,11 @@ export async function openCreateSuborgTemplateModal(suborgId) {
       if (createBtn) {
         createBtn.disabled = false;
         createBtn.innerHTML = '<span class="material-symbols-outlined">add</span> ' + gettext("Add Slide");
+      }
+
+      const nameInput = modal.querySelector("#templateSlideName");
+      if (nameInput) {
+        nameInput.value = `${gettext("Template")} ${store.slides.length + 1}`;
       }
     });
     modal.dataset.initialPreviewHandlerAttached = "true";

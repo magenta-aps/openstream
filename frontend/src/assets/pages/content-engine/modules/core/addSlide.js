@@ -29,6 +29,7 @@ import {
   sortFilteredTemplates,
   renderTemplateTable,
   attachSortHandlers,
+  initFilterCollapseIcons,
 } from "../modals/unifiedModalHelpers.js";
 
 let unifiedTemplates = [];
@@ -345,6 +346,13 @@ export function initAddSlide() {
 
   if (unifiedSlideModalEl) {
     unifiedSlideModalEl.addEventListener("shown.bs.modal", async () => {
+      initFilterCollapseIcons(unifiedSlideModalEl);
+
+      const nameInput = document.getElementById("templateSlideName");
+      if (nameInput) {
+        nameInput.value = `${gettext("Slide")} ${store.slides.length + 1}`;
+      }
+
       await fetchUnifiedTemplates();
       const tableBody = document.querySelector("#unifiedTemplateTable tbody");
       if (tableBody && tableBody.children.length > 0) {
