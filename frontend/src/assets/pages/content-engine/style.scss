@@ -139,7 +139,7 @@ body.player-mode .persistent-elements-container {
     }
 }
 
-/* bootstrap has a class called dropdown */
+/* bootstrap has a class called dropdown hence the os- */
 .os-dropdown {
     display: flex;
     border-radius: 3.125rem;
@@ -166,6 +166,9 @@ body.player-mode .persistent-elements-container {
     }
 
     &.os-dropdown-alt {
+        width: auto;
+        column-gap: 0.5rem;
+
         & .arrow-container {
             display: flex;
             flex-direction: column;

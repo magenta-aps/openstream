@@ -203,6 +203,7 @@ export function createToggleButton(onOptions, offOptions, size, isAlt) {
  * @property {HTMLDivElement} DropdownPrimitive.element
  * @property {{trigger: HTMLButtonElement, popover: HTMLDivElement}} DropdownPrimitive.popover
  * @property {() => void} DropdownPrimitive.toggleDisabled
+ * @property {(isDisabled: boolean) => void} DropdownPrimitive.setDisabledState
  */
 
 /**
@@ -252,22 +253,45 @@ export function createDropdownPrimitive(dropdownOptions, indexItems = false) {
   dropdown.appendChild(popover.trigger);
   dropdown.appendChild(popover.popover);
 
-  const toggleDisabled = () => {
-    const disabledClass = "os-dropdown-disabled";
-    if (dropdown.classList.contains(disabledClass)) {
-      dropdown.classList.remove(disabledClass);
-      popover.trigger.disabled = false;
+  let disabledState = dropdownOptions.isDisabled ?? false;
+  const disabledClass = "os-dropdown-disabled";
+
+  const enable = () => {
+    dropdown.classList.remove(disabledClass);
+    popover.trigger.disabled = false;
+  };
+  const disable = () => {
+    dropdown.classList.add(disabledClass);
+    popover.trigger.disabled = true;
+  };
+
+  /** @type {(isDisabled: boolean) => void} */
+  const setDisabledState = (isDisabled) => {
+    if (isDisabled === disabledState) {
+      return;
+    }
+    disabledState = isDisabled;
+
+    if (disabledState) {
+      disable();
     } else {
-      dropdown.classList.add(disabledClass);
-      popover.trigger.disabled = true;
+      enable();
     }
   };
-  console.log(dropdownOptions);
+
+  const toggleDisabled = () => {
+    if (disabledState) {
+      enable();
+    } else {
+      disable();
+    }
+  };
+
   if (dropdownOptions.isDisabled) {
-    toggleDisabled();
+    disable();
   }
 
-  return { element: dropdown, popover, toggleDisabled };
+  return { element: dropdown, popover, toggleDisabled, setDisabledState };
 }
 
 /**
@@ -492,7 +516,7 @@ export function createAltDropdown(dropdownOptions) {
  * @template {keyof DropdownMap} TRight
  * @param {DropdownOptionsMap[TRight] & {type: TRight}} rightOptions
  * @param {boolean} [isDisabled] - Will override the disabled state of both dropdowns
- * @returns {{container: HTMLDivElement, leftDropdown: DropdownMap[TLeft], rightDropdown: DropdownMap[TRight], toggleDisabled: () => void}}
+ * @returns {{container: HTMLDivElement, leftDropdown: DropdownMap[TLeft], rightDropdown: DropdownMap[TRight], setDisabledState: (isDisabled: boolean) => void, toggleDisabled: () => void}}
  */
 export function createCoherentDropdown(leftOptions, rightOptions, isDisabled) {
   const coherentContainer = createElement("div", {
@@ -508,6 +532,12 @@ export function createCoherentDropdown(leftOptions, rightOptions, isDisabled) {
 
   const rightDropdown = getDropdownFromType(rightOptions);
 
+  /** @type {(isDisabled: boolean) => void} */
+  const setDisabledState = (isDisabled) => {
+    leftDropdown.setDisabledState(isDisabled);
+    rightDropdown.setDisabledState(isDisabled);
+  };
+
   const toggleDisabled = () => {
     leftDropdown.toggleDisabled();
     rightDropdown.toggleDisabled();
@@ -520,6 +550,7 @@ export function createCoherentDropdown(leftOptions, rightOptions, isDisabled) {
     container: coherentContainer,
     leftDropdown,
     rightDropdown,
+    setDisabledState,
     toggleDisabled,
   };
 }

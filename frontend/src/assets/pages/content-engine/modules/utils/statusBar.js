@@ -176,21 +176,23 @@ function createSnapControls(rightSection) {
       label: gettext("free-movement"),
       fn: () => {
         toggleSnapEnabled();
-        snapModeToggle.toggleDisabled();
+        snapModeToggle.setDisabledState(true);
+        snapLabel.classList.add("text-dark-gray");
       },
     },
     {
       label: gettext("snapping"),
       fn: () => {
         toggleSnapEnabled();
-        snapModeToggle.toggleDisabled();
+        snapModeToggle.setDisabledState(false);
+        snapLabel.classList.remove("text-dark-gray");
       },
     },
   );
 
   const snapLabel = document.createElement("span");
   snapLabel.textContent = `${gettext("Snap to")}:`;
-  snapLabel.style.fontWeight = "600";
+  snapLabel.classList.add("fw-semibold", "text-dark-gray");
 
   const snapModeToggle = createCoherentDropdown(
     {
