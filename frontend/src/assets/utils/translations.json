@@ -1692,7 +1692,7 @@
     "da": "Dette element blev oprettet på:"
   },
   "Slide Name": {
-    "da": "Slide Navn"
+    "da": "Navn på slide"
   },
   "Slide #": {
     "da": "Slide #"
@@ -1734,7 +1734,7 @@
     "da": "Indtast navn og varighed for slide"
   },
   "Enter slide name": {
-    "da": "Indtast slide navn"
+    "da": "Indtast navn på slide"
   },
   "Add Dynamic Content": {
     "da": "Tilføj Dynamisk Indhold"
@@ -1758,7 +1758,7 @@
     "da": "Vælg et bibliotek"
   },
   "Filter by categories:": {
-    "da": "Filtrér efter kategorier:"
+    "da": "Filtrer efter kategorier:"
   },
   "Select a municipality to load categories.": {
     "da": "Vælg en kommune for at hente kategorier."
@@ -1779,7 +1779,7 @@
     "da": "Søg begivenheder:"
   },
   "Filter events by text": {
-    "da": "Filtrér begivenheder efter tekst"
+    "da": "Filtrer begivenheder efter tekst"
   },
   "Search title, description, or location within the current filters.": {
     "da": "Søg i titel, beskrivelse eller lokation inden for de valgte filtre."
@@ -1845,7 +1845,7 @@
     "da": "Nuværende:"
   },
   "Filter by Category": {
-    "da": "Filtrér efter Kategori"
+    "da": "Filtrer efter kategori"
   },
   "Search by Name...": {
     "da": "Søg efter Navn..."

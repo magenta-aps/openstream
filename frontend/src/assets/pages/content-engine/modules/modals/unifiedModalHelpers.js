@@ -581,3 +581,43 @@ export function ensureInitialTemplateSelection(modal, state, templates, selectCa
 
   return state;
 }
+
+/**
+ * Initialize collapse icon toggling for filter sections
+ */
+export function initFilterCollapseIcons(modal) {
+  const collapseIds = [
+    "category-filter-collapse",
+    "tags-filter-collapse",
+    "aspect-ratio-filter-collapse",
+  ];
+
+  collapseIds.forEach((id) => {
+    const collapseEl = modal.querySelector
+      ? modal.querySelector(`#${id}`)
+      : document.getElementById(id);
+    if (!collapseEl) return;
+
+    // Find the toggle button related to this collapse
+    const toggleBtn = modal.querySelector
+      ? modal.querySelector(`[data-bs-target="#${id}"]`)
+      : document.querySelector(`[data-bs-target="#${id}"]`);
+
+    if (!toggleBtn) return;
+
+    const icon = toggleBtn.querySelector(".unified-slide-modal__filter-icon");
+    if (!icon) return;
+
+    if (collapseEl.dataset.iconHandlerAttached) return;
+
+    collapseEl.addEventListener("show.bs.collapse", () => {
+      icon.textContent = "keyboard_arrow_up";
+    });
+
+    collapseEl.addEventListener("hide.bs.collapse", () => {
+      icon.textContent = "expand_more";
+    });
+
+    collapseEl.dataset.iconHandlerAttached = "true";
+  });
+}
