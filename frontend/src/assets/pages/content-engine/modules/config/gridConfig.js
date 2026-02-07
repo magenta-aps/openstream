@@ -138,7 +138,8 @@ export function getDefaultSnapSettings(
   rows = GRID_CONFIG.ROWS,
   overrides = {},
 ) {
-  const defaultSnap = getDefaultCellSnapForResolution(columns, rows) || 1;
+  // Default to 20 pixels
+  const defaultSnap = 20; 
   return {
     unit: "cells",
     amount: defaultSnap,

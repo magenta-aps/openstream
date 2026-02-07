@@ -66,31 +66,11 @@ export function loadSlide(
   
 
   const isPreviewMode = options.previewMode === true;
-  // Save current snap settings to the slide we're switching FROM
   // Use lastSlideIndex if available, otherwise use currentSlideIndex
   if (!isPreviewMode) {
-    const previousSlideIndex =
-      store.lastSlideIndex !== null && store.lastSlideIndex !== undefined
-        ? store.lastSlideIndex
-        : store.currentSlideIndex;
-
-    if (previousSlideIndex > -1 && store.slides[previousSlideIndex]) {
-      const previousSlide = store.slides[previousSlideIndex];
-      if (store.dragSnapSettings) {
-        previousSlide.savedSnapSettings = {
-          unit: store.dragSnapSettings.unit,
-          amount: store.dragSnapSettings.amount,
-          isAuto: store.dragSnapSettings.isAuto || false,
-          snapEnabled: store.dragSnapSettings.snapEnabled !== false,
-          savedUnit: store.dragSnapSettings.savedUnit,
-          savedAmount: store.dragSnapSettings.savedAmount,
-        };
-      }
-    }
-
     syncGridToCurrentSlide(slide);
 
-    // Restore snap settings from the slide being loaded
+    // Initial snap settings
     const defaultSnapSettings = getDefaultSnapSettings(
       store.emulatedWidth,
       store.emulatedHeight,
@@ -98,22 +78,9 @@ export function loadSlide(
 
     let appliedSnapSettings = defaultSnapSettings;
 
-    if (slide && slide.savedSnapSettings) {
-      appliedSnapSettings = {
-        ...slide.savedSnapSettings,
-        appliedGridSignature: `${store.emulatedWidth}x${store.emulatedHeight}`,
-        snapEnabled: slide.savedSnapSettings.snapEnabled !== false,
-        savedUnit: slide.savedSnapSettings.savedUnit,
-        savedAmount: slide.savedSnapSettings.savedAmount,
-      };
-    } else if (store.dragSnapSettings?.snapEnabled === false) {
-      appliedSnapSettings = {
-        ...defaultSnapSettings,
-        snapEnabled: false,
-        savedUnit: store.dragSnapSettings.savedUnit || defaultSnapSettings.unit,
-        savedAmount:
-          store.dragSnapSettings.savedAmount || defaultSnapSettings.amount,
-      };
+    if (store.dragSnapSettings) {
+        // Keep current settings if they exist
+        appliedSnapSettings = store.dragSnapSettings;
     }
 
     store.dragSnapSettings = appliedSnapSettings;

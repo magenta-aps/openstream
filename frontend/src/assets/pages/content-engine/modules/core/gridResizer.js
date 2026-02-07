@@ -72,18 +72,47 @@ export function makeDraggable(el, dataObj) {
     let newCol = mouseCol - initialOffsetCol;
     let newRow = mouseRow - initialOffsetRow;
 
-    const currentColSpan = parseInt(
+    let currentColSpan = parseInt(
       el.style.gridColumnEnd.replace("span", "").trim(),
     );
-    const currentRowSpan = parseInt(
+    let currentRowSpan = parseInt(
       el.style.gridRowEnd.replace("span", "").trim(),
     );
+
+    const { x: snapX, y: snapY } = getDragSnapSteps();
+
+    // Auto-resize to nearest snap step
+    if (snapX > 1) {
+      const snappedWidth = Math.round(currentColSpan / snapX) * snapX;
+      const newWidth = Math.max(
+        snapX,
+        Math.min(snappedWidth, GRID_CONFIG.COLUMNS),
+      );
+      if (newWidth !== currentColSpan) {
+        currentColSpan = newWidth;
+        el.style.gridColumnEnd = `span ${newWidth}`;
+        dataObj.gridWidth = newWidth;
+      }
+    }
+
+    if (snapY > 1) {
+      const snappedHeight = Math.round(currentRowSpan / snapY) * snapY;
+      const newHeight = Math.max(
+        snapY,
+        Math.min(snappedHeight, GRID_CONFIG.ROWS),
+      );
+      if (newHeight !== currentRowSpan) {
+        currentRowSpan = newHeight;
+        el.style.gridRowEnd = `span ${newHeight}`;
+        dataObj.gridHeight = newHeight;
+      }
+    }
+
     const maxColStart = GRID_CONFIG.COLUMNS - currentColSpan + 1;
     const maxRowStart = GRID_CONFIG.ROWS - currentRowSpan + 1;
     newCol = Math.max(1, Math.min(newCol, maxColStart));
     newRow = Math.max(1, Math.min(newRow, maxRowStart));
 
-    const { x: snapX, y: snapY } = getDragSnapSteps();
     if (snapX > 1) {
       const normalizedX = newCol - 1;
       const snappedX = Math.round(normalizedX / snapX) * snapX;

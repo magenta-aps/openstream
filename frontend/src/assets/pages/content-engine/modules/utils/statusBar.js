@@ -27,8 +27,8 @@ let snapAmountPrefix = null;
 let snapAmountSuffix = null;
 let snapModeButtons = null;
 
-// Snap unit tracking – must match the initial UI default ("Grid" → "division")
-let activeSnapUnit = "division";
+// Snap unit tracking – must match the initial UI default ("Pixels" → "cells")
+let activeSnapUnit = "cells";
 
 // Zoom state
 let currentZoomMode = "fit"; // 'fit' or 'zoom'
@@ -201,8 +201,8 @@ function createSnapControls(rightSection) {
     {
       type: "reg",
       options: [
-        { name: gettext("Grid"), value: "grid" },
         { name: gettext("Pixels"), value: "pixels" },
+        { name: gettext("Grid"), value: "grid" },
       ],
       onUpdate: (_name, value) => {
         const setAltDisplayMode = snapModeToggle.rightDropdown.setDisplayMode;
@@ -220,7 +220,7 @@ function createSnapControls(rightSection) {
     },
     {
       type: "alt",
-      displayMode: "divided",
+      displayMode: "reg",
       options: [
         { name: "1", value: "1" },
         { name: "2", value: "2" },
@@ -234,8 +234,8 @@ function createSnapControls(rightSection) {
         { name: "10", value: "10" },
         { name: "12", value: "12" },
         { name: "15", value: "15" },
-        { name: "20", value: "20" },
-        { name: "24", value: "24", default: true },
+        { name: "20", value: "20", default: true },
+        { name: "24", value: "24" },
         { name: "30", value: "30" },
         { name: "40", value: "40" },
         { name: "60", value: "60" },
@@ -419,28 +419,15 @@ function toggleSnapEnabled() {
     }
   }
 
-  // Save to current slide
-  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
-    const currentSlide = store.slides[store.currentSlideIndex];
-    currentSlide.savedSnapSettings = {
-      unit: store.dragSnapSettings.unit,
-      amount: store.dragSnapSettings.amount,
-      isAuto: store.dragSnapSettings.isAuto,
-      snapEnabled: store.dragSnapSettings.snapEnabled,
-      savedUnit: store.dragSnapSettings.savedUnit,
-      savedAmount: store.dragSnapSettings.savedAmount,
-    };
-  }
-
   updateSnapControlsUI();
 }
 
 function getCurrentSnapSettings() {
-  const defaults = { unit: "cells", amount: 1, snapEnabled: true };
+  const defaults = { unit: "cells", amount: 20, snapEnabled: true };
   const columns = GRID_CONFIG.COLUMNS;
   const rows = GRID_CONFIG.ROWS;
-  const defaultSnap =
-    getDefaultCellSnapForResolution(columns, rows) || defaults.amount;
+  // Default for new projects is now 20 pixels
+  const defaultSnap = 20;
   const signature = getGridSignature(columns, rows);
 
   if (!store.dragSnapSettings) {
@@ -510,19 +497,6 @@ function setSnapSettings(partial = {}) {
   }
 
   store.dragSnapSettings = next;
-
-  // Save snap settings to current slide
-  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
-    const currentSlide = store.slides[store.currentSlideIndex];
-    currentSlide.savedSnapSettings = {
-      unit: next.unit,
-      amount: next.amount,
-      isAuto: next.isAuto,
-      snapEnabled: next.snapEnabled,
-      savedUnit: next.savedUnit,
-      savedAmount: next.savedAmount,
-    };
-  }
 
   updateSnapAmountOptions(GRID_CONFIG.COLUMNS, GRID_CONFIG.ROWS, next);
   updateSnapControlsUI();
