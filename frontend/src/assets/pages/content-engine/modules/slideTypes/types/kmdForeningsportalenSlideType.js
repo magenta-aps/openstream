@@ -88,7 +88,7 @@ export const KmdForeningsportalenSlideType = {
   populateFormData(config) {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
-    this.ensureSkippedEventsInput(config.skipped_events); // Add this
+    this.ensureSkippedEventsInput(config.skipped_events); 
 
     // Populate marquee (scroll speed) control
     const scrollSpeedInput = document.getElementById("scroll-speed");
