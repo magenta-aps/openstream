@@ -40,6 +40,7 @@ import {
   getAspectRatiosByOrientation,
   getResolutionForAspectRatio,
 } from "../../utils/availableAspectRatios";
+import { addChip } from "../../utils/createDomElementUtils";
 
 // Initialize translations
 (async () => {
@@ -546,17 +547,25 @@ function updateTagsDropdownState() {
     if (count === 0) {
       selectedTagsText.textContent = gettext("Select tags...");
     } else if (count <= 2) {
-      // Show tag names if 2 or fewer
-      const tagNames = selectedTags
-        .map((cb) => {
-          const label = document.querySelector(`label[for="${cb.id}"]`);
-          return label ? label.textContent : "";
-        })
-        .filter((name) => name); // Filter out empty names
-      selectedTagsText.textContent = tagNames.join(", ");
+      // // Show tag names if 2 or fewer
+      // const tagNames = selectedTags
+      //   .map((cb) => {
+      //     const label = document.querySelector(`label[for="${cb.id}"]`);
+      //     return label ? label.textContent : "";
+      //   })
+      //   .filter((name) => name); // Filter out empty names
+      // selectedTagsText.textContent = tagNames.join(", ");
+      // XXXXX
+      selectedTagsText.textContent = ""; // Clear text container
+      selectedTags.forEach((tag) => {
+        const label = document.querySelector(`label[for="${tag.id}"]`);
+        const tagText = label ? label.textContent : "";
+        console.log("Adding chip for tag with name", tagText);
+        addChip("selectedTagsText", tagText);
+      });
     } else {
       // Just show count if more than 2
-      selectedTagsText.textContent = gettext("Tags selected");
+      selectedTagsText.textContent = `${gettext("Tags selected")}:`;
     }
   }
 }
