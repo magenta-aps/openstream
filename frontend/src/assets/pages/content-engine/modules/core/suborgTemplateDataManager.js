@@ -379,11 +379,6 @@ export async function fetchAllSuborgTemplatesAndPopulateStore(
           }
         });
 
-        slideObject.savedSnapSettings = await deriveSnapSettingsForTemplate(
-          slideObject,
-          template,
-        );
-
         store.slides.push(slideObject);
       }
     }

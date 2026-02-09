@@ -450,30 +450,8 @@ export function initAddSlide() {
         });
       }
 
-      const templateSnap = cloneSnapSettings(templateSlide.savedSnapSettings);
-      if (templateSnap) {
-        newSlide.savedSnapSettings = {
-          unit: templateSnap.unit === "division" ? "division" : "cells",
-          amount: Math.max(1, Math.round(Number(templateSnap.amount)) || 1),
-          isAuto: templateSnap.isAuto ?? false,
-          snapEnabled: templateSnap.snapEnabled !== false,
-          savedUnit: templateSnap.savedUnit,
-          savedAmount: templateSnap.savedAmount,
-          appliedGridSignature: templateSnap.appliedGridSignature,
-        };
-      } else {
-        const defaultSnapAmount =
-          getDefaultCellSnapForResolution(
-            store.emulatedWidth,
-            store.emulatedHeight,
-          ) || 1;
-        newSlide.savedSnapSettings = {
-          unit: "cells",
-          amount: defaultSnapAmount,
-          isAuto: true,
-          snapEnabled: false,
-        };
-      }
+    // Snap settings are no longer saved per slide
+
 
       store.slides.push(newSlide);
       store.currentSlideIndex = store.slides.length - 1;

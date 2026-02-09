@@ -163,12 +163,6 @@ export async function createGlobalTemplate(options = {}) {
     backgroundColor: "#ffffff",
     name: newTemplateName,
     duration: 5,
-    savedSnapSettings: {
-      unit: "cells",
-      amount: snapAmount,
-      isAuto: true,
-      snapEnabled: false,
-    },
   };
 
   const payload = {

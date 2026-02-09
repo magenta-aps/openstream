@@ -5,37 +5,37 @@
 
 /* Prevent overflow in content-engine */
 #main-container {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 #right-content-container {
-  overflow: hidden;
-  height: 100%;
+    overflow: hidden;
+    height: 100%;
 }
 
 #right-content-container.resize-for-zoom {
-  width: calc(100vw - 18rem);
+    width: calc(100vw - 18rem);
 }
 
 #aspect-ratio-label {
-  color: #72787b;
-  font-size: 0.75rem;
+    color: #72787b;
+    font-size: 0.75rem;
 }
 
 #sidebar {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  width: 219px !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 219px !important;
 }
 
 .player-mode {
-  overflow: hidden !important;
+    overflow: hidden !important;
 }
 
 /* Full-screen player mode: hide all editor UI and show only the slide canvas */
 body.player-mode {
-  overflow: hidden !important;
+    overflow: hidden !important;
 }
 
 body.player-mode .left-sidebar,
@@ -50,30 +50,30 @@ body.player-mode .main-content > :not(.slide-canvas),
 body.player-mode .slide-item,
 body.player-mode .content-engine-status-bar,
 body.player-mode .slide-list {
-  display: none !important;
+    display: none !important;
 }
 
 /* Hide editor selection chrome while previewing but keep selection state intact */
 body.player-mode .slide-element {
-  outline: none !important;
+    outline: none !important;
 }
 
 body.player-mode .gradient-border-wrapper {
-  display: none !important;
+    display: none !important;
 }
 
 /* Make the slide canvas occupy the full viewport in player mode */
 body.player-mode .slide-canvas {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 9999;
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-  background: $black;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    background: $black;
 }
 
 body.player-mode .preview-container,
@@ -81,216 +81,452 @@ body.player-mode .preview-slide,
 body.player-mode .zoom-wrapper,
 body.player-mode .grid-container,
 body.player-mode .persistent-elements-container {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
 }
 
 .zoom-wrapper {
-  container-type: size;
-  container-name: zoom-wrapper;
+    container-type: size;
+    container-name: zoom-wrapper;
 }
 
 /* CSS Custom Properties for Grid Configuration */
 :root {
-  --grid-columns: 100;
-  --grid-rows: 100;
+    --grid-columns: 100;
+    --grid-rows: 100;
+}
+
+[popover] {
+    position-anchor: auto;
+    background-color: #fff;
+    border: 1px solid $gray;
+    border-radius: 0.25rem;
+    box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.2);
+}
+
+.toggle-btn-container {
+    & > :first-child {
+        border-radius: 0.375rem 0 0 0.375rem;
+    }
+
+    & > :last-child {
+        border-radius: 0 0.375rem 0.375rem 0;
+    }
+
+    .toggle-btn {
+        padding: 0.5rem 0.75rem;
+        border-width: 0.5px;
+        border-style: solid;
+        border-color: $lighter-gray;
+        background-color: $lighter-gray;
+        color: $darkest-gray;
+        transition:
+            background 0.2s,
+            color 0.2s;
+        font-size: 0.75rem;
+
+        &.toggle-btn-alt:not(&.toggle-btn-on) {
+            background-color: transparent;
+            border-color: $dark-gray;
+        }
+
+        &.toggle-btn-on {
+            background-color: $secondary;
+            border-color: $secondary;
+            color: $white;
+        }
+
+        &.toggle-btn-sm {
+            padding: 0.375rem 0.75rem;
+        }
+    }
+}
+/* bootstrap has a class called dropdown hence the os- */
+.os-dropdown {
+    display: flex;
+    border-radius: 3.125rem;
+    border: 0.5px solid $gray;
+    background-color: $white;
+    font-size: 0.75rem;
+    width: 6rem;
+
+    &.os-dropdown-disabled {
+        background-color: $gray;
+
+        & span,
+        & i {
+            color: $dark-gray;
+        }
+
+        i {
+            pointer-events: none;
+        }
+    }
+
+    & i {
+        font-size: 14px;
+    }
+
+    &.os-dropdown-alt {
+        width: auto;
+        column-gap: 0.5rem;
+        align-items: center;
+
+        & .arrow-container {
+            display: flex;
+            flex-direction: column;
+
+            padding-top: 0.375rem;
+            padding-bottom: 0.375rem;
+            padding-right: 0.5rem;
+
+            & .arrow {
+                cursor: pointer;
+            }
+        }
+
+        & .os-dropdown-trigger {
+            justify-content: start;
+            padding: 0.375rem 0.5rem;
+
+            &.os-dropdown-trigger-alt {
+                width: 3rem;
+                padding-right: 0;
+            }
+
+            & > span {
+                display: flex;
+            }
+        }
+
+        & .os-dropdown-alt-input {
+            color: $dark-gray;
+        }
+    }
+
+    & .os-dropdown-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.375rem 0.75rem;
+        background-color: transparent;
+        border: none;
+        font-size: 0.75rem;
+    }
+
+    & .os-dropdown-popover {
+        width: 4rem;
+        padding: 0.3rem;
+        background-color: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    & .os-dropdown-content {
+        display: flex;
+        flex-direction: column;
+
+        & .os-dropdown-item {
+            font-size: 0.75rem;
+            text-align: start;
+            cursor: default;
+            width: 100%;
+            background-color: transparent;
+            border: none;
+
+            &:hover {
+                background-color: $secondary-accent-lighter;
+            }
+        }
+    }
+}
+
+.os-dropdown-coherent {
+    display: flex;
+
+    & > :first-child {
+        border-radius: 3.125rem 0 0 3.125rem;
+    }
+
+    & > :last-child {
+        border-radius: 0 3.125rem 3.125rem 0;
+    }
 }
 
 /* Status bar styles and layout adjustments */
 .content-engine-status-bar {
-  font-feature-settings: "tnum";
+    font-feature-settings: "tnum";
+    /* Tabular numbers for consistent spacing */
 
-  /* Tabular numbers for consistent spacing */
+    flex: 0 0 32px;
+    background-color: $gray;
+    /* border-top: 1px solid var(--bs-darker-gray); */
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 1rem;
+    font-family:
+        "Segoe UI",
+        system-ui,
+        -apple-system,
+        sans-serif;
+    font-size: 12px;
+    color: $black;
+    box-sizing: border-box;
+    z-index: 10;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    opacity: 0;
+    transform: translateY(100%);
+
+    &.show {
+        opacity: 1;
+        transform: translateY(0%);
+    }
+}
+
+.status-bar-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.status-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    justify-content: space-between;
+}
+
+.status-bar-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    min-width: 0;
+}
+
+.snap-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    color: $darkest-gray;
+    background: $gray;
+    border-radius: 6px;
+}
+
+.snap-options-container {
+    display: flex;
+    align-items: center;
+    column-gap: 0.5rem;
+}
+
+.grid-info-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.grid-size-badge {
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-variant-numeric: tabular-nums;
 }
 
 .main-content {
-  padding-bottom: 32px;
+    padding-bottom: 32px;
 
-  /* Account for status bar height */
+    /* Account for status bar height */
 }
 
 /* Ensure the image container is positioned relatively */
 .slide-element.image {
-  position: relative;
+    position: relative;
 }
 
 .saving-icon {
-  animation: spin 0.5s linear;
+    animation: spin 0.5s linear;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
 
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .hide-scrollbars::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 /* Custom bootsstrap class that makes a bootstrap table background color transparent */
 .table-transparent-dark-text {
-  --bs-table-bg: transparent !important;
-  --bs-table-color: $black;
-  --bs-table-striped-color: $black;
+    --bs-table-bg: transparent !important;
+    --bs-table-color: $black;
+    --bs-table-striped-color: $black;
 }
 
 .table-transparent-white-text {
-  --bs-table-bg: transparent !important;
-  --bs-table-color: $white;
-  --bs-table-striped-color: $white;
+    --bs-table-bg: transparent !important;
+    --bs-table-color: $white;
+    --bs-table-striped-color: $white;
 }
 
 .transparent-table-border {
-  --bs-table-border: transparent;
+    --bs-table-border: transparent;
 }
 
 .overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: $black;
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.5s ease-in-out,
-    visibility 0.5s ease-in-out;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: $black;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.5s ease-in-out,
+        visibility 0.5s ease-in-out;
+    z-index: 1000;
 }
 
 .material-symbols-outlined {
-  vertical-align: middle;
-  font-size: 24px;
+    vertical-align: middle;
+    font-size: 24px;
 }
 
 body {
-  transition:
-    opacity 0.5s ease-in-out,
-    visibility 0.5s ease-in-out;
+    transition:
+        opacity 0.5s ease-in-out,
+        visibility 0.5s ease-in-out;
 }
 
 .overlay.visible {
-  opacity: 1;
-  visibility: visible;
+    opacity: 1;
+    visibility: visible;
 }
 
 .top-toolbar {
-  background: $lightest-gray;
-  border-bottom: 1px solid $light-gray;
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 48px;
+    background: $lightest-gray;
+    border-bottom: 1px solid $light-gray;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
 }
 
 .toolbar-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
 }
 
 /* Sidebar pin icon styling */
 .pin-icon {
-  font-size: 18px;
+    font-size: 18px;
 
-  /* slightly larger than normal material icon */
-  line-height: 1;
-  vertical-align: middle;
-  color: var(--bs-secondary, #6c757d);
+    /* slightly larger than normal material icon */
+    line-height: 1;
+    vertical-align: middle;
+    color: var(--bs-secondary, #6c757d);
 }
 
 .list-group-item .rank-badge {
-  display: inline-block;
-  min-width: 1.6rem;
-  text-align: center;
-  background-color: $dark;
-  color: $white;
+    display: inline-block;
+    min-width: 1.6rem;
+    text-align: center;
+    background-color: $dark;
+    color: $white;
 
-  @extend .rounded;
+    @extend .rounded;
 }
 
 .list-group-item .pin-indicator,
 .list-group-item .pin-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .list-group-item .pin-indicator .material-symbols-outlined {
-  font-size: 18px;
+    font-size: 18px;
 }
 
 .general-settings {
-  background-color: $secondary-accent-light;
+    background-color: $secondary-accent-light;
 }
 
 .add-element-buttons {
-  background-color: $lighter-gray;
+    background-color: $lighter-gray;
 }
 
 .top-options-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 .top-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 10px 0;
-  color: $black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 10px 0;
+    color: $black;
 }
 
 .img-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .add-icon {
-  font-size: 16px;
-  position: absolute;
-  top: -17px;
-  padding: 0 !important;
-  border-color: rgba($darker-gray, 0.45) !important;
-  left: 37px;
+    font-size: 16px;
+    position: absolute;
+    top: -17px;
+    padding: 0 !important;
+    border-color: rgba($darker-gray, 0.45) !important;
+    left: 37px;
 }
 
 .video-icon {
-  position: relative;
-  right: -10px;
+    position: relative;
+    right: -10px;
 }
 
 /* Element indicators (top-right icons on slide elements) */
 .element-indicators-wrapper {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  z-index: 1015;
-  pointer-events: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    z-index: 1015;
+    pointer-events: none;
 
-  /* don't block interactions */
+    /* don't block interactions */
 }
 
 .element-indicators-wrapper div {
-  box-shadow: none !important;
+    box-shadow: none !important;
 }
 
 .element-indicator,
@@ -299,34 +535,34 @@ body {
 .blocked-indicator,
 .force-settings-indicator,
 .always-on-top-indicator {
-  /* shared indicator appearance */
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  font-size: 22px;
-  color: $white;
-  background: rgb(0 0 0 / 60%);
-  border: 3px solid $white;
-  pointer-events: none;
+    /* shared indicator appearance */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 22px;
+    color: $white;
+    background: rgb(0 0 0 / 60%);
+    border: 3px solid $white;
+    pointer-events: none;
 }
 
 /* Per-indicator color / minor variants */
 .lock-indicator {
-  background: #dc3545;
+    background: #dc3545;
 }
 
 .persistent-indicator {
-  background: #000;
+    background: #000;
 }
 
 .element-indicators-wrapper .blocked-indicator {
-  background: rgb(0 0 0 / 80%);
-  z-index: 1016;
+    background: rgb(0 0 0 / 80%);
+    z-index: 1016;
 
-  /* sits above other indicators */
+    /* sits above other indicators */
 }
 
 /* When using the new wrapper, existing indicator classes may have absolute positioning.
@@ -336,1605 +572,1597 @@ body {
 .element-indicators-wrapper .force-settings-indicator,
 .element-indicators-wrapper .always-on-top-indicator,
 .element-indicators-wrapper .persistent-indicator {
-  position: static !important;
-  top: auto !important;
-  right: auto !important;
-  z-index: auto !important;
-  border-radius: 8px !important;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    border-radius: 8px !important;
 }
 
 /* Add Elements Section */
 .add-elements {
-  flex-grow: 1;
-  justify-content: flex-end;
-  padding-right: 8px;
+    flex-grow: 1;
+    justify-content: flex-end;
+    padding-right: 8px;
 }
 
 .toolbar-btn {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  width: 32px;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
 }
 
 .toolbar-btn i.material-symbols-outlined {
-  font-size: 20px;
-  color: $darkest-gray;
+    font-size: 20px;
+    color: $darkest-gray;
 }
 
 .toolbar-general.disabled {
-  pointer-events: none;
+    pointer-events: none;
 
-  /* disable clicking */
-  visibility: hidden;
+    /* disable clicking */
+    visibility: hidden;
 }
 
 /* Style for the alignment arrows */
 .image-align-arrow {
-  position: absolute;
-  background: $black;
-  color: $white;
-  width: 24px;
-  height: 24px;
-  text-align: center;
-  line-height: 24px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-  user-select: none;
+    position: absolute;
+    background: $black;
+    color: $white;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
 }
 
 /* Position arrows on each edge */
 .image-align-left {
-  left: 20%;
-  top: 50%;
-  transform: translateY(-50%);
+    left: 20%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .image-align-right {
-  right: 20%;
-  top: 50%;
-  transform: translateY(-50%);
+    right: 20%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 /* Modal styles for the embedded image editor */
 #imageEditorModal .modal-dialog {
-  max-width: 100vw;
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
+    max-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
 }
 
 #imageEditorModal .modal-content,
 .image-editor-modal-content {
-  height: 100vh !important;
-  border-radius: 0;
+    height: 100vh !important;
+    border-radius: 0;
 }
 
 #imageEditorModal .image-editor-body {
-  min-height: 0;
-  flex: 1;
-  display: flex;
-  padding: 1rem;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    padding: 1rem;
 }
 
 .image-editor-viewport {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  background-color: $black;
-  border-radius: 0.75rem;
-  overflow: visible;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    background-color: $black;
+    border-radius: 0.75rem;
+    overflow: visible;
 }
 
 .image-editor-root {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  overflow: hidden;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    overflow: hidden;
 
-  // Hide the tui-image-editor logo
-  .tui-image-editor-header-logo {
-    display: none !important;
-  }
+    // Hide the tui-image-editor logo
+    .tui-image-editor-header-logo {
+        display: none !important;
+    }
 }
 
 .image-editor-loading {
-  position: absolute;
-  inset: 0;
-  background: rgba(9, 12, 17, 0.85);
-  z-index: 5;
-  border-radius: inherit;
+    position: absolute;
+    inset: 0;
+    background: rgba(9, 12, 17, 0.85);
+    z-index: 5;
+    border-radius: inherit;
 }
 
 .image-align-up {
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .image-align-down {
-  bottom: 20%;
-  left: 50%;
-  transform: translateX(-50%);
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* Optional: a center control at one corner */
 .image-align-center {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .tiptap-toolbar.disabled {
-  pointer-events: none;
+    pointer-events: none;
 
-  /* disable clicking */
-  visibility: hidden;
+    /* disable clicking */
+    visibility: hidden;
 }
 
 /* New CSS for the media change button (used by images, videos, and embedded websites) */
 .media-change-btn {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 101;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 101;
 
-  /* make sure it sits on top of the element */
-  background-color: rgba($black, 0.5);
-  color: $white;
-  border: none;
-  padding: 4px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: none;
+    /* make sure it sits on top of the element */
+    background-color: rgba($black, 0.5);
+    color: $white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: none;
 
-  /* hidden by default */
+    /* hidden by default */
 }
 
 .slide-details {
-  width: 100%;
-  flex-wrap: wrap;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 /* ---------------- Global Layout ---------------- */
 .container-flex {
-  display: flex;
-  width: 100%;
-  height: 100%;
+    display: flex;
+    width: 100%;
+    height: 100%;
 }
 
 .left-sidebar {
-  /* Overflow over the status bar with force */
-  height: calc(100% + 32px);
-  display: flex;
-  flex-direction: column;
+    /* Overflow over the status bar with force */
+    height: calc(100% + 32px);
+    display: flex;
+    flex-direction: column;
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 span {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 #js-editor #css-editor #html-editor {
-  min-width: 200px;
+    min-width: 200px;
 }
 
 .monaco-editor-container {
-  font-family: monospace;
+    font-family: monospace;
 }
 
 .demo-options h5 {
-  margin: 0;
-  position: relative;
-  top: -15px;
+    margin: 0;
+    position: relative;
+    top: -15px;
 }
 
 .slide-item {
-  display: flex;
-  align-items: start;
-  margin-bottom: 10px;
-  border: 0.5px solid $dark-gray;
-  background: $secondary-accent;
-  border-radius: 4px;
-  overflow: hidden;
-  cursor: pointer;
+    display: flex;
+    align-items: start;
+    margin-bottom: 10px;
+    border: 0.5px solid $dark-gray;
+    background: $secondary-accent;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
 }
 
 /* Active slide highlight */
 .slide-item.active {
-  background: $secondary-accent-hover;
+    background: $secondary-accent-hover;
 }
 
 .slide-number {
-  width: 40px;
-  color: $black;
-  text-align: center;
-  padding: 10px;
-  font-weight: bold;
-  font-size: $fs-small;
+    width: 40px;
+    color: $black;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    font-size: $fs-small;
 }
 
 .slide-preview {
-  max-width: 285px;
-  flex-grow: 1;
-  padding: 10px;
+    max-width: 285px;
+    flex-grow: 1;
+    padding: 10px;
 }
 
 .slide-preview .preview-box {
-  height: 180px;
-  width: 320px;
-  overflow: hidden;
-  display: grid;
+    height: 180px;
+    width: 320px;
+    overflow: hidden;
+    display: grid;
 
-  /* Var is used here to JS can create the values in runtime */
-  grid-template-columns: repeat(var(--grid-columns, 100), 1fr);
-  grid-template-rows: repeat(var(--grid-rows, 100), 1fr);
+    /* Var is used here to JS can create the values in runtime */
+    grid-template-columns: repeat(var(--grid-columns, 100), 1fr);
+    grid-template-rows: repeat(var(--grid-rows, 100), 1fr);
 }
 
 /* ---------------- Main Content Area ---------------- */
 .main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* Ensure flex children can shrink properly */
 .container-flex,
 .container-flex > .main-content,
 .slide-canvas {
-  min-height: 0;
+    min-height: 0;
 }
 
 /* ---------------- Top Panel ---------------- */
 .top-panel {
-  background-color: $light-gray !important;
-  border-bottom: 1px solid $dark-gray;
-  box-sizing: border-box;
+    background-color: $light-gray !important;
+    border-bottom: 1px solid $dark-gray;
+    box-sizing: border-box;
 }
 
 .top-panel-options {
-  width: 100%;
-  align-items: center;
-  overflow: auto hidden;
+    width: 100%;
+    align-items: center;
+    overflow: auto hidden;
 }
 
 .top-option {
-  cursor: pointer;
-  text-align: center;
+    cursor: pointer;
+    text-align: center;
 }
 
 .slide-right-sidebar.collapsed {
-  width: 2rem !important;
+    width: 2rem !important;
 }
 
 .slide-right-sidebar .sidebar-section {
-  transition: opacity 120ms ease;
+    transition: opacity 120ms ease;
 }
 
 .slide-right-sidebar.collapsed .sidebar-section {
-  visibility: hidden;
+    visibility: hidden;
 }
 
 .sidebar-collapse-btn {
-  position: absolute;
-  right: 0;
-  width: 2rem;
-  background-color: transparent !important;
-  border: none;
+    position: absolute;
+    right: 0;
+    width: 2rem;
+    background-color: transparent !important;
+    border: none;
 }
 
 .sidebar-collapse-btn .collapse-icon {
-  font-weight: 700;
-  color: $darker-gray;
+    font-weight: 700;
+    color: $darker-gray;
 }
 
 .top-option-utils {
-  cursor: pointer;
-  width: 120px;
-  height: 90%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+    cursor: pointer;
+    width: 120px;
+    height: 90%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .top-option-utils button {
-  width: 70%;
-  margin: auto;
+    width: 70%;
+    margin: auto;
 }
 
 .top-option:hover {
-  scale: 1.02;
-  background-color: rgba($neutral-blue-light, 0.09);
+    scale: 1.02;
+    background-color: rgba($neutral-blue-light, 0.09);
 }
 
 .slide-name {
-  overflow-wrap: break-word;
-  word-break: break-all;
-  width: 100%;
-  border-bottom: 0.5px solid $dark-gray;
-  margin-bottom: 10px;
-  font-weight: $font-weight-bold;
+    overflow-wrap: break-word;
+    word-break: break-all;
+    width: 100%;
+    border-bottom: 0.5px solid $dark-gray;
+    margin-bottom: 10px;
+    font-weight: $font-weight-bold;
 }
 
 .top-option .img-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #unifiedTemplatePreviewModal .modal-dialog {
-  max-width: none;
+    max-width: none;
 }
 
 /* Icon styling */
 .top-option .img-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 .link-change-btn {
-  left: auto;
-  right: 0;
+    left: auto;
+    right: 0;
 }
 
 /* Vertical divider */
 .divider-vertical {
-  width: 1px;
-  height: 100%;
-  background-color: $gray;
-  margin: 0 4px;
+    width: 1px;
+    height: 100%;
+    background-color: $gray;
+    margin: 0 4px;
 }
 
 /* Selected Element Toolbar */
 #selected-element-toolbar {
-  background-color: $light-gray;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    background-color: $light-gray;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .element-type-toolbar {
-  height: 100%;
+    height: 100%;
 }
 
 .element-type-toolbar span {
-  vertical-align: center;
+    vertical-align: center;
 }
 
 .toolbar-container {
-  width: 100%;
-  height: 100%;
-  background-color: $light-gray !important;
-  margin: auto;
-  display: flex;
-  flex-wrap: wrap;
+    width: 100%;
+    height: 100%;
+    background-color: $light-gray !important;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 #toolbar-general-container {
-  background-color: $lighter-gray;
-  height: 45px;
-  overflow-x: auto;
-  overflow-y: hidden !important;
+    background-color: $lighter-gray;
+    height: 45px;
+    overflow-x: auto;
+    overflow-y: hidden !important;
 }
 
 .toolbar-general {
-  background-color: $lighter-gray;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  overflow-x: auto;
-  overflow-y: hidden !important;
-  min-width: 100%;
+    background-color: $lighter-gray;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden !important;
+    min-width: 100%;
 }
 
 .toolbar-general button {
-  background: none;
-  border: none;
-  cursor: pointer;
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 #muteLabel {
-  display: none;
-  font-size: 0.9em;
-  margin-left: 10px;
-  user-select: none;
+    display: none;
+    font-size: 0.9em;
+    margin-left: 10px;
+    user-select: none;
 }
 
 .ProseMirror-focused {
-  cursor: text;
-  height: 100%;
+    cursor: text;
+    height: 100%;
 }
 
 .selected-element-options {
-  height: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .tiptap-toolbar button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 5px;
 }
 
 .tiptap-toolbar i {
-  display: block;
-  font-size: 24px;
-  line-height: 32px;
-  text-align: center;
+    display: block;
+    font-size: 24px;
+    line-height: 32px;
+    text-align: center;
 }
 
 #sidebar {
-  flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 #selected-element-toolbar {
-  overflow: auto hidden;
+    overflow: auto hidden;
 }
 
 /* ---------------- Slide Preview Area ---------------- */
 
 /* Slide Preview Area adjustments */
 .slide-canvas {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: $secondary-accent-hover;
-  overflow: hidden;
-  flex-direction: column;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $secondary-accent-hover;
+    overflow: hidden;
+    flex-direction: column;
 
-  /* Remove the padding if it’s adding extra height */
+    /* Remove the padding if it’s adding extra height */
 }
 
 .preview-container {
-  position: relative;
-  width: 100%;
-  height: calc(100% - 32px);
+    position: relative;
+    width: 100%;
+    height: calc(100% - 32px);
 
-  /* Instead of padding-bottom, force full height */
+    /* Instead of padding-bottom, force full height */
 
-  /* max-width: 1920px; This creates a bug, and nothing bad seems to happen if i remove this */
-  background-color: $secondary-accent-hover;
+    /* max-width: 1920px; This creates a bug, and nothing bad seems to happen if i remove this */
+    background-color: $secondary-accent-hover;
 }
 
 /* Right sidebar (10rem) that sits to the right of the slide preview */
 .slide-right-sidebar {
-  width: 14rem;
+    width: 14rem;
 
-  /* fixed width requirement */
-  height: 100%;
-  background: $lighter-gray;
-  border-left: 1px solid $dark-gray;
-  box-sizing: border-box;
+    /* fixed width requirement */
+    height: 100%;
+    background: $lighter-gray;
+    border-left: 1px solid $dark-gray;
+    box-sizing: border-box;
 
-  /* place to the right inside .slide-canvas flex layout */
+    /* place to the right inside .slide-canvas flex layout */
 }
 
 /* Slide elements list inside the right sidebar */
 .slide-right-sidebar .sidebar-section {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .slide-right-sidebar h6 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
-  color: $darkest-gray;
-  font-weight: 600;
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    color: $darkest-gray;
+    font-weight: 600;
 }
 
 #slide-elements-list {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .element-indicators-wrapper i {
-  color: inherit;
-  background: inherit;
-  padding: inherit;
-  border-bottom-width: inherit;
+    color: inherit;
+    background: inherit;
+    padding: inherit;
+    border-bottom-width: inherit;
 }
 
 #slide-elements-list .list-group-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.375rem 0.5rem;
-  border: none;
-  background: $secondary-accent;
-  color: $darkest-gray;
-  border-radius: 6px;
-  transition:
-    background-color 0.12s ease,
-    box-shadow 0.12s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    border: none;
+    background: $secondary-accent;
+    color: $darkest-gray;
+    border-radius: 6px;
+    transition:
+        background-color 0.12s ease,
+        box-shadow 0.12s ease;
 }
 
 #slide-elements-list .list-group-item:hover {
-  background: rgba($secondary, 0.04);
-  cursor: pointer;
-  transform: translateY(-1px);
+    background: rgba($secondary, 0.04);
+    cursor: pointer;
+    transform: translateY(-1px);
 }
 
 /* Active/selected state: use a subtle primary tint to match controls */
 #slide-elements-list .list-group-item.active,
 #slide-elements-list .list-group-item.active:hover {
-  background: $cold-purple-light;
-  color: $darkest-gray !important;
-  border: $dark-gray;
-  box-shadow: 0 1px 0 rgba($black, 0.03) inset;
+    background: $cold-purple-light;
+    color: $darkest-gray !important;
+    border: $dark-gray;
+    box-shadow: 0 1px 0 rgba($black, 0.03) inset;
 }
 
 #eventPreviewList .list-group-item.active {
-  background: $secondary-accent-lighter;
-  color: black;
-  border: $black;
+    background: $secondary-accent-lighter;
+    color: black;
+    border: $black;
 }
 
 #slide-elements-list .list-group-item .fw-bold {
-  font-size: 0.9rem;
-  color: $darkest-gray;
+    font-size: 0.9rem;
+    color: $darkest-gray;
 }
 
 #slide-elements-list .list-group-item .text-muted.small {
-  color: $darker-gray;
-  font-size: 0.78rem;
+    color: $darker-gray;
+    font-size: 0.78rem;
 }
 
 /* Rank badge on the right side (z-order rank) */
 #slide-elements-list .list-group-item .text-end {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 #slide-elements-list .list-group-item .rank-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.6rem;
-  max-width: 3rem;
-  height: 1.6rem;
-  padding: 0 6px;
-  border-radius: 4px;
-  background: transparent;
-  color: $darker-gray;
-  font-size: 0.75rem;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.6rem;
+    max-width: 3rem;
+    height: 1.6rem;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: transparent;
+    color: $darker-gray;
+    font-size: 0.75rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Slightly dim badge on inactive rows to keep hierarchy subtle */
 #slide-elements-list .list-group-item:not(.active) .text-end .rank-badge {
-  opacity: 0.7;
+    opacity: 0.7;
 }
 
 /* Active element has slightly more prominent badge */
 #slide-elements-list .list-group-item.active .text-end .rank-badge {
-  border-color: rgba($secondary, 0.3);
-  color: $secondary;
+    border-color: rgba($secondary, 0.3);
+    color: $secondary;
 }
 
 /* Hidden element styling in sidebar */
 #slide-elements-list .list-group-item.element-hidden {
-  opacity: 0.5;
+    opacity: 0.5;
 
-  .fw-bold,
-  .text-muted {
-    color: $darker-gray !important;
-  }
+    .fw-bold,
+    .text-muted {
+        color: $darker-gray !important;
+    }
 }
 
 /* Locked element from template: show gray overlay and lock icon */
 #slide-elements-list .list-group-item.element-locked-from-template {
-  position: relative;
-  opacity: 0.6;
-  pointer-events: none;
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 #slide-elements-list .list-group-item.element-locked-from-template::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba($light-gray, 0.5);
-  border-radius: 6px;
-  pointer-events: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba($light-gray, 0.5);
+    border-radius: 6px;
+    pointer-events: none;
 }
 
 #slide-elements-list .list-group-item.element-locked-from-template::before {
-  content: "lock_person";
-  font-family: "Material Symbols Outlined";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2rem;
-  color: black;
-  z-index: 2;
-  pointer-events: none;
+    content: "lock_person";
+    font-family: "Material Symbols Outlined";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    color: black;
+    z-index: 2;
+    pointer-events: none;
 }
 
 /* Reduce scrollbar visual footprint inside the small sidebar list */
 #slide-elements-list::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
 
 #slide-elements-list::-webkit-scrollbar-thumb {
-  background: $light-gray;
-  border-radius: 6px;
+    background: $light-gray;
+    border-radius: 6px;
 }
 
 /* Active setting icons - small, clean display */
 .active-setting-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: rgba($secondary, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: rgba($secondary, 0.1);
 
-  i {
-    font-size: 14px;
-    color: $secondary;
-    font-variation-settings: "FILL" 1;
-  }
+    i {
+        font-size: 14px;
+        color: $secondary;
+        font-variation-settings: "FILL" 1;
+    }
 }
 
 /* Settings button in sidebar */
 .element-settings-btn {
-  color: $darker-gray;
-  text-decoration: none;
+    color: $darker-gray;
+    text-decoration: none;
 
-  &:hover {
-    color: $secondary;
-  }
+    &:hover {
+        color: $secondary;
+    }
 
-  .material-symbols-outlined {
-    font-size: 18px;
-  }
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
 }
 
 /* Visibility toggle button in sidebar */
 .visibility-toggle-btn {
-  color: $darker-gray;
-  text-decoration: none;
-  border: none;
-  background: none;
-  padding: 2px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: $secondary;
-    background: rgba($secondary, 0.1);
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba($secondary, 0.3);
-  }
-
-  .material-symbols-outlined {
-    font-size: 18px;
-  }
-
-  /* When element is hidden, make button slightly more prominent */
-  &.element-hidden {
-    color: $warning;
-    background: rgba($warning, 0.1);
+    color: $darker-gray;
+    text-decoration: none;
+    border: none;
+    background: none;
+    padding: 2px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 
     &:hover {
-      color: darken($warning, 10%);
-      background: rgba($warning, 0.2);
+        color: $secondary;
+        background: rgba($secondary, 0.1);
     }
-  }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba($secondary, 0.3);
+    }
+
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+    /* When element is hidden, make button slightly more prominent */
+    &.element-hidden {
+        color: $warning;
+        background: rgba($warning, 0.1);
+
+        &:hover {
+            color: darken($warning, 10%);
+            background: rgba($warning, 0.2);
+        }
+    }
 }
 
 /* Settings popover */
 .element-settings-popover {
-  position: fixed;
-  z-index: 100000;
-  width: 300px;
-  background: $white;
-  border: 1px solid $light-gray;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba($black, 0.15);
-  display: none;
+    position: fixed;
+    z-index: 100000;
+    width: 300px;
+    background: $white;
+    border: 1px solid $light-gray;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba($black, 0.15);
+    display: none;
 
-  .popover-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid $light-gray;
+    .popover-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid $light-gray;
 
-    strong {
-      font-size: 0.9rem;
-      color: $darkest-gray;
+        strong {
+            font-size: 0.9rem;
+            color: $darkest-gray;
+        }
+
+        .popover-close-btn {
+            color: $darker-gray;
+            text-decoration: none;
+
+            &:hover {
+                color: $darkest-gray;
+            }
+
+            .material-symbols-outlined {
+                font-size: 20px;
+            }
+        }
     }
 
-    .popover-close-btn {
-      color: $darker-gray;
-      text-decoration: none;
-
-      &:hover {
-        color: $darkest-gray;
-      }
-
-      .material-symbols-outlined {
-        font-size: 20px;
-      }
-    }
-  }
-
-  .popover-body {
-    padding: 12px 16px;
-  }
-
-  .setting-item {
-    .form-check-label {
-      font-size: 0.875rem;
-      cursor: pointer;
-      margin-bottom: 2px;
+    .popover-body {
+        padding: 12px 16px;
     }
 
-    .text-muted {
-      line-height: 1.3;
+    .setting-item {
+        .form-check-label {
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-bottom: 2px;
+        }
+
+        .text-muted {
+            line-height: 1.3;
+        }
     }
-  }
 }
 
 /* Small icons in labels */
 .small-icon {
-  font-size: 16px !important;
-  vertical-align: middle;
+    font-size: 16px !important;
+    vertical-align: middle;
 }
 
 /* Template lock setting */
 .template-lock-setting {
-  padding: 8px;
-  background: rgba($secondary, 0.05);
-  border-radius: 6px;
-  border: 1px solid rgba($secondary, 0.15);
+    padding: 8px;
+    background: rgba($secondary, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba($secondary, 0.15);
 
-  .form-check-label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
+    .form-check-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
 
-    .small-icon {
-      font-size: 14px;
-      vertical-align: middle;
+        .small-icon {
+            font-size: 14px;
+            vertical-align: middle;
+        }
     }
-  }
 
-  .form-check-input {
-    cursor: pointer;
-  }
+    .form-check-input {
+        cursor: pointer;
+    }
 }
 
 /* Ensure slide-canvas lays out preview and right sidebar side-by-side */
 .slide-canvas {
-  flex-direction: row;
+    flex-direction: row;
 
-  /* override earlier column so children are horizontal */
-  align-items: stretch;
+    /* override earlier column so children are horizontal */
+    align-items: stretch;
 }
 
 /* Reserve space for the right sidebar so preview-container doesn't overlap */
 .slide-canvas > .preview-container {
-  /* Take remaining space left of the sidebar */
-  width: calc(100% - 10rem);
-  min-width: 0;
+    /* Take remaining space left of the sidebar */
+    width: calc(100% - 10rem);
+    min-width: 0;
 
-  /* allow flex shrink */
+    /* allow flex shrink */
 }
 
 /* Preview column: stacks preview-container and the status bar vertically
    so the status bar is part of normal flow instead of absolutely positioned */
 .preview-column {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 
-  /* take remaining horizontal space in .slide-canvas */
-  min-width: 0;
+    /* take remaining horizontal space in .slide-canvas */
+    min-width: 0;
 }
 
 /* Make preview-container take remaining vertical space inside the column
    and allow the status bar to occupy its own 32px height below it */
 .preview-column > .preview-container {
-  height: calc(100% - 32px);
-  width: 100%;
-  min-width: 0;
-}
-
-/* Status bar becomes a normal flex item at the bottom of the preview column */
-.content-engine-status-bar {
-  box-sizing: border-box;
-  height: 32px;
-  flex: 0 0 32px;
-  width: 100%;
+    height: calc(100% - 32px);
+    width: 100%;
+    min-width: 0;
 }
 
 /* Ensure the main-content padding accounts for status bar height */
 .main-content {
-  padding-bottom: 32px;
+    padding-bottom: 32px;
 
-  /* matches status bar height */
+    /* matches status bar height */
 }
 
 /* Zoom mode styling for scrollable container */
 .preview-container.zoom-mode {
-  overflow: auto !important;
+    overflow: auto !important;
 
-  /* Ensure zoom mode container has flex layout reset */
-  display: block;
-  align-items: flex-start;
-  justify-content: flex-start;
+    /* Ensure zoom mode container has flex layout reset */
+    display: block;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 /* Zoom mode specific styling for preview slide */
 .preview-container.zoom-mode .preview-slide {
-  position: relative !important;
-  top: 0 !important;
-  left: 0 !important;
-  transform-origin: top left !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform-origin: top left !important;
 
-  /* Remove centering transform completely in zoom mode */
+    /* Remove centering transform completely in zoom mode */
 }
 
 /* Custom scrollbar styling for zoom mode */
 .preview-container.zoom-mode::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+    width: 12px;
+    height: 12px;
 }
 
 .preview-container.zoom-mode::-webkit-scrollbar-track {
-  background: $secondary-accent-hover;
-  border-radius: 6px;
+    background: $secondary-accent-hover;
+    border-radius: 6px;
 }
 
 .preview-container.zoom-mode::-webkit-scrollbar-thumb {
-  background: $darkest-gray;
-  border-radius: 6px;
-  border: 2px solid $secondary-accent-hover;
+    background: $darkest-gray;
+    border-radius: 6px;
+    border: 2px solid $secondary-accent-hover;
 }
 
 .preview-container.zoom-mode::-webkit-scrollbar-thumb:hover {
-  background: $darkest-gray;
+    background: $darkest-gray;
 }
 
 .preview-container.zoom-mode::-webkit-scrollbar-corner {
-  background: $secondary-accent-hover;
+    background: $secondary-accent-hover;
 }
 
 /* Ensure the slide sidebar is never affected by zoom transformations */
 .slide-right-sidebar {
-  transform: none !important;
-  scale: none !important;
-  zoom: 1 !important;
-  position: relative;
+    transform: none !important;
+    scale: none !important;
+    zoom: 1 !important;
+    position: relative;
 
-  /* Ensure sidebar maintains its fixed width */
-  flex-shrink: 0;
-  width: 165px;
+    /* Ensure sidebar maintains its fixed width */
+    flex-shrink: 0;
+    width: 165px;
 }
 
 /* Ensure sidebar children are also protected from zoom effects */
 .slide-right-sidebar * {
-  transform: none !important;
-  scale: none !important;
+    transform: none !important;
+    scale: none !important;
 }
 
 /* Ensure preview-column layout doesn't interfere with sidebar positioning */
 .preview-column {
-  z-index: 1;
+    z-index: 1;
 }
 
 /* Zoom controls styling */
 .zoom-controls-container input[type="range"] {
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
 }
 
 .zoom-controls-container input[type="range"]::-webkit-slider-track {
-  background: $white;
-  height: 100%;
-  border-radius: 2px;
-  border: 1px solid $secondary;
+    background: $white;
+    height: 100%;
+    border-radius: 2px;
+    border: 1px solid $secondary;
 }
 
 .zoom-controls-container input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-  height: 12px;
-  width: 12px;
-  border-radius: 50%;
-  background: $neutral-blue;
-  border: 2px solid $white;
-  box-shadow: 0 2px 4px rgba($black, 0.2);
-  cursor: pointer;
+    appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: $neutral-blue;
+    border: 2px solid $white;
+    box-shadow: 0 2px 4px rgba($black, 0.2);
+    cursor: pointer;
 }
 
 .zoom-controls-container input[type="range"]::-webkit-slider-thumb:hover {
-  background: $neutral-blue;
-  transform: scale(1.1);
+    background: $neutral-blue;
+    transform: scale(1.1);
 }
 
 .zoom-controls-container input[type="range"]::-moz-range-track {
-  background: $white;
-  height: 100%;
-  border-radius: 2px;
-  border: 1px solid $black;
+    background: $white;
+    height: 100%;
+    border-radius: 2px;
+    border: 1px solid $black;
 }
 
 .zoom-controls-container input[type="range"]::-moz-range-thumb {
-  height: 12px;
-  width: 12px;
-  border-radius: 50%;
-  background: $neutral-blue;
-  border: 2px solid $white;
-  box-shadow: 0 2px 4px rgba($black, 0.2);
-  cursor: pointer;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: $neutral-blue;
+    border: 2px solid $white;
+    box-shadow: 0 2px 4px rgba($black, 0.2);
+    cursor: pointer;
 }
 
 .preview-slide {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform-origin: center;
-  background-color: $white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    background-color: $white;
 }
 
 @keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
+    to {
+        opacity: 1;
+    }
 }
 
 /* ---------------- Grid-based Editor Layout ---------------- */
 .grid-container {
-  display: grid;
-  grid-template-columns: repeat(var(--grid-columns, 100), 1fr);
-  grid-template-rows: repeat(var(--grid-rows, 100), 1fr);
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns, 100), 1fr);
+    grid-template-rows: repeat(var(--grid-rows, 100), 1fr);
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .grid-container.show-grid {
-  background-image:
-    linear-gradient(to right, rgba($black, 0.2) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba($black, 0.2) 1px, transparent 1px);
-  background-size: calc(100% / var(--grid-columns, 100))
-    calc(100% / var(--grid-rows, 100));
+    background-image:
+        linear-gradient(to right, rgba($black, 0.2) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba($black, 0.2) 1px, transparent 1px);
+    background-size: calc(100% / var(--grid-columns, 100))
+        calc(100% / var(--grid-rows, 100));
 }
 
 /* Slide-element styling */
 .slide-element {
-  cursor: move;
-  position: relative;
-  min-width: 0;
-  min-height: 0;
-  opacity: 0;
-  animation: fadeIn 0.1s forwards;
+    cursor: move;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    opacity: 0;
+    animation: fadeIn 0.1s forwards;
 }
 
 .resize-handle {
-  display: none;
-  width: 23px;
-  height: 23px;
-  background: $white;
-  border: 2px solid $neutral-blue;
-  position: absolute;
-  user-select: none;
-  pointer-events: auto;
-  box-shadow: 0 0 3px rgba($black, 0.35);
-  z-index: 9999;
-  border-radius: 50%;
+    display: none;
+    width: 23px;
+    height: 23px;
+    background: $white;
+    border: 2px solid $neutral-blue;
+    position: absolute;
+    user-select: none;
+    pointer-events: auto;
+    box-shadow: 0 0 3px rgba($black, 0.35);
+    z-index: 9999;
+    border-radius: 50%;
 }
 
 .drag-indicator {
-  display: none;
-  width: 50px;
-  height: 50px;
-  background: $white;
-  border: 2px dashed $neutral-blue;
-  position: absolute;
-  border-radius: 50%;
-  user-select: none;
-  pointer-events: auto;
-  box-shadow: 0 0 6px rgba($black, 0.35);
-  cursor: move;
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-  transform: translateX(-9px);
+    display: none;
+    width: 50px;
+    height: 50px;
+    background: $white;
+    border: 2px dashed $neutral-blue;
+    position: absolute;
+    border-radius: 50%;
+    user-select: none;
+    pointer-events: auto;
+    box-shadow: 0 0 6px rgba($black, 0.35);
+    cursor: move;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    transform: translateX(-9px);
 }
 
 .drag-indicator .material-symbols-outlined {
-  font-size: 40px;
-  line-height: 1;
+    font-size: 40px;
+    line-height: 1;
 }
 
 .resize-handle--n,
 .resize-handle--s {
-  cursor: ns-resize;
+    cursor: ns-resize;
 }
 
 .resize-handle--e,
 .resize-handle--w {
-  cursor: ew-resize;
+    cursor: ew-resize;
 }
 
 .resize-handle--ne,
 .resize-handle--sw {
-  cursor: nesw-resize;
+    cursor: nesw-resize;
 }
 
 .resize-handle--nw,
 .resize-handle--se {
-  cursor: nwse-resize;
+    cursor: nwse-resize;
 }
 
 .image-box {
-  width: 250px;
-  height: 250px;
-  border: 0.5px solid $lighter-gray;
-  padding: 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  position: relative;
-  bottom: 0;
+    width: 250px;
+    height: 250px;
+    border: 0.5px solid $lighter-gray;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    bottom: 0;
 }
 
 /* iFrame / embed websites optimization */
 .slide-element.iframe,
 .slide-element.embed-website {
-  will-change: grid-column-end, grid-row-end;
+    will-change: grid-column-end, grid-row-end;
 }
 
 /* Custom color palette popup */
 .custom-color-palette.popover {
-  /* Remove grid styles */
+    /* Remove grid styles */
 
-  /* display: grid; */
+    /* display: grid; */
 
-  /* grid-template-columns: repeat(6, 30px); */
+    /* grid-template-columns: repeat(6, 30px); */
 
-  /* gap: 5px; */
+    /* gap: 5px; */
 
-  /* Keep base popover styles */
-  position: absolute;
-  border: 1px solid rgba($black, 0.175);
+    /* Keep base popover styles */
+    position: absolute;
+    border: 1px solid rgba($black, 0.175);
 
-  /* Bootstrap popover border color */
-  background-color: $white;
-  padding: 0;
+    /* Bootstrap popover border color */
+    background-color: $white;
+    padding: 0;
 
-  /* Remove padding, list-group handles it */
-  z-index: 1060;
+    /* Remove padding, list-group handles it */
+    z-index: 1060;
 
-  /* Bootstrap popover z-index */
-  box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
+    /* Bootstrap popover z-index */
+    box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
 
-  /* Bootstrap popover shadow */
-  border-radius: 0.3rem;
+    /* Bootstrap popover shadow */
+    border-radius: 0.3rem;
 }
 
 /* Context Menu Styles */
 .custom-context-menu {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
-  font-size: 14px;
-  user-select: none;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+        Cantarell, sans-serif;
+    font-size: 14px;
+    user-select: none;
 }
 
 .custom-context-menu .material-symbols-outlined {
-  user-select: none;
+    user-select: none;
 }
 
 .element-type-submenu {
-  animation: slideIn 0.15s ease-out;
+    animation: slideIn 0.15s ease-out;
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-5px);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
 
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .color-palette-popover {
-  /* Bootstrap popover border-radius */
-  width: 250px;
+    /* Bootstrap popover border-radius */
+    width: 250px;
 
-  /* Set a fixed width or max-width */
-  max-height: 300px;
+    /* Set a fixed width or max-width */
+    max-height: 300px;
 
-  /* Allow scrolling */
-  overflow: hidden auto;
+    /* Allow scrolling */
+    overflow: hidden auto;
 }
 
 #fileTypeName {
-  vertical-align: baseline;
+    vertical-align: baseline;
 }
 
 /* Remove default border/padding from list-group items if needed */
 .custom-color-palette .list-group-item {
-  border-left: none;
-  border-right: none;
-  border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
 
-  /* Remove individual item radius if palette has one */
-  padding: 0.5rem 0.75rem;
+    /* Remove individual item radius if palette has one */
+    padding: 0.5rem 0.75rem;
 
-  /* Adjust padding */
+    /* Adjust padding */
 }
 
 .custom-color-palette .list-group-item:first-child {
-  border-top: none;
-  border-top-left-radius: calc(0.3rem - 1px);
+    border-top: none;
+    border-top-left-radius: calc(0.3rem - 1px);
 
-  /* Match palette radius */
-  border-top-right-radius: calc(0.3rem - 1px);
+    /* Match palette radius */
+    border-top-right-radius: calc(0.3rem - 1px);
 }
 
 .custom-color-palette .list-group-item:last-child {
-  border-bottom: none;
-  border-bottom-left-radius: calc(0.3rem - 1px);
-  border-bottom-right-radius: calc(0.3rem - 1px);
+    border-bottom: none;
+    border-bottom-left-radius: calc(0.3rem - 1px);
+    border-bottom-right-radius: calc(0.3rem - 1px);
 }
 
 /* Style for the color swatch inside the list item */
 .custom-color-palette .list-group-item span:first-child {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  vertical-align: middle;
-  flex-shrink: 0;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 /* Style for the text info */
 .custom-color-palette .list-group-item div {
-  flex-grow: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+    flex-grow: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .custom-color-palette .list-group-item div span {
-  display: block;
+    display: block;
 
-  /* Ensure details go below name */
+    /* Ensure details go below name */
 }
 
 .custom-color-palette .list-group-item div span:last-child {
-  font-size: 0.85em;
-  color: $darker-gray;
+    font-size: 0.85em;
+    color: $darker-gray;
 }
 
 /* Custom border popover styles */
 .border-popover {
-  position: absolute;
-  border: 1px solid $gray;
-  background: $white;
-  padding: 10px;
-  z-index: 10000;
-  box-shadow: 0 2px 6px rgba($black, 0.2);
-  border-radius: 4px;
-  width: 220px;
+    position: absolute;
+    border: 1px solid $gray;
+    background: $white;
+    padding: 10px;
+    z-index: 10000;
+    box-shadow: 0 2px 6px rgba($black, 0.2);
+    border-radius: 4px;
+    width: 220px;
 }
 
 .border-popover .color-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 30px);
-  gap: 5px;
-  margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(6, 30px);
+    gap: 5px;
+    margin-bottom: 10px;
 }
 
 .border-popover .color-grid div {
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  border: 1px solid $gray;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    border: 1px solid $gray;
 }
 
 .border-popover .thickness-input {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 .border-popover button {
-  margin-right: 5px;
-  margin-top: 5px;
+    margin-right: 5px;
+    margin-top: 5px;
 }
 
 /* Table popover styles */
 .table-popover {
-  background-color: $white;
-  border: 1px solid rgba($black, 0.175);
-  border-radius: 0.375rem;
-  box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
-  font-size: 0.875rem;
+    background-color: $white;
+    border: 1px solid rgba($black, 0.175);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba($black, 0.15);
+    font-size: 0.875rem;
 }
 
 .table-popover h6 {
-  margin: 0;
-  font-weight: 600;
-  color: $black;
+    margin: 0;
+    font-weight: 600;
+    color: $black;
 }
 
 .table-popover .form-label {
-  margin-bottom: 0.25rem;
-  color: $darkest-gray;
+    margin-bottom: 0.25rem;
+    color: $darkest-gray;
 }
 
 .table-popover .form-control,
 .table-popover .form-select {
-  font-size: 0.875rem;
+    font-size: 0.875rem;
 }
 
 .form-select {
-  min-width: 4rem;
-  text-overflow: ellipsis;
+    min-width: 4rem;
+    text-overflow: ellipsis;
 }
 
 .tiptap-font-family-select {
-  min-width: 6rem;
+    min-width: 6rem;
 }
 
 .table-popover .form-check-label {
-  font-size: 0.875rem;
-  color: $darkest-gray;
+    font-size: 0.875rem;
+    color: $darkest-gray;
 }
 
 .table-popover .form-control-color {
-  width: 100%;
-  height: 40px;
-  padding: 0.25rem;
+    width: 100%;
+    height: 40px;
+    padding: 0.25rem;
 }
 
 /* Hide scrollbars for all elements inside a slide */
 .slide-element {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 .tiptap-text-content {
-  height: 100%;
-  white-space: pre-wrap;
+    height: 100%;
+    white-space: pre-wrap;
 }
 
 .dropdown-menu.tiptap-font-size-dropdown-menu.shadow.show {
-  left: -3.4rem !important;
+    left: -3.4rem !important;
 }
 
 .slide-element *::-webkit-scrollbar {
-  display: none;
+    display: none;
 
-  /* Chrome, Safari, Opera */
+    /* Chrome, Safari, Opera */
 }
 
 .slide-item.inactive-slide {
-  opacity: 0.4 !important;
-  background-color: $lighter-gray !important;
+    opacity: 0.4 !important;
+    background-color: $lighter-gray !important;
 
-  /* Light grey background */
-  position: relative;
+    /* Light grey background */
+    position: relative;
 
-  /* Needed for overlay */
+    /* Needed for overlay */
 }
 
 /* Optional: Add an overlay text */
 .slide-item.inactive-slide::after {
-  content: "Inactive";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba($black, 0.5);
-  color: $white;
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-size: 0.7em;
-  z-index: 1;
+    content: "Inactive";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba($black, 0.5);
+    color: $white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    z-index: 1;
 
-  /* Ensure it's above the preview content */
-  pointer-events: none;
+    /* Ensure it's above the preview content */
+    pointer-events: none;
 
-  /* Allow clicks through overlay if needed */
+    /* Allow clicks through overlay if needed */
 }
 
 /* Style the calendar button when the feature is active but slide is currently inactive */
 .slide-item.inactive-slide .btn-secondary .material-symbols-outlined {
-  /* Example: slightly dimmer icon */
-  opacity: 0.7;
+    /* Example: slightly dimmer icon */
+    opacity: 0.7;
 }
 
 .image-toolbar .btn-group-toggle .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0.25rem 0.5rem;
-  line-height: 1;
-  height: auto;
-  min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    height: auto;
+    min-height: 1.5rem;
 }
 
 .image-toolbar label {
-  font-weight: 400;
-  margin-bottom: 0;
+    font-weight: 400;
+    margin-bottom: 0;
 }
 
 .video-toolbar .btn-group-toggle .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0.25rem 0.5rem;
-  line-height: 1;
-  height: auto;
-  min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    height: auto;
+    min-height: 1.5rem;
 }
 
 .video-toolbar label {
-  font-weight: 400;
-  margin-bottom: 0;
+    font-weight: 400;
+    margin-bottom: 0;
 }
 
 .website-toolbar .btn-group-toggle .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0.25rem 0.5rem;
-  line-height: 1;
-  height: auto;
-  min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    height: auto;
+    min-height: 1.5rem;
 }
 
 .website-toolbar label {
-  font-weight: 400;
-  margin-bottom: 0;
+    font-weight: 400;
+    margin-bottom: 0;
 }
 
 .shape-element-toolbar .btn-group-toggle .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0.25rem 0.5rem;
-  line-height: 1;
-  height: auto;
-  min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    height: auto;
+    min-height: 1.5rem;
 }
 
 .shape-element-toolbar label {
-  font-weight: 400;
-  margin-bottom: 0;
+    font-weight: 400;
+    margin-bottom: 0;
 }
 
 .toolbar-container {
-  background-color: $lighter-gray;
-  height: 45px !important;
+    background-color: $lighter-gray;
+    height: 45px !important;
 }
 
 .resolution-option.active {
-  border: 3px solid $neutral-blue !important;
+    border: 3px solid $neutral-blue !important;
 }
 
 #activationDateFields {
-  display: none;
+    display: none;
 }
 
 /* Recurring activation styles */
 .interval-item {
-  padding: 0 5px;
-  transition: all 0.2s ease;
-  margin-bottom: 0.25rem !important;
-  font-size: 0.875rem;
+    padding: 0 5px;
+    transition: all 0.2s ease;
+    margin-bottom: 0.25rem !important;
+    font-size: 0.875rem;
 }
 
 .interval-item:hover {
-  background-color: $lighter-gray !important;
+    background-color: $lighter-gray !important;
 }
 
 .interval-item .remove-interval {
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
-  background: none;
-  border: none;
-  color: $error-red;
-  cursor: pointer;
-  padding: 0.25rem;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+    background: none;
+    border: none;
+    color: $error-red;
+    cursor: pointer;
+    padding: 0.25rem;
 }
 
 .interval-item:hover .remove-interval {
-  opacity: 1;
+    opacity: 1;
 }
 
 /* Day section layout */
 .day-section {
-  border-bottom: 1px solid $light-gray;
-  padding: 0.75rem 0;
+    border-bottom: 1px solid $light-gray;
+    padding: 0.75rem 0;
 }
 
 .day-section:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .day-section:first-child {
-  padding-top: 0.5rem;
+    padding-top: 0.5rem;
 }
 
 .day-header {
-  margin-top: 6px;
-  color: $darkest-gray;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0;
-  padding-right: 1rem;
-  min-width: 80px;
-  flex-shrink: 0;
+    margin-top: 6px;
+    color: $darkest-gray;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0;
+    padding-right: 1rem;
+    min-width: 80px;
+    flex-shrink: 0;
 }
 
 .day-intervals {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 #intervalsList {
-  background-color: $lightest-gray;
-  border: 1px solid $light-gray;
+    background-color: $lightest-gray;
+    border: 1px solid $light-gray;
 }
 
 #intervalsList:empty::before {
-  content: "No recurring intervals added yet. Use the form above to add weekly time slots.";
-  color: $darker-gray;
-  font-style: italic;
-  display: block;
-  text-align: center;
-  padding: 1.5rem;
-  font-size: 0.875rem;
-  line-height: 1.4;
+    content: "No recurring intervals added yet. Use the form above to add weekly time slots.";
+    color: $darker-gray;
+    font-style: italic;
+    display: block;
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
 
 /* Compact input styling */
 .bg-light.border.rounded {
-  background-color: $lightest-gray !important;
+    background-color: $lightest-gray !important;
 }
 .text-muted.small {
-  font-size: 0.8rem;
-  font-weight: 500;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 #slideTypeContainer {
-  display: none;
+    display: none;
 }
 
 #slideTypeTableActionTh {
-  width: 120px;
+    width: 120px;
 }
 
 #categoryCheckboxes {
-  max-height: 400px;
-  overflow: auto;
+    max-height: 400px;
+    overflow: auto;
 }
 
 .resolution-option {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  min-width: 72px;
-  min-height: 48px;
-  padding: 8px;
-  text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 72px;
+    min-height: 48px;
+    padding: 8px;
+    text-align: center;
 }
 
 .resolution-option:hover {
-  background-color: $lighter-gray !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba($black, 0.1);
+    background-color: $lighter-gray !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba($black, 0.1);
 }
 
 .template-resolution-option {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 4px;
-  padding: 8px 12px;
-  min-width: 48px;
-  min-height: 48px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 8px 12px;
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    text-align: center;
 }
 
 .template-resolution-option:hover {
-  background-color: $lighter-gray !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba($black, 0.1);
+    background-color: $lighter-gray !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba($black, 0.1);
 }
 
 .template-resolution-option.active {
-  border: 2px solid $neutral-blue !important;
-  background-color: $lightest-gray !important;
-  color: $neutral-blue;
+    border: 2px solid $neutral-blue !important;
+    background-color: $lightest-gray !important;
+    color: $neutral-blue;
 }
 
 .template-resolution-option-wrapper {
-  min-width: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+    min-width: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .template-resolution-option-note {
-  min-height: 1.5rem;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  text-transform: none;
-  font-size: 0.75rem;
+    min-height: 1.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    text-transform: none;
+    font-size: 0.75rem;
 }
 
 .element-toolbar-name {
-  height: 100%;
+    height: 100%;
 }
 
 #unifiedTemplatePreview {
@@ -1943,11 +2171,11 @@ span {
 }
 
 #templateSlideSection {
-  display: block;
+    display: block;
 }
 
 #elementLinkDropdown {
-  max-width: 200px;
+    max-width: 200px;
 }
 
 .template-preview-wrapper {
@@ -1961,12 +2189,12 @@ span {
 
 #img-align-left-btn,
 #video-align-left-btn {
-  transform: rotate(270deg);
+    transform: rotate(270deg);
 }
 
 #img-align-right-btn,
 #video-align-right-btn {
-  transform: rotate(90deg);
+    transform: rotate(90deg);
 }
 
 #template-list-table {
@@ -1978,129 +2206,129 @@ span {
 
 /* Base style for the element that will have the pattern */
 .checkerboard-bg {
-  background-size: 20px 20px;
+    background-size: 20px 20px;
 
-  /* Size of the squares */
-  background-position:
-    0 0,
-    10px 10px;
+    /* Size of the squares */
+    background-position:
+        0 0,
+        10px 10px;
 
-  /* Offset for the second layer */
-  background-repeat: repeat;
-  display: inline-block;
-  padding: 5px;
-  border: 1px solid $light-gray;
-  border-radius: 4px;
+    /* Offset for the second layer */
+    background-repeat: repeat;
+    display: inline-block;
+    padding: 5px;
+    border: 1px solid $light-gray;
+    border-radius: 4px;
 }
 
 /* Light theme for the checkerboard */
 .checkerboard-light .checkerboard-bg {
-  background-image:
-    linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
-    linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
-    linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
-  background-color: $white;
+    background-image:
+        linear-gradient(45deg, $lighter-gray 25%, transparent 25%),
+        linear-gradient(-45deg, $lighter-gray 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, $lighter-gray 75%),
+        linear-gradient(-45deg, transparent 75%, $lighter-gray 75%);
+    background-color: $white;
 
-  /* Light background */
+    /* Light background */
 }
 
 /* Dark theme for the checkerboard */
 .checkerboard-dark .checkerboard-bg {
-  background-image:
-    linear-gradient(45deg, $darkest-gray 25%, transparent 25%),
-    linear-gradient(-45deg, $darkest-gray 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, $darkest-gray 75%),
-    linear-gradient(-45deg, transparent 75%, $darkest-gray 75%);
-  background-color: $black;
+    background-image:
+        linear-gradient(45deg, $darkest-gray 25%, transparent 25%),
+        linear-gradient(-45deg, $darkest-gray 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, $darkest-gray 75%),
+        linear-gradient(-45deg, transparent 75%, $darkest-gray 75%);
+    background-color: $black;
 
-  /* Dark background */
+    /* Dark background */
 }
 
 /* Style for the image/video itself within the checkerboard */
 .checkerboard-bg img,
 .checkerboard-bg video {
-  position: relative;
-  z-index: 1;
-  display: block;
-  object-fit: contain;
-  max-width: 100%;
-  height: auto;
-  max-height: 100%;
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: auto;
+    position: relative;
+    z-index: 1;
+    display: block;
+    object-fit: contain;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: auto;
 }
 
 #imageGrid {
-  background: none;
+    background: none;
 }
 
 #imageGrid .image-box .checkerboard-bg {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-  max-width: 100%;
-  overflow: hidden;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 #imageGrid .image-box .media-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  width: 100%;
-  min-height: 40px;
-  flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    width: 100%;
+    min-height: 40px;
+    flex-shrink: 0;
 }
 
 #imageGrid .image-box .media-title {
-  margin: 0;
-  font-size: 0.875rem;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  margin-bottom: 5px;
+    margin: 0;
+    font-size: 0.875rem;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-bottom: 5px;
 
-  /* Added standard property */
-  -webkit-box-orient: vertical;
+    /* Added standard property */
+    -webkit-box-orient: vertical;
 }
 
 #imageGrid .image-box .edit-media-btn {
-  flex-shrink: 0;
-  padding: 2px 4px;
-  line-height: 1;
+    flex-shrink: 0;
+    padding: 2px 4px;
+    line-height: 1;
 }
 
 #imageGrid .image-box {
-  width: 205px;
-  height: 205px;
-  border: 1px solid $lighter-gray;
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  background-color: $lightest-gray;
-  box-shadow: 0 1px 3px rgba($black, 0.1);
+    width: 205px;
+    height: 205px;
+    border: 1px solid $lighter-gray;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    background-color: $lightest-gray;
+    box-shadow: 0 1px 3px rgba($black, 0.1);
 }
 
 #imageGrid .image-box .checkerboard-bg {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-  max-width: 100%;
-  overflow: hidden;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .checkerboard-bg img,
 .checkerboard-bg video {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 #slide-background-options,
@@ -2108,16 +2336,16 @@ span {
 #last-changed-text,
 .content-engine-info-text,
 #slideshow-mode-text {
-  color: $darker-gray;
-  font-size: 0.75rem;
+    color: $darker-gray;
+    font-size: 0.75rem;
 }
 
 #slideshow-mode-text {
-  display: none;
+    display: none;
 }
 
 #addSlideBtn span {
-  font-size: 0.9rem;
+    font-size: 0.9rem;
 }
 
 .toolbar-general button,
@@ -2125,35 +2353,35 @@ span {
 .toolbar-general div,
 .element-type-toolbar span,
 .autosave-info {
-  white-space: nowrap !important;
+    white-space: nowrap !important;
 }
 
 #aspect-ratio-label {
-  display: none;
+    display: none;
 }
 
 #slideshow-name {
-  font-weight: 600;
-  color: $secondary;
+    font-weight: 600;
+    color: $secondary;
 }
 
 #undoBtn,
 #redoBtn {
-  color: $secondary;
+    color: $secondary;
 }
 
 #add-elements-container i {
-  color: $secondary;
+    color: $secondary;
 }
 
 #change-slideshow-btn {
-  font-weight: $font-weight-bold;
+    font-weight: $font-weight-bold;
 }
 
 /* Ensure all tables in the content engine have zero margin to override Bootstrap's default */
 
 .table {
-  margin: 0 !important;
+    margin: 0 !important;
 }
 
 .table-active {
@@ -2167,493 +2395,492 @@ span {
 
 /* Persist element button - make pinned state look like hover state */
 #persist-element-btn.btn-primary {
-  background-color: $primary !important;
-  border-color: $primary !important;
-  box-shadow: 0 0 0 0.2rem rgba($neutral-blue, 0.25) !important;
-  transform: translateY(-1px);
-  transition: all 0.2s ease;
+    background-color: $primary !important;
+    border-color: $primary !important;
+    box-shadow: 0 0 0 0.2rem rgba($neutral-blue, 0.25) !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
 }
 
 
 
 #persist-element-btn.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 0 0.2rem rgba($neutral-blue, 0.35) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 0.2rem rgba($neutral-blue, 0.35) !important;
 }
 
 /* Lock element button - make locked state look like active state */
 #lock-element-btn.btn-primary {
-  background-color: $error-red !important;
-  border-color: $error-red !important;
-  box-shadow: 0 0 0 0.2rem rgba($secondary, 0.25) !important;
-  transform: translateY(-1px);
-  transition: all 0.2s ease;
+    background-color: $error-red !important;
+    border-color: $error-red !important;
+    box-shadow: 0 0 0 0.2rem rgba($secondary, 0.25) !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
 }
 
 #lock-element-btn.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 0 0.2rem rgba($secondary, 0.35) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 0.2rem rgba($secondary, 0.35) !important;
 }
 
 /* Lock indicator: position + any small overrides (shared appearance in base class) */
 .lock-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1000;
-  border-radius: 50%;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1000;
+    border-radius: 50%;
 
-  /* keep circular lock for better affordance */
+    /* keep circular lock for better affordance */
 }
 
 /* Locked element visual styling */
 .slide-element.is-locked:hover {
-  opacity: 0.8;
+    opacity: 0.8;
 }
 
 /* Hide resize handle for locked elements */
 .slide-element.is-locked .resize-handle {
-  display: none !important;
+    display: none !important;
 }
 
 /* Placeholder element styling for better visual separation */
 .slide-element.placeholder-element {
-  /* Add a subtle inset margin to create visual separation between adjacent placeholders */
-  box-sizing: border-box;
+    /* Add a subtle inset margin to create visual separation between adjacent placeholders */
+    box-sizing: border-box;
 }
 
 /* Blocked selection indicator (when element disallows user interactions) */
 .blocked-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1000;
-  background: #6c757d;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1000;
+    background: #6c757d;
 
-  /* match neutral gray used in JS */
-  box-shadow: 0 3px 8px rgb(0 0 0 / 50%);
+    /* match neutral gray used in JS */
+    box-shadow: 0 3px 8px rgb(0 0 0 / 50%);
 }
 
 /* If the element is also persistent, move the blocked indicator left so it doesn't overlap the pin */
 .slide-element.is-persistent .blocked-indicator {
-  right: 56px;
+    right: 56px;
 }
 
 /* Slightly dim blocked elements on hover to hint non-interactivity */
 .slide-element.is-selection-blocked:hover {
-  opacity: 0.9;
+    opacity: 0.9;
 }
 
 /* Indicator for elements whose settings are forced in templates (non-changeable by template users) */
 .force-settings-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1000;
-  font-size: 20px;
-  background: $secondary;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1000;
+    font-size: 20px;
+    background: $secondary;
 
-  /* use secondary theme color */
+    /* use secondary theme color */
 }
 
 /* When element is persistent, offset the force-settings indicator to avoid overlap */
 .slide-element.is-persistent .force-settings-indicator {
-  right: 56px;
+    right: 56px;
 }
 
 /* If element is locked too, move further left */
 .slide-element.is-locked .force-settings-indicator {
-  right: 104px;
+    right: 104px;
 }
 
 /* Always-on-top indicator (shows that element is top-most) */
 .always-on-top-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1000;
-  font-size: 20px;
-  background: $neutral-blue;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1000;
+    font-size: 20px;
+    background: $neutral-blue;
 
-  /* choose a distinct but consistent color */
+    /* choose a distinct but consistent color */
 }
 
 /* Offsetting handled in JS to prevent complicated combinatorial CSS rules */
 
 .slide-element.placeholder-element > div {
-  /* The inner wrapper already has margin: 4px from JS,
+    /* The inner wrapper already has margin: 4px from JS,
      but we'll add some additional styling for better visual separation */
-  position: relative;
-  transition: all 0.2s ease;
+    position: relative;
+    transition: all 0.2s ease;
 }
 
 .slide-element.placeholder-element:hover > div {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba($black, 0.15);
-  border-color: $neutral-blue;
-  background-color: $lightest-gray;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($black, 0.15);
+    border-color: $neutral-blue;
+    background-color: $lightest-gray;
 }
 
 /* When placeholder is selected, make it more prominent */
 .slide-element.placeholder-element.selected > div {
-  border-color: $neutral-blue;
-  background-color: $lightest-gray;
-  box-shadow: 0 0 0 3px rgba($neutral-blue, 0.25);
+    border-color: $neutral-blue;
+    background-color: $lightest-gray;
+    box-shadow: 0 0 0 3px rgba($neutral-blue, 0.25);
 }
 
 /* Ensure placeholders maintain visual separation even when grid cells are adjacent */
 .grid-container
-  .slide-element.placeholder-element
-  + .slide-element.placeholder-element {
-  /* Add extra visual separation for adjacent placeholders */
-  position: relative;
+    .slide-element.placeholder-element
+    + .slide-element.placeholder-element {
+    /* Add extra visual separation for adjacent placeholders */
+    position: relative;
 }
 
 /* Add subtle animation to placeholder elements */
 .slide-element.placeholder-element > div {
-  animation: placeholder-pulse 3s ease-in-out infinite;
+    animation: placeholder-pulse 3s ease-in-out infinite;
 }
 
 .slide-element.placeholder {
-  background-color: transparent !important;
+    background-color: transparent !important;
 }
 
 @keyframes placeholder-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
+    0%,
+    100% {
+        opacity: 1;
+    }
 
-  50% {
-    opacity: 0.85;
-  }
+    50% {
+        opacity: 0.85;
+    }
 }
 
 /* Search Input */
 .search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 5;
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 5;
 }
 
 /* Header design improvements */
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
 }
 
 .control-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .control-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #6c757d;
-  white-space: nowrap;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6c757d;
+    white-space: nowrap;
 }
 
 .header-divider {
-  width: 1px;
-  height: 24px;
-  background-color: #adb5bd;
-  margin: 0 0.25rem;
+    width: 1px;
+    height: 24px;
+    background-color: #adb5bd;
+    margin: 0 0.25rem;
 }
 
 /* Improved button styling */
 #uploadNewMediaBtn {
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgb(13 110 253 / 15%);
-  transition: all 0.2s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgb(13 110 253 / 15%);
+    transition: all 0.2s ease;
 }
 
 #uploadNewMediaBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgb(13 110 253 / 25%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgb(13 110 253 / 25%);
 }
 
 #filterToggleBtn {
-  border-color: #0d6efd;
-  color: #0d6efd;
-  font-weight: 500;
-  transition: all 0.2s ease;
+    border-color: #0d6efd;
+    color: #0d6efd;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 #filterToggleBtn:hover {
-  background-color: #0d6efd;
-  color: white;
-  transform: translateY(-1px);
+    background-color: #0d6efd;
+    color: white;
+    transform: translateY(-1px);
 }
 
 /* Background pattern toggle improvements */
 #backgroundPatternToggle .btn {
-  padding: 0.375rem 0.5rem;
-  border-color: #6c757d;
+    padding: 0.375rem 0.5rem;
+    border-color: #6c757d;
 }
 
 #backgroundPatternToggle .btn-check:checked + .btn {
-  background-color: #6c757d;
-  border-color: #6c757d;
-  color: white;
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
 }
 
 /* Modal title styling */
 .modal-title {
-  font-weight: 600;
-  color: #343a40;
-  margin: 0;
+    font-weight: 600;
+    color: #343a40;
+    margin: 0;
 }
 
 /* Fix overflow issues in content-engine layout */
 .slide-canvas {
-  min-height: 0 !important;
-  min-width: 0 !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
 }
 
 .preview-container {
-  overflow: hidden !important;
+    overflow: hidden !important;
 }
 
 .slide-right-sidebar {
-  overflow: hidden auto !important;
+    overflow: hidden auto !important;
 }
 
 /* Ensure flex containers don't cause overflow */
 .d-flex.h-100 {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 #right-content-container {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .mask-toolbar-summary {
-  min-width: 8rem;
-  display: inline-flex;
-  align-items: center;
+    min-width: 8rem;
+    display: inline-flex;
+    align-items: center;
 }
 
 .mask-element {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .mask-element__content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
 }
 
 .mask-element__media {
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  pointer-events: none;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    pointer-events: none;
 }
 
 .mask-element__video {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 
 .mask-element__placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-  text-align: center;
-  padding: 0 1rem;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    text-align: center;
+    padding: 0 1rem;
 }
 
 /* Template filter controls */
 .hr-lg {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 .template-filter-panel {
-  margin-top: 1rem;
-  font-size: 0.9rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
 }
 
 .template-filter-panel__wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .template-filter-panel__row {
-  display: flex;
-  gap: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .template-filter-panel__row-between {
-  display: flex;
-  justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
 }
 
 .template-filter-panel__sort {
-  min-width: 10.5rem;
+    min-width: 10.5rem;
 }
 
 .template-filter-panel__clear {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.5rem;
-  font-size: 0.75rem;
-  color: $dark-gray;
+    position: absolute;
+    top: 0.25rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    color: $dark-gray;
 }
 
 #templateFilterPanelFilterContainer {
-  display: flex;
-  column-gap: 0.5rem;
+    display: flex;
+    column-gap: 0.5rem;
 }
 
 #templateFilterPanelSearchContainer {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
 }
 #templateFilterSearch {
-  width: 100%;
-  padding-left: 1.75rem;
-  font-size: 0.9rem;
+    width: 100%;
+    padding-left: 1.75rem;
+    font-size: 0.9rem;
 }
 
 #templateFilterSearchIcon {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.5rem;
-  font-size: 17px;
+    position: absolute;
+    top: 0.75rem;
+    left: 0.5rem;
+    font-size: 17px;
 }
 
 .template-filter-panel__popover-trigger {
-  anchor-name: --filter-anchor;
-  padding: 0.5rem 0.25rem;
+    anchor-name: --filter-anchor;
+    padding: 0.5rem 0.25rem;
 }
 
 .template-filter-panel__popover-content {
-  anchor-name: --filter-anchor;
-  position-anchor: --filter-anchor;
-  position-area: bottom span-left;
-  width: 16rem;
-  padding: 0.5rem 1rem;
-  background-color: #fff;
-  border: 1px solid var(--Gray);
-  border-radius: 0.25rem;
-  box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.2);
+    anchor-name: --filter-anchor;
+    position-anchor: --filter-anchor;
+    width: 16rem;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border: 1px solid $gray;
+    border-radius: 0.25rem;
+    box-shadow: 1px 1px 10px 0 rgb(0, 0, 0, 0.2);
 }
 
 .template-filter-panel__toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
 }
 
 .template-filter-panel__options {
-  max-height: 180px;
-  overflow-y: auto;
-  padding: 0.25rem 0.5rem;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 0.25rem 0.5rem;
 }
 
 .template-filter-checkbox + .template-filter-checkbox {
-  margin-top: 0.25rem;
+    margin-top: 0.25rem;
 }
 
 .template-filter-checkbox .form-check-label {
-  font-size: 0.85rem;
+    font-size: 0.85rem;
 }
 
 .template-filter-panel__chips-container {
-  flex-wrap: wrap;
-  line-height: 1rem;
+    flex-wrap: wrap;
+    line-height: 1rem;
 }
 
 .template-filter-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 400;
-  border-radius: 0.25rem;
-  border: none;
-  background-color: $secondary-accent-hover;
-  color: $darkest-gray;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    border-radius: 0.25rem;
+    border: none;
+    background-color: $secondary-accent-hover;
+    color: $darkest-gray;
 
-  /* changes icon size */
-  & i {
-    font-size: 14px;
-  }
+    /* changes icon size */
+    & i {
+        font-size: 14px;
+    }
 }
 
 .template-filter-chip .btn-close {
-  width: 0.4rem;
-  height: 0.4rem;
+    width: 0.4rem;
+    height: 0.4rem;
 }
 
 .template-filter-panel__reset {
-  white-space: nowrap;
-  color: $darkest-gray;
+    white-space: nowrap;
+    color: $darkest-gray;
 
-  &:hover {
-    color: $black;
-  }
+    &:hover {
+        color: $black;
+    }
 }
 
 #templateFilterPanelChipReset {
-  font-size: 0.85rem;
+    font-size: 0.85rem;
 }
 
 .template-filter-empty {
-  padding: 1rem;
-  text-align: center;
-  color: $dark-gray;
-  font-size: 0.9rem;
+    padding: 1rem;
+    text-align: center;
+    color: $dark-gray;
+    font-size: 0.9rem;
 }
 
 .template-filter-empty button {
-  margin-top: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 @media (max-width: 1400px) {
-  .template-filter-panel__row {
-    flex-direction: column;
-  }
+    .template-filter-panel__row {
+        flex-direction: column;
+    }
 
-  .template-filter-panel__sort {
-    min-width: auto;
-  }
+    .template-filter-panel__sort {
+        min-width: auto;
+    }
 }
 
 #templateFilterPanelSlideCount {
-  font-size: 0.85rem;
-  color: $darkest-gray;
-  margin: 0;
+    font-size: 0.85rem;
+    color: $darkest-gray;
+    margin: 0;
 }
 
 /* Unified slide modal layout */

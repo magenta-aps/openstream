@@ -72,18 +72,45 @@ export function makeDraggable(el, dataObj) {
     let newCol = mouseCol - initialOffsetCol;
     let newRow = mouseRow - initialOffsetRow;
 
-    const currentColSpan = parseInt(
+    let currentColSpan = parseInt(
       el.style.gridColumnEnd.replace("span", "").trim(),
     );
-    const currentRowSpan = parseInt(
+    let currentRowSpan = parseInt(
       el.style.gridRowEnd.replace("span", "").trim(),
     );
+
+    const { x: snapX, y: snapY } = getDragSnapSteps();
+
+    // Auto-resize to nearest snap step
+    if (snapX > 1) {
+      const snappedWidth = Math.round(currentColSpan / snapX) * snapX;
+      const newWidth = Math.max(
+        snapX,
+        Math.min(snappedWidth, GRID_CONFIG.COLUMNS),
+      );
+      if (newWidth !== currentColSpan) {
+        currentColSpan = newWidth;
+        el.style.gridColumnEnd = `span ${newWidth}`;
+      }
+    }
+
+    if (snapY > 1) {
+      const snappedHeight = Math.round(currentRowSpan / snapY) * snapY;
+      const newHeight = Math.max(
+        snapY,
+        Math.min(snappedHeight, GRID_CONFIG.ROWS),
+      );
+      if (newHeight !== currentRowSpan) {
+        currentRowSpan = newHeight;
+        el.style.gridRowEnd = `span ${newHeight}`;
+      }
+    }
+
     const maxColStart = GRID_CONFIG.COLUMNS - currentColSpan + 1;
     const maxRowStart = GRID_CONFIG.ROWS - currentRowSpan + 1;
     newCol = Math.max(1, Math.min(newCol, maxColStart));
     newRow = Math.max(1, Math.min(newRow, maxRowStart));
 
-    const { x: snapX, y: snapY } = getDragSnapSteps();
     if (snapX > 1) {
       const normalizedX = newCol - 1;
       const snappedX = Math.round(normalizedX / snapX) * snapX;
@@ -98,8 +125,6 @@ export function makeDraggable(el, dataObj) {
     // Update element position
     el.style.gridColumnStart = newCol;
     el.style.gridRowStart = newRow;
-    dataObj.gridX = newCol - 1;
-    dataObj.gridY = newRow - 1;
 
     // Update resize handle position if it exists
     if (el._updateResizerPosition) {
@@ -128,6 +153,16 @@ export function makeDraggable(el, dataObj) {
     }
 
     if (hasDragged) {
+      // Commit final position and size to data object
+      dataObj.gridX = parseInt(el.style.gridColumnStart) - 1;
+      dataObj.gridY = parseInt(el.style.gridRowStart) - 1;
+      dataObj.gridWidth = parseInt(
+        el.style.gridColumnEnd.replace("span", "").trim(),
+      );
+      dataObj.gridHeight = parseInt(
+        el.style.gridRowEnd.replace("span", "").trim(),
+      );
+
       requestAnimationFrame(() => {
         if (document.body.contains(el)) {
           selectElement(el, dataObj);
@@ -378,10 +413,6 @@ export function makeResizable(el, dataObj) {
       el.style.gridColumnEnd = `span ${newWidth}`;
       el.style.gridRowStart = newRowStart;
       el.style.gridRowEnd = `span ${newHeight}`;
-      dataObj.gridX = newColStart - 1;
-      dataObj.gridY = newRowStart - 1;
-      dataObj.gridWidth = newWidth;
-      dataObj.gridHeight = newHeight;
 
       if (el._updateResizerPosition) {
         el._updateResizerPosition();
@@ -401,6 +432,17 @@ export function makeResizable(el, dataObj) {
     cancelAnimationFrame(animationFrameId);
     document.removeEventListener("mousemove", resizeElement);
     document.removeEventListener("mouseup", stopResize);
+
+    if (hasResized) {
+      dataObj.gridX = parseInt(el.style.gridColumnStart) - 1;
+      dataObj.gridY = parseInt(el.style.gridRowStart) - 1;
+      dataObj.gridWidth = parseInt(
+        el.style.gridColumnEnd.replace("span", "").trim(),
+      );
+      dataObj.gridHeight = parseInt(
+        el.style.gridRowEnd.replace("span", "").trim(),
+      );
+    }
 
     if (el._updateResizerPosition) {
       el._updateResizerPosition();

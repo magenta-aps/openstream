@@ -4135,5 +4135,17 @@
   },
   "No events": {
     "da": "Ingen begivenheder"
+  },
+  "free-movement": {
+    "da": "Fri bevægelse"
+  },
+  "snapping": {
+    "da": "Snapping"
+  },
+  "Snap to": {
+    "da": "Snap til"
+  },
+  "Pixels": {
+    "da": "Pixels"
   }
 }    

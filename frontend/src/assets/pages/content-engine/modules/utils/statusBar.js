@@ -6,25 +6,26 @@
 
 import { queryParams, showToast } from "../../../../utils/utils.js";
 import { gettext } from "../../../../utils/locales.js";
-import { getDefaultCellSnapForResolution } from "../../../../utils/availableAspectRatios.js";
 import {
   GridUtils,
   GRID_CONFIG,
   onGridDimensionsChange,
+  getCommonDivisors,
 } from "../config/gridConfig.js";
 import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
+import { createToggleButton, createCoherentDropdown } from "./domUtils.js";
 
 let statusBar = null;
 let statusBarContent = null;
 let gridSizeBadge = null;
 let unsubscribeGridChange = null;
 let snapControlsContainer = null;
-let snapAmountSelect = null;
-let snapAmountManualInput = null;
-let snapAmountPrefix = null;
-let snapAmountSuffix = null;
-let snapModeButtons = null;
+let snapDropdownContainer = null;
+let snapModeToggle = null;
+
+// Snap unit tracking – must match the initial UI default ("Pixels" → "cells")
+let activeSnapUnit = "cells";
 
 // Zoom state
 let currentZoomMode = "fit"; // 'fit' or 'zoom'
@@ -54,49 +55,15 @@ function createStatusBar() {
   if (!statusBar) {
     statusBar = document.createElement("div");
     statusBar.className = "content-engine-status-bar";
-    // Use static positioning and let layout handle sizing. We'll wrap
-    // the preview area and append the status bar as a flex child so it
-    // automatically fills available width and sits below the preview.
-    statusBar.style.cssText = `
-      height: 32px;
-      background: linear-gradient(90deg, var(--bs-light-gray) 0%, var(--bs-gray) 100%);
-      border-top: 1px solid var(--bs-darker-gray);
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      font-size: 12px;
-      color: var(--bs-darkest-gray);
-      box-sizing: border-box;
-      z-index: 10;
-      opacity: 0;
-      transform: translateY(100%);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      width: 100%;
-    `;
 
     // Create content container (left side for grid info)
     statusBarContent = document.createElement("div");
     statusBarContent.className = "status-bar-left";
-    statusBarContent.style.cssText = `
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    `;
 
     // Create grid info section
     const gridInfoSection = document.createElement("div");
     gridInfoSection.className = "status-bar-grid-info";
-    gridInfoSection.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--bs-darkest-gray);
-      font-weight: 500;
-      min-width: 0;
-    `;
+
 
     const gridIcon = document.createElement("span");
     gridIcon.textContent = "⌗";
@@ -108,22 +75,12 @@ function createStatusBar() {
     const gridText = document.createElement("span");
     gridText.className = "grid-info-text";
     gridText.textContent = "Ready";
-    gridText.style.cssText = `
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    `;
+
 
     gridSizeBadge = document.createElement("span");
     gridSizeBadge.className = "grid-size-badge";
-    gridSizeBadge.style.cssText = `
-      background-color: var(--bs-light-gray);
-      color: var(--bs-darkest-gray);
-      font-weight: 600;
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-variant-numeric: tabular-nums;
-    `;
+
+
     updateGridSizeDisplay();
     ensureGridSizeSubscription();
 
@@ -141,11 +98,6 @@ function createStatusBar() {
     // Add space for future features on the right
     const rightSection = document.createElement("div");
     rightSection.className = "status-bar-right";
-    rightSection.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    `;
 
     // Create controls (snap first, zoom last)
     createSnapControls(rightSection);
@@ -153,34 +105,39 @@ function createStatusBar() {
 
     statusBar.appendChild(statusBarContent);
     statusBar.appendChild(rightSection);
+  }
 
-    // Ensure preview area is wrapped so the status bar can sit below it
-    const slideCanvas = document.querySelector(".slide-canvas");
-    if (slideCanvas) {
-      // Look for an existing preview-column wrapper
-      let previewColumn = slideCanvas.querySelector(".preview-column");
-      const previewContainer = slideCanvas.querySelector(".preview-container");
+  // Ensure preview area is wrapped so the status bar can sit below it
+  const slideCanvas = document.querySelector(".slide-canvas");
+  if (slideCanvas) {
+    // Look for an existing preview-column wrapper
+    let previewColumn = slideCanvas.querySelector(".preview-column");
+    const previewContainer = slideCanvas.querySelector(".preview-container");
 
-      if (!previewColumn) {
-        // Create a column wrapper that stacks the preview and status bar
-        previewColumn = document.createElement("div");
-        previewColumn.className = "preview-column";
-        // Move preview-container into the new column if present
-        if (previewContainer) {
-          slideCanvas.insertBefore(previewColumn, previewContainer);
-          previewColumn.appendChild(previewContainer);
-        } else {
-          slideCanvas.appendChild(previewColumn);
-        }
+    if (!previewColumn) {
+      // Create a column wrapper that stacks the preview and status bar
+      previewColumn = document.createElement("div");
+      previewColumn.className = "preview-column";
+      // Move preview-container into the new column if present
+      if (previewContainer) {
+        slideCanvas.insertBefore(previewColumn, previewContainer);
+        previewColumn.appendChild(previewContainer);
+      } else {
+        slideCanvas.appendChild(previewColumn);
       }
+    }
 
-      // Append status bar to the preview column so it fills the width
+    // Append status bar to the preview column so it fills the width
+    if (previewColumn && !previewColumn.contains(statusBar)) {
       previewColumn.appendChild(statusBar);
-    } else {
-      // Fallback: append directly to body
+    }
+  } else {
+    // Fallback: append directly to body
+    if (document.body && !document.body.contains(statusBar)) {
       document.body.appendChild(statusBar);
     }
   }
+
   return statusBar;
 }
 
@@ -195,7 +152,10 @@ function ensureGridSizeSubscription() {
   });
 }
 
-function updateGridSizeDisplay(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+function updateGridSizeDisplay(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+) {
   if (!gridSizeBadge) {
     return;
   }
@@ -214,176 +174,45 @@ function createSnapControls(rightSection) {
 
   snapControlsContainer = document.createElement("div");
   snapControlsContainer.className = "snap-controls";
-  snapControlsContainer.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--bs-darkest-gray);
-    background: var(--bs-gray);
-    border-radius: 6px;
-  `;
-
-  // Snap toggle button (on/off)
-  const snapToggleButton = document.createElement("button");
-  snapToggleButton.type = "button";
-  snapToggleButton.className = "snap-toggle-button";
-  snapToggleButton.title = gettext("Toggle Snap");
-  snapToggleButton.style.cssText = `
-    border: none;
-    background: var(--bs-primary);
-    color: var(--bs-white);
-    padding: 4px 8px;
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  `;
-  
-  const snapToggleIcon = document.createElement("i");
-  snapToggleIcon.className = "material-symbols-outlined";
-  snapToggleIcon.textContent = "grid_on";
-  snapToggleIcon.style.cssText = `
-    font-size: 14px;
-    font-variation-settings: 'FILL' 1;
-  `;
-  
-  snapToggleButton.appendChild(snapToggleIcon);
-  
-  snapToggleButton.addEventListener("click", () => {
-    toggleSnapEnabled();
-  });
 
   const snapLabel = document.createElement("span");
-  snapLabel.textContent = gettext("Snap");
-  snapLabel.style.fontWeight = "600";
+  snapLabel.textContent = `${gettext("Snap to")}:`;
+  snapLabel.classList.add("fw-semibold", "text-dark-gray");
 
-  const snapModeToggle = document.createElement("div");
-  snapModeToggle.className = "snap-mode-toggle";
-  snapModeToggle.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    border-radius: 6px;
-    background: var(--bs-light-gray);
-    border: 1px solid var(--bs-darker-gray);
-    overflow: hidden;
-  `;
+  // Snap toggle button (on/off)
+  const snapToggle = createToggleButton(
+    {
+      label: gettext("free-movement"),
+      fn: () => {
+        toggleSnapEnabled();
+        if (snapModeToggle) {
+          snapModeToggle.setDisabledState(true);
+        }
+        snapLabel.classList.add("text-dark-gray");
+      },
+    },
+    {
+      label: gettext("snapping"),
+      fn: () => {
+        toggleSnapEnabled();
+        if (snapModeToggle) {
+          snapModeToggle.setDisabledState(false);
+        }
+        snapLabel.classList.remove("text-dark-gray");
+      },
+    },
+  );
 
-  const cellsButton = document.createElement("button");
-  cellsButton.type = "button";
-  cellsButton.textContent = gettext("Cells");
-  const divisionButton = document.createElement("button");
-  divisionButton.type = "button";
-  divisionButton.textContent = gettext("Division");
+  snapDropdownContainer = document.createElement("div");
+  snapDropdownContainer.className = "snap-dropdown-container";
 
-  [cellsButton, divisionButton].forEach((btn) => {
-    btn.style.cssText = `
-      border: none;
-      background: transparent;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--bs-darker-gray);
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
-    `;
-    btn.addEventListener("click", () => {
-      const nextUnit = btn === cellsButton ? "cells" : "division";
-      setSnapSettings({ unit: nextUnit });
-    });
-    snapModeToggle.appendChild(btn);
-  });
+  snapControlsContainer.appendChild(snapToggle.container);
 
-  snapModeButtons = {
-    cells: cellsButton,
-    division: divisionButton,
-  };
-
-  const snapAmountGroup = document.createElement("div");
-  snapAmountGroup.className = "snap-amount-group";
-  snapAmountGroup.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid var(--bs-darker-gray);
-    border-radius: 4px;
-    padding: 2px 6px;
-    background: var(--bs-white);
-  `;
-
-  snapAmountPrefix = document.createElement("span");
-  snapAmountPrefix.style.cssText = `
-    font-weight: 600;
-    color: var(--bs-darkest-gray);
-    font-variant-numeric: tabular-nums;
-  `;
-
-  snapAmountSelect = document.createElement("select");
-  snapAmountSelect.className = "snap-amount-select";
-  snapAmountSelect.style.cssText = `
-    border: none;
-    outline: none;
-    font-size: 11px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    background: transparent;
-    appearance: none;
-    padding: 2px 16px 2px 6px;
-    min-width: 64px;
-    cursor: pointer;
-  `;
-
-  snapAmountSuffix = document.createElement("span");
-  snapAmountSuffix.style.cssText = `
-    font-weight: 600;
-    color: var(--bs-darkest-gray);
-  `;
-
-  snapAmountGroup.appendChild(snapAmountPrefix);
-  snapAmountGroup.appendChild(snapAmountSelect);
-
-  snapAmountManualInput = document.createElement("input");
-  snapAmountManualInput.type = "number";
-  snapAmountManualInput.min = "1";
-  snapAmountManualInput.step = "1";
-  snapAmountManualInput.style.cssText = `
-    width: 48px;
-    border: none;
-    outline: none;
-    font-size: 11px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    background: transparent;
-    display: none;
-  `;
-
-  snapAmountManualInput.addEventListener("change", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
-    snapAmountManualInput.value = sanitized.toString();
-    setSnapSettings({ amount: sanitized });
-  });
-
-  snapAmountManualInput.addEventListener("blur", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountManualInput.value);
-    snapAmountManualInput.value = sanitized.toString();
-  });
-
-  snapAmountGroup.appendChild(snapAmountManualInput);
-  snapAmountGroup.appendChild(snapAmountSuffix);
-
-  snapAmountSelect.addEventListener("change", () => {
-    const sanitized = sanitizeSnapAmount(snapAmountSelect.value);
-    setSnapSettings({ amount: sanitized });
-  });
-
-  snapControlsContainer.appendChild(snapToggleButton);
-  snapControlsContainer.appendChild(snapLabel);
-  snapControlsContainer.appendChild(snapModeToggle);
-  snapControlsContainer.appendChild(snapAmountGroup);
+  const snapOptionsContainer = document.createElement("div");
+  snapOptionsContainer.classList.add("snap-options-container");
+  snapOptionsContainer.appendChild(snapLabel);
+  snapOptionsContainer.appendChild(snapDropdownContainer);
+  snapControlsContainer.appendChild(snapOptionsContainer);
 
   rightSection.appendChild(snapControlsContainer);
   updateSnapAmountOptions();
@@ -395,25 +224,11 @@ function updateSnapAmountOptions(
   rows = GRID_CONFIG.ROWS,
   settings = getCurrentSnapSettings(),
 ) {
+  if (!snapDropdownContainer) {
+    return;
+  }
+
   const isDivision = settings.unit === "division";
-
-  if (snapAmountSelect) {
-    snapAmountSelect.style.display = isDivision ? "none" : "";
-  }
-  if (snapAmountManualInput) {
-    snapAmountManualInput.style.display = isDivision ? "inline-block" : "none";
-  }
-
-  if (isDivision) {
-    if (snapAmountManualInput) {
-      snapAmountManualInput.value = settings.amount.toString();
-    }
-    return;
-  }
-
-  if (!snapAmountSelect) {
-    return;
-  }
 
   let optionValues = getCommonDivisors(columns, rows);
 
@@ -421,26 +236,57 @@ function updateSnapAmountOptions(
     optionValues = [1];
   }
 
-  const fragment = document.createDocumentFragment();
-  optionValues.forEach((value) => {
-    const option = document.createElement("option");
-    option.value = value.toString();
-    option.textContent = value.toString();
-    fragment.appendChild(option);
-  });
+  // Determine standard options for valid amount values
+  // For the right dropdown (AltDropdown)
+  const dropdownOptions = optionValues.map((val) => ({
+    name: val.toString(),
+    value: val.toString(),
+    // Set default if it matches current amount
+    default: val === settings.amount,
+  }));
 
-  snapAmountSelect.innerHTML = "";
-  snapAmountSelect.appendChild(fragment);
+  // Reorder Toggle Options based on current selection
+  const pixelsOption = { name: gettext("Pixels"), value: "pixels" };
+  const gridOption = { name: gettext("Grid"), value: "grid" };
+  const toggleOptions = isDivision
+    ? [gridOption, pixelsOption]
+    : [pixelsOption, gridOption];
 
-  if (!optionValues.includes(settings.amount)) {
-    const fallback = optionValues[0];
-    if (settings.amount !== fallback) {
-      setSnapSettings({ amount: fallback });
-    }
-    return;
-  }
+  // Clear container
+  snapDropdownContainer.innerHTML = "";
 
-  snapAmountSelect.value = settings.amount.toString();
+  snapModeToggle = createCoherentDropdown(
+    {
+      type: "reg",
+      options: toggleOptions,
+      onUpdate: (_name, value) => {
+        const setAltDisplayMode = snapModeToggle.rightDropdown.setDisplayMode;
+        if (value === "grid") {
+          setAltDisplayMode("divided");
+          activeSnapUnit = "division";
+          setSnapSettings({ unit: "division" });
+        } else {
+          setAltDisplayMode("reg");
+          activeSnapUnit = "cells";
+          setSnapSettings({ unit: "cells" });
+        }
+      },
+      position: { row: "top", column: "center" },
+    },
+    {
+      type: "alt",
+      displayMode: isDivision ? "divided" : "reg",
+      options: dropdownOptions,
+      onUpdate: (_name, value) => {
+        const sanitizedValue = sanitizeSnapAmount(value);
+        setSnapSettings({ unit: activeSnapUnit, amount: sanitizedValue });
+      },
+      position: { row: "top", column: "center" },
+    },
+    settings.snapEnabled === false,
+  );
+
+  snapDropdownContainer.appendChild(snapModeToggle.container);
 }
 
 function normalizeSnapAmount(
@@ -478,37 +324,13 @@ function normalizeSnapAmount(
   return sanitized;
 }
 
-function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS) {
+function getGridSignature(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+) {
   return `${Math.round(columns)}x${Math.round(rows)}`;
 }
 
-function getCommonDivisors(columns, rows) {
-  const safeColumns = Math.max(1, Math.round(Number(columns)) || 1);
-  const safeRows = Math.max(1, Math.round(Number(rows)) || 1);
-  const gcd = greatestCommonDivisor(safeColumns, safeRows);
-  const divisors = new Set();
-
-  const limit = Math.floor(Math.sqrt(gcd));
-  for (let i = 1; i <= limit; i += 1) {
-    if (gcd % i === 0) {
-      divisors.add(i);
-      divisors.add(gcd / i);
-    }
-  }
-
-  return Array.from(divisors).sort((a, b) => a - b);
-}
-
-function greatestCommonDivisor(a, b) {
-  let x = Math.abs(a);
-  let y = Math.abs(b);
-  while (y !== 0) {
-    const temp = y;
-    y = x % y;
-    x = temp;
-  }
-  return x || 1;
-}
 
 function sanitizeSnapAmount(value) {
   const parsed = Math.round(Number(value));
@@ -522,9 +344,9 @@ function toggleSnapEnabled() {
   if (!store.dragSnapSettings) {
     getCurrentSnapSettings();
   }
-  
+
   const wasEnabled = store.dragSnapSettings.snapEnabled !== false;
-  
+
   if (wasEnabled) {
     // Turning snap OFF - save current settings and set to 1 cell
     store.dragSnapSettings.savedUnit = store.dragSnapSettings.unit;
@@ -542,29 +364,27 @@ function toggleSnapEnabled() {
       store.dragSnapSettings.amount = store.dragSnapSettings.savedAmount;
     }
   }
-  
-  // Save to current slide
-  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
-    const currentSlide = store.slides[store.currentSlideIndex];
-    currentSlide.savedSnapSettings = {
-      unit: store.dragSnapSettings.unit,
-      amount: store.dragSnapSettings.amount,
-      isAuto: store.dragSnapSettings.isAuto,
-      snapEnabled: store.dragSnapSettings.snapEnabled,
-      savedUnit: store.dragSnapSettings.savedUnit,
-      savedAmount: store.dragSnapSettings.savedAmount,
-    };
-  }
-  
+
   updateSnapControlsUI();
 }
 
 function getCurrentSnapSettings() {
-  const defaults = { unit: "cells", amount: 1, snapEnabled: true };
   const columns = GRID_CONFIG.COLUMNS;
   const rows = GRID_CONFIG.ROWS;
-  const defaultSnap =
-    getDefaultCellSnapForResolution(columns, rows) || defaults.amount;
+
+  // Calculate default snap amount (closest valid divisor to 20)
+  const targetDefault = 20;
+  const divisors = getCommonDivisors(columns, rows);
+  let defaultSnap = 1;
+  if (divisors.length > 0) {
+    defaultSnap = divisors.reduce((prev, curr) => {
+      return Math.abs(curr - targetDefault) < Math.abs(prev - targetDefault)
+        ? curr
+        : prev;
+    });
+  }
+
+  const defaults = { unit: "cells", amount: defaultSnap, snapEnabled: true };
   const signature = getGridSignature(columns, rows);
 
   if (!store.dragSnapSettings) {
@@ -625,7 +445,7 @@ function setSnapSettings(partial = {}) {
   next.amount = normalizeSnapAmount(next.unit, rawAmount);
   next.isAuto = false;
   next.appliedGridSignature = getGridSignature();
-  
+
   // Preserve snapEnabled state and saved values
   if (store.dragSnapSettings) {
     next.snapEnabled = store.dragSnapSettings.snapEnabled;
@@ -635,19 +455,6 @@ function setSnapSettings(partial = {}) {
 
   store.dragSnapSettings = next;
 
-  // Save snap settings to current slide
-  if (store.currentSlideIndex > -1 && store.slides[store.currentSlideIndex]) {
-    const currentSlide = store.slides[store.currentSlideIndex];
-    currentSlide.savedSnapSettings = {
-      unit: next.unit,
-      amount: next.amount,
-      isAuto: next.isAuto,
-      snapEnabled: next.snapEnabled,
-      savedUnit: next.savedUnit,
-      savedAmount: next.savedAmount,
-    };
-  }
-
   updateSnapAmountOptions(GRID_CONFIG.COLUMNS, GRID_CONFIG.ROWS, next);
   updateSnapControlsUI();
 }
@@ -656,26 +463,30 @@ export function updateSnapControlsUI() {
   if (!snapControlsContainer) {
     return;
   }
-  
+
   const snapEnabled = store.dragSnapSettings?.snapEnabled !== false;
-  const settings = getCurrentSnapSettings();
-  const isDivision = settings.unit === "division";
-  
+
   // Update toggle button appearance
-  const toggleButton = snapControlsContainer.querySelector(".snap-toggle-button");
+  const toggleButton = snapControlsContainer.querySelector(
+    ".snap-toggle-button",
+  );
   const toggleIcon = toggleButton?.querySelector(".material-symbols-outlined");
   if (toggleButton) {
-    toggleButton.style.background = snapEnabled ? "var(--bs-primary)" : "var(--bs-darker-gray)";
-    toggleButton.title = snapEnabled ? gettext("Snap: On") : gettext("Snap: Off");
+    toggleButton.style.background = snapEnabled
+      ? "var(--bs-primary)"
+      : "var(--bs-darker-gray)";
+    toggleButton.title = snapEnabled
+      ? gettext("Snap: On")
+      : gettext("Snap: Off");
     if (toggleIcon) {
       toggleIcon.textContent = snapEnabled ? "grid_on" : "grid_off";
     }
   }
-  
+
   // Disable/enable other controls based on snap state
   const modeToggle = snapControlsContainer.querySelector(".snap-mode-toggle");
   const amountGroup = snapControlsContainer.querySelector(".snap-amount-group");
-  
+
   if (modeToggle) {
     modeToggle.style.opacity = snapEnabled ? "1" : "0.5";
     modeToggle.style.pointerEvents = snapEnabled ? "" : "none";
@@ -684,32 +495,6 @@ export function updateSnapControlsUI() {
     amountGroup.style.opacity = snapEnabled ? "1" : "0.5";
     amountGroup.style.pointerEvents = snapEnabled ? "" : "none";
   }
-
-  if (snapAmountSelect && !isDivision) {
-    snapAmountSelect.value = settings.amount.toString();
-  }
-  if (snapAmountManualInput && isDivision) {
-    snapAmountManualInput.value = settings.amount.toString();
-  }
-
-  if (snapModeButtons) {
-    Object.entries(snapModeButtons).forEach(([unit, button]) => {
-      const isActive = unit === settings.unit;
-      button.style.background = isActive
-        ? "var(--bs-darkest-gray)"
-        : "transparent";
-      button.style.color = isActive ? "var(--bs-white)" : "var(--bs-darker-gray)";
-    });
-  }
-
-  if (snapAmountPrefix) {
-    snapAmountPrefix.textContent = isDivision ? "1 /" : "";
-  }
-  if (snapAmountSuffix) {
-    snapAmountSuffix.textContent = isDivision
-      ? gettext("of grid")
-      : gettext("cells");
-  }
 }
 
 /**
@@ -717,8 +502,7 @@ export function updateSnapControlsUI() {
  */
 export function showStatusBar() {
   const bar = createStatusBar();
-  bar.style.opacity = "1";
-  bar.style.transform = "translateY(0)";
+  bar.classList.add("show");
 }
 
 /**
@@ -726,8 +510,7 @@ export function showStatusBar() {
  */
 export function hideStatusBar() {
   if (statusBar) {
-    statusBar.style.opacity = "0";
-    statusBar.style.transform = "translateY(100%)";
+    statusBar.classList.remove("show");
   }
 }
 
@@ -865,127 +648,48 @@ function createZoomControls(rightSection) {
   `;
 
   // Zoom mode toggle buttons
-  const zoomModeToggle = document.createElement("div");
-  zoomModeToggle.className = "zoom-mode-toggle";
-  zoomModeToggle.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--bs-gray);
-    border-radius: 6px;
-    padding: 1px;
-    
-  `;
+  /** @type {(zoomMode: "fit" | "zoom", display: string, fn: (element: HTMLElement), notify: {mode: "fit" | "zoom",level: number })} */
+  const zoomSwitcher = (zoomMode, display, fn, notify) =>
+    function () {
+      if (currentZoomMode !== zoomMode) {
+        currentZoomMode = zoomMode;
 
-  const zoomButton = document.createElement("button");
-  zoomButton.className = "zoom-mode-btn";
-  zoomButton.textContent = "Zoom";
-  zoomButton.style.cssText = `
-    background: transparent;
-    border: none;
-    color: var(--bs-darker-gray);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  `;
+        const rightContainer = document.getElementById(
+          "right-content-container",
+        );
+        if (rightContainer) {
+          fn(rightContainer);
+        }
 
-  const fitButton = document.createElement("button");
-  fitButton.className = "zoom-mode-btn active";
-  fitButton.textContent = "Fit";
-  fitButton.style.cssText = `
-    background: var(--bs-light-gray);
-    border: none;
-    color: var(--bs-darkest-gray);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(54,56,57,0.2);
-  `;
-
-  // Event handlers
-  fitButton.addEventListener("click", () => {
-    if (currentZoomMode !== "fit") {
-      currentZoomMode = "fit";
-
-      document
-        .getElementById("right-content-container")
-        .classList.remove("resize-for-zoom");
-
-      // Update button styles
-      fitButton.style.cssText = `
-        background: var(--bs-light-gray);
-        border: none;
-        color: var(--bs-darkest-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(54,56,57,0.2);
-      `;
-
-      zoomButton.style.cssText = `
-        background: transparent;
-        border: none;
-        color: var(--bs-darker-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      `;
-
-      zoomSliderContainer.style.display = "none";
-      notifyZoomChange("fit", 100);
-    }
-  });
-
-  zoomButton.addEventListener("click", () => {
-    if (currentZoomMode !== "zoom") {
-      currentZoomMode = "zoom";
-
-      document
-        .getElementById("right-content-container")
-        .classList.add("resize-for-zoom");
-
-      // Update button styles
-      zoomButton.style.cssText = `
-        background: var(--bs-light-gray);
-        border: none;
-        color: var(--bs-darkest-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(54,56,57,0.2);
-      `;
-
-      fitButton.style.cssText = `
-        background: transparent;
-        border: none;
-        color: var(--bs-darker-gray);
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      `;
-
-      zoomSliderContainer.style.display = "flex";
-      notifyZoomChange("zoom", currentZoomLevel);
-    }
-  });
+        zoomSliderContainer.style.display = display;
+        notifyZoomChange(notify.mode, notify.level);
+      }
+    };
+  const zoomModeToggle = createToggleButton(
+    {
+      label: "Fit",
+      fn: zoomSwitcher(
+        "fit",
+        "none",
+        (element) => element.classList.remove("resize-for-zoom"),
+        {
+          mode: "fit",
+          level: 100,
+        },
+      ),
+    },
+    {
+      label: "Zoom",
+      fn: zoomSwitcher(
+        "zoom",
+        "flex",
+        (element) => element.classList.add("resize-for-zoom"),
+        { mode: "zoom", level: currentZoomLevel },
+      ),
+    },
+    true,
+    true,
+  );
 
   zoomSlider.addEventListener("input", (e) => {
     currentZoomLevel = parseInt(e.target.value);
@@ -1016,12 +720,9 @@ function createZoomControls(rightSection) {
   zoomSliderContainer.appendChild(zoomSlider);
   zoomSliderContainer.appendChild(zoomLabel);
 
-  zoomModeToggle.appendChild(zoomButton);
-  zoomModeToggle.appendChild(fitButton);
-
   // Add to main container in order: slider, then toggle buttons
   zoomControlsContainer.appendChild(zoomSliderContainer);
-  zoomControlsContainer.appendChild(zoomModeToggle);
+  zoomControlsContainer.appendChild(zoomModeToggle.container);
 
   rightSection.appendChild(zoomControlsContainer);
 }
@@ -1162,19 +863,19 @@ function addInteractiveStyles() {
       min-width: 16px;
       text-align: center;
     }
-    
+
     .grid-info-text .editable-value:hover {
       background-color: rgba(54, 56, 57, 0.15);
       border-color: var(--bs-darker-gray);
     }
-    
+
     .grid-info-text .editable-value.editing {
       background-color: var(--bs-white);
       color: var(--bs-darkest-gray) !important;
       border-color: var(--bs-darker-gray);
       outline: none;
     }
-    
+
     .grid-info-text .editable-input {
       background: var(--bs-white);
       color: var(--bs-darkest-gray);
@@ -1188,14 +889,14 @@ function addInteractiveStyles() {
       outline: none;
       transition: all 0.2s ease;
     }
-    
+
     .grid-info-text .editable-input:invalid,
     .grid-info-text .editable-input[style*="var(--bs-error-red)"] {
       border-color: var(--bs-error-red) !important;
       background-color: var(--bs-error-red-light) !important;
       box-shadow: 0 0 3px rgba(179, 0, 33, 0.3);
     }
-    
+
     .grid-info-text .editable-input:valid,
     .grid-info-text .editable-input[style*="var(--bs-darker-gray)"] {
       border-color: var(--bs-darker-gray) !important;

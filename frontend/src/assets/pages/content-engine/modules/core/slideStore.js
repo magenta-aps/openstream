@@ -14,7 +14,7 @@ export const store = {
   globalTemplateContext: false,
 
   slideshowPlayerMetaData: {},
-  
+
   selectedElement: null,
   selectedElementData: null,
 
@@ -31,6 +31,7 @@ export const store = {
   dragSnapSettings: {
     unit: "cells",
     amount: 1,
+    snapEnabled: false,
   },
 
   selectedVideoId: null,

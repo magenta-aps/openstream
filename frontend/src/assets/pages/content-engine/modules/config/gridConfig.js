@@ -133,12 +133,52 @@ function getGridSignature(columns = GRID_CONFIG.COLUMNS, rows = GRID_CONFIG.ROWS
   return `${Math.round(columns)}x${Math.round(rows)}`;
 }
 
+export function greatestCommonDivisor(a, b) {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    const temp = y;
+    y = x % y;
+    x = temp;
+  }
+  return x || 1;
+}
+
+export function getCommonDivisors(columns, rows) {
+  const safeColumns = Math.max(1, Math.round(Number(columns)) || 1);
+  const safeRows = Math.max(1, Math.round(Number(rows)) || 1);
+  const gcd = greatestCommonDivisor(safeColumns, safeRows);
+  const divisors = new Set();
+
+  const limit = Math.floor(Math.sqrt(gcd));
+  for (let i = 1; i <= limit; i += 1) {
+    if (gcd % i === 0) {
+      divisors.add(i);
+      divisors.add(gcd / i);
+    }
+  }
+
+  return Array.from(divisors).sort((a, b) => a - b);
+}
+
 export function getDefaultSnapSettings(
   columns = GRID_CONFIG.COLUMNS,
   rows = GRID_CONFIG.ROWS,
   overrides = {},
 ) {
-  const defaultSnap = getDefaultCellSnapForResolution(columns, rows) || 1;
+  // Calculate default snap amount (closest valid divisor to 20)
+  const targetDefault = 20;
+  const divisors = getCommonDivisors(columns, rows);
+  let defaultSnap = 1;
+
+  if (divisors.length > 0) {
+    defaultSnap = divisors.reduce((prev, curr) => {
+      return Math.abs(curr - targetDefault) < Math.abs(prev - targetDefault)
+        ? curr
+        : prev;
+    });
+  }
+
   return {
     unit: "cells",
     amount: defaultSnap,
