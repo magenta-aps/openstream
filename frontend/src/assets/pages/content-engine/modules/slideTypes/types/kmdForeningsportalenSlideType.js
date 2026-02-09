@@ -18,6 +18,11 @@ export const KmdForeningsportalenSlideType = {
 
   _locationsData: null,
 
+  // Helper method to parse double-underscore separated strings into arrays
+  _parseSeparatedValues(value) {
+    return (value || "").split("__").map((s) => s.trim()).filter(Boolean);
+  },
+
   async fetchLocationsData() {
     if (this._locationsData) return this._locationsData;
 
@@ -52,6 +57,7 @@ export const KmdForeningsportalenSlideType = {
       sub_locations: config.sub_locations || [],
       // Marquee-only: use infinite-marquee like WinKAS (scroll 1..10)
       scroll_speed: config.scroll_speed || 5,
+      skipped_events: config.skipped_events || "",
     };
   },
 
@@ -82,6 +88,8 @@ export const KmdForeningsportalenSlideType = {
   populateFormData(config) {
     this.populateLocationOptions(config.location);
     this.updateSubLocationOptions(config.location, config.sub_locations);
+    this.ensureSkippedEventsInput(config.skipped_events); 
+
     // Populate marquee (scroll speed) control
     const scrollSpeedInput = document.getElementById("scroll-speed");
     const scrollSpeedValue = document.getElementById("scroll-speed-value");
@@ -94,6 +102,50 @@ export const KmdForeningsportalenSlideType = {
         ? scrollSpeedInput.value
         : config.scroll_speed || 5;
     }
+  },
+
+  // Render skipped events list from hidden input value
+  _renderSkippedEventsList() {
+    const hidden = document.getElementById("skipped-events-input");
+    const list = document.getElementById("skipped-events-list");
+    if (!hidden || !list) return;
+
+    const items = this._parseSeparatedValues(hidden.value);
+    
+    list.innerHTML = items.map(item => `
+      <div class="d-flex align-items-center mb-1 skipped-event-item" data-value="${item}">
+        <span class="badge bg-secondary py-2">${item}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger remove-skipped-event" aria-label="Remove">&minus;</button>
+      </div>
+    `).join('');
+  },
+
+  ensureSkippedEventsInput(value) {
+    const container = document.getElementById("skipped-events-container");
+    const existingHidden = document.getElementById("skipped-events-input");
+    
+    if (existingHidden) {
+      existingHidden.value = value || "";
+      this._renderSkippedEventsList();
+      return;
+    }
+
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="mb-3">
+        <label class="form-label" for="skipped-events-input-field">${gettext("Skipped Events")}</label>
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" id="skipped-events-input-field" placeholder="${gettext("Add event title, press + to add")}">
+          <button type="button" id="add-skipped-event-btn" class="btn btn-primary">+</button>
+        </div>
+        <div class="mb-2 bg-secondary-accent p-2 rounded text-black">${gettext("Events with these exact titles will be hidden from the display.")}</div>
+        <div id="skipped-events-list" class="d-flex gap-2 flex-wrap"></div>
+        <input type="hidden" id="skipped-events-input" value="${value || ""}">
+      </div>
+    `;
+
+    this._renderSkippedEventsList();
   },
 
   populateLocationOptions(selectedLocation) {
@@ -192,6 +244,62 @@ export const KmdForeningsportalenSlideType = {
     if (allSelector) allSelector.checked = false;
   },
 
+  // Helper to add event listener with cleanup tracking
+  _addListener(element, event, handler) {
+    if (!element) return;
+    element.addEventListener(event, handler);
+    this.eventListenerCleanup.push(() => element.removeEventListener(event, handler));
+  },
+
+  // Setup listeners for skipped events section
+  _setupSkippedEventsListeners() {
+    const elements = {
+      addBtn: document.getElementById("add-skipped-event-btn"),
+      skippedField: document.getElementById("skipped-events-input"),
+      skippedTextField: document.getElementById("skipped-events-input-field"),
+      skippedList: document.getElementById("skipped-events-list"),
+    };
+
+    if (!elements.addBtn || !elements.skippedTextField || !elements.skippedField) return;
+
+    const addHandler = () => {
+      const val = elements.skippedTextField.value.trim();
+      if (!val) return;
+      
+      const items = this._parseSeparatedValues(elements.skippedField.value);
+      if (!items.includes(val)) {
+        items.push(val);
+        elements.skippedField.value = items.join("__");
+        elements.skippedTextField.value = "";
+        this._renderSkippedEventsList();
+      }
+    };
+
+    this._addListener(elements.addBtn, "click", addHandler);
+    this._addListener(elements.skippedTextField, "keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addHandler();
+      }
+    });
+
+    if (elements.skippedList) {
+      this._addListener(elements.skippedList, "click", (e) => {
+        if (!e.target.classList.contains("remove-skipped-event")) return;
+        
+        const item = e.target.closest(".skipped-event-item");
+        if (!item) return;
+        
+        const items = this._parseSeparatedValues(elements.skippedField.value)
+          .filter((i) => i !== item.dataset.value);
+        elements.skippedField.value = items.join("__");
+        this._renderSkippedEventsList();
+      });
+    }
+
+    this._renderSkippedEventsList();
+  },
+
   setupFormEventListeners() {
     const locationSelect = document.getElementById("location-input");
     const allSelector = document.getElementById("all-selector");
@@ -239,6 +347,8 @@ export const KmdForeningsportalenSlideType = {
         scrollSpeedInput.removeEventListener("input", speedHandler),
       );
     }
+
+    this._setupSkippedEventsListeners();
   },
 
   cleanupFormEventListeners() {
@@ -252,10 +362,11 @@ export const KmdForeningsportalenSlideType = {
   async generateSlide(config) {
     const params = {
       location: config.location || "",
-      sub_locations: (config.sub_locations || []).join(","),
+      sub_locations: (config.sub_locations || []).join("__"),
       // marquee mode
       continuous_scroll: "1",
       scroll_speed: config.scroll_speed || 5,
+      skipped_events: config.skipped_events || "",
     };
 
     return SlideTypeUtils.generateSlideUrl(
@@ -272,6 +383,7 @@ export const KmdForeningsportalenSlideType = {
     );
 
     const scrollSpeedInput = document.getElementById("scroll-speed");
+    const skippedEventsInput = document.getElementById("skipped-events-input");
 
     const subLocations = Array.from(subLocationCheckboxes).map(
       (checkbox) => checkbox.value,
@@ -283,6 +395,7 @@ export const KmdForeningsportalenSlideType = {
       // marquee-only mode
       continuous_scroll: true,
       scroll_speed: scrollSpeedInput ? Number(scrollSpeedInput.value) : 5,
+      skipped_events: skippedEventsInput ? skippedEventsInput.value.trim() : "",
     };
   },
 
