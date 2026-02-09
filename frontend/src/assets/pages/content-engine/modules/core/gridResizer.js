@@ -91,7 +91,6 @@ export function makeDraggable(el, dataObj) {
       if (newWidth !== currentColSpan) {
         currentColSpan = newWidth;
         el.style.gridColumnEnd = `span ${newWidth}`;
-        dataObj.gridWidth = newWidth;
       }
     }
 
@@ -104,7 +103,6 @@ export function makeDraggable(el, dataObj) {
       if (newHeight !== currentRowSpan) {
         currentRowSpan = newHeight;
         el.style.gridRowEnd = `span ${newHeight}`;
-        dataObj.gridHeight = newHeight;
       }
     }
 
@@ -127,8 +125,6 @@ export function makeDraggable(el, dataObj) {
     // Update element position
     el.style.gridColumnStart = newCol;
     el.style.gridRowStart = newRow;
-    dataObj.gridX = newCol - 1;
-    dataObj.gridY = newRow - 1;
 
     // Update resize handle position if it exists
     if (el._updateResizerPosition) {
@@ -157,6 +153,16 @@ export function makeDraggable(el, dataObj) {
     }
 
     if (hasDragged) {
+      // Commit final position and size to data object
+      dataObj.gridX = parseInt(el.style.gridColumnStart) - 1;
+      dataObj.gridY = parseInt(el.style.gridRowStart) - 1;
+      dataObj.gridWidth = parseInt(
+        el.style.gridColumnEnd.replace("span", "").trim(),
+      );
+      dataObj.gridHeight = parseInt(
+        el.style.gridRowEnd.replace("span", "").trim(),
+      );
+
       requestAnimationFrame(() => {
         if (document.body.contains(el)) {
           selectElement(el, dataObj);
@@ -407,10 +413,6 @@ export function makeResizable(el, dataObj) {
       el.style.gridColumnEnd = `span ${newWidth}`;
       el.style.gridRowStart = newRowStart;
       el.style.gridRowEnd = `span ${newHeight}`;
-      dataObj.gridX = newColStart - 1;
-      dataObj.gridY = newRowStart - 1;
-      dataObj.gridWidth = newWidth;
-      dataObj.gridHeight = newHeight;
 
       if (el._updateResizerPosition) {
         el._updateResizerPosition();
@@ -430,6 +432,17 @@ export function makeResizable(el, dataObj) {
     cancelAnimationFrame(animationFrameId);
     document.removeEventListener("mousemove", resizeElement);
     document.removeEventListener("mouseup", stopResize);
+
+    if (hasResized) {
+      dataObj.gridX = parseInt(el.style.gridColumnStart) - 1;
+      dataObj.gridY = parseInt(el.style.gridRowStart) - 1;
+      dataObj.gridWidth = parseInt(
+        el.style.gridColumnEnd.replace("span", "").trim(),
+      );
+      dataObj.gridHeight = parseInt(
+        el.style.gridRowEnd.replace("span", "").trim(),
+      );
+    }
 
     if (el._updateResizerPosition) {
       el._updateResizerPosition();

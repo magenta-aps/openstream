@@ -6,11 +6,11 @@
 
 import { queryParams, showToast } from "../../../../utils/utils.js";
 import { gettext } from "../../../../utils/locales.js";
-import { getDefaultCellSnapForResolution } from "../../../../utils/availableAspectRatios.js";
 import {
   GridUtils,
   GRID_CONFIG,
   onGridDimensionsChange,
+  getCommonDivisors,
 } from "../config/gridConfig.js";
 import { store } from "../core/slideStore.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
@@ -21,11 +21,8 @@ let statusBarContent = null;
 let gridSizeBadge = null;
 let unsubscribeGridChange = null;
 let snapControlsContainer = null;
-let snapAmountSelect = null;
-let snapAmountManualInput = null;
-let snapAmountPrefix = null;
-let snapAmountSuffix = null;
-let snapModeButtons = null;
+let snapDropdownContainer = null;
+let snapModeToggle = null;
 
 // Snap unit tracking – must match the initial UI default ("Pixels" → "cells")
 let activeSnapUnit = "cells";
@@ -108,34 +105,39 @@ function createStatusBar() {
 
     statusBar.appendChild(statusBarContent);
     statusBar.appendChild(rightSection);
+  }
 
-    // Ensure preview area is wrapped so the status bar can sit below it
-    const slideCanvas = document.querySelector(".slide-canvas");
-    if (slideCanvas) {
-      // Look for an existing preview-column wrapper
-      let previewColumn = slideCanvas.querySelector(".preview-column");
-      const previewContainer = slideCanvas.querySelector(".preview-container");
+  // Ensure preview area is wrapped so the status bar can sit below it
+  const slideCanvas = document.querySelector(".slide-canvas");
+  if (slideCanvas) {
+    // Look for an existing preview-column wrapper
+    let previewColumn = slideCanvas.querySelector(".preview-column");
+    const previewContainer = slideCanvas.querySelector(".preview-container");
 
-      if (!previewColumn) {
-        // Create a column wrapper that stacks the preview and status bar
-        previewColumn = document.createElement("div");
-        previewColumn.className = "preview-column";
-        // Move preview-container into the new column if present
-        if (previewContainer) {
-          slideCanvas.insertBefore(previewColumn, previewContainer);
-          previewColumn.appendChild(previewContainer);
-        } else {
-          slideCanvas.appendChild(previewColumn);
-        }
+    if (!previewColumn) {
+      // Create a column wrapper that stacks the preview and status bar
+      previewColumn = document.createElement("div");
+      previewColumn.className = "preview-column";
+      // Move preview-container into the new column if present
+      if (previewContainer) {
+        slideCanvas.insertBefore(previewColumn, previewContainer);
+        previewColumn.appendChild(previewContainer);
+      } else {
+        slideCanvas.appendChild(previewColumn);
       }
+    }
 
-      // Append status bar to the preview column so it fills the width
+    // Append status bar to the preview column so it fills the width
+    if (previewColumn && !previewColumn.contains(statusBar)) {
       previewColumn.appendChild(statusBar);
-    } else {
-      // Fallback: append directly to body
+    }
+  } else {
+    // Fallback: append directly to body
+    if (document.body && !document.body.contains(statusBar)) {
       document.body.appendChild(statusBar);
     }
   }
+
   return statusBar;
 }
 
@@ -173,13 +175,19 @@ function createSnapControls(rightSection) {
   snapControlsContainer = document.createElement("div");
   snapControlsContainer.className = "snap-controls";
 
+  const snapLabel = document.createElement("span");
+  snapLabel.textContent = `${gettext("Snap to")}:`;
+  snapLabel.classList.add("fw-semibold", "text-dark-gray");
+
   // Snap toggle button (on/off)
   const snapToggle = createToggleButton(
     {
       label: gettext("free-movement"),
       fn: () => {
         toggleSnapEnabled();
-        snapModeToggle.setDisabledState(true);
+        if (snapModeToggle) {
+          snapModeToggle.setDisabledState(true);
+        }
         snapLabel.classList.add("text-dark-gray");
       },
     },
@@ -187,23 +195,70 @@ function createSnapControls(rightSection) {
       label: gettext("snapping"),
       fn: () => {
         toggleSnapEnabled();
-        snapModeToggle.setDisabledState(false);
+        if (snapModeToggle) {
+          snapModeToggle.setDisabledState(false);
+        }
         snapLabel.classList.remove("text-dark-gray");
       },
     },
   );
 
-  const snapLabel = document.createElement("span");
-  snapLabel.textContent = `${gettext("Snap to")}:`;
-  snapLabel.classList.add("fw-semibold", "text-dark-gray");
+  snapDropdownContainer = document.createElement("div");
+  snapDropdownContainer.className = "snap-dropdown-container";
 
-  const snapModeToggle = createCoherentDropdown(
+  snapControlsContainer.appendChild(snapToggle.container);
+
+  const snapOptionsContainer = document.createElement("div");
+  snapOptionsContainer.classList.add("snap-options-container");
+  snapOptionsContainer.appendChild(snapLabel);
+  snapOptionsContainer.appendChild(snapDropdownContainer);
+  snapControlsContainer.appendChild(snapOptionsContainer);
+
+  rightSection.appendChild(snapControlsContainer);
+  updateSnapAmountOptions();
+  updateSnapControlsUI();
+}
+
+function updateSnapAmountOptions(
+  columns = GRID_CONFIG.COLUMNS,
+  rows = GRID_CONFIG.ROWS,
+  settings = getCurrentSnapSettings(),
+) {
+  if (!snapDropdownContainer) {
+    return;
+  }
+
+  const isDivision = settings.unit === "division";
+
+  let optionValues = getCommonDivisors(columns, rows);
+
+  if (!optionValues.length) {
+    optionValues = [1];
+  }
+
+  // Determine standard options for valid amount values
+  // For the right dropdown (AltDropdown)
+  const dropdownOptions = optionValues.map((val) => ({
+    name: val.toString(),
+    value: val.toString(),
+    // Set default if it matches current amount
+    default: val === settings.amount,
+  }));
+
+  // Reorder Toggle Options based on current selection
+  const pixelsOption = { name: gettext("Pixels"), value: "pixels" };
+  const gridOption = { name: gettext("Grid"), value: "grid" };
+  const toggleOptions = isDivision
+    ? [gridOption, pixelsOption]
+    : [pixelsOption, gridOption];
+
+  // Clear container
+  snapDropdownContainer.innerHTML = "";
+
+  snapModeToggle = createCoherentDropdown(
     {
       type: "reg",
-      options: [
-        { name: gettext("Pixels"), value: "pixels" },
-        { name: gettext("Grid"), value: "grid" },
-      ],
+      options: toggleOptions,
       onUpdate: (_name, value) => {
         const setAltDisplayMode = snapModeToggle.rightDropdown.setDisplayMode;
         if (value === "grid") {
@@ -220,100 +275,18 @@ function createSnapControls(rightSection) {
     },
     {
       type: "alt",
-      displayMode: "reg",
-      options: [
-        { name: "1", value: "1" },
-        { name: "2", value: "2" },
-        { name: "3", value: "3" },
-        { name: "4", value: "4" },
-        { name: "5", value: "5" },
-        { name: "6", value: "6" },
-        { name: "7", value: "7" },
-        { name: "8", value: "8" },
-        { name: "9", value: "9" },
-        { name: "10", value: "10" },
-        { name: "12", value: "12" },
-        { name: "15", value: "15" },
-        { name: "20", value: "20", default: true },
-        { name: "24", value: "24" },
-        { name: "30", value: "30" },
-        { name: "40", value: "40" },
-        { name: "60", value: "60" },
-        { name: "120", value: "120" },
-      ],
+      displayMode: isDivision ? "divided" : "reg",
+      options: dropdownOptions,
       onUpdate: (_name, value) => {
         const sanitizedValue = sanitizeSnapAmount(value);
         setSnapSettings({ unit: activeSnapUnit, amount: sanitizedValue });
       },
       position: { row: "top", column: "center" },
     },
-    true,
+    settings.snapEnabled === false,
   );
 
-  snapControlsContainer.appendChild(snapToggle.container);
-
-  const snapOptionsContainer = document.createElement("div");
-  snapOptionsContainer.classList.add("snap-options-container");
-  snapOptionsContainer.appendChild(snapLabel);
-  snapOptionsContainer.appendChild(snapModeToggle.container);
-  snapControlsContainer.appendChild(snapOptionsContainer);
-
-  rightSection.appendChild(snapControlsContainer);
-  updateSnapAmountOptions();
-  updateSnapControlsUI();
-}
-
-function updateSnapAmountOptions(
-  columns = GRID_CONFIG.COLUMNS,
-  rows = GRID_CONFIG.ROWS,
-  settings = getCurrentSnapSettings(),
-) {
-  const isDivision = settings.unit === "division";
-
-  if (snapAmountSelect) {
-    snapAmountSelect.style.display = isDivision ? "none" : "";
-  }
-  if (snapAmountManualInput) {
-    snapAmountManualInput.style.display = isDivision ? "inline-block" : "none";
-  }
-
-  if (isDivision) {
-    if (snapAmountManualInput) {
-      snapAmountManualInput.value = settings.amount.toString();
-    }
-    return;
-  }
-
-  if (!snapAmountSelect) {
-    return;
-  }
-
-  let optionValues = getCommonDivisors(columns, rows);
-
-  if (!optionValues.length) {
-    optionValues = [1];
-  }
-
-  const fragment = document.createDocumentFragment();
-  optionValues.forEach((value) => {
-    const option = document.createElement("option");
-    option.value = value.toString();
-    option.textContent = value.toString();
-    fragment.appendChild(option);
-  });
-
-  snapAmountSelect.innerHTML = "";
-  snapAmountSelect.appendChild(fragment);
-
-  if (!optionValues.includes(settings.amount)) {
-    const fallback = optionValues[0];
-    if (settings.amount !== fallback) {
-      setSnapSettings({ amount: fallback });
-    }
-    return;
-  }
-
-  snapAmountSelect.value = settings.amount.toString();
+  snapDropdownContainer.appendChild(snapModeToggle.container);
 }
 
 function normalizeSnapAmount(
@@ -358,33 +331,6 @@ function getGridSignature(
   return `${Math.round(columns)}x${Math.round(rows)}`;
 }
 
-function getCommonDivisors(columns, rows) {
-  const safeColumns = Math.max(1, Math.round(Number(columns)) || 1);
-  const safeRows = Math.max(1, Math.round(Number(rows)) || 1);
-  const gcd = greatestCommonDivisor(safeColumns, safeRows);
-  const divisors = new Set();
-
-  const limit = Math.floor(Math.sqrt(gcd));
-  for (let i = 1; i <= limit; i += 1) {
-    if (gcd % i === 0) {
-      divisors.add(i);
-      divisors.add(gcd / i);
-    }
-  }
-
-  return Array.from(divisors).sort((a, b) => a - b);
-}
-
-function greatestCommonDivisor(a, b) {
-  let x = Math.abs(a);
-  let y = Math.abs(b);
-  while (y !== 0) {
-    const temp = y;
-    y = x % y;
-    x = temp;
-  }
-  return x || 1;
-}
 
 function sanitizeSnapAmount(value) {
   const parsed = Math.round(Number(value));
@@ -423,11 +369,22 @@ function toggleSnapEnabled() {
 }
 
 function getCurrentSnapSettings() {
-  const defaults = { unit: "cells", amount: 20, snapEnabled: true };
   const columns = GRID_CONFIG.COLUMNS;
   const rows = GRID_CONFIG.ROWS;
-  // Default for new projects is now 20 pixels
-  const defaultSnap = 20;
+
+  // Calculate default snap amount (closest valid divisor to 20)
+  const targetDefault = 20;
+  const divisors = getCommonDivisors(columns, rows);
+  let defaultSnap = 1;
+  if (divisors.length > 0) {
+    defaultSnap = divisors.reduce((prev, curr) => {
+      return Math.abs(curr - targetDefault) < Math.abs(prev - targetDefault)
+        ? curr
+        : prev;
+    });
+  }
+
+  const defaults = { unit: "cells", amount: defaultSnap, snapEnabled: true };
   const signature = getGridSignature(columns, rows);
 
   if (!store.dragSnapSettings) {
@@ -508,8 +465,6 @@ export function updateSnapControlsUI() {
   }
 
   const snapEnabled = store.dragSnapSettings?.snapEnabled !== false;
-  const settings = getCurrentSnapSettings();
-  const isDivision = settings.unit === "division";
 
   // Update toggle button appearance
   const toggleButton = snapControlsContainer.querySelector(
@@ -539,34 +494,6 @@ export function updateSnapControlsUI() {
   if (amountGroup) {
     amountGroup.style.opacity = snapEnabled ? "1" : "0.5";
     amountGroup.style.pointerEvents = snapEnabled ? "" : "none";
-  }
-
-  if (snapAmountSelect && !isDivision) {
-    snapAmountSelect.value = settings.amount.toString();
-  }
-  if (snapAmountManualInput && isDivision) {
-    snapAmountManualInput.value = settings.amount.toString();
-  }
-
-  if (snapModeButtons) {
-    Object.entries(snapModeButtons).forEach(([unit, button]) => {
-      const isActive = unit === settings.unit;
-      button.style.background = isActive
-        ? "var(--bs-darkest-gray)"
-        : "transparent";
-      button.style.color = isActive
-        ? "var(--bs-white)"
-        : "var(--bs-darker-gray)";
-    });
-  }
-
-  if (snapAmountPrefix) {
-    snapAmountPrefix.textContent = isDivision ? "1 /" : "";
-  }
-  if (snapAmountSuffix) {
-    snapAmountSuffix.textContent = isDivision
-      ? gettext("of grid")
-      : gettext("cells");
   }
 }
 
@@ -730,8 +657,9 @@ function createZoomControls(rightSection) {
         const rightContainer = document.getElementById(
           "right-content-container",
         );
-        console.log(rightContainer);
-        fn(rightContainer);
+        if (rightContainer) {
+          fn(rightContainer);
+        }
 
         zoomSliderContainer.style.display = display;
         notifyZoomChange(notify.mode, notify.level);
