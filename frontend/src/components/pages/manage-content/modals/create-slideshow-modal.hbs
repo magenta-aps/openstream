@@ -82,14 +82,14 @@
                 </div>
                 <!-- TAGS -->
                 <div class="mb-3">
-                    {{> base/form/label for="createSlideshowTags" text="Tags (optional)"}}
+                    {{> base/form/label for="tagsDropdownToggle" text="Tags (optional)"}}
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
                                 type="button"
-                                id="createSlideshowTags"
+                                id="tagsDropdownToggle"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                            <span class="selected-tags-text">({% trans "Nothing selected" %})</span>
+                            <span class="selected-tags-text" id="selectedTagsText">({% trans "Nothing selected" %})</span>
                             <span class="selected-tags-count badge bg-primary rounded-pill ms-1" style="display: none">0</span>
                         </button>
                         <div class="dropdown-menu p-3 w-100" id="tagsDropdownMenu">
