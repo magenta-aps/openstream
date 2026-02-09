@@ -5,6 +5,7 @@ import { BASE_URL } from "../../utils/constants";
 import { queryParams, shouldUseApiKeyInSlideTypeIframe } from "../../utils/utils";
 
 import InfiniteMarquee from "vanilla-infinite-marquee";
+import { gettext } from "../../utils/locales";
 
 // Parse config from query parameters
 const config = {
@@ -189,12 +190,20 @@ function displayBookingsInCarousel(locationBookings) {
   bookingBody.innerHTML = "";
 
   if (!bookings || bookings.length === 0) {
+    // Show a single mock booking entry that reads "No events"
     bookingBody.innerHTML = `
       <div class="booking-list">
-        <div class="no-bookings-message">
-          <span class="material-symbols-outlined">event_busy</span>
-          <h3>No bookings scheduled</h3>
-          <p>There are currently no bookings for the selected locations.</p>
+        <div class="booking-entry no-events">
+          <div class="booking-details">
+            <div class="time-column">
+              <div class="start-time">&nbsp;</div>
+              <div class="time-divider" style="visibility: hidden;"></div>
+              <div class="end-time">&nbsp;</div>
+            </div>
+            <div class="booking-info">
+              <div class="booking-title">${gettext("No events")}</div>
+            </div>
+          </div>
         </div>
       </div>
     `;

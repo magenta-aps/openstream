@@ -6,6 +6,7 @@ import { BASE_URL } from "../../utils/constants";
 import { queryParams } from "../../utils/utils";
 import { shouldUseApiKeyInSlideTypeIframe } from "../../utils/utils";
 import InfiniteMarquee from "vanilla-infinite-marquee";
+import { gettext } from "../../utils/locales";
 
 // Parse config from query parameters
 const config = {
@@ -207,7 +208,7 @@ function displayBookingsInCarousel(locationBookings) {
               <div class="end-time">&nbsp;</div>
             </div>
             <div class="booking-info">
-              <div class="booking-title">No events</div>
+              <div class="booking-title">${gettext("No events")}</div>
             </div>
           </div>
         </div>

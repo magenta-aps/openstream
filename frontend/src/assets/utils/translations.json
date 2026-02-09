@@ -4132,5 +4132,8 @@
   },
   "Events with these exact titles will be hidden from the display.": {
     "da": "Begivenheder med disse præcise titler vil blive skjult på skærmen."
+  },
+  "No events": {
+    "da": "Ingen begivenheder"
   }
-}
+}    
