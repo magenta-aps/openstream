@@ -604,6 +604,13 @@ async function _startSlideshowPlayer() {
 
       if (data.items && data.items.length > 0) {
         const firstSlideshow = data.items[0].slideshow;
+
+        const showLegacy = firstSlideshow.is_legacy;
+          
+        if (showLegacy) {
+          store.activeSlideshowIsLegacy = showLegacy;
+        }
+
         store.emulatedWidth = firstSlideshow.preview_width ?? 1920;
         store.emulatedHeight = firstSlideshow.preview_height ?? 1080;
         store.slideshowMode = firstSlideshow.mode;
