@@ -47,11 +47,12 @@ export const WinkasSlideType = {
   },
 
   getDefaultConfig(existingConfig = {}) {
+    const config = existingConfig || {};
     return {
-      location: existingConfig.location || "",
-      sub_locations: existingConfig.sub_locations || [],
-      scroll_speed: existingConfig.scroll_speed || 5,
-      skipped_events: existingConfig.skipped_events || "",
+      location: config.location || "",
+      sub_locations: config.sub_locations || [],
+      scroll_speed: config.scroll_speed || 5,
+      skipped_events: config.skipped_events || "",
     };
   },
 
