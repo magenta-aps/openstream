@@ -6,7 +6,8 @@ export function addChip(containerId, chipText, deleteCallBack, chipClass="",) {
     if (!chipContainer) return;
 
     const chip = document.createElement('button');
-    chip.className = `${chipClass} d-flex align-items-center gap-1`;
+    chip.className = `${chipClass} d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover`;
+    // fs-small 
     chip.innerText = chipText;
     
     chipContainer.appendChild(chip);
