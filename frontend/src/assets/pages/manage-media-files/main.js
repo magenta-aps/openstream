@@ -815,7 +815,7 @@ async function confirmDeleteMedia() {
     try {
       showLoadingOverlay(true);
       await genericFetch(
-        `${BASE_URL}/api/documents/${currentlyEditingMedia.id}?branch_id=${selectedBranchID}`,
+        `${BASE_URL}/api/documents/${currentlyEditingMedia.id}/?branch_id=${selectedBranchID}`,
         "DELETE",
       );
       showToast(gettext("Media successfully deleted"), "Success");
@@ -851,7 +851,7 @@ async function submitMediaUpdate(event) {
   currentMediaTags.forEach((tag) => body.append("tags[]", tag));
 
   let method = "PATCH";
-  let idParam = "";
+  let idParam;
 
   if (!currentlyEditingMedia) {
     if (form.file.files.length > 1) {
@@ -878,10 +878,14 @@ async function submitMediaUpdate(event) {
   }
   body.append("title", title);
 
+  // when creating a new document, there is no id for the currently editing media
+  // so the potential path parameter is added with a slash here or we could end up with a path like so "/api/documents//..."
+  const idParamPath = idParam !== undefined ? `${idParam}/` : "";
+
   showLoadingOverlay(true);
   try {
     await genericFetch(
-      `${BASE_URL}/api/documents/${idParam}/?branch_id=${selectedBranchID}`,
+      `${BASE_URL}/api/documents/${idParamPath}?branch_id=${selectedBranchID}`,
       method,
       body,
     );
@@ -1015,4 +1019,3 @@ function showLoadingOverlay(show) {
     overlay.style.display = "none";
   }
 }
-
