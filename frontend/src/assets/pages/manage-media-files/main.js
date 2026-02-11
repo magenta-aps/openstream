@@ -60,7 +60,8 @@ const validExtensions = [
 ];
 
 // Elements
-const submitMediaModalEl = document.getElementById("submitMediaModal");
+const uploadMediaModalEl = document.getElementById("uploadMediaModal");
+const editMediaModalEl = document.getElementById("editMediaModal");
 const previewMediaModalEl = document.getElementById("previewMediaModal");
 const previewContainer = document.querySelector("#preview-media-container");
 const tagsContainer = document.querySelector("#mediaEditTagsContainer");
@@ -78,7 +79,8 @@ const mediaGrid = document.getElementById("mediaGrid");
 const pageSizeEl = document.querySelector("#resultsPerPageDropdown");
 
 // Initialize Bootstrap components
-const bsSubmitModal = bootstrap.Modal.getOrCreateInstance(submitMediaModalEl);
+const bsUploadModal = bootstrap.Modal.getOrCreateInstance(uploadMediaModalEl);
+const bsEditModal = bootstrap.Modal.getOrCreateInstance(editMediaModalEl);
 const bsPreviewModal = bootstrap.Modal.getOrCreateInstance(previewMediaModalEl);
 
 // Debounced filtering function
@@ -383,7 +385,7 @@ function renderPagination(data) {
 
 function openEditMediaModal() {
   // Set modal title based on whether we're editing or creating
-  submitMediaModalEl.querySelector("#submitMediaLabel").textContent =
+  uploadMediaModalEl.querySelector("#submitMediaLabel").textContent =
     currentlyEditingMedia ? gettext("Update Media") : gettext("Upload Media");
 
   // Configure the file input field
@@ -448,7 +450,7 @@ function openEditMediaModal() {
     createMediaEditTagsDropdown();
   }
 
-  bsSubmitModal.show();
+  bsUploadModal.show();
 }
 
 function openPreviewMediaModal() {
@@ -821,8 +823,8 @@ async function confirmDeleteMedia() {
       showToast(gettext("Media successfully deleted"), "Success");
       currentlyEditingMedia = null;
 
-      if (bsSubmitModal) {
-        bsSubmitModal.hide();
+      if (bsUploadModal) {
+        bsUploadModal.hide();
       }
       if (bsPreviewModal) {
         bsPreviewModal.hide();
@@ -897,7 +899,7 @@ async function submitMediaUpdate(event) {
     );
 
     currentlyEditingMedia = null;
-    bsSubmitModal.hide();
+    bsUploadModal.hide();
 
     // Refresh the media grid
     await loadMediaFiles(currentPage);
@@ -944,7 +946,7 @@ async function submitMultipleMediaUpload(formFile, body) {
     showToast(gettext("Files uploaded successfully"), "Success");
 
     currentlyEditingMedia = null;
-    bsSubmitModal.hide();
+    bsUploadModal.hide();
 
     // Refresh the grid
     await loadMediaFiles(1);
