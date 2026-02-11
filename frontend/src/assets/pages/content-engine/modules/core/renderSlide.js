@@ -726,10 +726,23 @@ async function _startSlideshowPlayer() {
   renderPersistentElements();
 }
 
+let sseConnection = null;
+let sseReconnectTimeout = null;
+
 function initLiveReload() {
+  if (sseConnection) {
+    sseConnection.close();
+    sseConnection = null;
+  }
+
+  if (sseReconnectTimeout) {
+    clearTimeout(sseReconnectTimeout);
+    sseReconnectTimeout = null;
+  }
   
   // 1. Point this to your Express route
   const eventSource = new EventSource(derivePollingServiceFromHostname());
+  sseConnection = eventSource;
 
   // Check connection status
   eventSource.onopen = () => {
@@ -798,6 +811,11 @@ function initLiveReload() {
   // Handle errors (like server going down)
   eventSource.onerror = (err) => {
     console.error('[sse] error', err);
+    eventSource.close();
+    sseReconnectTimeout = setTimeout(() => {
+      console.log('[sse] Reconnecting...');
+      initLiveReload();
+    }, 10000);
   };
 }
 
