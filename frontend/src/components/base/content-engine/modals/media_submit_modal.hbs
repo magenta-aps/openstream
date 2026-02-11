@@ -2,20 +2,22 @@
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 
 {{#> base/modal/modal
-    id="submitMediaModal"
+    id=id
     aria-labelledby="submitmediaLabel"
     size="modal-lg"
     overlayID="mediaSubmitOverlay"
 }}
-    {{#*inline "overlay" }}
-        <div class="spinner-border text-primary mb-2"
-            role="status"
-            style="width: 3rem; height: 3rem"
-        >
-            <span class="visually-hidden">{% trans "Loading..." %}</span>
-        </div>
-        <span class="fw-bold">{% trans "Uploading..." %}</span>
-    {{/inline}}
+    {{#if hasFileUpload}}
+        {{#*inline "overlay" }}
+                <div class="spinner-border text-primary mb-2"
+                    role="status"
+                    style="width: 3rem; height: 3rem"
+                >
+                    <span class="visually-hidden">{% trans "Loading..." %}</span>
+                </div>
+                <span class="fw-bold">{% trans "Uploading..." %}</span>
+        {{/inline}}
+    {{/if}}
 
     {{#*inline "header"}}
         <h5 class="modal-title" id="submitMediaLabel">{% trans "Upload Image" %}</h5>
@@ -31,36 +33,38 @@
     {{#*inline "body"}}
         <form id="submitMediaForm">
             <!-- Select File Section -->
-            <div id="fileUploadSelectWrapper" class="mb-4">
-                <label class="form-label text-muted fw-semibold mb-2">
-                    <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">upload_file</span>
-                    {% trans "Select File" %}
-                </label>
-                <div>
-                    <input type="file"
-                            class="form-control form-control-lg"
-                            id="mediaFileInput"
-                            placeholder='{% trans "Select files" %}'
-                            accept=".pdf,.png,.jpeg,.jpg,.svg,.gif,.mp4,.webp,.webm"
-                            name="file"
-                            autocomplete="off"
-                            multiple />
-                </div>
-                <small class="form-text text-muted mt-1" id="acceptedFileTypesLabel">
-                    {% trans "Accepted types: PNG, JPEG, JPG, SVG, PDF, GIF, WebP, MP4, WebM" %}
-                </small>
-                <small class="form-text text-muted d-block">{% trans "It's possible to upload multiple files at once" %}</small>
-                <!-- Selected Files Display -->
-                <div id="selectedFilesContainer"
-                        class="selected-files-container mt-3 d-none">
+            {{#if hasFileUpload}}
+                <div id="fileUploadSelectWrapper" class="mb-4">
                     <label class="form-label text-muted fw-semibold mb-2">
-                        <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">description</span>
-                        {% trans "Selected Files" %}
+                        <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">upload_file</span>
+                        {% trans "Select File" %}
                     </label>
-                    <div id="selectedFilesList" class="selected-files-list"></div>
+                    <div>
+                        <input type="file"
+                                class="form-control form-control-lg"
+                                id="mediaFileInput"
+                                placeholder='{% trans "Select files" %}'
+                                accept=".pdf,.png,.jpeg,.jpg,.svg,.gif,.mp4,.webp,.webm"
+                                name="file"
+                                autocomplete="off"
+                                multiple />
+                    </div>
+                    <small class="form-text text-muted mt-1" id="acceptedFileTypesLabel">
+                        {% trans "Accepted types: PNG, JPEG, JPG, SVG, PDF, GIF, WebP, MP4, WebM" %}
+                    </small>
+                    <small class="form-text text-muted d-block">{% trans "It's possible to upload multiple files at once" %}</small>
+                    <!-- Selected Files Display -->
+                    <div id="selectedFilesContainer"
+                            class="selected-files-container mt-3 d-none">
+                        <label class="form-label text-muted fw-semibold mb-2">
+                            <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">description</span>
+                            {% trans "Selected Files" %}
+                        </label>
+                        <div id="selectedFilesList" class="selected-files-list"></div>
+                    </div>
                 </div>
-            </div>
-            <hr id="file_upload_seperator" class="my-4">
+                <hr id="file_upload_seperator" class="my-4">
+            {{/if}}
             <!-- File Name Section -->
             <div class="mb-4">
                 <label class="form-label text-muted fw-semibold">
