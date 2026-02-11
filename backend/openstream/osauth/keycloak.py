@@ -264,6 +264,24 @@ class KeycloakAdminClient(KeycloakBaseClient):
                 data=resp.json() if resp.content else None,
             )
 
+    def update_realm(
+        self, token: TokenResponse, realm: str, realm_config: Dict[str, Any]
+    ):
+        resp = requests.put(
+            f"{self.url()}/admin/realms/{realm}",
+            headers={
+                "Authorization": f"Bearer {token.access_token}",
+                "Content-Type": "application/json",
+            },
+            json=realm_config,
+        )
+
+        if resp.status_code not in (200, 204):
+            raise KeycloakError(
+                resp.status_code,
+                data=resp.json() if resp.content else None,
+            )
+
     def client_exists(self, token: TokenResponse, realm: str, client_id: str) -> bool:
         resp = requests.get(
             f"{self.url()}/admin/realms/{realm}/clients",
