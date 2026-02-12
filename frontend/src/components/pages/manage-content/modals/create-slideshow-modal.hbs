@@ -72,16 +72,16 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-between">
+            <div class="d-flex gap-5">
                 <!-- CATEGORY -->
-                <div class="mb-3">
+                <div class="mb-3 w-100">
                     {{> base/form/label for="createSlideshowCategory" text="Category"}}
                     <select class="form-select" id="createSlideshowCategory">
                         <!-- We'll programmatically add (None) and categories here -->
                     </select>
                 </div>
                 <!-- TAGS -->
-                <div class="mb-3">
+                <div class="mb-3 w-100">
                     {{> base/form/label for="tagsDropdownToggle" text="Tags (optional)"}}
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
@@ -96,7 +96,7 @@
                             <div class="mb-2 border-bottom pb-2">
                                 {{> base/form/checkbox id="selectAllTags" text="Select All" bold=true}}
                             </div>
-                            <div id="createSlideshowTagsContainer">
+                            <div id="dropdownCheckboxesContainer">
                                 <!-- Tag checkboxes will be dynamically added here -->
                             </div>
                         </div>
@@ -104,12 +104,12 @@
                 </div>
             </div>
              <!-- TAGS -->
-            {{!-- <div class="mb-3">
+            <div class="mb-3">
                 {{> base/form/label for="createSlideshowTags" text="Tags"}}
                 <div id="createSlideshowTagsContainer">
                     <!-- Checkboxes for each tag will be inserted via JS -->
                 </div>
-            </div> --}}
+            </div>
     {{/inline}}
         
         {{#*inline "footer"}}
