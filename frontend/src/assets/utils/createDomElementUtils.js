@@ -1,14 +1,23 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-export function addChip(containerId, chipText, deleteCallBack, chipClass="",) {
+export function addChip(containerId, chipText, deleteCallBack) {
     const chipContainer = document.getElementById(containerId);
     if (!chipContainer) return;
 
     const chip = document.createElement('button');
-    chip.className = `${chipClass} d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover`;
-    // fs-small 
+    chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover";
+    // fs-small
     chip.innerText = chipText;
+
+    // tilføj kryds for at slette chippen
+    // const deleteIcon = document.createElement('span');
+    // deleteIcon.className = "material-icons";
+
+    // add event listener for delete action = deleteCallBack
+    // - callback bliver kaldt, der bestemmer hvad der skal ske med værdien (givet af initializeMultiSelectDropdown)
+    // - den skal fjernes fra dropdown (removechild)
+
     
     chipContainer.appendChild(chip);
 }
