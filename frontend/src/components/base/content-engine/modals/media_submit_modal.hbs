@@ -20,7 +20,7 @@
     {{/if}}
 
     {{#*inline "header"}}
-        <h5 class="modal-title" id="submitMediaLabel">{% trans "Upload Image" %}</h5>
+        <h5 class="submit-media-label modal-title">{% trans "Upload Image" %}</h5>
         <button type="button"
             class="btn-close"
             data-bs-target="#mediaListModal"
@@ -31,18 +31,17 @@
     {{/inline }}
 
     {{#*inline "body"}}
-        <form id="submitMediaForm">
+        <form id="{{id}}-submitMediaForm">
             <!-- Select File Section -->
             {{#if hasFileUpload}}
-                <div id="fileUploadSelectWrapper" class="mb-4">
+                <div class="file-upload-select-wrapper mb-4">
                     <label class="form-label text-muted fw-semibold mb-2">
                         <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">upload_file</span>
                         {% trans "Select File" %}
                     </label>
                     <div>
                         <input type="file"
-                                class="form-control form-control-lg"
-                                id="mediaFileInput"
+                                class="media-file-input form-control form-control-lg"
                                 placeholder='{% trans "Select files" %}'
                                 accept=".pdf,.png,.jpeg,.jpg,.svg,.gif,.mp4,.webp,.webm"
                                 name="file"
@@ -54,16 +53,16 @@
                     </small>
                     <small class="form-text text-muted d-block">{% trans "It's possible to upload multiple files at once" %}</small>
                     <!-- Selected Files Display -->
-                    <div id="selectedFilesContainer"
-                            class="selected-files-container mt-3 d-none">
+                    <div class="selected-files-container mt-3 d-none">
                         <label class="form-label text-muted fw-semibold mb-2">
                             <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">description</span>
                             {% trans "Selected Files" %}
                         </label>
-                        <div id="selectedFilesList" class="selected-files-list"></div>
+                        <div class="selected-files-list"></div>
                     </div>
                 </div>
-                <hr id="file_upload_seperator" class="my-4">
+                <!-- TODO: remove this comment. Old name "file_upload_seperator" -->
+                <hr class="file-upload-separator" class="my-4">
             {{/if}}
             <!-- File Name Section -->
             <div class="mb-4">
@@ -73,16 +72,15 @@
                 </label>
                 <div class="form-floating position-relative w-100">
                     <input type="text"
-                            class="form-control form-control-lg pe-5"
-                            id="fileNameInput"
-                            placeholder='{% trans "File name" %}'
-                            name="title"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title='{% trans "Unable to modify file names when uploading multiple files at once" %}' />
-                    <span id="fileExtensionDisplay"
-                            class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted user-select-none"></span>
-                    <label for="fileNameInput">{% trans "Enter file name" %}</label>
+                        id="{{id}}-fileNameInput"
+                        class="file-name-input form-control form-control-lg pe-5"
+                        placeholder='{% trans "File name" %}'
+                        name="title"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title='{% trans "Unable to modify file names when uploading multiple files at once" %}' />
+                    <span class="file-extension-display position-absolute top-50 end-0 translate-middle-y me-3 text-muted user-select-none"></span>
+                    <label for="{{id}}-fileNameInput">{% trans "Enter file name" %}</label>
                 </div>
             </div>
             <hr class="my-4">
@@ -92,8 +90,8 @@
                     <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">sell</span>
                     {% trans "Tags" %}
                 </label>
-                <div id="mediaEditTagsSelect" class="dropdown-start"></div>
-                <div id="mediaEditTagsContainer" class="selected-tags-container mt-2 d-flex gap-2 "></div>
+                <div class="media-edit-tags-select dropdown-start"></div>
+                <div class="selected-tags-container mt-2 d-flex gap-2 "></div>
             </div>
             <hr class="my-4">
             <!-- Category Section -->
@@ -102,8 +100,8 @@
                     <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">category</span>
                     {% trans "Category" %}
                 </label>
-                <select id="submitMediaCtgSelect"
-                    class="form-select py-2 fs-5 rounded"
+                <select
+                    class="submit-media-ctg-select form-select py-2 fs-5 rounded"
                     aria-label="{% trans 'Category select' %}"
                     name="category">
                     <option value="">{% trans "Select a category..." %}</option>
@@ -113,152 +111,20 @@
     {{/inline}}
 
     {{#*inline "footer"}}
-        <button form="submitMediaForm" type="submit" class="btn btn-primary" id="saveMediaBtn">
+        <button form="{{id}}-submitMediaForm" type="submit" class="btn btn-primary" id="saveMediaBtn">
             <span class="material-symbols-outlined me-1">save</span>
             {% trans "Save" %}
         </button>
         <button type="button"
-                class="btn btn-secondary"
-                id="cancelSubmitMediaBtn"
+                class="cancel-submit-media-btn btn btn-secondary"
                 data-bs-target="#mediaListModal"
                 data-bs-toggle="modal">
             <span class="material-symbols-outlined me-1">cancel</span>
             {% trans "Cancel" %}
         </button>
-        <button type="button" id="btnDeleteMedia" class="btn btn-danger px-4 d-none">
+        <button type="button" class="btn-delete-media btn btn-danger px-4 d-none">
             <span class="material-symbols-outlined me-1">delete</span>
             {% trans "Delete" %}
         </button>
     {{/inline}}
 {{/base/modal/modal }}
-
-<!--
-<div class="modal fade"
-     id="submitMediaModal"
-     tabindex="-1"
-     aria-labelledby="submitMediaLabel"
-     aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <!-- Spinner Overlay -->
-            <div id="mediaSubmitOverlay"
-                 class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-white bg-opacity-75 rounded d-none"
-                 style="z-index: 10">
-                <div class="spinner-border text-primary mb-2"
-                     role="status"
-                     style="width: 3rem;
-                            height: 3rem">
-                    <span class="visually-hidden">{% trans "Loading..." %}</span>
-                </div>
-                <span class="fw-bold">{% trans "Uploading..." %}</span>
-            </div>
-            <!-- End Spinner Overlay -->
-            <div class="modal-header">
-                <h5 class="modal-title" id="submitMediaLabel">{% trans "Upload Image" %}</h5>
-                <button type="button"
-                        class="btn-close"
-                        data-bs-target="#mediaListModal"
-                        data-bs-toggle="modal"
-                        aria-label='{% trans "Close" %}'></button>
-            </div>
-                <div class="modal-body">
-                    <form id="submitMediaForm">
-                        <!-- Select File Section -->
-                        <div id="fileUploadSelectWrapper" class="mb-4">
-                            <label class="form-label text-muted fw-semibold mb-2">
-                                <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">upload_file</span>
-                                {% trans "Select File" %}
-                            </label>
-                            <div>
-                                <input type="file"
-                                    class="form-control form-control-lg"
-                                    id="mediaFileInput"
-                                    placeholder='{% trans "Select files" %}'
-                                    accept=".pdf,.png,.jpeg,.jpg,.svg,.gif,.mp4,.webp,.webm"
-                                    name="file"
-                                    autocomplete="off"
-                                    multiple />
-                            </div>
-                            <small class="form-text text-muted mt-1" id="acceptedFileTypesLabel">
-                                {% trans "Accepted types: PNG, JPEG, JPG, SVG, PDF, GIF, WebP, MP4, WebM" %}
-                            </small>
-                            <small class="form-text text-muted d-block">{% trans "It's possible to upload multiple files at once" %}</small>
-                            <!-- Selected Files Display -->
-                            <div id="selectedFilesContainer"
-                                class="selected-files-container mt-3 d-none">
-                                <label class="form-label text-muted fw-semibold mb-2">
-                                    <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">description</span>
-                                    {% trans "Selected Files" %}
-                                </label>
-                                <div id="selectedFilesList" class="selected-files-list"></div>
-                            </div>
-                        </div>
-                        <hr id="file_upload_seperator" class="my-4">
-                        <!-- File Name Section -->
-                        <div class="mb-4">
-                            <label class="form-label text-muted fw-semibold">
-                                <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">edit</span>
-                                {% trans "File Name" %}
-                            </label>
-                            <div class="form-floating position-relative w-100">
-                                <input type="text"
-                                    class="form-control form-control-lg pe-5"
-                                    id="fileNameInput"
-                                    placeholder='{% trans "File name" %}'
-                                    name="title"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title='{% trans "Unable to modify file names when uploading multiple files at once" %}' />
-                                <span id="fileExtensionDisplay"
-                                    class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted user-select-none"></span>
-                                <label for="fileNameInput">{% trans "Enter file name" %}</label>
-                            </div>
-                        </div>
-                        <hr class="my-4">
-                        <!-- Tags Section -->
-                        <div class="mb-4">
-                            <label class="form-label text-muted fw-semibold">
-                                <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">sell</span>
-                                {% trans "Tags" %}
-                            </label>
-                            <div id="mediaEditTagsSelect" class="dropdown-start"></div>
-                            <div id="mediaEditTagsContainer" class="selected-tags-container mt-2 d-flex gap-2 "></div>
-                        </div>
-                        <hr class="my-4">
-                        <!-- Category Section -->
-                        <div class="mb-3">
-                            <label class="form-label text-muted fw-semibold">
-                                <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">category</span>
-                                {% trans "Category" %}
-                            </label>
-                            <select id="submitMediaCtgSelect"
-                                class="form-select py-2 fs-5 rounded"
-                                aria-label="{% trans 'Category select' %}"
-                                name="category">
-                                <option value="">{% trans "Select a category..." %}</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" id="saveMediaBtn">
-                        <span class="material-symbols-outlined me-1">save</span>
-                        {% trans "Save" %}
-                    </button>
-                    <button type="button"
-                            class="btn btn-secondary"
-                            id="cancelSubmitMediaBtn"
-                            data-bs-target="#mediaListModal"
-                            data-bs-toggle="modal">
-                        <span class="material-symbols-outlined me-1">cancel</span>
-                        {% trans "Cancel" %}
-                    </button>
-                    <button type="button" id="btnDeleteMedia" class="btn btn-danger px-4 d-none">
-                        <span class="material-symbols-outlined me-1">delete</span>
-                        {% trans "Delete" %}
-                    </button>
-                </div>
-        </div>
-    </div>
-</div>
--->
