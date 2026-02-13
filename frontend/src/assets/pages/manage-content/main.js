@@ -40,7 +40,6 @@ import {
   getAspectRatiosByOrientation,
   getResolutionForAspectRatio,
 } from "../../utils/availableAspectRatios";
-import { addChip } from "../../utils/createDomElementUtils";
 
 // Initialize translations
 (async () => {
@@ -348,7 +347,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const input = document.createElement("input");
         input.type = "checkbox";
-        input.className = "form-check-input tag-checkbox";
+        input.className = "form-check-input";
         input.id = `createTag_${tag.id}`;
         input.value = tag.id;
 
@@ -362,60 +361,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         createSlideshowTagsContainer.appendChild(div);
       });
 
-      // Setup event listeners for tags
-      setupTagsDropdownListeners();
-
-      // // Setup individual tag checkboxes
-      // const tagCheckboxes = createSlideshowTagsContainer.querySelectorAll(
-      // "input[type='checkbox']",
-      // );
-      // tagCheckboxes.forEach((checkbox) => {
-      //   checkbox.addEventListener("change", () => {
-      //     console.log("Tag checkbox changed");
-      //     updateTagsDropdownState();
-      //   });
-      // });
-
       createSlideshowModal.show();
     }
   }
-
-
-// Setup the event listeners for the tags dropdown
-function setupTagsDropdownListeners() {
-  const tagCheckboxes = document.querySelectorAll(".tag-checkbox");
-  const selectAllTags = document.getElementById("selectAllTags");
-  const tagsDropdownMenu = document.getElementById("tagsDropdownMenu");
-
-  // Prevent dropdown from closing when clicking inside
-  if (tagsDropdownMenu) {
-    tagsDropdownMenu.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-  }
-
-  // Setup select all checkbox
-  if (selectAllTags) {
-    // Remove any existing listeners to prevent duplicates
-    selectAllTags.replaceWith(selectAllTags.cloneNode(true));
-    const newSelectAllTags = document.getElementById("selectAllTags");
-
-    newSelectAllTags.addEventListener("change", (e) => {
-      const currentTagCheckboxes = document.querySelectorAll(".tag-checkbox");
-      currentTagCheckboxes.forEach((checkbox) => {
-        checkbox.checked = e.target.checked;
-      });
-      updateTagsDropdownState();
-    });
-  }
-
-  // Setup individual tag checkboxes
-  tagCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      updateTagsDropdownState();
-    });
-  });
-}
 
   if (queryParams.createSlideshow === "true") {
     openCreateSlideshowModal();
@@ -513,62 +461,6 @@ function setupTagsDropdownListeners() {
     });
     selectedAspectRatio = null;
   }
-
-  // Update the dropdown state based on selections
-function updateTagsDropdownState() {
-  const tagCheckboxes = document.querySelectorAll(".tag-checkbox");
-  const selectAllTags = document.getElementById("selectAllTags");
-  const tagsDropdownToggle = document.getElementById("tagsDropdownToggle");
-  const selectedTagsCount = tagsDropdownToggle?.querySelector(
-    ".selected-tags-count",
-  );
-  const selectedTagsText = tagsDropdownToggle?.querySelector(
-    ".selected-tags-text",
-  );
-
-  // Get selected tags
-  const selectedTags = Array.from(tagCheckboxes).filter((cb) => cb.checked);
-
-  // Update select all checkbox - be more defensive about the check
-  if (selectAllTags) {
-    const allSelected =
-      tagCheckboxes.length > 0 && selectedTags.length === tagCheckboxes.length;
-    if (selectAllTags.checked !== allSelected) {
-      selectAllTags.checked = allSelected;
-    }
-  }
-
-  // Update counter and text
-  if (selectedTagsCount && selectedTagsText) {
-    const count = selectedTags.length;
-    selectedTagsCount.textContent = count;
-    selectedTagsCount.style.display = count > 0 ? "inline-block" : "none";
-
-    if (count === 0) {
-      selectedTagsText.textContent = gettext("Select tags...");
-    } else if (count <= 2) {
-      // // Show tag names if 2 or fewer
-      // const tagNames = selectedTags
-      //   .map((cb) => {
-      //     const label = document.querySelector(`label[for="${cb.id}"]`);
-      //     return label ? label.textContent : "";
-      //   })
-      //   .filter((name) => name); // Filter out empty names
-      // selectedTagsText.textContent = tagNames.join(", ");
-      // XXXXX
-      selectedTagsText.textContent = ""; // Clear text container
-      selectedTags.forEach((tag) => {
-        const label = document.querySelector(`label[for="${tag.id}"]`);
-        const tagText = label ? label.textContent : "";
-        console.log("Adding chip for tag with name", tagText);
-        addChip("selectedTagsText", tagText);
-      });
-    } else {
-      // Just show count if more than 2
-      selectedTagsText.textContent = `${gettext("Tags selected")}:`;
-    }
-  }
-}
 
   categoryForm.addEventListener("submit", handleCategoryFormSubmit);
   tagsForm.addEventListener("submit", handleTagsFormSubmit);
