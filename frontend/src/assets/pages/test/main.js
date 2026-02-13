@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import "./style.scss";
-import { initializeMultiSelectDropdown } from "../../utils/createDomElementUtils";
+import { addChip, initializeMultiSelectDropdown } from "../../utils/createDomElementUtils";
 import {
   parentOrgID,
   genericFetch,
@@ -33,6 +33,11 @@ const testList = [{"id": 1,"name": "Test Tag 1"}, {"id": 2, "name": "Test Tag 2"
 document.addEventListener("DOMContentLoaded", async function () {
     await fetchTags();
     initializeMultiSelectDropdown(testList, "dropdownCheckboxesContainer", "multiSelectDropdownText");
+
+    const chipContainer = document.getElementById("chipContainer");
+    addChip(chipContainer, "Test Chip", () => {
+        console.log("Chip deleted");
+    });
 });
 
 
