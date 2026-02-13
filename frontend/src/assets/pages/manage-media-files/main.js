@@ -390,11 +390,11 @@ function renderPagination(data) {
  * @typedef {Object} MediaModal
  * @property {HTMLElement} MediaModal.modal
  * @property {Object} MediaModal.formElements
- * @property {HTMLFormElement} MediaModal.formElements.form
- * @property {HTMLInputElement} MediaModal.formElements.title
- * @property {HTMLSelectElement} MediaModal.formElements.category
- * @property {HTMLDivElement} MediaModal.formElements.tagsContainer
- * @property {HTMLDivElement} MediaModal.formElements.selectedTagsContainer
+ * @property {HTMLFormElement} MediaModal.formElements.form - the form element
+ * @property {HTMLInputElement} MediaModal.formElements.title - the input field for the name of the media file
+ * @property {HTMLSelectElement} MediaModal.formElements.category - the category select element
+ * @property {HTMLDivElement} MediaModal.formElements.tagsContainer - the tag selection container
+ * @property {HTMLDivElement} MediaModal.formElements.selectedTagsContainer - the container for tags that are selected
  * @property {HTMLButtonElement} MediaModal.deleteMediaBtn
  * @property {() => void} MediaModal.open
  * @property {() => void} MediaModal.hide
@@ -540,7 +540,6 @@ function openUploadMediaModal(mediaModal) {
 function openEditMediaModal(mediaModal) {
   openModal(mediaModal);
 
-  console.log(mediaModal.formElements.title);
   mediaModal.formElements.title.value = currentlyEditingMedia.title;
   mediaModal.modal.querySelector(".file-extension-display").innerHTML =
     "." + currentlyEditingMedia.file_type?.toLowerCase();
@@ -1125,7 +1124,7 @@ async function uploadFile(formData, title, file) {
 async function editMediaSubmit(event) {
   event.preventDefault();
 
-  const formData = await initSubmitMediaFormData(editMediaElements);
+  const formData = initSubmitMediaFormData(editMediaElements);
   if (!formData) {
     return;
   }
