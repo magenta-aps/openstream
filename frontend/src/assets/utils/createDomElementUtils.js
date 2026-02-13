@@ -169,17 +169,6 @@ function updateValuesDropdownState(multiSelectDropdownTextId) {
               moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
           }
       }
-      //####
-      // selectedValues.forEach((value) => {
-      //   const label = document.querySelector(`label[for="${value.id}"]`);
-      //   const valueText = label ? label.textContent : "";
-      //   console.log("Adding chip for value with name", valueText);
-      //   addChip(multiSelectDropdownText, valueText);
-      // });
-    } 
-    // else {
-    //   // Just show count if more than 2
-    //   multiSelectDropdownText.textContent = `${gettext("Values selected")}:`;
-    // }
+    }
   }
 }
