@@ -72,38 +72,14 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex gap-5">
-                <!-- CATEGORY -->
-                <div class="mb-3 w-100">
-                    {{> base/form/label for="createSlideshowCategory" text="Category"}}
-                    <select class="form-select" id="createSlideshowCategory">
-                        <!-- We'll programmatically add (None) and categories here -->
-                    </select>
-                </div>
-                <!-- TAGS -->
-                <div class="mb-3 w-100">
-                    {{> base/form/label for="tagsDropdownToggle" text="Tags (optional)"}}
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
-                                type="button"
-                                id="tagsDropdownToggle"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                            <span class="selected-tags-text" id="selectedTagsText">({% trans "Nothing selected" %})</span>
-                            <span class="selected-tags-count badge bg-primary rounded-pill ms-1" style="display: none">0</span>
-                        </button>
-                        <div class="dropdown-menu p-3 w-100" id="tagsDropdownMenu">
-                            <div class="mb-2 border-bottom pb-2">
-                                {{> base/form/checkbox id="selectAllTags" text="Select All" bold=true}}
-                            </div>
-                            <div id="dropdownCheckboxesContainer">
-                                <!-- Tag checkboxes will be dynamically added here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- CATEGORY -->
+            <div class="mb-3">
+                {{> base/form/label for="createSlideshowCategory" text="Category"}}
+                <select class="form-select" id="createSlideshowCategory">
+                    <!-- We'll programmatically add (None) and categories here -->
+                </select>
             </div>
-             <!-- TAGS -->
+            <!-- TAGS -->
             <div class="mb-3">
                 {{> base/form/label for="createSlideshowTags" text="Tags"}}
                 <div id="createSlideshowTagsContainer">
