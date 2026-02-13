@@ -5,7 +5,6 @@ import { gettext } from "./locales";
 export function addChip(chipContainerElement, chipText, deleteCallBack) {
     // const chipContainer = document.getElementById(containerId);
     if (!chipContainerElement) return;
-    console.log("Adding chip with text", chipText, "to container element", chipContainerElement);
 
     const chip = document.createElement('button');
     chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover";
@@ -20,10 +19,12 @@ export function addChip(chipContainerElement, chipText, deleteCallBack) {
     chip.innerHTML += " " + icon.outerHTML;
 
     chip.addEventListener("click", () => {
-        if (deleteCallBack) {
-            deleteCallBack();
-        }
-        chipContainerElement.removeChild(chip);
+      // #### stop dropdown i at åben og lukke når der klikkes på chip (skal kunne klikkes uden at dropdown lukker)
+      chipContainerElement.removeChild(chip);
+      if (deleteCallBack && typeof deleteCallBack === "function") {
+        console.log("Calling delete callback for chip with text", chipText);
+          deleteCallBack();
+      }
     });
     // ### TO DO - style chip and add possibility to choose size (figma)
 
@@ -38,7 +39,6 @@ export function addChip(chipContainerElement, chipText, deleteCallBack) {
 // Funktion til initialisering af multi select dropdown
 // #OBS# - Vi forventer dataList er en liste (array) af objekter, hvor hvert objekt har en 'id' og 'name' property - Lav types til dette??
 export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuId, multiSelectDropdownTextId) {
-    console.log("Initializing multi select dropdown with data:", dataList);
     const multiSelectCheckboxContainer = document.getElementById(multiselectDropdownMenuId);
     multiSelectCheckboxContainer.innerHTML = ""; // Clear existing content
     multiSelectCheckboxContainer.className = "multiSelectDropDownContainer"; // Add class for styling
@@ -154,7 +154,13 @@ function updateValuesDropdownState(multiSelectDropdownTextId) {
       for (let i= 0; i < selectedValues.length; i++) {
         const label = document.querySelector(`label[for="${selectedValues[i].id}"]`);
         const valueText = label ? label.textContent : "";
-        addChip(multiSelectDropdownText, valueText);
+        addChip(multiSelectDropdownText, valueText, () => {
+          const checkbox = document.querySelector(`input[id="${selectedValues[i].id}"]`);
+          if (checkbox) {
+            checkbox.checked = false;
+            updateValuesDropdownState(multiSelectDropdownTextId); // Update state to reflect changes
+          }
+        });
 
         // Check if this chip caused an overflow
         if (multiSelectDropdownText.scrollWidth > textContainerWidth) {
