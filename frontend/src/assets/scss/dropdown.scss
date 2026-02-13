@@ -5,3 +5,11 @@
     max-height: 250px;
     overflow-y: auto;
 }
+
+#multiSelectDropdownToggle .selected-values-text {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 5px;
+    width: 100%;
+}

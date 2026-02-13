@@ -32,5 +32,22 @@ const testList = [{"id": 1,"name": "Test Tag 1"}, {"id": 2, "name": "Test Tag 2"
 
 document.addEventListener("DOMContentLoaded", async function () {
     await fetchTags();
-    initializeMultiSelectDropdown(testList, "dropdownCheckboxesContainer");
+    initializeMultiSelectDropdown(testList, "dropdownCheckboxesContainer", "multiSelectDropdownText");
+});
+
+
+// ## How to get the selected values from the multi select dropdown ##
+document.querySelector("#form_test").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const tag_ids = [];
+  const tagCheckboxes = document.querySelectorAll(
+    "#dropdownCheckboxesContainer input[type='checkbox']",
+  );
+
+  tagCheckboxes.forEach((cb) => {
+    if (cb.checked) {
+      tag_ids.push(parseInt(cb.dataset.valueId, 10));
+    }
+  });
+  console.log("Selected tag IDs:", tag_ids);
 });

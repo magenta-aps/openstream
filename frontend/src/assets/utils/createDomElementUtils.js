@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 // SPDX-License-Identifier: AGPL-3.0-only
+import { gettext } from "./locales";
 
-export function addChip(containerId, chipText, deleteCallBack) {
-    const chipContainer = document.getElementById(containerId);
-    if (!chipContainer) return;
+export function addChip(chipContainerElement, chipText, deleteCallBack) {
+    // const chipContainer = document.getElementById(containerId);
+    if (!chipContainerElement) return;
+    console.log("Adding chip with text", chipText, "to container element", chipContainerElement);
 
     const chip = document.createElement('button');
     chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover";
@@ -19,12 +21,12 @@ export function addChip(containerId, chipText, deleteCallBack) {
     // - den skal fjernes fra dropdown (removechild)
 
     
-    chipContainer.appendChild(chip);
+    chipContainerElement.appendChild(chip);
 }
 
 // Funktion til initialisering af multi select dropdown
 // #OBS# - Vi forventer dataList er en liste (array) af objekter, hvor hvert objekt har en 'id' og 'name' property - Lav types til dette??
-export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuId) {
+export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuId, multiSelectDropdownTextId) {
     console.log("Initializing multi select dropdown with data:", dataList);
     const multiSelectCheckboxContainer = document.getElementById(multiselectDropdownMenuId);
     multiSelectCheckboxContainer.innerHTML = ""; // Clear existing content
@@ -40,6 +42,7 @@ export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuI
         input.className = "form-check-input multi-select-checkbox";
         input.id = `checkboxValue_${item.id}`;
         input.value = item.name;
+        input.dataset.valueId = item.id; // Store the ID in a data attribute for later use
 
         const label = document.createElement("label");
         label.className = "form-check-label ms-2";
@@ -52,14 +55,12 @@ export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuI
         multiSelectCheckboxContainer.appendChild(div);
     });
 
-    setupMultiSelectDropdownListeners();
+    setupMultiSelectDropdownListeners(multiSelectDropdownTextId);
     // når en checkbox er checked:
     //      - Skal der tilføjes en chip med den valgte værdi til dropdownen (brug addChip)
     //              - deleteCallBack skal gives til addChip => callback skal modtages (hvad skal der ske, når værdien ikke er valgt længere)
-    //      - Der skal kaldes en addCallBack, der bestemmer hvad der skal ske med den valgte værdi (f.eks. tilføje den til en liste over valgte værdier)
     
     // når en checkbox er unchecked:
-    //      - Skal der kaldes en removeCallBack, der bestemmer hvad der skal ske med den fravalgte værdi (f.eks. fjerne den fra listen over valgte værdier)
     //      - Der skal fjernes chip for den fravalgte værdi fra dropdownen (brug deleteCallBack i addChip)
 
     // der skal laves en vælg alle checkbox, der kan tjekke alle checkboxes i dropdownen og tilføje chips for alle valgte værdier
@@ -69,17 +70,15 @@ export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuI
 // hvad sker der ved checked:
 // 1. chechboxen bliver checked
 // 2. der bliver tilføjet en chip for den valgte værdi (addChip)
-// 3. addCallBack bliver kaldt, der bestemmer hvad der skal ske med den valgte værdi (f.eks. tilføje den til en liste over valgte værdier)
 
 // hvad sker der ved unchecked:
 // 1. checkboxen bliver unchecked
-// 2. removeCallBack bliver kaldt, der bestemmer hvad der skal ske med den fravalgte værdi (f.eks. fjerne den fra listen over valgte værdier)
-// 3. chip for den fravalgte værdi bliver fjernet fra dropdownen (brug deleteCallBack i addChip)
+// 2. chip for den fravalgte værdi bliver fjernet fra dropdownen (brug deleteCallBack i addChip)
 
 // Setup the event listeners for the multi select dropdown
-function setupMultiSelectDropdownListeners() {
-//   const tagCheckboxes = document.querySelectorAll(".multi-select-checkbox");
-//   const selectAllTags = document.getElementById("selectAllTags");
+function setupMultiSelectDropdownListeners(multiSelectDropdownTextId) {
+  const valueCheckboxes = document.querySelectorAll(".multi-select-checkbox");
+  const selectAllValues = document.getElementById("selectAllValues");
   const multiSelectDropdownMenu = document.getElementById("multiSelectDropdownMenu");
 
   // Prevent dropdown from closing when clicking inside
@@ -89,25 +88,98 @@ function setupMultiSelectDropdownListeners() {
     });
   }
 
-  // Setup select all checkbox
-//   if (selectAllTags) {
-//     // Remove any existing listeners to prevent duplicates
-//     selectAllTags.replaceWith(selectAllTags.cloneNode(true));
-//     const newSelectAllTags = document.getElementById("selectAllTags");
+  // Setup the select-all checkbox
+  if (selectAllValues) {
+    // Remove any existing listeners to prevent duplicates
+    selectAllValues.replaceWith(selectAllValues.cloneNode(true));
+    const newSelectAllValues = document.getElementById("selectAllValues");
 
-//     newSelectAllTags.addEventListener("change", (e) => {
-//       const currentTagCheckboxes = document.querySelectorAll(".tag-checkbox");
-//       currentTagCheckboxes.forEach((checkbox) => {
-//         checkbox.checked = e.target.checked;
-//       });
-//       updateTagsDropdownState();
-//     });
-//   }
+    newSelectAllValues.addEventListener("change", (e) => {
+      const currentCheckboxes = document.querySelectorAll(".multi-select-checkbox");
+      currentCheckboxes.forEach((checkbox) => {
+        checkbox.checked = e.target.checked;
+      });
+      updateValuesDropdownState(multiSelectDropdownTextId);
+    });
+  }
 
-//   // Setup individual tag checkboxes
-//   tagCheckboxes.forEach((checkbox) => {
-//     checkbox.addEventListener("change", () => {
-//       updateTagsDropdownState();
-//     });
-//   });
+  // Setup individual checkboxes
+  valueCheckboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      updateValuesDropdownState(multiSelectDropdownTextId);
+    });
+  });
+}
+
+// Update the dropdown state based on selections
+function updateValuesDropdownState(multiSelectDropdownTextId) {
+  const valueCheckboxes = document.querySelectorAll(".multi-select-checkbox"); // ### TO DO - change to custom class/id, so multiple dropdowns can be used on the same page without conflicts
+  const selectAllValues = document.getElementById("selectAllValues"); // #### TO DO - change to custom id, so multiple dropdowns can be used on the same page without conflicts
+  const multiSelectDropdownText = document.getElementById(multiSelectDropdownTextId);
+  const textContainerWidth = multiSelectDropdownText ? multiSelectDropdownText.offsetWidth : 0;
+
+  // Get selected values
+  const selectedValues = Array.from(valueCheckboxes).filter((cb) => cb.checked);
+
+  // Update select all checkbox
+  if (selectAllValues) {
+    const allSelected = valueCheckboxes.length > 0 && selectedValues.length === valueCheckboxes.length;
+
+    if (selectAllValues.checked !== allSelected) {
+      selectAllValues.checked = allSelected;
+    }
+  }
+
+  // Update dropdown text
+  if (multiSelectDropdownText) {
+    let count = selectedValues.length;
+
+    if (count === 0) {
+      multiSelectDropdownText.textContent = gettext("Select values..."); // ### TO DO - tekst skal være customizable
+    } else {
+      multiSelectDropdownText.textContent = ""; // Clear text container
+      let fittedAll = true;
+
+      for (let i= 0; i < selectedValues.length; i++) {
+        const label = document.querySelector(`label[for="${selectedValues[i].id}"]`);
+        const valueText = label ? label.textContent : "";
+        addChip(multiSelectDropdownText, valueText);
+
+        // Check if this chip caused an overflow
+        if (multiSelectDropdownText.scrollWidth > textContainerWidth) {
+            multiSelectDropdownText.removeChild(multiSelectDropdownText.lastChild); // Remove the one that broke it
+            fittedAll = false;
+            count = selectedValues.length - i;
+            break;
+        }
+      }
+
+      // Add the "+X more" label if needed
+      if (!fittedAll) {
+          const moreLabel = document.createElement('span');
+          moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
+          moreLabel.style.whiteSpace = 'nowrap';
+          multiSelectDropdownText.appendChild(moreLabel);
+
+          // Final check: if the label itself caused an overflow, 
+          // remove another chip to make space
+          while (multiSelectDropdownText.scrollWidth > textContainerWidth && multiSelectDropdownText.children.length > 1) {
+              multiSelectDropdownText.removeChild(multiSelectDropdownText.children[multiSelectDropdownText.children.length - 2]);
+              count++;
+              moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
+          }
+      }
+      //####
+      // selectedValues.forEach((value) => {
+      //   const label = document.querySelector(`label[for="${value.id}"]`);
+      //   const valueText = label ? label.textContent : "";
+      //   console.log("Adding chip for value with name", valueText);
+      //   addChip(multiSelectDropdownText, valueText);
+      // });
+    } 
+    // else {
+    //   // Just show count if more than 2
+    //   multiSelectDropdownText.textContent = `${gettext("Values selected")}:`;
+    // }
+  }
 }
