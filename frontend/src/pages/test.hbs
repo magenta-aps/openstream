@@ -8,13 +8,13 @@
         <form id="form_test">
          {{> base/form/label for="multiSelectDropdownToggle" text="Label text"}}
         <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
+            <div class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
                     type="button"
                     id="multiSelectDropdownToggle"
                     data-bs-toggle="dropdown"
                     aria-expanded="false">
                 <span class="selected-values-text" id="multiSelectDropdownText">({% trans "Nothing selected" %})</span>
-            </button>
+            </div>
             <div class="dropdown-menu p-3 w-100" id="multiSelectDropdownMenu">
                 <div class="mb-2 border-bottom pb-2">
                     {{> base/form/checkbox id="selectAllValues" text="Select All" bold=true}}
