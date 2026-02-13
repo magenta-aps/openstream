@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { gettext } from "./locales";
 
-export function addChip(chipContainerElement, chipText, deleteCallBack) {
-    // const chipContainer = document.getElementById(containerId);
+export function addChip(chipContainerElement, chipText, removeCallBack) {
     if (!chipContainerElement) return;
 
-    const chip = document.createElement('button');
-    chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover";
-    // fs-small
+    const chip = document.createElement('span');
+    chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover chip-btn";
+    // ### TO DO - style chip and add possibility to choose size (figma)
     chip.innerText = chipText;
 
     // Add the "x" icon to the chip
@@ -18,26 +17,20 @@ export function addChip(chipContainerElement, chipText, deleteCallBack) {
     icon.textContent = "close";
     chip.innerHTML += " " + icon.outerHTML;
 
-    chip.addEventListener("click", () => {
-      // #### stop dropdown i at åben og lukke når der klikkes på chip (skal kunne klikkes uden at dropdown lukker)
+    chip.addEventListener("click", (e) => {
+      // ## TO DO - try to stop the dropdown from closing/opening when clicking the chip
+
       chipContainerElement.removeChild(chip);
-      if (deleteCallBack && typeof deleteCallBack === "function") {
-        console.log("Calling delete callback for chip with text", chipText);
-          deleteCallBack();
+      if (removeCallBack && typeof removeCallBack === "function") {
+        removeCallBack();
       }
-    });
-    // ### TO DO - style chip and add possibility to choose size (figma)
-
-    // add event listener for delete action = deleteCallBack
-    // - callback bliver kaldt, der bestemmer hvad der skal ske med værdien (givet af initializeMultiSelectDropdown)
-    // - den skal fjernes fra dropdown (removechild)
-
-    
+    }, true);
+ 
     chipContainerElement.appendChild(chip);
 }
 
 // Funktion til initialisering af multi select dropdown
-// #OBS# - Vi forventer dataList er en liste (array) af objekter, hvor hvert objekt har en 'id' og 'name' property - Lav types til dette??
+// #OBS# TO DO - Vi forventer dataList er en liste (array) af objekter, hvor hvert objekt har en 'id' og 'name' property - Lav types til dette??
 export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuId, multiSelectDropdownTextId) {
     const multiSelectCheckboxContainer = document.getElementById(multiselectDropdownMenuId);
     multiSelectCheckboxContainer.innerHTML = ""; // Clear existing content
@@ -67,17 +60,9 @@ export function initializeMultiSelectDropdown(dataList, multiselectDropdownMenuI
     });
 
     setupMultiSelectDropdownListeners(multiSelectDropdownTextId);
-    // når en checkbox er checked:
-    //      - Skal der tilføjes en chip med den valgte værdi til dropdownen (brug addChip)
-    //              - deleteCallBack skal gives til addChip => callback skal modtages (hvad skal der ske, når værdien ikke er valgt længere)
-    
-    // når en checkbox er unchecked:
-    //      - Der skal fjernes chip for den fravalgte værdi fra dropdownen (brug deleteCallBack i addChip)
-
-    // der skal laves en vælg alle checkbox, der kan tjekke alle checkboxes i dropdownen og tilføje chips for alle valgte værdier
-    // når den er unchecked, skal den fjerne alle chips og unchecke alle checkboxes
 }
 
+// TO DO:
 // hvad sker der ved checked:
 // 1. chechboxen bliver checked
 // 2. der bliver tilføjet en chip for den valgte værdi (addChip)
