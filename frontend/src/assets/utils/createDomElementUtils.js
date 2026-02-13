@@ -12,9 +12,20 @@ export function addChip(chipContainerElement, chipText, deleteCallBack) {
     // fs-small
     chip.innerText = chipText;
 
-    // tilføj kryds for at slette chippen
-    // const deleteIcon = document.createElement('span');
-    // deleteIcon.className = "material-icons";
+    // Add the "x" icon to the chip
+    const icon = document.createElement("i");
+    icon.className = "material-symbols-outlined";
+    icon.style.fontSize = "16px";
+    icon.textContent = "close";
+    chip.innerHTML += " " + icon.outerHTML;
+
+    chip.addEventListener("click", () => {
+        if (deleteCallBack) {
+            deleteCallBack();
+        }
+        chipContainerElement.removeChild(chip);
+    });
+    // ### TO DO - style chip and add possibility to choose size (figma)
 
     // add event listener for delete action = deleteCallBack
     // - callback bliver kaldt, der bestemmer hvad der skal ske med værdien (givet af initializeMultiSelectDropdown)
