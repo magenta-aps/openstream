@@ -154,7 +154,7 @@ function applyTemplateMetadataLocally(
     targetSlide.categoryId = metadataUpdate.category_id;
   }
 
-  const categoryName = serverData?.category.name;
+  const categoryName = serverData?.category?.name;
   if (categoryName) {
     targetSlide.categoryName = categoryName;
   }
@@ -163,7 +163,7 @@ function applyTemplateMetadataLocally(
     targetSlide.tagIds = metadataUpdate.tag_ids;
   }
 
-  const tagNames = serverData?.tags.map((tag) => tag.name);
+  const tagNames = serverData?.tags?.map((tag) => tag.name);
   if (tagNames) {
     targetSlide.tagNames = tagNames;
   }
