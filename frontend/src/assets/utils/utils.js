@@ -960,7 +960,7 @@ export function initOrgUrlRouting() {
       "/manage-wayfinding-systems"
     ];
     // Hide specific links in production environment only
-    if (window.location.hostname === "https://openstream.dk") {
+    if (window.location.hostname === "openstream.dk") {
       if (linksToHideInProd.some((hiddenPath) => a.pathname.includes(hiddenPath))) {
         a.classList.add("d-none");
         return;
