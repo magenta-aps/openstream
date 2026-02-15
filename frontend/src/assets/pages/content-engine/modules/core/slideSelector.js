@@ -352,7 +352,6 @@ export function updateSlideSelector() {
     }
 
     slideNameDiv.addEventListener("click", (e) => {
-      e.stopPropagation();
       if (slideNameDiv.querySelector("input")) return;
 
       const currentName = slide.name;
@@ -411,7 +410,6 @@ export function updateSlideSelector() {
     durationTooltipWrapper.appendChild(slideDurationDiv);
 
     slideDurationDiv.addEventListener("click", (e) => {
-      e.stopPropagation();
       if (slideDurationDiv.querySelector("input")) return;
 
       // Force hide tooltip when editing starts
@@ -492,10 +490,7 @@ export function updateSlideSelector() {
 
     calendarTooltipWrapper.appendChild(calendarButton);
 
-    // --> ADDED: Click listener <--
     calendarButton.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent slide selection
-      // Assuming openActivationModal is globally available or imported
       openActivationModal(storeIndex);
     });
 
@@ -553,7 +548,6 @@ export function updateSlideSelector() {
           '<i class="material-symbols-outlined" style="vertical-align:middle;">edit_note</i>';
         editTemplateMetadataBtn.title = gettext("Edit Template Details");
         editTemplateMetadataBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
           openEditTemplateMetadataModal(storeIndex);
         });
         slideDetailsButtons.appendChild(editTemplateMetadataBtn);
@@ -641,6 +635,12 @@ export function updateSlideSelector() {
     }
 
     slideItem.addEventListener("click", () => {
+
+      // Don't reload the slide if it's the active slide
+      if (store.currentSlideIndex === storeIndex) {
+        return;
+      }
+      
       // If we're in interactive slideshow preview, prevent changing pages
       // more often than once every 2 seconds to avoid rendering bugs.
       if (
