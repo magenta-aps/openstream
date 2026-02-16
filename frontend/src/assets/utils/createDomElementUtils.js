@@ -7,7 +7,9 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
 
     const chip = document.createElement('span');
     chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover chip-btn";
-    // ### TO DO - style chip and add possibility to choose size (figma)
+    // TO DO - style chip and add possibility to choose size (figma)
+
+    // TO DO clear the chiptext for whitespace and limit the length, so it doesn't break the dropdown design - maybe add "..." if it's too long?
     chip.innerText = chipText;
 
     // Add the "x" icon to the chip
@@ -109,9 +111,9 @@ function renderCheckboxes(dataList, container) {
 
   const fragment = document.createDocumentFragment();
 
-    dataList.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "form-check mb-1";
+  dataList.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "form-check mb-1";
     div.innerHTML = `
       <input type="checkbox" class="form-check-input multi-select-checkbox" 
              id="checkboxValue_${item.id}" value="${item.name}" data-value-id="${item.id}">
@@ -120,7 +122,7 @@ function renderCheckboxes(dataList, container) {
       </label>
     `;
     fragment.appendChild(div);
-    });
+  });
 
   container.appendChild(fragment);
 }
