@@ -32,7 +32,7 @@ const testList = [{"id": 1,"name": "Test Tag 1"}, {"id": 2, "name": "Test Tag 2"
 
 document.addEventListener("DOMContentLoaded", async function () {
     await fetchTags();
-    initializeMultiSelectDropdown(testList, "dropdownCheckboxesContainer", "multiSelectDropdownText");
+    initializeMultiSelectDropdown(testList, "multiSelectDropdownToggle", "multiSelectDropdownMenu");
 
     const chipContainer = document.getElementById("chipContainer");
     addChip(chipContainer, "Test Chip", () => {
