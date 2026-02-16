@@ -18,13 +18,13 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
     chip.innerHTML += " " + icon.outerHTML;
 
     chip.addEventListener("click", (e) => {
-      // ## TO DO - try to stop the dropdown from closing/opening when clicking the chip
+      e.stopPropagation(); // Prevent the click from bubbling up to parent element
 
       chipContainerElement.removeChild(chip);
       if (removeCallBack && typeof removeCallBack === "function") {
         removeCallBack();
       }
-    }, true);
+    });
  
     chipContainerElement.appendChild(chip);
 }
