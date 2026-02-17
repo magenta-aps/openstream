@@ -17,15 +17,15 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
   }
 
     const chip = document.createElement('span');
-    chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover chip-btn";
-    // TO DO - style chip and add possibility to choose size (figma)
+  chip.className = "d-flex align-items-center justify-content-between gap-1 py-1 px-2 border rounded-4 bg-secondary-accent text-secondary-hover fs-7";
 
-    // TO DO clear the chiptext for whitespace and limit the length, so it doesn't break the dropdown design - maybe add "..." if it's too long?
-    chip.innerText = chipText;
+  const trimmedChipText = chipText.trim();
+  chip.innerText = trimmedChipText;
+  chip.setAttribute("title", trimmedChipText); // Show full text on hover
 
     // Add the "x" icon to the chip
     const icon = document.createElement("i");
-    icon.className = "material-symbols-outlined";
+  icon.className = "material-symbols-outlined text-dark-gray";
     icon.style.fontSize = "16px";
     icon.textContent = "close";
     chip.innerHTML += " " + icon.outerHTML;
