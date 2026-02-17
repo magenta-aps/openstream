@@ -2,6 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { gettext } from "./locales";
 
+/**
+ * @description Creates a chip element and adds it to a specified container with the given text and a callback for when the chip is removed.
+ * @param {*} chipContainerElement 
+ * @param {*} chipText 
+ * @param {*} removeCallBack 
+ * @returns 
+ */
 export function addChip(chipContainerElement, chipText, removeCallBack) {
   // Basic validation to ensure we have a valid container element and chip text
   if (!chipContainerElement || !(chipContainerElement instanceof Element) || !chipText) {
