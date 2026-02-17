@@ -28,7 +28,7 @@ async function fetchTags() {
   );
 }
 
-const testList = [{"id": 1,"name": "Test Tag 1"}, {"id": 2, "name": "Test Tag 2"}, {"id": 3, "name": "Test Tag 3"}];
+const testList = [{"id": 1,"name": "Test Tag 1"}, {"id": 2, "name": "Test Tag 2"}, {"id": 3, "name": "Test Tag 3"}, {"id": 4, "name": "Test Tag 4"}, {"id": 5, "name": "Test Tag 5"}, {"id": 6, "name": "Test Tag 6"}, {"id": 7, "name": "Test Tag 7"}, {"id": 8, "name": "Test Tag 8"}, {"id": 9, "name": "Test Tag 9"}, {"id": 10, "name": "Test Tag 10"}];
 
 document.addEventListener("DOMContentLoaded", async function () {
     await fetchTags();
