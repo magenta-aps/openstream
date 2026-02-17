@@ -16,11 +16,12 @@
                 <i class="material-symbols-outlined" id="arrowIcon">expand_more</i>
             </div>
             <div class="dropdown-menu p-3 w-100 hide" id="multiSelectDropdownMenu">
-                <div class="mb-2 border-bottom pb-2">
-                    {{> base/form/checkbox id="selectAllValues" text="Select All" bold=true}}
-                </div>
                 <div class="dropdownCheckboxesContainer">
-                    <!-- Tag checkboxes will be dynamically added here -->
+                    <!-- Checkboxes will be dynamically added here -->
+                </div>
+                <div class="d-flex justify-content-between mt-2 border-top py-2 px-2">
+                    <p class="values-count mb-0 text-darker-gray">0 {% trans "selected" %}</p>
+                    {{> base/form/checkbox id="selectAllValues" text="Select All" bold=true}}
                 </div>
             </div>
         </div>

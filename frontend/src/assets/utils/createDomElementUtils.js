@@ -154,6 +154,7 @@ function setupMultiSelectDropdownListeners(elements) {
 function updateValuesDropdownState(dropdownTextElement) {
   const allCheckboxes = document.querySelectorAll(".multi-select-checkbox"); // TO DO - change to more specific selector to avoid conflicts if multiple dropdowns on the same page
   const selectAllValues = document.getElementById("selectAllValues"); // TO DO - change to custom id, so multiple dropdowns can be used on the same page without conflicts
+  const countElement = document.querySelector(".values-count"); // TO DO - change to more specific selector to avoid conflicts if multiple dropdowns on the same page
   const textContainerWidth = dropdownTextElement ? dropdownTextElement.offsetWidth : 0;
 
   // Get selected values
@@ -166,6 +167,11 @@ function updateValuesDropdownState(dropdownTextElement) {
     if (selectAllValues.checked !== allSelected) {
       selectAllValues.checked = allSelected;
     }
+  }
+
+  // Update count element
+  if (countElement) {
+    countElement.textContent = selectedValues.length + " " + gettext("selected");
   }
 
   // Update dropdown text
