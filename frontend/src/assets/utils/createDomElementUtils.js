@@ -60,7 +60,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
 
   // Basic validation to ensure we have the necessary elements to work with
   if (!elements.toggle || !elements.checkboxContainer || !elements.dropdownText || !elements.menu) {
-    console.error("Multi select dropdown elements not found");
+    console.error("Multi select dropdown elements not found. Please check the provided IDs and HTML structure.");
     return;
   }
 
