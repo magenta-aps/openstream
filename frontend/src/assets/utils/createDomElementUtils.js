@@ -3,7 +3,11 @@
 import { gettext } from "./locales";
 
 export function addChip(chipContainerElement, chipText, removeCallBack) {
-    if (!chipContainerElement) return;
+  // Basic validation to ensure we have a valid container element and chip text
+  if (!chipContainerElement || !(chipContainerElement instanceof Element) || !chipText) {
+      console.error("Invalid or missing elements for chip element creation.");
+      return;
+  }
 
     const chip = document.createElement('span');
     chip.className = "d-flex align-items-center gap-1 p-1 border rounded bg-secondary-accent-hover chip-btn";
