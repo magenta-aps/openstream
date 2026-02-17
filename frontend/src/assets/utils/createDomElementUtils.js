@@ -16,30 +16,30 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
       return;
   }
 
-    const chip = document.createElement('span');
+  const chip = document.createElement('span');
   chip.className = "d-flex align-items-center justify-content-between gap-1 py-1 px-2 border rounded-4 bg-secondary-accent text-secondary-hover fs-7";
 
   const trimmedChipText = chipText.trim();
   chip.innerText = trimmedChipText;
   chip.setAttribute("title", trimmedChipText); // Show full text on hover
 
-    // Add the "x" icon to the chip
-    const icon = document.createElement("i");
+  // Add the "x" icon to the chip
+  const icon = document.createElement("i");
   icon.className = "material-symbols-outlined text-dark-gray";
-    icon.style.fontSize = "16px";
-    icon.textContent = "close";
-    chip.innerHTML += " " + icon.outerHTML;
+  icon.style.fontSize = "16px";
+  icon.textContent = "close";
+  chip.innerHTML += " " + icon.outerHTML;
 
-    chip.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent the click from bubbling up to parent element
+  chip.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent the click from bubbling up to parent element
 
-      chipContainerElement.removeChild(chip);
-      if (removeCallBack && typeof removeCallBack === "function") {
-        removeCallBack();
-      }
-    });
- 
-    chipContainerElement.appendChild(chip);
+    chipContainerElement.removeChild(chip);
+    if (removeCallBack && typeof removeCallBack === "function") {
+      removeCallBack();
+    }
+  });
+
+  chipContainerElement.appendChild(chip);
 }
 
 // TO DO - Vi forventer dataList er en liste (array) af objekter, hvor hvert objekt har en 'id' og 'name' property - Lav types til dette??
@@ -55,7 +55,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
     toggle: toggle,
     dropdownText: toggle?.querySelector(".selected-values-text"),
     menu: menu,
-    checkboxContainer: menu?.querySelector(".dropdownCheckboxesContainer")
+    checkboxContainer: menu?.querySelector(".dropdownCheckboxesContainer") // TO DO - style to show checkbox values in grid style
   };
 
   // Basic validation to ensure we have the necessary elements to work with
