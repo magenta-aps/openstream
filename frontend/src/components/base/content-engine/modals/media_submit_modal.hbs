@@ -5,22 +5,25 @@
     id=id
     aria-labelledby="submitmediaLabel"
     size="modal-lg"
-    overlayID="mediaSubmitOverlay"
+    overlayID=overlayID
 }}
-    {{#if hasFileUpload}}
-        {{#*inline "overlay" }}
-                <div class="spinner-border text-primary mb-2"
-                    role="status"
-                    style="width: 3rem; height: 3rem"
-                >
-                    <span class="visually-hidden">{% trans "Loading..." %}</span>
-                </div>
-                <span class="fw-bold">{% trans "Uploading..." %}</span>
-        {{/inline}}
-    {{/if}}
+    <!-- will only be rendered when an overlayID is provided, check modal.hbs -->
+    {{#*inline "overlay" }}
+        <div class="spinner-border text-primary mb-2"
+            role="status"
+            style="width: 3rem; height: 3rem"
+        >
+            <span class="visually-hidden">{% trans "Loading..." %}</span>
+        </div>
+        <span class="fw-bold">{% trans "Uploading..." %}</span>
+    {{/inline}}
 
     {{#*inline "header"}}
-        <h5 class="submit-media-label modal-title">{{title}}</h5>
+        <h5 class="submit-media-label modal-title">
+            {{#if title }}
+                {{title}}
+            {{/if}}
+        </h5>
         <button type="button"
             class="btn-close"
             data-bs-target="#mediaListModal"
@@ -53,13 +56,15 @@
                     </small>
                     <small class="form-text text-muted d-block">{% trans "It's possible to upload multiple files at once" %}</small>
                     <!-- Selected Files Display -->
-                    <div class="selected-files-container mt-3 d-none">
-                        <label class="form-label text-muted fw-semibold mb-2">
-                            <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">description</span>
-                            {% trans "Selected Files" %}
-                        </label>
-                        <div class="selected-files-list"></div>
-                    </div>
+                    {{#if hasFileUpload}}
+                        <div class="selected-files-container mt-3 d-none">
+                            <label class="form-label text-muted fw-semibold mb-2">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1.1rem;">description</span>
+                                {% trans "Selected Files" %}
+                            </label>
+                            <div class="selected-files-list"></div>
+                        </div>
+                    {{/if}}
                 </div>
                 <!-- TODO: remove this comment. Old name "file_upload_seperator" -->
                 <hr class="file-upload-separator" class="my-4">
@@ -111,7 +116,7 @@
     {{/inline}}
 
     {{#*inline "footer"}}
-        <button form="{{id}}-submitMediaForm" type="submit" class="btn btn-primary" id="saveMediaBtn">
+        <button form="{{id}}-submitMediaForm" type="submit" class="save-media-btn btn btn-primary">
             <span class="material-symbols-outlined me-1">save</span>
             {% trans "Save" %}
         </button>

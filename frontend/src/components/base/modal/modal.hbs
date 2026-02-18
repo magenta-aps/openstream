@@ -3,16 +3,14 @@
 <div class="modal fade" id="{{id}}" tabindex="-1" aria-hidden="true"{{#if ariaLabelledby}} aria-labelledby="{{ariaLabelledby}}"{{/if}}>
   <div class="modal-dialog {{size}}">
     <div class="modal-content">
-        {{#if overlay }}
-            {{#if overlayID}}
-                <div
-                    id={{overlayID}}
-                    class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-white bg-opacity-75 rounded d-none"
-                    style="z-index: 10">
-                >
-                    {{> overlay }}
-                </div>
-            {{/if}}
+        {{#if overlayID}}
+            <div
+                id={{overlayID}}
+                class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-white bg-opacity-75 rounded d-none"
+                style="z-index: 10">
+            >
+                {{> overlay }}
+            </div>
         {{/if}}
 
         <div class="modal-header {{#if classHeader}}{{classHeader}}{{/if}}">
