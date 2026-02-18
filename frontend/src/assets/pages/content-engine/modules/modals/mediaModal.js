@@ -16,54 +16,38 @@ import {
 } from "../../../../utils/utils.js";
 import { BASE_URL } from "../../../../utils/constants.js";
 import { gettext } from "../../../../utils/locales.js";
+
 // Tag state for modal filters
 let modalTags = [];
-async function refreshModalTags() {
-  try {
-    modalTags = await genericFetch(
-      `${BASE_URL}/api/tags?organisation_id=${parentOrgID}`,
-    );
-  } catch (e) {
-    console.error("Failed to fetch tags for modal:", e);
-    modalTags = [];
-  }
-}
+
 import * as bootstrap from "bootstrap";
 
 // Modal Elements - Check if they exist before initializing
 const mediaListModalEl = document.getElementById("mediaListModal");
-const submitMediaModalEl = document.getElementById("submitMediaModal");
+const { uploadMediaElements, editMediaElements } = createUploadEditModals();
 const previewMediaModalEl = document.getElementById("previewMediaModal");
 
 // Only initialize modals if elements exist
 const bsMediaListModal = mediaListModalEl
   ? bootstrap.Modal.getOrCreateInstance(mediaListModalEl)
   : null;
-const bsSubmitModal = submitMediaModalEl
-  ? bootstrap.Modal.getOrCreateInstance(submitMediaModalEl)
-  : null;
 const bsPreviewModal = previewMediaModalEl
   ? bootstrap.Modal.getOrCreateInstance(previewMediaModalEl)
   : null;
 
-const tagsContainer = document.querySelector("#mediaEditTagsContainer");
-const submitMediaForm = document.querySelector("#submitMediaForm");
 const previewContainer = document.querySelector("#preview-media-container");
-const deleteMediaBtn = document.querySelector("#btnDeleteMedia");
-const fileInput = document.querySelector(".media-file-input");
 const titleInput = document.querySelector("#titleSearchInput");
 const mediaOwnerEl = document.querySelector("#media-owner-wrapper");
 const mediaCategoryEl = document.querySelector("#media-category-wrapper");
 const extensionSelectEl = document.querySelector("#extension-select-wrapper");
 const tagInput = document.querySelector("#submitMediaTagsInput");
-const mediaSubmitOverlay = document.querySelector("#mediaSubmitOverlay");
-const saveMediaBtn = document.querySelector("#saveMediaBtn");
-const cancelSubmitMediaBtn = document.querySelector("#cancelSubmitMediaBtn");
 const imageGrid = document.getElementById("imageGrid");
-const toggleCheckerboardBtn = document.getElementById("toggleCheckerboardBtn");
 
-export { bsMediaListModal, bsSubmitModal };
+// TODO: handle export of submit media modal bs api
+export { bsMediaListModal };
 
+/** @type {string} */
+let globalBranchID = null;
 const currentMediaTags = new Set();
 const currentFilterTags = new Set();
 export let currentlyEditingMedia = null;
@@ -114,6 +98,200 @@ const updateFilteringDebounce = debounce(() => {
 let selectedFilesArray = [];
 
 // ============ MODAL DISPLAY & INITIALIZATION ============
+
+/**
+ * @typedef {Object} MediaModal
+ * @property {"reg"} type
+ * @property {HTMLElement} MediaModal.modal
+ * @property {HTMLHeadingElement} MediaModal.label
+ * @property {Object} MediaModal.formElements
+ * @property {HTMLFormElement} MediaModal.formElements.form - the form element
+ * @property {HTMLInputElement} MediaModal.formElements.title - the input field for the name of the media file
+ * @property {HTMLSelectElement} MediaModal.formElements.category - the category select element
+ * @property {HTMLDivElement} MediaModal.formElements.tagsContainer - the tag selection container
+ * @property {HTMLDivElement} MediaModal.formElements.selectedTagsContainer - the container for tags that are selected
+ * @property {HTMLButtonElement} MediaModal.saveMediaBtn
+ * @property {HTMLButtonElement} MediaModal.deleteMediaBtn
+ * @property {HTMLButtonElement} MediaModal.cancelMediaBtn
+ * @property {() => void} MediaModal.open
+ * @property {() => void} MediaModal.hide
+ */
+
+/**
+ * @description
+ * Creates a media modal object, it contains the modal itself, the form and it's relevant fields and some bootstrap fn's like show and hide
+ * @param {string} modalID
+ * @param {string} formID - id of the form, will be combined with "-submitMediaForm" e.g. "foo-submitMediaForm"
+ * @param {(modal: MediaModal) => void} [onOpen] - runs when the modal is opened
+ * @returns {MediaModal | null}
+ */
+export function createMediaModal(modalID, formID, onOpen) {
+  const modal = document.getElementById(modalID);
+  if (!modal) {
+    console.error(`Could not find media modal with id: ${formID}`);
+    return null;
+  }
+
+  const label = modal.querySelector(".submit-media-label");
+  const form = modal.querySelector(".submit-media-form");
+  const title = modal.querySelector(".file-name-input");
+  const category = modal.querySelector(".submit-media-ctg-select");
+  const tagsContainer = modal.querySelector(".media-edit-tags-select");
+  const selectedTagsContainer = modal.querySelector(".selected-tags-container");
+  const saveMediaBtn = modal.querySelector(".save-media-btn");
+  const deleteMediaBtn = modal.querySelector(".btn-delete-media");
+  const cancelMediaBtn = modal.querySelector(".cancel-submit-media-btn");
+
+  if (
+    !(label instanceof HTMLHeadingElement) ||
+    !(form instanceof HTMLFormElement) ||
+    !(title instanceof HTMLInputElement) ||
+    !(category instanceof HTMLSelectElement) ||
+    !(tagsContainer instanceof HTMLDivElement) ||
+    !(selectedTagsContainer instanceof HTMLDivElement) ||
+    !(saveMediaBtn instanceof HTMLButtonElement) ||
+    !(deleteMediaBtn instanceof HTMLButtonElement) ||
+    !(cancelMediaBtn instanceof HTMLButtonElement)
+  ) {
+    console.error(
+      "Could not find all relevant form fields for the media modal, check media_submit_modal",
+    );
+    return null;
+  }
+
+  const bsAPI = bootstrap.Modal.getOrCreateInstance(modal);
+  const open = () => {
+    if (onOpen) {
+      onOpen(modalElements);
+    }
+    bsAPI.show();
+  };
+  const hide = () => {
+    bsAPI.hide();
+  };
+  /** @type {MediaModal} */
+  const modalElements = {
+    type: "reg",
+    modal,
+    label,
+    formElements: {
+      form,
+      title,
+      category,
+      tagsContainer,
+      selectedTagsContainer,
+    },
+    saveMediaBtn,
+    deleteMediaBtn,
+    cancelMediaBtn,
+    open,
+    hide,
+  };
+
+  return modalElements;
+}
+
+/**
+ * @typedef {Object} UploadModalPrimitive
+ * @property {"upload"} UploadModalPrimitive.type
+ * @property {HTMLDivElement} UploadModalPrimitive.overlay
+ * @property {Object} UploadModalPrimitive.formElements
+ * @property {HTMLInputElement} UploadModalPrimitive.formElements.file
+ * @property {HTMLDivElement} UploadModalPrimitive.formElements.selectedFilesContainer
+ * @property {HTMLDivElement} UploadModalPrimitive.formElements.selectedFilesContainer
+ * @property {HTMLDivElement} UploadModalPrimitive.formElements.selectedFilesList
+ * @typedef {Omit<MediaModal, "type"> & UploadModalPrimitive} UploadModal
+ */
+
+/** @typedef {MediaModal | UploadModal} MediaModalUnion */
+
+/**
+ * @description
+ * Creates a media modal with a file field
+ * @param {string} modalID
+ * @param {string} overlayID
+ * @param {string} formID - id of the form, will be combined with "-submitMediaForm" e.g. "foo-submitMediaForm"
+ * @param {(modal: MediaModal) => void} [onOpen] - will run when modal is opened
+ * @returns {UploadModal | null}
+ */
+function createUploadModal(modalID, overlayID, formID, onOpen) {
+  const mediaModal = createMediaModal(modalID, formID, onOpen);
+  if (!mediaModal) {
+    return null;
+  }
+
+  const overlay = mediaModal.modal.querySelector(`#${overlayID}`);
+  const file = mediaModal.modal.querySelector(".media-file-input");
+  const selectedFilesContainer = mediaModal.modal.querySelector(
+    ".selected-files-container",
+  );
+  const selectedFilesList = mediaModal.modal.querySelector(
+    ".selected-files-list",
+  );
+  if (
+    !(overlay instanceof HTMLDivElement) ||
+    !(file instanceof HTMLInputElement) ||
+    !(selectedFilesContainer instanceof HTMLDivElement) ||
+    !(selectedFilesList instanceof HTMLDivElement)
+  ) {
+    console.error(
+      "Could not find all relevant children of upload modal, check media_submit_modal",
+    );
+    return null;
+  }
+
+  return {
+    ...mediaModal,
+    type: "upload",
+    overlay,
+    formElements: {
+      ...mediaModal.formElements,
+      file,
+      selectedFilesContainer,
+      selectedFilesList,
+    },
+  };
+}
+
+/**
+ * @description
+ * references a modal for uploading and one for editing, the modals must exist in the dom.
+ * @param {Object} [options={uplaodModalID="uploadMediaModal", editModalID="editMediaModal"}]
+ * @param {string} [options.uploadModalID]
+ * @param {string} [options.overlayID]
+ * @param {string} [options.editModalID]
+ * @param {() => void} [options.uploadOnOpen]
+ * @param {() => void} [options.editOnOpen]
+ */
+export function createUploadEditModals(
+  // default values when options are defined
+  {
+    uploadModalID = "uploadMediaModal",
+    overlayID = "mediaSubmitOverlay",
+    editModalID = "editMediaModal",
+    uploadOnOpen,
+    editOnOpen,
+  } = {
+    // default values when options are undefined
+    uploadModalID: "uploadMediaModal",
+    overlayID: "mediaSubmitOverlay",
+    editModalID: "editMediaModal",
+  },
+) {
+  const uploadMediaElements = createUploadModal(
+    uploadModalID,
+    overlayID,
+    `${uploadModalID}-submitMediaForm`,
+    uploadOnOpen,
+  );
+  const editMediaElements = createMediaModal(
+    editModalID,
+    `${editModalID}-submitMediaForm`,
+    editOnOpen,
+  );
+
+  return { uploadMediaElements, editMediaElements };
+}
 
 export async function displayMediaModal(
   page = currentPage,
@@ -277,7 +455,7 @@ export async function displayMediaModal(
         editButton?.addEventListener("click", (e) => {
           e.stopPropagation();
           currentlyEditingMedia = file;
-          createOrUpdateMediaClicked(currentInputType);
+          editMediaClicked();
         });
 
         const previewBtn = mediaBox.querySelector(".preview-media-btn");
@@ -324,14 +502,8 @@ export async function displayMediaModal(
 }
 
 async function initMediaModalInternal() {
-  // Only initialize if modal elements exist
-  if (!mediaListModalEl) {
-    console.warn("Media modal elements not found - skipping initialization");
-    return;
-  }
-
-  await refreshCategories();
-  await refreshModalTags();
+  categories = await refreshCategories();
+  modalTags = await refreshModalTags();
   createExtensionSelect();
   if (mediaCategoryEl) {
     createCheckboxDropdown(
@@ -356,29 +528,34 @@ async function initMediaModalInternal() {
     );
   }
   // Create tag selection dropdown for submit/edit modal
-  const tagsSelectEl = document.querySelector("#mediaEditTagsSelect");
-  if (tagsSelectEl) {
-    createCheckboxDropdown(tagsSelectEl, "Tags", modalTags, false);
-    // Clear all selections
-    tagsSelectEl
-      .querySelectorAll('input[type="checkbox"]')
-      .forEach((cb) => (cb.checked = false));
-    addDebounceEventListenerToElements(
-      tagsSelectEl.querySelectorAll('input[type="checkbox"]'),
-      updateSelectedMediaTags,
-    );
-  }
+  [uploadMediaElements, editMediaElements].forEach((mediaModal) => {
+    const tagsSelectEl = mediaModal.formElements.tagsContainer;
+    if (tagsSelectEl) {
+      createCheckboxDropdown(tagsSelectEl, "Tags", modalTags, false);
+      // Clear all selections
+      tagsSelectEl
+        .querySelectorAll('input[type="checkbox"]')
+        .forEach((cb) => (cb.checked = false));
+      addDebounceEventListenerToElements(
+        tagsSelectEl.querySelectorAll('input[type="checkbox"]'),
+        () => updateSelectedMediaTags(mediaModal, currentMediaTags, modalTags),
+      );
+    }
+  });
   try {
     associatedBranches = await genericFetch(
       `${BASE_URL}/api/branches/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
     );
   } catch (error) {
     console.error("Error fetching organisation branches:", error);
-    showToast(gettext("Error fetching branches."), 5000, "error");
+    showToast(gettext("Error fetching branches."), "error");
     associatedBranches = [];
   }
   await createUploadedBySelect();
   initEventListeners();
+  const foo = document.querySelector(
+    "#uploadMediaModal .media-edit-tags-select",
+  );
 }
 
 function createExtensionSelect() {
@@ -596,56 +773,218 @@ async function createUploadedBySelect() {
 
 // ============ SUBMIT/EDIT MODAL ============
 
-export function createOrUpdateMediaClicked() {
-  submitMediaModalEl.querySelector("#submitMediaLabel").textContent =
-    currentlyEditingMedia
-      ? `${gettext("Update")} ${currentInputType}`
-      : `${gettext("Upload")} ${currentInputType}`;
-  // Reflect the current file types in the UI
-  const fileInputWrapper = document.querySelector("#fileUploadSelectWrapper");
-  fileInputWrapper.querySelector("input").accept =
-    currentInputType === "Video"
-      ? ".mp4,.webm"
-      : ".pdf,.png,.jpeg,.jpg,.svg,.gif,.webp";
-  fileInputWrapper.classList.toggle("d-none", currentlyEditingMedia !== null); // Remove file input on edit.
+/**
+ * @description
+ * creates a formData instance and inserts data needed for both upload and edit
+ * @param {MediaModalUnion} mediaModal
+ * @param {string} branchID
+ * @param {Set<any>} currentMediaTags
+ * @returns {FormData}
+ */
+function initSubmitMediaFormData(mediaModal, branchID, currentMediaTags) {
+  const formData = new FormData();
 
-  // Also hide the file upload separator when editing
-  const fileUploadSeparator = document.querySelector("#file_upload_seperator");
-  if (fileUploadSeparator) {
-    fileUploadSeparator.classList.toggle(
-      "d-none",
-      currentlyEditingMedia !== null,
-    );
+  formData.append("branch_id", branchID);
+
+  const category = mediaModal.formElements.category;
+  if (category.value) formData.append("category", category.value);
+  currentMediaTags.forEach((tag) => formData.append("tags[]", tag));
+
+  return formData;
+}
+
+/**
+ * @description
+ * Submits data specific for when uploading media
+ * @param {UploadModal} uploadModal
+ * @param {MediaSubmitQueryParams} queryParams - relevant query parameters for media request
+ * @param {Set<any>} currentMediaTags
+ * @returns {Promise<boolean>} indicates if the upload was a success
+ */
+export async function handleUploadSubmit(
+  uploadModal,
+  queryParams,
+  currentMediaTags,
+) {
+  const formData = initSubmitMediaFormData(
+    uploadModal,
+    queryParams.branch_id,
+    currentMediaTags,
+  );
+  if (!formData) {
+    return;
   }
 
-  const select = document.querySelector("#submitMediaCtgSelect");
-  select.innerHTML = "";
-  select.insertAdjacentHTML(
+  const file = uploadModal.formElements.file;
+  const files = Array.from(file.files);
+  if (files.length === 0) {
+    showToast(gettext("Please select a file to upload."), "Error");
+    return false;
+  }
+  const isMultipleFileUpload = files.length > 1;
+
+  const path = createMediaSubmitURL(queryParams);
+  /** @type {Promise<void>[]} */
+  let filesUploaded = [];
+  if (!isMultipleFileUpload) {
+    let title = uploadModal.formElements.title.value.trim();
+    if (!title) {
+      showToast(gettext("The file must have a name"), "Error");
+      return false;
+    }
+
+    const singleFile = uploadFile(formData, title, files.at(0), path);
+    filesUploaded.push(singleFile);
+  } else {
+    filesUploaded = files.map(async (file) => {
+      const originalName = file.name;
+
+      let fileName =
+        originalName.substring(0, originalName.lastIndexOf(".")) ||
+        originalName;
+
+      await uploadFile(formData, fileName, file, path);
+    });
+  }
+
+  // handle individual rejections
+  const uploadResults = await Promise.allSettled(filesUploaded);
+
+  const rejectedUploads = uploadResults.filter(
+    (result) => result.status === "rejected",
+  );
+  const rejectedUploadsAmount = rejectedUploads.length;
+
+  /** @type {{type: "Success" | "Error", msg: string}} */
+  const status = {
+    type: "Success",
+    msg: gettext("Media successfully uploaded"),
+  };
+  if (rejectedUploadsAmount > 0) {
+    status.msg =
+      rejectedUploads[0].reason ||
+      `${gettext("Failed to upload files")}: ${rejectedUploadsAmount}`;
+    status.type = "Error";
+  }
+
+  showToast(gettext(status.msg), status.type);
+
+  return status.type === "Success";
+}
+
+/**
+ * @description
+ * helper function for uploading a single or multiple files
+ * @param {FormData} formData
+ * @param {string} title - name of the file
+ * @param {File} file
+ * @param {string} path - the url path
+ */
+async function uploadFile(formData, title, file, path) {
+  formData.append("title", title);
+  // Use original file name; backend will suffix with a content hash
+  formData.append("file", file);
+
+  await genericFetch(path, "POST", formData);
+}
+
+/**
+ * @description
+ * Submits data specific for editing media
+ * @param {MediaModal} mediaModal
+ * @param {MediaSubmitQueryParams} queryParams - relevant query parameters for media request
+ * @param {Set<any>} currentMediaTags
+ * @param {any} currentlyEditingMedia
+ * @returns {Promise<boolean>} -indicates if the edit was a success
+ */
+export async function handleEditSubmit(
+  mediaModal,
+  queryParams,
+  currentMediaTags,
+  currentlyEditingMedia,
+) {
+  const formData = initSubmitMediaFormData(
+    editMediaElements,
+    queryParams.branch_id,
+    currentMediaTags,
+  );
+  if (!formData) {
+    return false;
+  }
+
+  let title = mediaModal.formElements.title.value.trim();
+  if (!title) {
+    showToast(gettext("The file must have a name"), "Error");
+    return false;
+  }
+  formData.append("title", title);
+
+  const path = createMediaSubmitURL(queryParams, currentlyEditingMedia.id);
+  await genericFetch(path, "PATCH", formData);
+  showToast(gettext("Media successfully updated"), "Success");
+
+  return true;
+}
+
+/**
+ * @typedef {Object} MediaSubmitQueryParams
+ * @property {string} branch_id
+ * @property {string} [organisation_id]
+ */
+
+/**
+ * @param {MediaSubmitQueryParams} queryParams
+ * @param {string} [mediaID] - used for editing existing media
+ * @returns {string}
+ */
+function createMediaSubmitURL(queryParams, mediaID) {
+  const url = new URL(`${BASE_URL}/api/documents/`);
+  if (mediaID) {
+    url.pathname = `${url.pathname}${mediaID}/`;
+  }
+
+  Object.entries(queryParams).forEach(([key, value]) =>
+    url.searchParams.append(key, value),
+  );
+
+  return url.toString();
+}
+
+/**
+ * @param {MediaModalUnion} mediaModal
+ */
+function uploadEditMediaClicked(mediaModal) {
+  const categoryEl = mediaModal.formElements.category;
+  categoryEl.innerHTML = "";
+  categoryEl.insertAdjacentHTML(
     "beforeend",
     `<option value="">${gettext("None")}</option>`,
   );
   for (const category of categories) {
-    select.insertAdjacentHTML(
+    categoryEl.insertAdjacentHTML(
       "beforeend",
       `<option value="${category.id}">${category.name}</option>`,
     );
   }
 
-  syncFileTitleAndInput();
+  syncFileTitleAndInput(mediaModal, currentlyEditingMedia);
   currentMediaTags.clear();
-  tagsContainer.innerHTML = "";
-  deleteMediaBtn.classList.add("d-none"); // Hide delete button by default
+
+  mediaModal.formElements.selectedTagsContainer.innerHTML = "";
+  mediaModal.deleteMediaBtn.classList.add("d-none"); // Hide delete button by default
   if (currentlyEditingMedia) {
-    currentlyEditingMedia.tags?.forEach((tag) => addTagToMediaList(tag));
-    select.value = currentlyEditingMedia?.category ?? "";
+    currentlyEditingMedia.tags?.forEach((tag) =>
+      addTagToMediaList(mediaModal, tag, modalTags),
+    );
+    categoryEl.value = currentlyEditingMedia?.category ?? "";
     // Only show delete button if owned by branch
-    deleteMediaBtn.classList.toggle(
+    mediaModal.deleteMediaBtn.classList.toggle(
       "d-none",
       !currentlyEditingMedia.is_owned_by_branch,
     );
   }
   // Sync tag dropdown checkboxes to reflect currentMediaTags
-  const tagsSelectEl = document.querySelector("#mediaEditTagsSelect");
+  const tagsSelectEl = mediaModal.formElements.tagsContainer;
   if (tagsSelectEl) {
     tagsSelectEl
       .querySelectorAll('input[type="checkbox"]:not(#toggleAll)')
@@ -657,16 +996,40 @@ export function createOrUpdateMediaClicked() {
   if (bsMediaListModal) {
     bsMediaListModal.hide();
   }
-  if (bsSubmitModal) {
-    bsSubmitModal.show();
-  }
+
+  mediaModal.open();
 }
 
-async function deleteMediaClicked() {
-  await promptDelete(
+function uploadMediaClicked() {
+  console.log("upload clicked");
+  uploadMediaElements.label.textContent = `${gettext("upload")} ${currentInputType}`;
+  uploadMediaElements.formElements.file.accept =
+    currentInputType === "Video"
+      ? ".mp4,.webm"
+      : ".pdf,.png,.jpeg,.jpg,.svg,.gif,.webp";
+
+  uploadEditMediaClicked(uploadMediaElements);
+}
+
+function editMediaClicked() {
+  editMediaElements.label.textContent = `${gettext("Update")} ${currentInputType}`;
+  uploadEditMediaClicked(editMediaElements);
+}
+
+// TODO: handle export of create or update media clicked
+export function createOrUpdateMediaClicked() {}
+
+/**
+ * @param {MediaModalUnion} mediaModal
+ */
+async function deleteMediaClicked(mediaModal) {
+  promptDelete(
     currentlyEditingMedia.title,
     confirmDeleteMedia,
-    bsSubmitModal,
+    {
+      show: mediaModal.open,
+      hide: mediaModal.hide,
+    },
     bsMediaListModal, // Return to list modal after delete prompt
   );
 }
@@ -697,12 +1060,6 @@ function openPreviewMediaModal() {
 
 // ================ API Functions ================
 
-async function refreshCategories() {
-  categories = await genericFetch(
-    `${BASE_URL}/api/categories?organisation_id=${parentOrgID}`,
-  );
-}
-
 async function fetchMedia(page, filters) {
   return genericFetch(
     `${BASE_URL}/api/documents/list/?page=${page}&branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
@@ -711,12 +1068,34 @@ async function fetchMedia(page, filters) {
   );
 }
 
+/**
+ * @returns {Promise<any[]>}
+ */
+export async function refreshCategories() {
+  /** @type {any[]} */
+  let categories;
+  try {
+    categories = await genericFetch(
+      `${BASE_URL}/api/categories/?organisation_id=${parentOrgID}`,
+    );
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+    categories = [];
+  }
+
+  return categories;
+}
+
 async function confirmDeleteMedia() {
   try {
-    await genericFetch(
-      `${BASE_URL}/api/documents/${currentlyEditingMedia.id}?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
-      "DELETE",
+    const path = createMediaSubmitURL(
+      {
+        branch_id: selectedBranchID,
+        organisation_id: parentOrgID,
+      },
+      currentlyEditingMedia.id,
     );
+    await genericFetch(path, "DELETE");
     currentlyEditingMedia = null;
     showToast(gettext("Media succesfully deleted"), "Success");
     // Refresh the list modal with the stored callback and filters
@@ -726,130 +1105,106 @@ async function confirmDeleteMedia() {
   }
 }
 
-async function submitMediaUpdate(event) {
-  const form = event.target;
-  const body = new FormData();
+/**
+ * @param {Event} event
+ */
+async function submitMediaUpload(event) {
+  event.preventDefault();
 
-  body.append("branch_id", selectedBranchID);
-  if (form.category.value) body.append("category", form.category.value);
-  currentMediaTags.forEach((tag) => body.append("tags[]", tag));
-
-  let method = "PUT";
-  let idParam = "";
-
-  if (!currentlyEditingMedia) {
-    if (form.file.files.length > 1) {
-      await submitMultipleMediaUpload(form.file, body);
-      return;
-    }
-    const newFile = form.file.files[0];
-    if (!newFile) {
-      showToast(gettext("Please select a file to upload."), "Error");
-      return;
-    }
-    // Use original file name; backend will suffix with a content hash
-    body.append("file", newFile);
-    method = "POST";
-  } else {
-    idParam = currentlyEditingMedia.id;
-  }
-
-  let title = form.title.value;
-  if (!title) {
-    showToast(gettext("The file must have a name"), "Error");
-    return;
-  }
-  body.append("title", title);
-
-  toggleMediaUploadDisabled(true);
+  let wasUploadSuccess = false;
+  toggleMediaUploadDisabled(uploadMediaElements, true);
   try {
-    await genericFetch(
-      `${BASE_URL}/api/documents/${idParam}?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
-      method,
-      body,
+    wasUploadSuccess = await handleUploadSubmit(
+      uploadMediaElements,
+      {
+        branch_id: selectedBranchID,
+        organisation_id: parentOrgID,
+      },
+      currentMediaTags,
     );
-    showToast(
-      `${gettext("Media succesfully")} ${method === "POST" ? gettext("created") : gettext("updated")}`,
-      "Success",
-    );
-    currentlyEditingMedia = null;
-    if (bsSubmitModal) {
-      bsSubmitModal.hide();
+    if (!wasUploadSuccess) {
+      return;
     }
+
+    currentlyEditingMedia = null;
+    uploadMediaElements.hide();
+
     // Refresh the list modal with the stored callback and filters
     displayMediaModal(1, currentOnSelectCallback, currentInitialFilters);
-    clearSelectedFilesState();
+    clearSelectedFilesState(uploadMediaElements);
   } catch (error) {
-    console.error("Failed to submit media");
+    console.error("Failed to upload media");
     showToast(error.message, "Error");
   } finally {
-    toggleMediaUploadDisabled(false);
-    form.file.value = "";
+    toggleMediaUploadDisabled(uploadMediaElements, false);
+    if (wasUploadSuccess) {
+      uploadMediaElements.formElements.file.value = "";
+    }
   }
 }
 
-async function submitMultipleMediaUpload(formFile, body) {
-  const files = formFile.files;
-  if (!files.length) {
-    showToast(gettext("Please select one or more files to upload."), "Error");
-    return;
-  }
+/**
+ * @param {Event} event
+ */
+async function submitMediaEdit(event) {
+  event.preventDefault();
 
-  toggleMediaUploadDisabled(true);
+  let wasSuccess = false;
+  toggleMediaUploadDisabled(editMediaElements, true);
   try {
-    const uploads = Array.from(files).map(async (file) => {
-      // Use filename (without extension) as title
-      const fileTitle = extractExtensionFromFile(file.name, true);
-      // Use original file; backend will suffix with a content hash
-      // Create a fresh FormData per upload to avoid shared state between uploads
-      const uploadBody = new FormData();
-      uploadBody.append("branch_id", body.get("branch_id"));
-      const category = body.get("category");
-      if (category) uploadBody.append("category", category);
-      currentMediaTags.forEach((tag) => uploadBody.append("tags[]", tag));
-      uploadBody.append("title", fileTitle);
-      uploadBody.append("file", file);
-      await genericFetch(
-        `${BASE_URL}/api/documents/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
-        "POST",
-        uploadBody,
-      );
-    });
+    wasSuccess = await handleEditSubmit(
+      editMediaElements,
+      {
+        branch_id: selectedBranchID,
+        organisation_id: parentOrgID,
+      },
+      currentMediaTags,
+      currentlyEditingMedia,
+    );
+    if (!wasSuccess) {
+      return;
+    }
 
-    await Promise.all(uploads);
-    showToast(gettext("Files uploaded successfully"), "Success");
     currentlyEditingMedia = null;
-    if (bsSubmitModal) {
-      bsSubmitModal.hide();
-    }
+    editMediaElements.hide();
+
+    // Refresh the list modal with the stored callback and filters
     displayMediaModal(1, currentOnSelectCallback, currentInitialFilters);
-    clearSelectedFilesState();
-    if (formFile) {
-      formFile.value = "";
-    }
   } catch (error) {
+    console.error("Failed to edit media");
     showToast(error.message, "Error");
   } finally {
-    toggleMediaUploadDisabled(false);
+    toggleMediaUploadDisabled(editMediaElements, false);
+    if (wasSuccess) {
+      uploadMediaElements.formElements.file.value = "";
+    }
   }
 }
 
-function toggleMediaUploadDisabled(disabled) {
-  mediaSubmitOverlay.classList.toggle("d-none", !disabled);
-  saveMediaBtn.disabled = disabled;
-  deleteMediaBtn.disabled = disabled;
-  cancelSubmitMediaBtn.disabled = disabled;
+/**
+ * @param {MediaModalUnion} mediaModal
+ * @param {boolean} disabled
+ */
+function toggleMediaUploadDisabled(mediaModal, disabled) {
+  if (mediaModal.type === "upload") {
+    mediaModal.overlay.classList.toggle("d-none", !disabled);
+  }
+  mediaModal.saveMediaBtn.disabled = disabled;
+  mediaModal.deleteMediaBtn.disabled = disabled;
+  mediaModal.cancelMediaBtn.disabled = disabled;
 }
 
 // ================ Selected Files Display ================
 
-function clearSelectedFilesState() {
+/**
+ * @param {UploadModal} uploadModal
+ */
+function clearSelectedFilesState(uploadModal) {
   selectedFilesArray = [];
 
-  const selectedFilesContainer = document.getElementById(
-    "selectedFilesContainer",
-  );
-  const selectedFilesList = document.getElementById("selectedFilesList");
+  const selectedFilesContainer =
+    uploadModal.formElements.selectedFilesContainer;
+  const selectedFilesList = uploadModal.formElements.selectedFilesList;
   if (selectedFilesContainer) {
     selectedFilesContainer.classList.add("d-none");
   }
@@ -857,19 +1212,22 @@ function clearSelectedFilesState() {
     selectedFilesList.innerHTML = "";
   }
 
-  if (!fileInput) return;
+  const fileInput = uploadModal.formElements.file;
   fileInput.value = "";
   const emptyTransfer = new DataTransfer();
   fileInput.files = emptyTransfer.files;
-  syncFileTitleAndInput();
+  syncFileTitleAndInput(uploadMediaElements);
 }
 
-function displaySelectedFiles() {
-  const selectedFilesContainer = document.getElementById(
-    "selectedFilesContainer",
-  );
-  const selectedFilesList = document.getElementById("selectedFilesList");
+/**
+ * @param {UploadModal} uploadModal
+ */
+function displaySelectedFiles(uploadModal) {
+  const selectedFilesContainer =
+    uploadModal.formElements.selectedFilesContainer;
+  const selectedFilesList = uploadModal.formElements.selectedFilesList;
 
+  const fileInput = uploadMediaElements.formElements.file;
   if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
     // If no files in input but we have files in our array, don't hide the container
     if (selectedFilesArray.length === 0) {
@@ -915,7 +1273,7 @@ function displaySelectedFiles() {
     fileItem.className = "file-item";
     fileItem.innerHTML = `
       <span class="file-name">${file.name}</span>
-      <button type="button" class="remove-file" data-index="${index}" title="${gettext("Remove file")}">
+      <button type="button" class="btn btn-sm btn-danger remove-file" data-index="${index}" title="${gettext("Remove file")}">
         <span class="material-symbols-outlined">close</span>
       </button>
     `;
@@ -927,6 +1285,9 @@ function displaySelectedFiles() {
   });
 }
 
+/**
+ * @param {number} indexToRemove
+ */
 function removeFileFromSelection(indexToRemove) {
   if (indexToRemove < 0 || indexToRemove >= selectedFilesArray.length) return;
 
@@ -940,44 +1301,128 @@ function removeFileFromSelection(indexToRemove) {
   });
 
   // Update the file input with the new file list
-  fileInput.files = dataTransfer.files;
+  uploadMediaElements.formElements.file.files = dataTransfer.files;
 
   // Refresh the display and sync the title input
-  displaySelectedFiles();
-  syncFileTitleAndInput();
+  displaySelectedFiles(uploadMediaElements);
+  syncFileTitleAndInput(uploadMediaElements);
 }
 
 // ================ Tags ================
-// Add a tag by name: look up its ID, store ID, and display name.
-function addTagToMediaList(name) {
-  if (!name) return;
-  const tagObj = modalTags.find((t) => t.name === name);
-  if (!tagObj) return;
-  const idStr = String(tagObj.id);
-  if (currentMediaTags.has(idStr)) return;
-  currentMediaTags.add(idStr);
-  addTagToDisplay(tagsContainer, tagObj.name, removeTagFromMedia);
+
+/**
+ * @returns {Promise<any[]>}
+ */
+export async function refreshModalTags() {
+  /** @type {any[]} */
+  let tags;
+  try {
+    tags = await genericFetch(
+      `${BASE_URL}/api/tags?organisation_id=${parentOrgID}`,
+    );
+  } catch (e) {
+    console.error("Failed to fetch tags for modal:", e);
+    showToast(gettext("Error fetching tags"), "error");
+    tags = [];
+  }
+
+  return tags;
 }
-// Remove a tag by name: find its ID, remove ID, refresh display and dropdown.
-function removeTagFromMedia(name) {
-  const tagObj = modalTags.find((t) => t.name === name);
-  if (!tagObj) return;
-  currentMediaTags.delete(String(tagObj.id));
+
+/**
+ * @description
+ * Redisplay tagsContainer based on currentMediaTags IDs.
+ * @param {MediaModalUnion} mediaModal
+ * @param {Set<any>} currentMediaTags
+ * @param {any[]} tags
+ */
+function refreshTagListDisplay(mediaModal, currentMediaTags, tags) {
+  const tagsContainer = mediaModal.formElements.selectedTagsContainer;
+  tagsContainer.innerHTML = "";
+
+  currentMediaTags.forEach((tagId) => {
+    const tagObj = tags.find((t) => String(t.id) === tagId);
+    if (tagObj) {
+      addTagToDisplay(tagsContainer, tagObj.name, (tag) =>
+        removeTagFromMedia(mediaModal, currentMediaTags, tag, tags),
+      );
+    }
+  });
+}
+
+/**
+ * @description
+ * Remove a tag by name: find its ID, remove ID, refresh display and dropdown.
+ * @param {MediaModalUnion} mediaModal
+ * @param {Set<any>} currentMediaTags
+ * @param {*} tagName
+ * @param {any[]} tags
+ */
+export function removeTagFromMedia(
+  mediaModal,
+  currentMediaTags,
+  tagName,
+  tags,
+) {
+  const tagObj = tags.find((t) => t.name === tagName);
+  if (tagObj) {
+    currentMediaTags.delete(String(tagObj.id));
+  }
   // Uncheck in dropdown if present
-  const tagsSelectEl = document.querySelector("#mediaEditTagsSelect");
+  const tagsSelectEl = document.querySelector(".media-edit-tags-select");
   if (tagsSelectEl) {
     const cbElem = tagsSelectEl.querySelector(`input[value="${tagObj.id}"]`);
     if (cbElem) cbElem.checked = false;
   }
-  refreshTagListDisplay();
+  refreshTagListDisplay(mediaModal, currentMediaTags, tags);
 }
-// Redisplay tagsContainer based on currentMediaTags IDs.
-function refreshTagListDisplay() {
-  tagsContainer.innerHTML = "";
-  currentMediaTags.forEach((idStr) => {
-    const tagObj = modalTags.find((t) => String(t.id) === idStr);
-    if (tagObj) addTagToDisplay(tagsContainer, tagObj.name, removeTagFromMedia);
+
+/**
+ * @description
+ * Add a tag by name: look up its ID, store ID, and display name.
+ * @param {MediaModal | UploadModal} mediaModal
+ * @param {*} name - Name of the tag
+ * @param {any[]} tags
+ */
+function addTagToMediaList(mediaModal, name, tags) {
+  if (!name) return;
+  const tagObj = tags.find((t) => t.name === name);
+  if (!tagObj) return;
+  const idStr = String(tagObj.id);
+  if (currentMediaTags.has(idStr)) return;
+  currentMediaTags.add(idStr);
+  addTagToDisplay(
+    mediaModal.formElements.selectedTagsContainer,
+    tagObj.name,
+    (tag) => {
+      removeTagFromMedia(mediaModal, currentMediaTags, tag, tags);
+    },
+  );
+}
+
+/**
+ * @description
+ * Sync selected checkboxes in submit modal to currentMediaTags
+ * @param {MediaModalUnion} mediaModal
+ * @param {Set<any>} currentMediaTags
+ * @param {any[]} tags
+ */
+export function updateSelectedMediaTags(mediaModal, currentMediaTags, tags) {
+  // Clear the current set of tags
+  currentMediaTags.clear();
+
+  // Get all checked checkboxes (except the toggle all checkbox)
+  const checkedBoxes = mediaModal.formElements.tagsContainer.querySelectorAll(
+    'input[type="checkbox"]:checked:not(#toggleAll)',
+  );
+
+  // Add each checked tag to the currentMediaTags set
+  checkedBoxes.forEach((checkbox) => {
+    currentMediaTags.add(checkbox.value);
   });
+
+  // Update the visual display of tags
+  refreshTagListDisplay(mediaModal, currentMediaTags, tags);
 }
 
 // ========= HELPERS ==================
@@ -1082,82 +1527,45 @@ function extractExtensionFromFile(fileString, returnPrefix = false) {
   }
 }
 
-function syncFileTitleAndInput() {
-  const fileExtensionDisplay = document.querySelector("#fileExtensionDisplay");
-  const tooltip = bootstrap.Tooltip.getOrCreateInstance(submitMediaForm.title);
-  if (fileInput.files.length > 1) {
-    submitMediaForm.title.value = "";
-    submitMediaForm.title.disabled = true;
-    tooltip.enable();
-    return;
-  } else {
-    submitMediaForm.title.disabled = false;
-    tooltip.hide();
-    tooltip.disable();
-  }
-
-  let fileName = currentlyEditingMedia?.title || fileInput?.files[0]?.name;
-  if (fileName) {
-    if (currentlyEditingMedia) {
-      submitMediaForm.title.value = fileName;
-      fileExtensionDisplay.innerHTML =
-        "." + currentlyEditingMedia.file_type?.toLowerCase();
-    } else {
-      // Extract the filename without the file extension
-      submitMediaForm.title.value = extractExtensionFromFile(fileName, true);
-      // But still show the extension as "ghost text"
-      fileExtensionDisplay.innerHTML = extractExtensionFromFile(fileName);
-    }
-  } else {
-    submitMediaForm.title.value = "";
-    fileExtensionDisplay.innerHTML = "";
-  }
-}
-
-// Sync selected checkboxes in submit modal to currentMediaTags
-function updateSelectedMediaTags() {
-  currentMediaTags.clear();
-  const tagsSelectEl = document.querySelector("#mediaEditTagsSelect");
-  if (!tagsSelectEl) return;
-  tagsSelectEl
-    .querySelectorAll('input[type="checkbox"]:checked:not(#toggleAll)')
-    .forEach((cb) => {
-      currentMediaTags.add(cb.value);
-    });
-  refreshTagListDisplay();
-}
-
 // =========== EVENT LISTENERS SETUP ==============
 
 function initEventListeners() {
   try {
-    if (!mediaListModalEl || !submitMediaModalEl) return;
+    if (!mediaListModalEl || !uploadMediaElements || !editMediaElements) return;
     const uploadBtn = document.querySelector("#uploadNewMediaBtn");
 
     if (uploadBtn) {
       uploadBtn.addEventListener("click", () => {
         currentlyEditingMedia = null;
-        if (fileInput) fileInput.accept = currentAcceptString;
-        createOrUpdateMediaClicked();
+        if (uploadMediaElements.formElements.file)
+          uploadMediaElements.formElements.file.accept = currentAcceptString;
+
+        uploadMediaClicked();
       });
     }
 
-    submitMediaModalEl?.addEventListener("hidden.bs.modal", () => {
-      clearSelectedFilesState();
+    uploadMediaElements.modal.addEventListener("hidden.bs.modal", () => {
+      clearSelectedFilesState(uploadMediaElements);
     });
 
-    submitMediaForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      submitMediaUpdate(e);
-    });
+    uploadMediaElements.formElements.form.addEventListener(
+      "submit",
+      submitMediaUpload,
+    );
+    editMediaElements.formElements.form.addEventListener(
+      "submit",
+      submitMediaEdit,
+    );
 
-    if (deleteMediaBtn) {
-      deleteMediaBtn.addEventListener("click", deleteMediaClicked);
-    }
+    [uploadMediaElements, editMediaElements].map((mediaModal) =>
+      mediaModal.deleteMediaBtn.addEventListener("click", () =>
+        deleteMediaClicked(mediaModal),
+      ),
+    );
 
-    fileInput?.addEventListener("change", (_e) => {
-      syncFileTitleAndInput();
-      displaySelectedFiles();
+    uploadMediaElements.formElements.file.addEventListener("change", (_e) => {
+      syncFileTitleAndInput(uploadMediaElements);
+      displaySelectedFiles(uploadMediaElements);
     });
 
     // Background Pattern on Media preview (in mediaGrid and media_preview_modal) Toggle Buttons
@@ -1343,4 +1751,77 @@ function resetCheckboxGroup(containerEl) {
   checkboxes.forEach((checkbox) => {
     checkbox.checked = false;
   });
+}
+
+/**
+ * @param {MediaModalUnion} mediaModal
+ * @param {*} [currentlyEditingMedia]
+ */
+export function syncFileTitleAndInput(mediaModal, currentlyEditingMedia) {
+  switch (mediaModal.type) {
+    case "reg":
+      syncFileTitleAndInputEdit(mediaModal, currentlyEditingMedia);
+      break;
+    case "upload":
+      syncFileTitleAndInputUpload(mediaModal);
+      break;
+  }
+}
+
+/**
+ * @param {MediaModal} mediaModal
+ * @param {*} currentlyEditingMedia
+ */
+function syncFileTitleAndInputEdit(mediaModal, currentlyEditingMedia) {
+  const fileExtensionDisplay = document.querySelector(
+    ".file-extension-display",
+  );
+  const submitMediaFormElements = mediaModal.formElements;
+
+  let fileName = currentlyEditingMedia?.title;
+  submitMediaFormElements.title.value = fileName;
+  fileExtensionDisplay.innerHTML =
+    "." + currentlyEditingMedia.file_type?.toLowerCase();
+}
+
+/**
+ * @param {UploadModal} uploadModal
+ */
+function syncFileTitleAndInputUpload(uploadModal) {
+  const fileExtensionDisplay = document.querySelector(
+    ".file-extension-display",
+  );
+  const submitMediaFormElements = uploadModal.formElements;
+  const tooltip = bootstrap.Tooltip.getOrCreateInstance(
+    submitMediaFormElements.title,
+  );
+
+  const fileInput = submitMediaFormElements.file;
+
+  if (fileInput.files.length > 1) {
+    submitMediaFormElements.title.value = "";
+    submitMediaFormElements.title.disabled = true;
+    tooltip.enable();
+    return;
+  } else {
+    submitMediaFormElements.title.disabled = false;
+    tooltip.hide();
+    tooltip.disable();
+  }
+
+  let fileName = fileInput.files[0]?.name;
+  if (fileName) {
+    // Extract filename without extension
+    const lastDotIndex = fileName.lastIndexOf(".");
+    if (lastDotIndex !== -1) {
+      submitMediaFormElements.title.value = fileName.substring(0, lastDotIndex);
+      fileExtensionDisplay.innerHTML = fileName.substring(lastDotIndex);
+    } else {
+      submitMediaFormElements.title.value = fileName;
+      fileExtensionDisplay.innerHTML = "";
+    }
+  } else {
+    submitMediaFormElements.title.value = "";
+    fileExtensionDisplay.innerHTML = "";
+  }
 }
