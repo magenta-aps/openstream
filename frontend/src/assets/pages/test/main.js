@@ -66,7 +66,7 @@ document.querySelector("#form_test").addEventListener("submit", function (e) {
   e.preventDefault();
   const tag_ids = [];
   const tagCheckboxes = document.querySelectorAll(
-    "#dropdownCheckboxesContainer input[type='checkbox']",
+    ".dropdownCheckboxesContainer input[type='checkbox']",
   );
 
   tagCheckboxes.forEach((cb) => {
