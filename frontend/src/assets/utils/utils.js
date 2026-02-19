@@ -885,7 +885,7 @@ export function initCollapseLeftSidebarBtn() {
   const sidebarContent = document.getElementById("sidebar-content");
   const goBackBtn = document.getElementById("goBackBtn");
 
-  if (collapseBtn && sidebar ) {
+  if (collapseBtn && sidebar) {
     collapseBtn.addEventListener("click", () => {
       if (sidebar) {
         sidebar?.classList.toggle("collapsed")
@@ -955,6 +955,18 @@ export function initOrgUrlRouting() {
     // 1. Validation: Check existence, ignore attribute, same origin, http(s) only
     if (!a.href || a.hasAttribute("noSlug") || a.origin !== location.origin || !a.protocol.startsWith("http")) return;
 
+    const linksToHideInProd = [
+      "/emergency-slideshows",
+      "/manage-wayfinding-systems"
+    ];
+    // Hide specific links in production environment only
+    if (window.location.hostname === "openstream.dk") {
+      if (linksToHideInProd.some((hiddenPath) => a.pathname.includes(hiddenPath))) {
+        a.classList.add("d-none");
+        return;
+      }
+    }
+
     const path = a.pathname;
     const segments = path.split("/").filter(Boolean);
 
@@ -979,7 +991,7 @@ export function initOrgUrlRouting() {
 
   // 5. Execution & Observation
   const run = (node) => (node.nodeName === "A" ? [node] : node.querySelectorAll?.("a") || []).forEach(process);
-  
+
   run(document); // Initial run
 
   new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach(run)))

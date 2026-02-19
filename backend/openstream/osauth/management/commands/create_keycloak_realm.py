@@ -70,9 +70,10 @@ class Command(BaseCommand):
             if kc_admin.realm_exists(token, realm):
                 self.stdout.write(
                     self.style.WARNING(
-                        f"Realm '{realm}' already exists - skipping realm creation."
+                        f"Realm '{realm}' already exists - updating realm settings."
                     )
                 )
+                self._update_realm(kc_admin, token, realm)
             else:
                 self._create_realm(kc_admin, token, realm)
 
@@ -94,6 +95,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Realm '{realm}' setup complete."))
 
     def _create_realm(self, kc_admin, token, realm: str):
+        smtp_server = self._get_smtp_server_config()
         kc_admin.create_realm(
             token,
             {
@@ -103,9 +105,37 @@ class Command(BaseCommand):
                 "enabled": True,
                 "loginWithEmailAllowed": True,
                 "registrationAllowed": False,
+                "smtpServer": smtp_server,
             },
         )
         logger.info("Realm '%s' created", realm)
+
+    def _update_realm(self, kc_admin, token, realm: str):
+        smtp_server = self._get_smtp_server_config()
+        kc_admin.update_realm(
+            token,
+            realm,
+            {
+                "smtpServer": smtp_server,
+            },
+        )
+        logger.info("Realm '%s' settings updated", realm)
+
+    def _get_smtp_server_config(self):
+        return {
+            "host": settings.EMAIL_HOST,
+            "port": str(settings.EMAIL_PORT),
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "auth": (
+                "true"
+                if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
+                else "false"
+            ),
+            "user": settings.EMAIL_HOST_USER,
+            "password": settings.EMAIL_HOST_PASSWORD,
+            "ssl": "false",
+            "starttls": str(settings.EMAIL_USE_TLS).lower(),
+        }
 
     def _ensure_roles(self, kc_admin, token, realm: str):
         roles = [
