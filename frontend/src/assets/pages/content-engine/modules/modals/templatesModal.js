@@ -816,7 +816,6 @@ if (confirmBtn) {
         showToast(gettext("Template details updated successfully."), "Success");
 
         if (bsModalInstance) bsModalInstance.hide();
-
       } catch (err) {
         console.error("Error updating template metadata:", err);
         showToast(gettext("Error: ") + err.message, "Error");
