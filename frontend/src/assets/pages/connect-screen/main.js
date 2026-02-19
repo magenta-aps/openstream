@@ -28,7 +28,13 @@ const registrationState = document.getElementById("registration-state");
 const errorState = document.getElementById("error-state");
 const screenIdElement = document.getElementById("screen-id");
 const errorMessageElement = document.getElementById("error-message");
+// If a UID is provided, we want to prioritize that over any displayWebsiteId or screenId
+// This allows the "uid" flow to correctly resolve the screen ID from the backend
 let screenId = queryParams.displayWebsiteId || localStorage.getItem("screenId");
+if (uid) {
+  screenId = null;
+  localStorage.removeItem("screenId");
+}
 /**
  * Safely parse a Response as JSON. If response body is not JSON, return
  * an object containing the raw text under __rawText so callers can handle it.
@@ -191,6 +197,8 @@ async function initializeScreen() {
       screenId = await createScreen();
       localStorage.setItem("screenId", screenId);
       showRegistration(screenId);
+      await checkForGroupAssignment(screenId);
+      
     }
   } catch (error) {
     console.error("Error initializing screen:", error);

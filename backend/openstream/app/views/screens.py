@@ -69,20 +69,20 @@ class RegisterScreenAPIView(APIView):
             }
         )
 
+
 from rest_framework.throttling import SimpleRateThrottle
 
+
 class ApiKeyRateThrottle(SimpleRateThrottle):
-    scope = 'create_screen_key'
+    scope = "create_screen_key"
 
     def get_cache_key(self, request, view):
         api_key = request.data.get("apiKey") or request.query_params.get("apiKey")
         if not api_key:
             return None  # Fallback: don't throttle if no API key is provided (though View itself handles this)
 
-        return self.cache_format % {
-            'scope': self.scope,
-            'ident': api_key
-        }
+        return self.cache_format % {"scope": self.scope, "ident": api_key}
+
 
 class CreateScreenAPIView(APIView):
     """
