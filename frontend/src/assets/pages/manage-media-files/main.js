@@ -812,11 +812,9 @@ async function confirmDeleteMedia() {
       showToast(gettext("Media successfully deleted"), "Success");
       currentlyEditingMedia = null;
 
-      /* TODO:
-      if (bsUploadModal) {
-        bsUploadModal.hide();
+      if (editMediaElements) {
+        editMediaElements.hide();
       }
-      */
       if (bsPreviewModal) {
         bsPreviewModal.hide();
       }
