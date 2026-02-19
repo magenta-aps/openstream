@@ -288,6 +288,9 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "EXCEPTION_HANDLER": "project.exceptions.custom_exception_handler",
+    'DEFAULT_THROTTLE_RATES': {
+        'create_screen_key': '100/min',
+    }
 }
 
 SIMPLE_JWT = {
