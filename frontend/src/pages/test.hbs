@@ -15,13 +15,13 @@
                 <span class="selected-values-text">({% trans "Nothing selected" %})</span>
                 <i class="material-symbols-outlined" id="arrowIcon">expand_more</i>
             </div>
-            <div class="dropdown-menu p-3 w-100 hide" id="multiSelectDropdownMenu">
+            <div class="dropdown-menu px-2 py-3 w-100 hide" id="multiSelectDropdownMenu">
                 <div class="dropdownCheckboxesContainer">
                     <!-- Checkboxes will be dynamically added here -->
                 </div>
                 <div class="d-flex justify-content-between mt-2 border-top py-2 px-2">
                     <p class="values-count mb-0 text-darker-gray">0 {% trans "selected" %}</p>
-                    {{> base/form/checkbox id="selectAllValues" text="Select All" bold=true}}
+                    {{> base/form/checkbox id="selectAllValues" text="Select All"}}
                 </div>
             </div>
         </div>
