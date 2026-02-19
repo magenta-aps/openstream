@@ -55,7 +55,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
     toggle: toggle,
     dropdownText: toggle?.querySelector(".selected-values-text"),
     menu: menu,
-    checkboxContainer: menu?.querySelector(".dropdownCheckboxesContainer") // TO DO - style to show checkbox values in grid style
+    checkboxContainer: menu?.querySelector(".dropdownCheckboxesContainer")
   };
 
   // Basic validation to ensure we have the necessary elements to work with
@@ -124,11 +124,11 @@ function renderCheckboxes(dataList, container) {
 
   dataList.forEach(item => {
     const div = document.createElement("div");
-    div.className = "form-check mb-1";
+    div.className = "form-check";
     div.innerHTML = `
       <input type="checkbox" class="form-check-input multi-select-checkbox" 
              id="checkboxValue_${item.id}" value="${item.name}" data-value-id="${item.id}">
-      <label class="form-check-label ms-2" for="checkboxValue_${item.id}">
+      <label class="form-check-label" for="checkboxValue_${item.id}">
         ${item.name}
       </label>
     `;

@@ -12,6 +12,12 @@
     .show {
         display: block;
     }
+
+    .dropdownCheckboxesContainer {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
 }
 
 #multiSelectDropdownToggle .selected-values-text {
