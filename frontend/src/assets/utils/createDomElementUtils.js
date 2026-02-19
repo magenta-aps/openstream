@@ -17,7 +17,7 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
   }
 
   const chip = document.createElement('span');
-  chip.className = "d-flex align-items-center justify-content-between gap-1 py-1 px-2 border rounded-4 bg-secondary-accent text-secondary-hover fs-7";
+  chip.className = "d-flex text-nowrap align-items-center justify-content-between gap-1 py-1 px-2 border rounded-4 bg-secondary-accent text-secondary-hover fs-7";
 
   const trimmedChipText = chipText.trim();
   chip.innerText = trimmedChipText;
@@ -218,8 +218,9 @@ function updateValuesDropdownState(dropdownTextElement) {
       // Add the "+X more" label if needed
       if (!fittedAll) {
           const moreLabel = document.createElement('span');
+          moreLabel.className = "text-nowrap text-darker-gray fs-7";
           moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
-          moreLabel.style.whiteSpace = 'nowrap';
+          // moreLabel.style.whiteSpace = 'nowrap';
           dropdownTextElement.appendChild(moreLabel);
 
           // Final check: if the label itself caused an overflow, 
