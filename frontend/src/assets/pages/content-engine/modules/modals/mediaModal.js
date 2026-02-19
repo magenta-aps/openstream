@@ -43,7 +43,6 @@ const extensionSelectEl = document.querySelector("#extension-select-wrapper");
 const tagInput = document.querySelector("#submitMediaTagsInput");
 const imageGrid = document.getElementById("imageGrid");
 
-// TODO: handle export of submit media modal bs api
 export { bsMediaListModal };
 
 /** @type {string} */
@@ -1015,9 +1014,6 @@ function editMediaClicked() {
   editMediaElements.label.textContent = `${gettext("Update")} ${currentInputType}`;
   uploadEditMediaClicked(editMediaElements);
 }
-
-// TODO: handle export of create or update media clicked
-export function createOrUpdateMediaClicked() {}
 
 /**
  * @param {MediaModalUnion} mediaModal
