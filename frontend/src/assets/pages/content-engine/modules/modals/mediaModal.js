@@ -1365,7 +1365,7 @@ export function removeTagFromMedia(
     currentMediaTags.delete(String(tagObj.id));
   }
   // Uncheck in dropdown if present
-  const tagsSelectEl = document.querySelector(".media-edit-tags-select");
+  const tagsSelectEl = mediaModal.formElements.tagsContainer;
   if (tagsSelectEl) {
     const cbElem = tagsSelectEl.querySelector(`input[value="${tagObj.id}"]`);
     if (cbElem) cbElem.checked = false;
