@@ -4,13 +4,14 @@ import { gettext } from "./locales";
 
 /**
  * @description Creates a chip element and adds it to a specified container with the given text and a callback for when the chip is removed.
- * @param {*} chipContainerElement 
+ * @param {Element} chipContainerElement 
  * @param {*} chipText 
  * @param {*} removeCallBack 
  * @returns 
  */
 export function addChip(chipContainerElement, chipText, removeCallBack) {
   // Basic validation to ensure we have a valid container element and chip text
+  // To do fjerne tjek af element type når vi har types på plads
   if (!chipContainerElement || !(chipContainerElement instanceof Element) || !chipText) {
       console.error("Invalid or missing elements for chip element creation.");
       return;
@@ -50,14 +51,14 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
   // Get the main elements of the dropdown
   const toggle = document.getElementById(dropdownBtnId);
   const menu = document.getElementById(dropdownMenuId);
-
+  
   const elements = {
     toggle: toggle,
     dropdownText: toggle?.querySelector(".selected-values-text"),
     menu: menu,
     checkboxContainer: menu?.querySelector(".dropdownCheckboxesContainer")
   };
-
+  
   // Basic validation to ensure we have the necessary elements to work with
   if (!elements.toggle || !elements.checkboxContainer || !elements.dropdownText || !elements.menu) {
     console.error("Multi select dropdown elements not found. Please check the provided IDs and HTML structure.");
@@ -78,6 +79,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
  * Handles logic of opening/closing the dropdown
  */
 function setupDropdownLogic({ toggle, menu }) {
+  // to do - Fix it, so it closes if user clikcs on another dropdown
   const handleOutsideClick = (e) => {
     if (!toggle.contains(e.target) && !menu.contains(e.target)) {
       close();
