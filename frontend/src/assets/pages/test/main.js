@@ -28,11 +28,31 @@ async function fetchTags() {
   );
 }
 
-const testList = [{"id": 1,"name": "Test Tag 1"}, {"id": 2, "name": "Test Tag 2"}, {"id": 3, "name": "Test Tag 3"}, {"id": 4, "name": "Test Tag 4"}, {"id": 5, "name": "Test Tag 5"}, {"id": 6, "name": "Test Tag 6"}, {"id": 7, "name": "Test Tag 7"}, {"id": 8, "name": "Test Tag 8"}, {"id": 9, "name": "Test Tag 9"}, {"id": 10, "name": "Test Tag 10"}];
+const testList = [
+  {"id": 1,"name": "Test 1.1"},
+  {"id": 2, "name": "Test 1.2"},
+  {"id": 3, "name": "Test 1.3"},
+  {"id": 4, "name": "Test 1.4"},
+  {"id": 5, "name": "Test 1.5"},
+  {"id": 6, "name": "Test 1.6"},
+  {"id": 7, "name": "Test 1.7"},
+];
+
+
+const testList2 = [
+  {"id": 8,"name": "Test 2.1"},
+  {"id": 9, "name": "Test 2.2"},
+  {"id": 10, "name": "Test 2.3"},
+  {"id": 11, "name": "Test 2.4"},
+  {"id": 12, "name": "Test 2.5"},
+  {"id": 13, "name": "Test 2.6"},
+  {"id": 14, "name": "Test 2.7"},
+];
 
 document.addEventListener("DOMContentLoaded", async function () {
     await fetchTags();
-    initializeMultiSelectDropdown(testList, "multiSelectDropdownToggle", "multiSelectDropdownMenu");
+    initializeMultiSelectDropdown(testList, "btntest1", "menutest1");
+    initializeMultiSelectDropdown(testList2, "btntest2", "menutest2");
 
     const chipContainer = document.getElementById("chipContainer");
     addChip(chipContainer, "Test Chip", () => {

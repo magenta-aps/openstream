@@ -65,7 +65,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
   }
 
   // Render the checkboxes from the data list content
-  renderCheckboxes(dataList, elements.checkboxContainer);
+  renderCheckboxes(dataList, elements.checkboxContainer, dropdownBtnId);
 
   // Setup Toggle/Close Logic
   setupDropdownLogic(elements);
@@ -88,7 +88,7 @@ function setupDropdownLogic({ toggle, menu }) {
     menu.classList.replace("show", "hide");
     toggle.setAttribute("aria-expanded", "false");
     
-    const arrowIcon = toggle.querySelector("#arrowIcon");
+    const arrowIcon = toggle.querySelector(".arrowIcon");
     if (arrowIcon) {
       arrowIcon.textContent = "expand_more";
     }
@@ -100,7 +100,7 @@ function setupDropdownLogic({ toggle, menu }) {
     menu.classList.replace("hide", "show");
     toggle.setAttribute("aria-expanded", "true");
   
-    const arrowIcon = toggle.querySelector("#arrowIcon");
+    const arrowIcon = toggle.querySelector(".arrowIcon");
     if (arrowIcon) {
       arrowIcon.textContent = "expand_less";
     }
@@ -117,7 +117,7 @@ function setupDropdownLogic({ toggle, menu }) {
 /**
  * Handles creating the checkbox elements
  */
-function renderCheckboxes(dataList, container) {
+function renderCheckboxes(dataList, container, dropdownBtnId) {
   container.innerHTML = "";
 
   const fragment = document.createDocumentFragment();
@@ -127,8 +127,8 @@ function renderCheckboxes(dataList, container) {
     div.className = "form-check";
     div.innerHTML = `
       <input type="checkbox" class="form-check-input multi-select-checkbox" 
-             id="checkboxValue_${item.id}" value="${item.name}" data-value-id="${item.id}">
-      <label class="form-check-label" for="checkboxValue_${item.id}">
+             id="${dropdownBtnId}_${item.id}" value="${item.name}" data-value-id="${item.id}">
+      <label class="form-check-label" for="${dropdownBtnId}_${item.id}">
         ${item.name}
       </label>
     `;
@@ -141,7 +141,7 @@ function renderCheckboxes(dataList, container) {
 // Function to setup the event listeners for the checkboxes in the multi select dropdown
 function setupMultiSelectDropdownListeners(elements) {
   const allCheckboxes = elements.checkboxContainer.querySelectorAll(".multi-select-checkbox");
-  const selectAllCheckbox = elements.menu.querySelector("#selectAllValues");
+  const selectAllCheckbox = elements.menu.querySelector(".selectAllValues");
 
   // Setup the select-all checkbox
   if (selectAllCheckbox) {
@@ -149,24 +149,25 @@ function setupMultiSelectDropdownListeners(elements) {
       allCheckboxes.forEach((checkbox) => {
         checkbox.checked = e.target.checked;
       });
-      updateValuesDropdownState(elements.dropdownText);
+      updateValuesDropdownState(elements);
     });
   }
 
   // Setup individual checkboxes
   allCheckboxes.forEach((checkbox) => {
     checkbox.addEventListener("change", () => {
-      updateValuesDropdownState(elements.dropdownText);
+      updateValuesDropdownState(elements);
     });
   });
 }
 
 // Update the dropdown state based on selections
-function updateValuesDropdownState(dropdownTextElement) {
-  const allCheckboxes = document.querySelectorAll(".multi-select-checkbox"); // TO DO - change to more specific selector to avoid conflicts if multiple dropdowns on the same page
-  const selectAllValues = document.getElementById("selectAllValues"); // TO DO - change to custom id, so multiple dropdowns can be used on the same page without conflicts
-  const countElement = document.querySelector(".values-count"); // TO DO - change to more specific selector to avoid conflicts if multiple dropdowns on the same page
-  const textContainerWidth = dropdownTextElement ? dropdownTextElement.offsetWidth : 0;
+function updateValuesDropdownState(elements) {
+  const allCheckboxes = elements.checkboxContainer.querySelectorAll(".multi-select-checkbox");
+  const selectAllValues = elements.menu.querySelector(".selectAllValues");
+  const countElement = elements.menu.querySelector(".values-count");
+  const textContainer = elements.dropdownText;
+  const textContainerWidth = textContainer ? textContainer.offsetWidth : 0;
 
   // Get selected values
   const selectedValues = Array.from(allCheckboxes).filter((cb) => cb.checked);
@@ -186,29 +187,29 @@ function updateValuesDropdownState(dropdownTextElement) {
   }
 
   // Update dropdown text
-  if (dropdownTextElement) {
+  if (textContainer) {
     let count = selectedValues.length;
 
     if (count === 0) {
-      dropdownTextElement.textContent = gettext("Select values..."); // ### TO DO - tekst skal være customizable
+      textContainer.textContent = gettext("Select values..."); // ### TO DO - tekst skal være customizable
     } else {
-      dropdownTextElement.textContent = ""; // Clear text container
+      textContainer.textContent = ""; // Clear text container
       let fittedAll = true;
 
       for (let i= 0; i < selectedValues.length; i++) {
         const label = document.querySelector(`label[for="${selectedValues[i].id}"]`);
         const valueText = label ? label.textContent : "";
-        addChip(dropdownTextElement, valueText, () => {
+        addChip(textContainer, valueText, () => {
           const checkbox = document.querySelector(`input[id="${selectedValues[i].id}"]`);
           if (checkbox) {
             checkbox.checked = false;
-            updateValuesDropdownState(dropdownTextElement); // Update state to reflect changes
+            updateValuesDropdownState(elements); // Update state to reflect changes
           }
         });
 
         // Check if this chip caused an overflow
-        if (dropdownTextElement.scrollWidth > textContainerWidth) {
-            dropdownTextElement.removeChild(dropdownTextElement.lastChild); // Remove the one that broke it
+        if (textContainer.scrollWidth > textContainerWidth) {
+            textContainer.removeChild(textContainer.lastChild); // Remove the one that broke it
             fittedAll = false;
             count = selectedValues.length - i;
             break;
@@ -221,12 +222,12 @@ function updateValuesDropdownState(dropdownTextElement) {
           moreLabel.className = "text-nowrap text-darker-gray fs-7";
           moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
           // moreLabel.style.whiteSpace = 'nowrap';
-          dropdownTextElement.appendChild(moreLabel);
+          textContainer.appendChild(moreLabel);
 
           // Final check: if the label itself caused an overflow, 
           // remove another chip to make space
-          while (dropdownTextElement.scrollWidth > textContainerWidth && dropdownTextElement.children.length > 1) {
-              dropdownTextElement.removeChild(dropdownTextElement.children[dropdownTextElement.children.length - 2]);
+          while (textContainer.scrollWidth > textContainerWidth && textContainer.children.length > 1) {
+              textContainer.removeChild(textContainer.children[textContainer.children.length - 2]);
               count++;
               moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
           }
