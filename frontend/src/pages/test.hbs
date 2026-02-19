@@ -6,6 +6,21 @@
     <!-- Main Container -->
     <div class="h-100 w-100">
         <form id="form_test">
+        
+        {{> base/form/multi-select-dropdown dropdownBtnId="btntest1" dropdownMenuId="menutest1" selectAllCheckboxId="selectall1" labelText="Label text"}}
+
+        {{> base/form/multi-select-dropdown dropdownBtnId="btntest2" dropdownMenuId="menutest2" selectAllCheckboxId="selectall2" labelText="Label text 2"}}
+
+        <button type="submit">submit</button>
+        </form>
+
+        <div id="chipContainer">
+            <!-- Chips will be added here -->
+        </div>
+    </div>  
+    {{/base/containers/html-container}}
+
+    {{!-- 
          {{> base/form/label for="multiSelectDropdownToggle" text="Label text"}}
         <div>
             <div class="btn border-gray bg-white w-100 p-2 text-start d-flex justify-content-between align-items-center"
