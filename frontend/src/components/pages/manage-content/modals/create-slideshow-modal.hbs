@@ -80,11 +80,14 @@
                 </select>
             </div>
             <!-- TAGS -->
-            <div class="mb-3">
+            {{!-- <div class="mb-3">
                 {{> base/form/label for="createSlideshowTags" text="Tags"}}
                 <div id="createSlideshowTagsContainer">
                     <!-- Checkboxes for each tag will be inserted via JS -->
                 </div>
+            </div> --}}
+            <div class="mb-3">
+                {{> base/form/multi-select-dropdown dropdownBtnId="tagsDropdownBtn" dropdownMenuId="tagsDropdownMenu" selectAllCheckboxId="selectAllTagsCheckbox" labelText="Tags"}}
             </div>
     {{/inline}}
         
