@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import "./style.scss";
-import { addChip, initializeMultiSelectDropdown } from "../../utils/createDomElementUtils";
+import { addChip, initializeMultiSelectDropdown } from "../../utils/multiSelectDropdownUtils";
 import {
   parentOrgID,
   genericFetch,
