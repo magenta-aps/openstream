@@ -65,6 +65,14 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
     return;
   }
 
+  // Reset dropdown state
+  elements.dropdownText.textContent = `(${gettext("Nothing selected")})`;
+  elements.checkboxContainer.innerHTML = "";
+  elements.menu.classList.add("hide");
+  elements.menu.classList.remove("show");
+  elements.toggle.setAttribute("aria-expanded", "false");
+
+
   // Render the checkboxes from the data list content
   renderCheckboxes(dataList, elements.checkboxContainer, dropdownBtnId);
 
@@ -112,10 +120,16 @@ function setupDropdownLogic(toggle, menu) {
     setTimeout(() => document.addEventListener("click", handleOutsideClick), 0);
   };
 
+  // If the toggle button already has the dropdown logic initialized - to avoid duplicate event listeners
+  if (toggle.dataset.initialized === "true") return;
+
   toggle.addEventListener("click", (e) => {
     e.stopPropagation();
     menu.classList.contains("show") ? close() : open();
   });
+
+  // Mark the toggle button as having its dropdown logic initialized
+  toggle.dataset.initialized = "true";
 }
 
 /**
