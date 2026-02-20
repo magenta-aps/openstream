@@ -170,14 +170,23 @@ function setupMultiSelectDropdownListeners(elements) {
   const allCheckboxes = elements.checkboxContainer.querySelectorAll(".multi-select-checkbox");
   const selectAllCheckbox = elements.menu.querySelector(".selectAllValues");
 
-  // Setup the select-all checkbox
-  if (selectAllCheckbox) {
+  // to do - fix error with select-all checkbox not working
+  // Check if the select-all button exist and has not been initialized once - to avoid duplicate event listeners
+  if (selectAllCheckbox && selectAllCheckbox.dataset.initialized !== "true") {
+    // Setup the select-all checkbox
     selectAllCheckbox.addEventListener("change", (e) => {
+      // to do - remove console logs
+      // console.log("running select-all checkbox listener");
+      // console.log(e.target.checked);
       allCheckboxes.forEach((checkbox) => {
         checkbox.checked = e.target.checked;
+        //console.log("checkbox ", checkbox.dataset.valueId, " is now ", checkbox.checked);
       });
       updateValuesDropdownState(elements);
     });
+
+    // Mark the select-all checkbox as initialized
+    selectAllCheckbox.dataset.initialized = "true";
   }
 
   // Setup individual checkboxes
@@ -228,10 +237,10 @@ function updateValuesDropdownState(elements) {
       let fittedAll = true;
 
       for (let i= 0; i < selectedValues.length; i++) {
-        const label = document.querySelector(`label[for="${selectedValues[i].id}"]`);
+        const label = elements.menu.querySelector(`label[for="${selectedValues[i].id}"]`);
         const valueText = label ? label.textContent : "";
         addChip(textContainer, valueText, () => {
-          const checkbox = document.querySelector(`input[id="${selectedValues[i].id}"]`);
+          const checkbox = elements.menu.querySelector(`input[id="${selectedValues[i].id}"]`);
           if (checkbox) {
             checkbox.checked = false;
             updateValuesDropdownState(elements); // Update state to reflect changes
