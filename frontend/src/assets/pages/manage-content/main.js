@@ -40,6 +40,7 @@ import {
   getAspectRatiosByOrientation,
   getResolutionForAspectRatio,
 } from "../../utils/availableAspectRatios";
+import { initializeMultiSelectDropdown } from "../../utils/multiSelectDropdownUtils";
 
 // Initialize translations
 (async () => {
@@ -282,9 +283,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const createSlideshowCategory = document.getElementById(
     "createSlideshowCategory",
   );
-  const createSlideshowTagsContainer = document.getElementById(
-    "createSlideshowTagsContainer",
-  );
+  // to do - remove this
+  // const createSlideshowTagsContainer = document.getElementById(
+  //   "createSlideshowTagsContainer",
+  // );
 
   // Initialize aspect ratio selection
   let selectedAspectRatio = null;
@@ -340,26 +342,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         createSlideshowCategory.appendChild(opt);
       });
 
-      createSlideshowTagsContainer.innerHTML = "";
-      tagsList.forEach((tag) => {
-        const div = document.createElement("div");
-        div.className = "form-check mb-1";
+      initializeMultiSelectDropdown(tagsList, "tagsDropdownBtn", "tagsDropdownMenu");
+      // to do - remove this
+      // createSlideshowTagsContainer.innerHTML = "";
+      // tagsList.forEach((tag) => {
+      //   const div = document.createElement("div");
+      //   div.className = "form-check mb-1";
 
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.className = "form-check-input";
-        input.id = `createTag_${tag.id}`;
-        input.value = tag.id;
+      //   const input = document.createElement("input");
+      //   input.type = "checkbox";
+      //   input.className = "form-check-input";
+      //   input.id = `createTag_${tag.id}`;
+      //   input.value = tag.id;
 
-        const label = document.createElement("label");
-        label.className = "form-check-label ms-2";
-        label.htmlFor = input.id;
-        label.textContent = tag.name;
+      //   const label = document.createElement("label");
+      //   label.className = "form-check-label ms-2";
+      //   label.htmlFor = input.id;
+      //   label.textContent = tag.name;
 
-        div.appendChild(input);
-        div.appendChild(label);
-        createSlideshowTagsContainer.appendChild(div);
-      });
+      //   div.appendChild(input);
+      //   div.appendChild(label);
+      //   createSlideshowTagsContainer.appendChild(div);
+      // });
 
       createSlideshowModal.show();
     }
@@ -485,12 +489,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const category_id = categoryValue ? parseInt(categoryValue, 10) : null;
 
     const tag_ids = [];
-    const tagCheckboxes = createSlideshowTagsContainer.querySelectorAll(
-      "input[type='checkbox']",
+    // to do - remove this
+    // const tagCheckboxes = createSlideshowTagsContainer.querySelectorAll(
+    //   "input[type='checkbox']",
+    // );
+    // tagCheckboxes.forEach((cb) => {
+    //   if (cb.checked) {
+    //     tag_ids.push(parseInt(cb.value, 10));
+    //   }
+    // });
+    const tagCheckboxes = document.querySelectorAll(
+      ".dropdownCheckboxesContainer input[type='checkbox']",
     );
     tagCheckboxes.forEach((cb) => {
       if (cb.checked) {
-        tag_ids.push(parseInt(cb.value, 10));
+        tag_ids.push(parseInt(cb.dataset.valueId, 10));
       }
     });
 
