@@ -5,14 +5,12 @@ import { gettext } from "./locales";
 /**
  * @description Creates a chip element and adds it to a specified container with the given text and a callback for when the chip is removed.
  * @param {Element} chipContainerElement 
- * @param {*} chipText 
- * @param {*} removeCallBack 
- * @returns 
+ * @param {String} chipText 
+ * @param {Function} removeCallBack
  */
 export function addChip(chipContainerElement, chipText, removeCallBack) {
-  // Basic validation to ensure we have a valid container element and chip text
-  // To do fjerne tjek af element type når vi har types på plads
-  if (!chipContainerElement || !(chipContainerElement instanceof Element) || !chipText) {
+  // Basic validation to ensure we have an container element and chip text
+  if (!chipContainerElement || !chipText) {
       console.error("Invalid or missing elements for chip element creation.");
       return;
   }
@@ -43,9 +41,11 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
   chipContainerElement.appendChild(chip);
 }
 
-// TO DO - Vi forventer dataList er en liste (array) af objekter, hvor hvert objekt har en 'id' og 'name' property - Lav types til dette??
 /**
- * Main Entry Point
+ * @description Initializes a multi-select dropdown by rendering checkboxes based on the provided data list and setting up the necessary event listeners for dropdown logic and checkbox interactions.
+ * @param {Array} dataList - An array of objects representing the options for the dropdown, where each object should have at least 'id' and 'name' properties.
+ * @param {String} dropdownBtnId - eg. "btntest1" - The ID of the button element that toggles the dropdown.
+ * @param {String} dropdownMenuId - eg. "menutest1" - The ID of the dropdown menu element that contains the checkboxes.
  */
 export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownMenuId) {
   // Get the main elements of the dropdown
@@ -69,16 +69,18 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
   renderCheckboxes(dataList, elements.checkboxContainer, dropdownBtnId);
 
   // Setup Toggle/Close Logic
-  setupDropdownLogic(elements);
+  setupDropdownLogic(elements.toggle, elements.menu);
 
   // Setup checkbox listeners
   setupMultiSelectDropdownListeners(elements);
 }
 
 /**
- * Handles logic of opening/closing the dropdown
+ * @description Sets up the logic for opening and closing the multi-select dropdown, including handling clicks outside the dropdown to close it and toggling the arrow icon based on the dropdown state.
+ * @param {Element} toggle
+ * @param {Element} menu
  */
-function setupDropdownLogic({ toggle, menu }) {
+function setupDropdownLogic(toggle, menu) {
 
   const handleOutsideClick = (e) => {
     if (!toggle.contains(e.target) && !menu.contains(e.target)) {
@@ -119,6 +121,12 @@ function setupDropdownLogic({ toggle, menu }) {
 /**
  * Handles creating the checkbox elements
  */
+/**
+ * @description Renders checkbox elements from given datalist and appends them to the specified container. Each checkbox gets a data-value-id attribute corresponding to the item's id for easier retrieval of selected values later on.
+ * @param {Array} dataList
+ * @param {Element} container
+ * @param {string} dropdownBtnId
+ */
 function renderCheckboxes(dataList, container, dropdownBtnId) {
   container.innerHTML = "";
 
@@ -140,7 +148,10 @@ function renderCheckboxes(dataList, container, dropdownBtnId) {
   container.appendChild(fragment);
 }
 
-// Function to setup the event listeners for the checkboxes in the multi select dropdown
+/**
+ * @description Sets up event listeners for the checkboxes in the multi-select dropdown
+ * @param {Object} elements - The elements object containing references to the dropdown components
+ */
 function setupMultiSelectDropdownListeners(elements) {
   const allCheckboxes = elements.checkboxContainer.querySelectorAll(".multi-select-checkbox");
   const selectAllCheckbox = elements.menu.querySelector(".selectAllValues");
@@ -164,6 +175,10 @@ function setupMultiSelectDropdownListeners(elements) {
 }
 
 // Update the dropdown state based on selections
+/**
+ * @description Updates the state of the multi-select dropdown, including the "select all" checkbox, the count of selected items, and the display of selected values as chips in the dropdown button. It also handles the logic for showing a "+X more" label when there are too many selected items to fit in the dropdown button.
+ * @param {Object} elements - The elements object containing references to the dropdown components
+ */
 function updateValuesDropdownState(elements) {
   const allCheckboxes = elements.checkboxContainer.querySelectorAll(".multi-select-checkbox");
   const selectAllValues = elements.menu.querySelector(".selectAllValues");
