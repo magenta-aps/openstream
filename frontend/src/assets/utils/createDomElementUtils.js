@@ -79,7 +79,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
  * Handles logic of opening/closing the dropdown
  */
 function setupDropdownLogic({ toggle, menu }) {
-  // to do - Fix it, so it closes if user clikcs on another dropdown
+
   const handleOutsideClick = (e) => {
     if (!toggle.contains(e.target) && !menu.contains(e.target)) {
       close();
@@ -193,7 +193,7 @@ function updateValuesDropdownState(elements) {
     let count = selectedValues.length;
 
     if (count === 0) {
-      textContainer.textContent = gettext("Select values..."); // ### TO DO - tekst skal være customizable
+      textContainer.textContent = `(${gettext("Nothing selected")})`;
     } else {
       textContainer.textContent = ""; // Clear text container
       let fittedAll = true;
