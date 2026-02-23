@@ -1000,7 +1000,6 @@ function uploadEditMediaClicked(mediaModal) {
 }
 
 function uploadMediaClicked() {
-  console.log("upload clicked");
   uploadMediaElements.label.textContent = `${gettext("upload")} ${currentInputType}`;
   uploadMediaElements.formElements.file.accept =
     currentInputType === "Video"
