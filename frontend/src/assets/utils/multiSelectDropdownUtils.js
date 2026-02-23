@@ -46,8 +46,9 @@ export function addChip(chipContainerElement, chipText, removeCallBack) {
  * @param {Array} dataList - An array of objects representing the options for the dropdown, where each object should have at least 'id' and 'name' properties.
  * @param {String} dropdownBtnId - eg. "btntest1" - The ID of the button element that toggles the dropdown.
  * @param {String} dropdownMenuId - eg. "menutest1" - The ID of the dropdown menu element that contains the checkboxes.
+ * @param {Array} selectedValueIds - An array of IDs of the pre-selected values in the dropdown.
  */
-export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownMenuId) {
+export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownMenuId, selectedValueIds = []) {
   // Get the main elements of the dropdown
   const toggle = document.getElementById(dropdownBtnId);
   const menu = document.getElementById(dropdownMenuId);
@@ -82,6 +83,21 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
 
   // Setup checkbox listeners
   setupMultiSelectDropdownListeners(elements);
+  
+  // If there are pre-selected values, mark the corresponding checkboxes and update the dropdown state
+  if (selectedValueIds.length > 0) {
+    dataList.forEach(item => {
+      if (selectedValueIds.includes(item.id)) {
+        const checkbox = elements.checkboxContainer.querySelector(`input[data-value-id="${item.id}"]`);
+        if (checkbox) {
+          checkbox.checked = true;
+        }
+      }
+    });
+
+    // Update the dropdown state to reflect the pre-selected values
+    updateValuesDropdownState(elements);
+  }
 }
 
 /**
