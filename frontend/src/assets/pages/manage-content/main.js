@@ -283,10 +283,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const createSlideshowCategory = document.getElementById(
     "createSlideshowCategory",
   );
-  // to do - remove this
-  // const createSlideshowTagsContainer = document.getElementById(
-  //   "createSlideshowTagsContainer",
-  // );
 
   // Initialize aspect ratio selection
   let selectedAspectRatio = null;
@@ -342,28 +338,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         createSlideshowCategory.appendChild(opt);
       });
 
+      // Initialize tags dropdown
       initializeMultiSelectDropdown(tagsList, "tagsDropdownBtn", "tagsDropdownMenu");
-      // to do - remove this
-      // createSlideshowTagsContainer.innerHTML = "";
-      // tagsList.forEach((tag) => {
-      //   const div = document.createElement("div");
-      //   div.className = "form-check mb-1";
-
-      //   const input = document.createElement("input");
-      //   input.type = "checkbox";
-      //   input.className = "form-check-input";
-      //   input.id = `createTag_${tag.id}`;
-      //   input.value = tag.id;
-
-      //   const label = document.createElement("label");
-      //   label.className = "form-check-label ms-2";
-      //   label.htmlFor = input.id;
-      //   label.textContent = tag.name;
-
-      //   div.appendChild(input);
-      //   div.appendChild(label);
-      //   createSlideshowTagsContainer.appendChild(div);
-      // });
 
       createSlideshowModal.show();
     }
@@ -489,15 +465,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const category_id = categoryValue ? parseInt(categoryValue, 10) : null;
 
     const tag_ids = [];
-    // to do - remove this
-    // const tagCheckboxes = createSlideshowTagsContainer.querySelectorAll(
-    //   "input[type='checkbox']",
-    // );
-    // tagCheckboxes.forEach((cb) => {
-    //   if (cb.checked) {
-    //     tag_ids.push(parseInt(cb.value, 10));
-    //   }
-    // });
     const tagCheckboxes = document.querySelectorAll(
       ".dropdownCheckboxesContainer input[type='checkbox']",
     );
