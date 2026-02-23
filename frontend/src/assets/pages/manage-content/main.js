@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (ratio.note) {
           const note = document.createElement("div");
-          note.className = "resolution-option-note text-muted small text-center";
+          note.className = "resolution-option-note text-darker-gray small text-center";
           note.textContent = ratio.note;
           wrapper.appendChild(note);
         }
