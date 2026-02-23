@@ -411,9 +411,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       });
 
-      const card = container.closest(".card");
-      if (card) {
-        card.classList.toggle("d-none", ratios.length === 0);
+      // Hide the entire aspect ratio section if there are no ratios to display
+      const aspectRatioContainer = container.closest(".js-aspect-ratio-options");
+      if (aspectRatioContainer) {
+        aspectRatioContainer.classList.toggle("d-none", ratios.length === 0);
       }
     });
   }
