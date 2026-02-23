@@ -125,15 +125,19 @@
             {% trans "Save" %}
         </button>
         <!-- cancelBtnTargetId is if there is a modal, that should be reopened after canceling this current modal  -->
-        <button type="button"
-                class="cancel-submit-media-btn btn btn-secondary"
-                {{#if cancelBtnTargetId}}
-                    data-bs-target="#{{cancelBtnTargetId}}"
-                    data-bs-toggle="modal"
-                {{else}}
-                    data-bs-dismiss="modal"
-                {{/if}}
-                >
+        <button
+            type="button"
+            class="cancel-submit-media-btn btn btn-secondary"
+            {{#if cancelBtnTargetId}}
+                data-bs-target="#{{cancelBtnTargetId}}"
+                data-bs-toggle="modal"
+            {{else}}
+                data-bs-dismiss="modal"
+            {{/if}}
+        >
+            <span class="material-symbols-outlined me-1">cancel</span>
+            {% trans "Cancel" %}
+        </button>
         <button type="button" class="btn-delete-media btn btn-danger px-4 d-none">
             <span class="material-symbols-outlined me-1">delete</span>
             {% trans "Delete" %}
