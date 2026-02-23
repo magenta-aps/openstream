@@ -552,9 +552,6 @@ async function initMediaModalInternal() {
   }
   await createUploadedBySelect();
   initEventListeners();
-  const foo = document.querySelector(
-    "#uploadMediaModal .media-edit-tags-select",
-  );
 }
 
 function createExtensionSelect() {
