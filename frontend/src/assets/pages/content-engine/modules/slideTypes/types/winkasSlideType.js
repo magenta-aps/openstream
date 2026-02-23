@@ -151,39 +151,30 @@ export const WinkasSlideType = {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="mb-3 w-100">
-        <label class="form-label" for="skipped-events-input-field">${gettext("Skipped Events")}</label>
+      <label class="form-label" for="skipped-events-input-field">${gettext("Skipped Events")}</label>
 
-        <div class="d-flex justify-content-between">
-          <!-- skipped by "title" -->
-          <div>
-            <div class="d-flex gap-2 mb-2">
-              <input type="text" class="form-control" id="skipped-events-title-input-field" placeholder="${gettext("Add event title, press + to add")}">
-              <button type="button" id="add-skipped-event-title-btn" class="btn btn-primary">+</button>
-            </div>
-            <div class="mb-2 bg-secondary-accent p-2 rounded text-black">${gettext("Events with these exact titles will be hidden from the display.")}</div>
-
-            <div id="skipped-events-title-list" class="d-flex gap-2 flex-wrap"></div>
-            <input type="hidden" id="skipped-events-title-input" value="${titleValue || ""}">
-          </div>
-
-          <span class="border border-gray"></span>
-
-
-          <!-- skipped by "booked-by" -->
-          <div>
-            <div class="d-flex gap-2 mb-2">
-              <input type="text" class="form-control" id="skipped-events-booked-by-input-field" placeholder="${gettext("Add event title, press + to add")}">
-              <button type="button" id="add-skipped-event-booked-by-btn" class="btn btn-primary">+</button>
-            </div>
-            <div class="mb-2 bg-secondary-accent p-2 rounded text-black">${gettext("Events with these exact titles will be hidden from the display.")}</div>
-
-            <div id="skipped-events-booked-by-list" class="d-flex gap-2 flex-wrap"></div>
-            <input type="hidden" id="skipped-events-booked-by-input" value="${bookedByValue || ""}">
-          </div>
+      <!-- skipped by "title" -->
+      <div class="col-6 border-end border-gray">
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" id="skipped-events-title-input-field" placeholder="${gettext("Add event title, press + to add")}">
+          <button type="button" id="add-skipped-event-title-btn" class="btn btn-primary">+</button>
         </div>
+        <div class="mb-2 bg-secondary-accent p-2 rounded text-black">${gettext("Events with these exact titles will be hidden from the display.")}</div>
 
+        <div id="skipped-events-title-list" class="d-flex gap-2 flex-wrap"></div>
+        <input type="hidden" id="skipped-events-title-input" value="${titleValue || ""}">
+      </div>
 
+      <!-- skipped by "booked-by" -->
+      <div class="col-6">
+        <div class="d-flex gap-2 mb-2">
+          <input type="text" class="form-control" id="skipped-events-booked-by-input-field" placeholder="${gettext("Add event organizer, press + to add")}">
+          <button type="button" id="add-skipped-event-booked-by-btn" class="btn btn-primary">+</button>
+        </div>
+        <div class="mb-2 bg-secondary-accent p-2 rounded text-black">${gettext("Events with these exact organizers will be hidden from the display.")}</div>
+
+        <div id="skipped-events-booked-by-list" class="d-flex gap-2 flex-wrap"></div>
+        <input type="hidden" id="skipped-events-booked-by-input" value="${bookedByValue || ""}">
       </div>
     `;
 
