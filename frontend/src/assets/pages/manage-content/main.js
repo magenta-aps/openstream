@@ -311,6 +311,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       if (defaultOption) {
         defaultOption.classList.add("active");
+        // Add icon to indicate selection
+        const checkedIcon = document.createElement("i");
+        checkedIcon.className = "material-symbols-outlined me-1 fs-5";
+        checkedIcon.textContent = "check_circle";
+
+        defaultOption.insertBefore(checkedIcon, defaultOption.firstChild);
         selectedAspectRatio = {
           width: parseInt(defaultOption.getAttribute("data-width")),
           height: parseInt(defaultOption.getAttribute("data-height")),
@@ -420,10 +426,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     aspectRatioOptions.forEach((option) => {
       option.addEventListener("click", () => {
         // Remove active class from all options
-        aspectRatioOptions.forEach((opt) => opt.classList.remove("active"));
+        aspectRatioOptions.forEach((opt) => {
+          opt.classList.remove("active");
+          opt.querySelector("i")?.remove(); 
+        });
 
         // Add active class to clicked option
         option.classList.add("active");
+        const checkedIcon = document.createElement("i");
+        checkedIcon.className = "material-symbols-outlined me-1 fs-5";
+        checkedIcon.textContent = "check_circle";
+        option.insertBefore(checkedIcon, option.firstChild);
 
         // Store selected aspect ratio
         selectedAspectRatio = {
@@ -438,6 +451,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function resetAspectRatioSelection() {
     document.querySelectorAll(".create-resolution-option").forEach((opt) => {
       opt.classList.remove("active");
+      opt.querySelector("i")?.remove();
     });
     selectedAspectRatio = null;
   }
