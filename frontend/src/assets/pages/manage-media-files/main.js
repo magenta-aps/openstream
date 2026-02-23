@@ -83,8 +83,6 @@ const { uploadMediaElements, editMediaElements } = createUploadEditModals({
 
 const previewMediaModalEl = document.getElementById("previewMediaModal");
 const previewContainer = document.querySelector("#preview-media-container");
-const deleteMediaPreviewBtn = document.querySelector("#btnDeleteMediaPreview");
-const editMediaPreviewBtn = document.querySelector("#btnEditMediaPreview");
 
 const titleInput = document.querySelector("#titleSearchInput");
 const extensionSelectEl = document.querySelector("#extension-select-wrapper");
@@ -524,12 +522,6 @@ function initEventListeners() {
     "click",
     confirmDeleteMedia,
   );
-  deleteMediaPreviewBtn?.addEventListener("click", confirmDeleteMedia);
-
-  editMediaPreviewBtn?.addEventListener("click", () => {
-    bsPreviewModal.hide();
-    editMediaElements.open();
-  });
 
   // File input change
   uploadMediaElements.formElements.file.addEventListener("change", () =>
