@@ -965,11 +965,11 @@
   "Not editable": {
     "da": "Ikke redigerbar"
   },
-  "Update Media": {
-    "da": "Opdater Medie"
+  "Update media": {
+    "da": "Opdater medie"
   },
-  "Upload Media": {
-    "da": "Upload Medie"
+  "Upload media": {
+    "da": "Upload medie"
   },
   "Preview Media": {
     "da": "Forhåndsvisning af Medie"
@@ -4148,4 +4148,4 @@
   "Pixels": {
     "da": "Pixels"
   }
-}    
+}
