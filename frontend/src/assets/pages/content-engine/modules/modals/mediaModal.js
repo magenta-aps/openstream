@@ -866,7 +866,7 @@ export async function handleUploadSubmit(
     status.type = "Error";
   }
 
-  showToast(gettext(status.msg), status.type);
+  showToast(status.msg, status.type);
 
   return status.type === "Success";
 }
