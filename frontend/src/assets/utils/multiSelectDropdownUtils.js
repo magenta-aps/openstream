@@ -134,9 +134,6 @@ function setupDropdownLogic(toggle, menu) {
 }
 
 /**
- * Handles creating the checkbox elements
- */
-/**
  * @description Renders checkbox elements from given datalist and appends them to the specified container. Each checkbox gets a data-value-id attribute corresponding to the item's id for easier retrieval of selected values later on.
  * @param {Array} dataList
  * @param {Element} container
@@ -192,7 +189,6 @@ function setupMultiSelectDropdownListeners(elements) {
   });
 }
 
-// Update the dropdown state based on selections
 /**
  * @description Updates the state of the multi-select dropdown, including the "select all" checkbox, the count of selected items, and the display of selected values as chips in the dropdown button. It also handles the logic for showing a "+X more" label when there are too many selected items to fit in the dropdown button.
  * @param {Object} elements - The elements object containing references to the dropdown components
