@@ -71,6 +71,7 @@ export function initializeMultiSelectDropdown(dataList, dropdownBtnId, dropdownM
   elements.menu.classList.add("hide");
   elements.menu.classList.remove("show");
   elements.toggle.setAttribute("aria-expanded", "false");
+  elements.menu.querySelector(".values-count").textContent = "0" + " " + gettext("selected");
 
 
   // Render the checkboxes from the data list content
@@ -169,24 +170,18 @@ function renderCheckboxes(dataList, container, dropdownBtnId) {
 function setupMultiSelectDropdownListeners(elements) {
   const allCheckboxes = elements.checkboxContainer.querySelectorAll(".multi-select-checkbox");
   const selectAllCheckbox = elements.menu.querySelector(".selectAllValues");
-
-  // to do - fix error with select-all checkbox not working
-  // Check if the select-all button exist and has not been initialized once - to avoid duplicate event listeners
-  if (selectAllCheckbox && selectAllCheckbox.dataset.initialized !== "true") {
-    // Setup the select-all checkbox
-    selectAllCheckbox.addEventListener("change", (e) => {
-      // to do - remove console logs
-      // console.log("running select-all checkbox listener");
-      // console.log(e.target.checked);
+  const newSelectAllCheckbox = selectAllCheckbox ? selectAllCheckbox.cloneNode(true) : null; // Clone the select-all checkbox to remove existing event listeners
+  selectAllCheckbox.replaceWith(newSelectAllCheckbox); // Replacing the node
+  
+  // Setup the select-all checkbox
+  if (newSelectAllCheckbox) {
+    newSelectAllCheckbox.checked = false; // Reset the select-all checkbox state
+    newSelectAllCheckbox.addEventListener("change", (e) => {
       allCheckboxes.forEach((checkbox) => {
         checkbox.checked = e.target.checked;
-        //console.log("checkbox ", checkbox.dataset.valueId, " is now ", checkbox.checked);
       });
       updateValuesDropdownState(elements);
     });
-
-    // Mark the select-all checkbox as initialized
-    selectAllCheckbox.dataset.initialized = "true";
   }
 
   // Setup individual checkboxes
