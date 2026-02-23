@@ -388,7 +388,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const option = document.createElement("div");
         option.className =
-          "create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer";
+          "create-resolution-option d-flex justify-content-center align-items-center border border-gray rounded-1 bg-white fs-6";
         option.setAttribute("data-width", ratio.width);
         option.setAttribute("data-height", ratio.height);
         option.setAttribute("data-ratio", ratio.value);
