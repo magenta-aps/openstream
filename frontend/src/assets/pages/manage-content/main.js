@@ -301,7 +301,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function openCreateSlideshowModal() {
     {
-      createSlideshowName.value = "";
+      createSlideshowName.value = gettext("New content") + ` ${allSlideshows.length + 1}`;
+      setTimeout(() => {
+        createSlideshowName.focus();
+      }, 500); // Focus on name input after modal opens
+
       createSlideshowMode.value = "slideshow";
 
       // Reset aspect ratio selection - default to configured default
