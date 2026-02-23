@@ -8,42 +8,13 @@
 
     {{#*inline "body"}}
         <form id="saveAsTemplateForm">
+            <!-- NAME -->
             <div class="mb-3">
                 {{> base/form/label for="templateName" text="Template Name"}}
                 {{> base/form/input type="text" id="templateName" required=true}}
             </div>
 
-            <div class="mb-3">
-                {{> base/form/label for="templateCategory" text="Category (optional)"}}
-                {{#> base/form/dropdown id="templateCategory"}}
-                    {{> base/form/dropdown-option value="" text="-- None --"}}
-                    <!-- Fill options dynamically in JS from /api/categories/ -->
-        {{/base/form/dropdown}}
-            </div>
-
-            <div class="mb-3">
-                {{> base/form/label for="tagsDropdownToggle" text="Tags (optional)"}}
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center"
-                            type="button"
-                            id="tagsDropdownToggle"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                        <span class="selected-tags-text">Select tags...</span>
-                        <span class="selected-tags-count badge bg-primary rounded-pill ms-1" style="display: none">0</span>
-                    </button>
-                    <div class="dropdown-menu p-3 w-100" id="tagsDropdownMenu">
-                        <div class="mb-2 border-bottom pb-2">
-                            {{> base/form/checkbox id="selectAllTags" text="Select All" bold=true}}
-                        </div>
-                        <div id="tagCheckboxes">
-                            <!-- Tag checkboxes will be dynamically added here -->
-                        </div>
-                    </div>
-                </div>
-                {{> base/form/input type="hidden" id="templateTags"}}
-            </div>
-
+            <!-- ASPECT RATIO -->
             <div class="mb-3 js-template-aspect-ratio-group">
                 {{> base/form/label for="templateAspectRatio" text="Aspect Ratio"}}
                 <p class="text-muted small mb-3">{% trans "Select the aspect ratio this template is designed for. The preview will automatically adjust to this aspect ratio." %}</p>
@@ -76,6 +47,20 @@
                 </div>
 
                 {{> base/form/input type="hidden" id="templateAspectRatio" name="aspectRatio"}}
+            </div>
+
+            <div class="d-flex justify-content-between gap-4">
+                <!-- CATEGORY -->
+                <div class="mb-3 w-100">
+                    {{> base/form/label for="templateCategory" text="Category"}}
+                    <select class="form-select" id="templateCategory">
+                        <!-- We'll programmatically add (None) and categories here -->
+                    </select>
+                </div>
+                <!-- TAGS -->
+                <div class="mb-3 w-100">
+                    {{> base/form/multi-select-dropdown dropdownBtnId="tagsDropdownToggle" dropdownMenuId="tagsDropdownMenu" selectAllCheckboxId="selectAllTagsCheckbox" labelText="Tags"}}
+                </div>
             </div>
 
             <div class="mb-3 d-none" id="globalTemplateThumbnailField">
