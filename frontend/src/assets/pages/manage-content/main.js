@@ -338,7 +338,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       createSlideshowCategory.innerHTML = "";
       const noneOpt = document.createElement("option");
       noneOpt.value = "";
-      noneOpt.textContent = gettext("(No Category)");
+      noneOpt.textContent = "(" + gettext("Nothing selected") + ")";
+      noneOpt.className = "text-darker-gray";
       createSlideshowCategory.appendChild(noneOpt);
 
       categoriesList.forEach((cat) => {
