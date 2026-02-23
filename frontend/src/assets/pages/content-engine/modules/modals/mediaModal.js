@@ -997,7 +997,7 @@ function uploadEditMediaClicked(mediaModal) {
 }
 
 function uploadMediaClicked() {
-  uploadMediaElements.label.textContent = `${gettext("upload")} ${currentInputType}`;
+  uploadMediaElements.label.textContent = `${gettext("Upload")} ${currentInputType.toLowerCase()}`;
   uploadMediaElements.formElements.file.accept =
     currentInputType === "Video"
       ? ".mp4,.webm"
@@ -1007,7 +1007,7 @@ function uploadMediaClicked() {
 }
 
 function editMediaClicked() {
-  editMediaElements.label.textContent = `${gettext("Update")} ${currentInputType}`;
+  editMediaElements.label.textContent = `${gettext("Update")} ${currentInputType.toLowerCase()}`;
   uploadEditMediaClicked(editMediaElements);
 }
 
