@@ -4130,8 +4130,14 @@
   "Add event title, press + to add": {
     "da": "Tilføj begivenhedstitel, tryk + for at tilføje"
   },
+  "Add event organizer, press + to add": {
+    "da": "Tilføj begivenhedsarrangør, tryk + for at tilføje"
+  },
   "Events with these exact titles will be hidden from the display.": {
     "da": "Begivenheder med disse præcise titler vil blive skjult på skærmen."
+  },
+  "Events with these exact organizers will be hidden from the display.": {
+    "da": "Begivenheder med disse præcise arrangører vil blive skjult på skærmen."
   },
   "No events": {
     "da": "Ingen begivenheder"
