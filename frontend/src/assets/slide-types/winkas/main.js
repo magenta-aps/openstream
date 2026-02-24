@@ -15,7 +15,8 @@ const config = {
     ? queryParams.sub_locations.split(",")
     : [],
   // Get skipped events from URL, default to empty string
-  skipped_events: queryParams.skipped_events || "",
+  skipped_events_title: queryParams.skipped_events_title || "",
+  skipped_events_booked_by: queryParams.skipped_events_booked_by || "",
 };
 
 // Marquee options from query params
@@ -39,9 +40,6 @@ const baseUrl = queryParams.baseUrl || BASE_URL;
 // Authentication setup
 const token = localStorage.getItem("accessToken");
 const apiKey = localStorage.getItem("apiKey");
-
-
-
 
 const headers = { "Content-Type": "application/json" };
 if (shouldUseApiKeyInSlideTypeIframe() && apiKey) {
@@ -105,7 +103,6 @@ async function fetchLocationData() {
 
     locationData = await response.json();
 
-
     // Update location title
     const locationTitle = document.getElementById("location-title");
     if (locationTitle && locationData[config.location]) {
@@ -122,28 +119,52 @@ async function fetchLocationData() {
  * Performs a case-insensitive match on the booking subject.
  */
 function filterSkippedEvents(bookings) {
-  if (!config.skipped_events || !Array.isArray(bookings)) {
+  if (
+    (!config.skipped_events_title && !config.skipped_events_booked_by) ||
+    !Array.isArray(bookings)
+  ) {
     return bookings;
   }
 
+  // contains bookings that should be displayed in the winkas widget
+  let displayableBookings = bookings;
   // Split, trim, and lowercase the skipped events list
-  const skippedList = config.skipped_events
-    .split(",")
-    .map((name) => name.trim().toLowerCase())
-    .filter((name) => name.length > 0);
+  const [skippedListTitle, skippedListBookedBy] = [
+    config.skipped_events_title,
+    config.skipped_events_booked_by,
+  ].map((skippedEvents) =>
+    skippedEvents
+      .split("__OS_SEPARATOR__")
+      .map((name) => name.trim().toLowerCase())
+      .filter((name) => name.length > 0),
+  );
+  console.log(skippedListTitle, skippedListBookedBy);
 
-  if (skippedList.length === 0) {
-    return bookings;
+  /**
+   *
+   * @param {any} skipList
+   * @param {"subject" | "booked_by"} property
+   */
+  const filterFn = (skipList, property) => {
+    return displayableBookings.filter((booking) => {
+      // Handle nested booking data structure used in WinKAS
+      const bookingData = booking.booking_data || booking;
+      const skipField = (bookingData[property] || "").trim().toLowerCase();
+
+      // If subject is in the skipped list, filter it out (return false)
+      return !skipList.includes(skipField);
+    });
+  };
+
+  if (skippedListTitle.length !== 0) {
+    displayableBookings = filterFn(skippedListTitle, "subject");
   }
 
-  return bookings.filter((booking) => {
-    // Handle nested booking data structure used in WinKAS
-    const bookingData = booking.booking_data || booking;
-    const subject = (bookingData.subject || "").trim().toLowerCase();
+  if (skippedListBookedBy.length !== 0) {
+    displayableBookings = filterFn(skippedListBookedBy, "booked_by");
+  }
 
-    // If subject is in the skipped list, filter it out (return false)
-    return !skippedList.includes(subject);
-  });
+  return displayableBookings;
 }
 
 async function fetchAndDisplayBookings() {
@@ -165,7 +186,7 @@ async function fetchAndDisplayBookings() {
     }
 
     const data = await response.json();
-
+    console.log(data);
     // Filter data before displaying
     if (data && data.bookings) {
       data.bookings = filterSkippedEvents(data.bookings);
@@ -246,13 +267,9 @@ function displayBookingsInCarousel(locationBookings) {
 
   bookingBody.style.height = "100%";
 
-
   const headerHeight = document.getElementById("header").clientHeight;
 
-
-
-  if (list.clientHeight > (bookingBody.clientHeight - headerHeight)) {
-
+  if (list.clientHeight > bookingBody.clientHeight - headerHeight) {
     // START: Added empty booking as requested
     // Add one empty booking entry to the end of the list if the marquee is running.
     // This creates a visual spacer when the list loops.
@@ -284,15 +301,12 @@ function displayBookingsInCarousel(locationBookings) {
       direction: "top",
       duplicate: 0,
       on: {
-        beforeInit: () => {
-        },
+        beforeInit: () => {},
 
-        afterInit: () => {
-        },
+        afterInit: () => {},
       },
     });
-  }
-  else {
+  } else {
   }
 }
 
