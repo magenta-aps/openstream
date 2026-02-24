@@ -214,7 +214,6 @@ function updateValuesDropdownState(elements) {
   const selectAllValues = elements.menu.querySelector(".selectAllValues");
   const countElement = elements.menu.querySelector(".values-count");
   const textContainer = elements.dropdownText;
-  const textContainerWidth = textContainer ? textContainer.offsetWidth : 0;
 
   // Get selected values
   const selectedValues = Array.from(allCheckboxes).filter((cb) => cb.checked);
@@ -240,31 +239,39 @@ function updateValuesDropdownState(elements) {
     if (count === 0) {
       textContainer.textContent = `(${gettext("Nothing selected")})`;
     } else {
-      textContainer.textContent = ""; // Clear text container
-      let fittedAll = true;
+      let debounceTimer;
 
-      for (let i= 0; i < selectedValues.length; i++) {
-        const label = elements.menu.querySelector(`label[for="${selectedValues[i].id}"]`);
-        const valueText = label ? label.textContent : "";
-        addChip(textContainer, valueText, () => {
-          const checkbox = elements.menu.querySelector(`input[id="${selectedValues[i].id}"]`);
-          if (checkbox) {
-            checkbox.checked = false;
-            updateValuesDropdownState(elements); // Update state to reflect changes
-          }
-        });
+      clearTimeout(debounceTimer)
 
-        // Check if this chip caused an overflow
-        if (textContainer.scrollWidth > textContainerWidth) {
+      // Timeout is for ensuring textContainer is completly painted in DOM before checking its width (ex. when its inside a modal being opened)
+      debounceTimer = setTimeout(() => {
+        const textContainerWidth = textContainer ? textContainer.offsetWidth : 0;
+
+        textContainer.textContent = ""; // Clear text container
+        let fittedAll = true;
+
+        for (let i= 0; i < selectedValues.length; i++) {
+          const label = elements.menu.querySelector(`label[for="${selectedValues[i].id}"]`);
+          const valueText = label ? label.textContent : "";
+          addChip(textContainer, valueText, () => {
+            const checkbox = elements.menu.querySelector(`input[id="${selectedValues[i].id}"]`);
+            if (checkbox) {
+              checkbox.checked = false;
+              updateValuesDropdownState(elements); // Update state to reflect changes
+            }
+          });
+
+          // Check if this chip caused an overflow
+          if (textContainer.scrollWidth > textContainerWidth) {
             textContainer.removeChild(textContainer.lastChild); // Remove the one that broke it
             fittedAll = false;
             count = selectedValues.length - i;
             break;
+          }
         }
-      }
 
-      // Add the "+X more" label if needed
-      if (!fittedAll) {
+        // Add the "+X more" label if needed
+        if (!fittedAll) {
           const moreLabel = document.createElement('span');
           moreLabel.className = "text-nowrap text-darker-gray fs-7";
           moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
@@ -278,7 +285,8 @@ function updateValuesDropdownState(elements) {
               count++;
               moreLabel.textContent = `+ ${count} ` + gettext("more") + "...";
           }
-      }
+        }
+      }, 200);
     }
   }
 }
