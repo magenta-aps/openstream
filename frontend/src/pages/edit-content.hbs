@@ -29,7 +29,8 @@
     {{> base/content-engine/modals/embed_website_modal }}
     {{> base/content-engine/modals/html_element_modal }}
     {{> base/content-engine/modals/media_list_modal }}
-    {{> base/content-engine/modals/media_submit_modal }}
+    {{> base/content-engine/modals/media_submit_modal id="uploadMediaModal" overlayID="mediaSubmitOverlay" hasFileUpload=true cancelBtnTargetId="mediaListModal" }}
+    {{> base/content-engine/modals/media_submit_modal id="editMediaModal" hasFileUpload=false cancelBtnTargetId="mediaListModal" }}
     {{> base/content-engine/modals/media_preview_modal returnModal="mediaListModal"}}
     {{> base/content-engine/modals/image_editor_modal }}
     {{> base/content-engine/modals/remove_background_image_confirmation_modal }}
