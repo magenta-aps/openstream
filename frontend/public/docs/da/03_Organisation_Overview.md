@@ -36,7 +36,7 @@ Som **organisationsadministrator** har du den højeste adgangsrettighed og kan s
 
 En central funktion for organisationsadministratorer er muligheden for at administrere systemets brugere. Her introduceres hvilke muligheder, der er for bruger administration:
 
-#### 3.3.1.1 Opret Brugere
+<!-- #### 3.3.1.1 Opret Brugere
 
 For at oprette en ny bruger, klik på **Administrer Brugere** og derefter **Tilføj Bruger**.
 
@@ -48,9 +48,9 @@ I dialogboksen, der vises, skal du tildele brugeren en rolle og de nødvendige t
 * **Underorganisationsadministrator**: Kræver kun valg af en underorganisation.
 * **Organisationsadministrator**: Kræver ingen yderligere valg, da rollen giver adgang til hele systemet.
 
-![Dialogboks til oprettelse af bruger med forskellige roller](/docs/docs_images/da/add_user_modal_da.png)
+![Dialogboks til oprettelse af bruger med forskellige roller](/docs/docs_images/da/add_user_modal_da.png) -->
 
-#### 3.3.1.2 Administrer Eksisterende Brugere
+#### 3.3.1.1 Administrer Eksisterende Brugere
 
 For at redigere rettigheder for eksisterende brugere, klik på **Administrer Brugere** og vælg **Administrer Eksisterende Brugere**.
 
