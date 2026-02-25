@@ -246,11 +246,22 @@ function ensureTemplateAspectRatioOption(value) {
 }
 
 function updateTemplateAspectRatioActiveState(selectedValue) {
-  templateAspectRatioOptionMap.forEach(({ option }) => {
-    option.classList.toggle(
-      "active",
-      option.getAttribute("data-ratio") === selectedValue,
-    );
+  templateAspectRatioOptionMap.forEach(({ option }) => {  
+    if(option.getAttribute("data-ratio") === selectedValue) {
+      option.classList.add("active");
+      
+      // Create check icon if not already present
+      if (!option.querySelector("i")) {
+        const checkedIcon = document.createElement("i");
+        checkedIcon.className = "material-symbols-outlined me-1 fs-5";
+        checkedIcon.textContent = "check_circle";
+        option.insertBefore(checkedIcon, option.firstChild);
+      }
+    } else {
+      // Remove active state and icon
+      option.querySelector("i")?.remove();
+      option.classList.remove("active");
+    }
   });
 }
 
@@ -289,9 +300,10 @@ function renderTemplateAspectRatioOptions() {
       createTemplateAspectRatioOption(container, ratio);
     });
 
-    const card = container.closest(".card");
-    if (card) {
-      card.classList.toggle("d-none", ratios.length === 0);
+    // Hide the entire aspect ratio section if there are no ratios to display
+    const aspectRatioContainer = container.closest(".js-template-aspect-ratio-options");
+    if (aspectRatioContainer) {
+      aspectRatioContainer.classList.toggle("d-none", ratios.length === 0);
     }
   });
 
