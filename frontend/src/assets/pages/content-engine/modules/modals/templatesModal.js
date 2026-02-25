@@ -98,7 +98,7 @@ function createTemplateAspectRatioOption(container, ratio) {
 
   if (ratio.note) {
     const note = document.createElement("div");
-    note.className = "template-resolution-option-note text-muted text-center";
+    note.className = "template-resolution-option-note text-darker-gray small text-center";
     note.textContent = ratio.note;
     wrapper.appendChild(note);
   }
