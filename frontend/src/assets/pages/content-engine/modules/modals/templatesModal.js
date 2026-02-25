@@ -105,7 +105,7 @@ function createTemplateAspectRatioOption(container, ratio) {
 
   const option = document.createElement("div");
   option.className =
-    "template-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer";
+    "template-resolution-option d-flex justify-content-center align-items-center border border-gray rounded-1 bg-white fs-6";
   option.setAttribute("data-ratio", ratio.value);
   option.setAttribute("data-width", ratio.width);
   option.setAttribute("data-height", ratio.height);
