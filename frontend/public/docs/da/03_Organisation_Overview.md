@@ -1,8 +1,8 @@
 # 3. Organisationsoverblik
 
-Efter login bliver du sendt til organisationsoverblik-siden.
+I dette kapitel vil organisationsoverblik-siden blive introduceret. Denne side bliver brugeren sendt til efter login, hvis de er organisations- eller underorganisationsadministrator, eller hvis de er tilknyttet mere end en afdeling som medarbejder.
 
-Denne side giver et samlet overblik over alle tilknyttede underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
+Organisationsoverblik-siden giver et samlet overblik over alle tilknyttede underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
 
 ---
 
@@ -14,7 +14,7 @@ Som **medarbejder** vises overblikket over de afdelinger, du er tilknyttet. For 
 
 ---
 
-## 3.2 Underorganisationsadministrator
+## 3.2 Underorganisationsadministrator visning
 
 Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation samt muligheden for at oprette underorganisations skabeloner. Dine administrative rettigheder omfatter:
 * Oprettelse af nye afdelinger.
@@ -26,7 +26,7 @@ Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger i
 
 ---
 
-## 3.3 Organisationsadministrator
+## 3.3 Organisationsadministrator visning
 
 Som **organisationsadministrator** har du den højeste adgangsrettighed og kan se og administrere samtlige underorganisationer og afdelinger. Du besidder de samme rettigheder som en underorganisationsadministrator for alle underorganisationer og kan derudover oprette og slette selve underorganisationerne.
 
@@ -34,7 +34,7 @@ Som **organisationsadministrator** har du den højeste adgangsrettighed og kan s
 
 ### 3.3.1 Brugeradministration
 
-En central funktion for organisationsadministratorer er muligheden for at administrere systemets brugere.
+En central funktion for organisationsadministratorer er muligheden for at administrere systemets brugere. Her introduceres hvilke muligheder, der er for bruger administration:
 
 #### 3.3.1.1 Opret Brugere
 
