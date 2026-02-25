@@ -35,3 +35,19 @@ As an **organization administrator**, you have the highest access rights and can
 ### 3.3.1 User administration
 
 A key feature for organization administrators is the ability to manage the system's users. Here we introduce the options available for user administration:
+
+#### 3.3.1.1 Manage Existing Users
+
+To edit rights for existing users, click on **Manage Users** and select **Manage Existing Users**.
+
+![Button to manage existing users](/docs/docs_images/en/manage_existing_users_en.png)
+
+This opens an administration panel where you can see a complete overview of all users in the organization.
+
+![Panel for managing existing users](/docs/docs_images/en/manage_existing_users_modal_en.png)
+
+In this panel, you can perform the following actions:
+
+* **Remove a role**: Select the user from the side menu to see their current roles. Click **Remove Access** next to the role you wish to remove.
+* **Assign a new role**: Under the "Add New Suborg Membership" section, select the appropriate sub-organization and role. For the role **Employee**, you must also specify a department. Click the **+** icon to add the new role.
+<!-- * **Remove a user permanently**: To remove a user completely from the organization, select the user and click **Remove from organization**. Alternatively, a user will be removed from the organization if all their roles and accesses are manually removed. -->
