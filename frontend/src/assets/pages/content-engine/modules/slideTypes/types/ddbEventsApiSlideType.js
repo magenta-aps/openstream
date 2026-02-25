@@ -68,6 +68,7 @@ export const DdbEventsApiSlideType = {
       }
 
       this._librariesData = await response.json();
+      console.log(this._librariesData)
       return this._librariesData;
     } catch (error) {
       console.error("Error fetching library data:", error);
@@ -226,7 +227,7 @@ export const DdbEventsApiSlideType = {
 
     kommuneSelect.innerHTML = `<option value="">${gettext("Select municipality")}</option>`;
 
-    Object.keys(this.currentLibrariesData).forEach((municipalityName) => {
+    Object.keys(this.currentLibrariesData.kommuner).forEach((municipalityName) => {
       const option = document.createElement("option");
       option.value = municipalityName;
       option.textContent = municipalityName;
@@ -683,10 +684,11 @@ export const DdbEventsApiSlideType = {
 
     const municipalityData =
       this.currentLibrariesData &&
-      this.currentLibrariesData[selectedMunicipality]
-        ? this.currentLibrariesData[selectedMunicipality]
+      this.currentLibrariesData.kommuner &&
+      this.currentLibrariesData.kommuner[selectedMunicipality]
+        ? this.currentLibrariesData.kommuner[selectedMunicipality]
         : null;
-    const libraries = municipalityData?.libraries || [];
+    const libraries = municipalityData?.libraries.map(library => library.name) || [];
 
     if (!Array.isArray(libraries) || libraries.length === 0) {
       setPlaceholder(
@@ -797,8 +799,9 @@ export const DdbEventsApiSlideType = {
 
     const municipalityData =
       this.currentLibrariesData &&
-      this.currentLibrariesData[selectedMunicipality]
-        ? this.currentLibrariesData[selectedMunicipality]
+      this.currentLibrariesData.kommuner &&
+      this.currentLibrariesData.kommuner[selectedMunicipality]
+        ? this.currentLibrariesData.kommuner[selectedMunicipality]
         : null;
     const categories = municipalityData?.categories || [];
 
@@ -1758,10 +1761,11 @@ export const DdbEventsApiSlideType = {
     if (
       kommune &&
       this.currentLibrariesData &&
-      this.currentLibrariesData[kommune] &&
-      Array.isArray(this.currentLibrariesData[kommune].libraries)
+      this.currentLibrariesData.kommuner &&
+      this.currentLibrariesData.kommuner[kommune] &&
+      Array.isArray(this.currentLibrariesData.kommuner[kommune].libraries)
     ) {
-      this.currentLibrariesData[kommune].libraries.forEach((libraryName) => {
+      this.currentLibrariesData.kommuner[kommune].libraries.forEach(({ name: libraryName}) => {
         if (typeof libraryName === "string") {
           lookup.set(libraryName.toLowerCase(), libraryName);
         }
@@ -1777,10 +1781,11 @@ export const DdbEventsApiSlideType = {
     if (
       kommune &&
       this.currentLibrariesData &&
-      this.currentLibrariesData[kommune] &&
-      Array.isArray(this.currentLibrariesData[kommune].categories)
+      this.currentLibrariesData.kommuner &&
+      this.currentLibrariesData.kommuner[kommune] &&
+      Array.isArray(this.currentLibrariesData.kommuner[kommune].categories)
     ) {
-      this.currentLibrariesData[kommune].categories.forEach((categoryName) => {
+      this.currentLibrariesData.kommuner[kommune].categories.forEach((categoryName) => {
         if (typeof categoryName === "string") {
           lookup.set(categoryName.toLowerCase(), categoryName);
         }

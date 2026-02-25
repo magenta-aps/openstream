@@ -281,59 +281,63 @@ def validate_recurring_content(
 
 # Dictionary with external API URLs and supported libraries per kommune.
 DDB_EVENT_API_URLS = {
-    "Brøndby": {
-        "url": "https://www.brondby-bibliotekerne.dk/api/v1/events",
-        "libraries": [
-            "Biblioteket i Kilden",
-            "Biblioteket i Brønden",
-            "Brøndbyvester Bibliotek",
-        ],
-    },
-    "København": {
-        "url": "https://bibliotek.kk.dk/api/v1/events",
-        "libraries": [
-            "Hovedbiblioteket",
-            "BIBLIOTEKET Rentemestervej",
-            "Bibliotekshuset",
-            "Ørestad Bibliotek",
-        ],
-    },
-    "Lyngby-Taarbaek": {
-        "url": "https://www.lyngbybib.dk/api/v1/events",
-        "libraries": [
-            "Stadsbiblioteket",
-            "Lundtofte Bibliotek",
-            "Taarbæk Bibliotek",
-            "Virum Bibliotek",
-        ],
-    },
-    "Aalborg": {
-        "url": "https://www.aalborgbibliotekerne.dk/api/v1/events",
-        "libraries": [
-            "Hals Bibliotek",
-            "Haraldslund",
-            "Hasseris Bibliotek",
-            "HistorieAalborg",
-            "Hovedbiblioteket",
-            "Nibe Bibliotek",
-            "Nørresundby Bibliotek",
-            "Storvorde Bibliotek",
-            "Svenstrup Bibliotek",
-            "Trekanten - Bibliotek og Kulturhus",
-            "Vejgaard Bibliotek",
-            "Vodskov Bibliotek",
-        ],
-    },
-    "Fredericia": {
-        "url": "https://fredericiabib.dk/api/v1/events",
-        "libraries": [
-            "Fredericia Bibliotek",
-            "Taulov Bibliotek",
-            "Bredstrup-Pjedsted Hallen",
-            "Brugsen Egeskov",
-            "Erritsø Idrætscenter",
-        ],
-    },
+    "events_path": "/events",
+    "opening_hours_path": "/opening_hours",
+    "kommuner": {
+        "Brøndby": {
+                "base_url": "https://www.brondby-bibliotekerne.dk/api/v1",
+                "libraries": [
+                    {"name": "Biblioteket i Kilden", "branch_id": 10},
+                    {"name": "Biblioteket i Brønden", "branch_id": 12},
+                    {"name": "Brøndbyvester Bibliotek", "branch_id": 11}
+                ],
+            },
+            "København": {
+                "base_url": "https://bibliotek.kk.dk/api/v1",
+                "libraries": [
+                    {"name": "Hovedbiblioteket", "branch_id": 230},
+                    {"name": "BIBLIOTEKET Rentemestervej", "branch_id": 209},
+                    {"name": "Bibliotekshuset", "branch_id": 228},
+                    {"name": "Ørestad Bibliotek", "branch_id": 246},
+                ],
+            },
+            "Lyngby-Taarbaek": {
+                "base_url": "https://www.lyngbybib.dk/api/v1",
+                "libraries": [
+                    {"name": "Stadsbiblioteket", "branch_id": 17},
+                    {"name": "Lundtofte Bibliotek", "branch_id": 20},
+                    {"name": "Taarbæk Bibliotek", "branch_id": 19},
+                    {"name": "Virum Bibliotek", "branch_id": 18},
+                ],
+            },
+            "Aalborg": {
+                "base_url": "https://www.aalborgbibliotekerne.dk/api/v1",
+                "libraries": [
+                    {"name": "Hals Bibliotek", "branch_id": 111},
+                    {"name": "Haraldslund", "branch_id": 115},
+                    {"name": "Hasseris Bibliotek", "branch_id": 117},
+                    {"name": "HistorieAalborg", "branch_id": 119},
+                    {"name": "Hovedbiblioteket", "branch_id": 170},
+                    {"name": "Nibe Bibliotek", "branch_id": 121},
+                    {"name": "Nørresundby Bibliotek", "branch_id": 192},
+                    {"name": "Storvorde Bibliotek", "branch_id": 125},
+                    {"name": "Svenstrup Bibliotek", "branch_id": 127},
+                    {"name": "Trekanten - Bibliotek og Kulturhus", "branch_id": 129},
+                    {"name": "Vejgaard Bibliotek", "branch_id": 135},
+                    {"name": "Vodskov Bibliotek", "branch_id": 137},
+                ],
+            },
+            "Fredericia": {
+                "base_url": "https://fredericiabib.dk/api/v1",
+                "libraries": [
+                    {"name": "Fredericia Bibliotek", "branch_id": 10},
+                    {"name": "Taulov Bibliotek", "branch_id": 13},
+                    {"name": "Bredstrup-Pjedsted Hallen", "branch_id": 38},
+                    {"name": "Brugsen Egeskov", "branch_id": 37},
+                    {"name": "Erritsø Idrætscenter", "branch_id": 36},
+                ],
+            },
+    }
 }
 
 
@@ -461,7 +465,7 @@ def _event_matches_search(event, normalized_query):
 
 
 def fetch_cached_ddb_events(kommune):
-    if kommune not in DDB_EVENT_API_URLS:
+    if kommune not in DDB_EVENT_API_URLS["kommuner"]:
         raise DDBEventFetchError(
             f"{kommune} is an invalid kommune.",
             status.HTTP_400_BAD_REQUEST,
@@ -480,10 +484,12 @@ def fetch_cached_ddb_events(kommune):
             )
         return cached_events
 
-    api_url = DDB_EVENT_API_URLS[kommune]["url"]
+    events_path = DDB_EVENT_API_URLS["events_path"]
+    api_url = DDB_EVENT_API_URLS["kommuner"][kommune]["base_url"]
+
 
     try:
-        resp = requests.get(api_url, timeout=15)
+        resp = requests.get(f"{api_url}{events_path}", timeout=15)
         resp.raise_for_status()
         raw_response_text = resp.text
         events = json.loads(raw_response_text)
