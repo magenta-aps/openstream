@@ -1,22 +1,32 @@
-# 2. Dashboard and Navigation
+# 2. Organizational structure
 
-The dashboard is your central hub for managing all aspects of your OpenStream account.
+OpenStream is structured hierarchically around organizations and roles. In this chapter, the organizational hierarchy and the available user roles in OpenStream will be introduced.
 
-## 2.1. The Main Dashboard
+## 2.1 Organizational hierarchy
+There are three levels:
 
-After logging in, you will land on the main dashboard. It provides a quick overview of your system's status, recent activities, and shortcuts to common tasks.
+### 2.1.1 Organization
+The top level. An organization can be, for example, "Lyngby-Taarbæk Municipality" or "Brøndby Municipality". At the organization level you can manage global templates, media, color schemes and fonts, which will be available for the whole organization.
 
-### 2.1.1. Key Metrics
+### 2.1.2 Sub-organization
+A subdivision within an organization, e.g. "Libraries" or "Care centres". Each sub-organization has its own sub-organization templates, which are created based on the global templates in the organization.
 
-- **Active Displays**: Number of screens currently online.
-- **Content Updates**: Recently modified slideshows and media.
+### 2.1.3 Department
+A specific unit under a sub-organization, e.g. "Lundtofte Library". At department level, content is created and screens are assigned. Each department has a dedicated subpage and its own slideshows, connected screens and calendar integration. This is typically where users work in OpenStream the most. All slideshows in a sub-organization are made based on the sub-organization templates.
 
-## 2.2. Navigation Bar
+## 2.2 Roles
+OpenStream has the following roles:
 
-The top navigation bar provides access to all major sections of the application:
+### 2.2.1 Organization administrator
+Has full rights in the organization. An organization administrator can manage the organization's users, change global settings, and access all sub-organizations and departments with full rights.
 
-- **Dashboard**: Returns you to the main dashboard.
-- **Content**: Manage slideshows, playlists, and media.
-- **Displays**: Manage your physical screens and players.
-- **Admin**: Administrative settings (users, themes, etc.).
-- **Documentation**: You are here!
+### 2.2.2 Sub-Organization Administrator
+Has full rights within a sub-organization. This role can manage all departments in the sub-organization and create new departments. Sub-organization administrators can also create sub-organization templates.
+
+### 2.2.3 Employee
+Has access to one or more specific departments and can work with content, as well as assign content to screens in their department(s).
+
+### 2.2.4 Flexible role distribution
+A user can be assigned several different roles in the same organization. For example, a user can be an employee in two different departments or be a sub-organization administrator in several sub-organizations. They can also be an employee in one department and a sub-organisation administrator in another department at the same time. The role distribution is flexible and managed by an organization administrator from the overview page.
+
+In some cases, users may be affiliated with multiple organizations. After logging in, the user can choose which organization they want to work in and they can change organization from the user action menu. Read more about the user action menu [here.](/documentation#05_User_And_Organisation#5x-user-action-menu)

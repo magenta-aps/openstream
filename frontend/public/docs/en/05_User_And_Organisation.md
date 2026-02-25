@@ -2,6 +2,8 @@
 
 Managing users and organizational settings.
 
+## 5.x User Action Menu
+
 ## 5.1. User Settings
 
 In your user settings, you can:
