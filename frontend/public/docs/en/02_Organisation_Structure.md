@@ -29,4 +29,4 @@ Has access to one or more specific departments and can work with content, as wel
 ### 2.2.4 Flexible role distribution
 A user can be assigned several different roles in the same organization. For example, a user can be an employee in two different departments or be a sub-organization administrator in several sub-organizations. They can also be an employee in one department and a sub-organisation administrator in another department at the same time. The role distribution is flexible and managed by an organization administrator from the overview page.
 
-In some cases, users may be affiliated with multiple organizations. After logging in, the user can choose which organization they want to work in and they can change organization from the user action menu. Read more about the user action menu [here.](/documentation#05_User_And_Organisation#5x-user-action-menu)
+In some cases, users may be affiliated with multiple organizations. After logging in, the user can choose which organization they want to work in and they can change organization from the user action menu. Read more about the user action menu [here.](#05_User_And_Organisation#5x-user-action-menu)
