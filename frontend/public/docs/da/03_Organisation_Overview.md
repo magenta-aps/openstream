@@ -36,6 +36,7 @@ Som **organisationsadministrator** har du den højeste adgangsrettighed og kan s
 
 En central funktion for organisationsadministratorer er muligheden for at administrere systemets brugere. Her introduceres hvilke muligheder, der er for bruger administration:
 
+<!-- Dette er udkommenteret, da oprettelse af brugere ikke er færdig udviklet endnu -->
 <!-- #### 3.3.1.1 Opret Brugere
 
 For at oprette en ny bruger, klik på **Administrer Brugere** og derefter **Tilføj Bruger**.
@@ -62,6 +63,7 @@ Dette åbner et administrationspanel, hvor du kan se en komplet oversigt over al
 
 I dette panel kan du udføre følgende handlinger:
 
-* **Fjern en rolle**: Vælg den pågældende bruger i sidemenuen for at se vedkommendes nuværende roller. Klik på **Fjern Adgang** ud for den rolle, du ønsker at fjerne.
 * **Tildel en ny rolle**: Under sektionen "Tilføj Nyt Underorganisation Medlemskab" vælger du den relevante underorganisation og rolle. For rollen **Medarbejder** skal du også specificere en afdeling. Klik på **+** ikonet for at tilføje den nye rolle.
+* **Fjern en rolle**: Vælg den pågældende bruger i sidemenuen for at se vedkommendes nuværende roller. Klik på **Fjern Adgang** ud for den rolle, du ønsker at fjerne.
+<!-- Dette er udkommenteret, da fjernelse af brugere ikke er færdig udviklet endnu -->
 <!-- * **Fjern en bruger permanent**: For at fjerne en bruger helt fra organisationen, skal du vælge brugeren og klikke på **Fjern fra organisation**. Alternativt vil en bruger blive fjernet fra organisationen, hvis alle deres roller og adgange manuelt fjernes. -->
