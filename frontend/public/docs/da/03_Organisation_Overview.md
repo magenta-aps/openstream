@@ -4,15 +4,11 @@ I dette kapitel vil organisationsoverblik-siden blive introduceret. Denne side b
 
 Organisationsoverblik-siden giver et samlet overblik over alle tilknyttede underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
 
----
-
 ## 3.1 Medarbejdervisning
 
 Som **medarbejder** vises overblikket over de afdelinger, du er tilknyttet. For at tilgå en specifik afdeling skal du blot klikke på **Vælg**.
 
 ![Visning for en medarbejder med adgang til to afdelinger](/docs/docs_images/da/employee_da_select_sub_org.png)
-
----
 
 ## 3.2 Underorganisationsadministrator visning
 
@@ -23,8 +19,6 @@ Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger i
 * Oprettelse af underorganisations skabeloner
 
 ![Visning for en underorganisationsadministrator](/docs/docs_images/da/suborg_admin_da_select_sub_org.png)
-
----
 
 ## 3.3 Organisationsadministrator visning
 
