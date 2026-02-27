@@ -68,7 +68,6 @@ export const DdbEventsApiSlideType = {
       }
 
       this._librariesData = await response.json();
-      console.log(this._librariesData)
       return this._librariesData;
     } catch (error) {
       console.error("Error fetching library data:", error);

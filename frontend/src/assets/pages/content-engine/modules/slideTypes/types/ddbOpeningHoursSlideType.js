@@ -129,6 +129,7 @@ function getSelectAllLibraries(ctx) {
  * @property {string} MunicipalityLibrary.name - A normalized name used for identification
  * @property {string} MunicipalityLibrary.label - A display name
  * @property {number} MunicipalityLibrary.branch_id - The branch id for the library within that municipality
+ * @property {boolean} MunicipalityLibrary.isSelected
  */
 
 /** @typedef {{ base_url: string, libraries: Array<MunicipalityLibrary>}} MunicipalityData */
@@ -139,14 +140,12 @@ function getSelectAllLibraries(ctx) {
  * @property {Record<string, MunicipalityData>} MunicipalityData.kommuner
  */
 
-/** @typedef {MunicipalityLibrary & { isSelected: boolean }} SelectedableLibrary*/
-
 export const DdbOpeningHoursSlideType = {
   /** @type {Context} Used for handling element fetching from the dom */
   _ctx: initContext(),
   /** @type {MunicipalitiesData} */
   _municipalitiesData: null,
-  /** @type {{libraries: Array<SelectedableLibrary>, areAllSelected: () => boolean, areSomeSelected: () => boolean}} */
+  /** @type {{libraries: Array<MunicipalityLibrary>, areAllSelected: () => boolean, areSomeSelected: () => boolean}} */
   _currentData: {
     libraries: [],
     areAllSelected() {
@@ -162,6 +161,8 @@ export const DdbOpeningHoursSlideType = {
 
   ...SlideTypeUtils.getDefaultSlideSettings(),
 
+  // SlideTypeRegistry required functions
+
   generateForm(existingConfig = null) {
     return SlideTypeUtils.loadFormTemplateWithCallback(
       "/slide-types/ddb-opening-hours-form",
@@ -172,6 +173,45 @@ export const DdbOpeningHoursSlideType = {
       },
     );
   },
+
+  extractFormData() {
+    return {
+      libraries: this._currentData.libraries,
+    };
+  },
+
+  /**
+   * @param {MunicipalityData} config
+   */
+  generateSlide(config) {
+    const params = {};
+
+    const selectedLibraries = config.libraries.filter(
+      (library) => library.isSelected,
+    );
+    if (selectedLibraries.length > 0) {
+      params.selectedLibraries = selectedLibraries
+        .map((library) => library.label)
+        .join(",");
+    }
+
+    return SlideTypeUtils.generateSlideUrl(
+      "/slide-types/ddb-opening-hours",
+      params,
+      "DDB opening hours",
+    );
+  },
+
+  generateSlideData() {
+    const defaults = SlideTypeUtils.getDefaultSlideSettings();
+
+    return {
+      ...defaults,
+      integrationName: "Det Digitale Folkebibliotek åbningstider API",
+    };
+  },
+
+  // Component functions
 
   async initMunicipalitySelection() {
     await this.fetchLibrariesData();
@@ -392,6 +432,8 @@ export const DdbOpeningHoursSlideType = {
       (library) => (library.isSelected = selectionState),
     );
   },
+
+  // Util functions
 
   /**
    * @description
