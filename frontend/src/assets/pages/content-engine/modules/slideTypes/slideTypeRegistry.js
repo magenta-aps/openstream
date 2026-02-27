@@ -118,13 +118,13 @@ export const SlideTypeUtils = {
           <meta charset="UTF-8">
           <title>${slideTypeName} - Error</title>
           <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              display: flex; 
-              align-items: center; 
-              justify-content: center; 
-              height: 100vh; 
-              margin: 0; 
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
               background-color: #f8f9fa;
             }
             .error-container {
@@ -401,6 +401,11 @@ class SlideTypeRegistry {
         "./types/frontdeskLtkBorgerserviceSlideType.js"
       );
       this.registerSlideType(10, FrontdeskLtkBorgerserviceSlideType);
+
+      const { DdbOpeningHoursSlideType } = await import(
+        "./types/ddbOpeningHoursSlideType.js"
+      );
+      this.registerSlideType(12, DdbOpeningHoursSlideType);
     } catch (error) {
       console.warn("Some slide types could not be loaded:", error);
     }
