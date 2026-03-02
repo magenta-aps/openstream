@@ -1,9 +1,11 @@
+@use "../../scss/colors.scss";
+
 .opening-hour-date {
     font-size: 20px;
 }
 
 #opening-hours-list .opening-hour-container:nth-child(2):not(:only-child) {
-    background-color: gray;
+    background-color: colors.$dark-gray;
 }
 
 .opening-hour-container {

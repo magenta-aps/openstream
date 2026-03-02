@@ -12,7 +12,7 @@ import {
  * @typedef {Object} Context
  * @property {string} baseURL
  * @property {string} branchID
- * @property {Array<string>} selectedLibrary
+ * @property {string} libraryName
  * @property {string} days
  */
 
@@ -20,9 +20,10 @@ import {
 const ctx = {
   baseURL: queryParams.baseURL,
   branchID: queryParams.branchID,
-  selectedLibrary: queryParams.selectedLibrary,
+  libraryName: queryParams.libraryName,
   days: queryParams.days,
 };
+console.log(ctx);
 
 /**
  * @typedef {Object} ElementContext

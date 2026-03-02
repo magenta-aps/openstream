@@ -4,12 +4,10 @@ import { shouldUseApiKeyInSlideTypeIframe } from "../../../../../utils/utils";
 import { SlideTypeUtils } from "../slideTypeRegistry";
 
 /**
- * @typedef {Object} Context
- * @property {HTMLElement} context.libraryGridEl
- * @property {HTMLSelectElement} context.kommuneSelectEl
- * @property {HTMLElement} context.selectAllLibrariesWrapperEl
- * @property {HTMLInputElement} context.selectAllLibrariesEl
- * @property {HTMLElement} context.selectLibrariesPlaceholderEl
+ * @typedef {Object} DomCtx
+ * @property {HTMLSelectElement} context.municipalitySelectEl
+ * @property {HTMLSelectElement} context.librarySelectEl
+ * @property {HTMLInputElement} context.daysInputEl
  */
 
 /**
@@ -27,101 +25,67 @@ function getElementByID(elementID) {
   return element;
 }
 
-/** @returns {Context} */
-function initContext() {
-  return {
-    libraryGridEl: null,
-    kommuneSelectEl: null,
-    selectAllLibrariesWrapperEl: null,
-    selectAllLibrariesEl: null,
-    selectLibrariesPlaceholderEl: null,
+/** @returns {DomCtx} */
+function initDomCtx() {
+  const ctxPrimitive = {
+    librarySelectEl: null,
+    municipalitySelectEl: null,
+    daysInputEl: null,
   };
-}
 
-/**
- * @param {Context} ctx
- * @returns {HTMLSelectElement}
- */
-function getMunicipalitySelect(ctx) {
-  if (!ctx.kommuneSelectEl) {
-    const munincipalitySelectEl = getElementByID(
-      "ddb-opening-hours-kommune-select",
-    );
-    if (!(munincipalitySelectEl instanceof HTMLSelectElement)) {
-      console.error(
-        "Could not find munincipality select element, or is not a select element",
-      );
-      return;
-    }
+  return {
+    get municipalitySelectEl() {
+      if (!ctxPrimitive.municipalitySelectEl) {
+        const munincipalitySelectEl = getElementByID(
+          "ddb-opening-hours-kommune-select",
+        );
+        if (!(munincipalitySelectEl instanceof HTMLSelectElement)) {
+          console.error(
+            "Could not find munincipality select element, or is not a select element",
+          );
+          return;
+        }
 
-    ctx.kommuneSelectEl = munincipalitySelectEl;
-  }
+        ctxPrimitive.kommuneSelectEl = munincipalitySelectEl;
+      }
+      return ctxPrimitive.kommuneSelectEl;
+    },
 
-  return ctx.kommuneSelectEl;
-}
+    get librarySelectEl() {
+      if (!ctxPrimitive.librarySelectEl) {
+        const librarySelectEl = getElementByID(
+          "ddb-opening-hours-library-select",
+        );
+        if (!(librarySelectEl instanceof HTMLSelectElement)) {
+          console.error(
+            "Could not find library select element, or is not a select element",
+          );
+          return;
+        }
 
-/**
- * @param {Context} ctx
- * @returns {HTMLElement}
- */
-function getLibraryGrid(ctx) {
-  if (!ctx.libraryGridEl) {
-    const libraryGrid = getElementByID(
-      "ddb-opening-hours-library-checkbox-grid",
-    );
-    ctx.libraryGridEl = libraryGrid;
-  }
+        ctxPrimitive.librarySelectEl = librarySelectEl;
+      }
 
-  return ctx.libraryGridEl;
-}
+      return ctxPrimitive.librarySelectEl;
+    },
+    get daysInputEl() {
+      if (!ctxPrimitive.daysInputEl) {
+        const daysInputEl = getElementByID(
+          "ddb-opening-hours-nr-of-days-input",
+        );
+        if (!(daysInputEl instanceof HTMLInputElement)) {
+          console.error(
+            "Could not find days input element, or is not a input element",
+          );
+          return;
+        }
 
-/**
- * @param {Context} ctx
- * @returns {HTMLElement}
- */
-function getLibraryPlaceHolder(ctx) {
-  if (!ctx.selectLibrariesPlaceholderEl) {
-    const libraryPlaceholder = getElementByID(
-      "ddb-opening-hours-library-checkbox-placeholder",
-    );
-    ctx.selectLibrariesPlaceholderEl = libraryPlaceholder;
-  }
+        ctxPrimitive.daysInputEl = daysInputEl;
+      }
 
-  return ctx.selectLibrariesPlaceholderEl;
-}
-
-/**
- * @param {Context} ctx
- * @returns {HTMLElement}
- */
-function getSelectAllLibrariesWrapper(ctx) {
-  if (!ctx.selectAllLibrariesWrapperEl) {
-    const selectAll = getElementByID(
-      "ddb-opening-hours-library-select-all-wrapper",
-    );
-
-    ctx.selectAllLibrariesWrapperEl = selectAll;
-  }
-
-  return ctx.selectAllLibrariesWrapperEl;
-}
-
-/**
- * @param {Context} ctx
- * @returns {HTMLInputElement}
- */
-function getSelectAllLibraries(ctx) {
-  if (!ctx.selectAllLibrariesEl) {
-    const selectAll = getElementByID("ddb-opening-hours-library-select-all");
-
-    if (!(selectAll instanceof HTMLInputElement)) {
-      return;
-    }
-
-    ctx.selectAllLibrariesEl = selectAll;
-  }
-
-  return ctx.selectAllLibrariesEl;
+      return ctxPrimitive.daysInputEl;
+    },
+  };
 }
 
 /**
@@ -141,19 +105,18 @@ function getSelectAllLibraries(ctx) {
  */
 
 export const DdbOpeningHoursSlideType = {
-  /** @type {Context} Used for handling element fetching from the dom */
-  _ctx: initContext(),
+  /** @type {DomCtx} Used for handling element fetching from the dom */
+  _domCtx: initDomCtx(),
   /** @type {MunicipalitiesData} */
   _municipalitiesData: null,
-  /** @type {{libraries: Array<MunicipalityLibrary>, areAllSelected: () => boolean, areSomeSelected: () => boolean}} */
+  /** @type {string} */
+  _selectedMunicipality: null,
+  /** @type {{baseURL: string, selectedLibrary: MunicipalityLibrary, branchID: number, days: string}} */
   _currentData: {
-    libraries: [],
-    areAllSelected() {
-      return this.libraries.every((library) => library.isSelected);
-    },
-    areSomeSelected() {
-      return this.libraries.some((library) => library.isSelected);
-    },
+    baseURL: null,
+    selectedLibrary: null,
+    branchID: null,
+    days: null,
   },
   name: "DDB Opening Hours",
   description: "Display events from the Danish Digital Library",
@@ -174,30 +137,34 @@ export const DdbOpeningHoursSlideType = {
     );
   },
 
+  /**
+   * @typedef {Object} FormConfig
+   * @property {string} baseURL
+   * @property {string} libraryName
+   * @property {number} branchID
+   * @property {string} days
+   */
+
+  /**
+   *
+   * @returns {FormConfig}
+   */
   extractFormData() {
     return {
-      libraries: this._currentData.libraries,
+      baseURL: this._currentData.baseURL,
+      libraryName: this._currentData.selectedLibrary.label,
+      branchID: this._currentData.selectedLibrary.branch_id,
+      days: this._currentData.days,
     };
   },
 
   /**
-   * @param {MunicipalityData} config
+   * @param {FormConfig} config
    */
   generateSlide(config) {
-    const params = {};
-
-    const selectedLibraries = config.libraries.filter(
-      (library) => library.isSelected,
-    );
-    if (selectedLibraries.length > 0) {
-      params.selectedLibraries = selectedLibraries
-        .map((library) => library.label)
-        .join(",");
-    }
-
     return SlideTypeUtils.generateSlideUrl(
       "/slide-types/ddb-opening-hours",
-      params,
+      config,
       "DDB opening hours",
     );
   },
@@ -217,7 +184,8 @@ export const DdbOpeningHoursSlideType = {
     await this.fetchLibrariesData();
     if (!this._municipalitiesData) return;
 
-    const munincipalitySelectEl = getMunicipalitySelect(this._ctx);
+    // municipality init
+    const munincipalitySelectEl = this._domCtx.municipalitySelectEl;
 
     const emptyOption = new Option(gettext("Select municipality"), "");
     munincipalitySelectEl.options.add(emptyOption);
@@ -233,6 +201,52 @@ export const DdbOpeningHoursSlideType = {
 
       this.updateLibrarySelection(target.value);
     });
+
+    // library init
+    const librarySelectEl = this._domCtx.librarySelectEl;
+    librarySelectEl.addEventListener("change", (event) =>
+      this.setSelectedLibrary(event),
+    );
+
+    // days init
+    const daysInputEl = this._domCtx.daysInputEl;
+    daysInputEl.addEventListener("change", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement)) {
+        console.error("Expected input element");
+        return;
+      }
+
+      this._currentData.days = target.value;
+    });
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setSelectedLibrary(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLSelectElement)) {
+      console.error("expected target to be of type select");
+      return;
+    }
+    // handle empty value option
+    if (!target.value) {
+      return;
+    }
+
+    const selectedMunicipality =
+      this._municipalitiesData.kommuner[this._selectedMunicipality];
+    const selectedLibrary = selectedMunicipality.libraries.find(
+      (library) => library.name === target.value,
+    );
+    if (!selectedLibrary) {
+      console.error("Could not find library when it was expected");
+    }
+
+    this._currentData.baseURL = selectedMunicipality.base_url;
+    this._currentData.selectedLibrary = selectedLibrary;
+    this._currentData.branchID = selectedLibrary.branch_id;
   },
 
   /**
@@ -247,17 +261,11 @@ export const DdbOpeningHoursSlideType = {
     const municipalityData =
       this._municipalitiesData.kommuner[selectedMunincipality];
     if (municipalityData) {
-      this._currentData.libraries = municipalityData.libraries.map(
-        (library) => ({
-          ...library,
-          name: this.normalizeLibraryName(library.name),
-          label: library.name,
-          isSelected: false,
-        }),
-      );
+      this._selectedMunicipality = selectedMunincipality;
       this.displayLibraries(municipalityData);
     } else {
-      this._currentData.libraries = [];
+      this._selectedMunicipality = null;
+      this._currentData.selectedLibrary = null;
       this.displayNoLibraries();
     }
   },
@@ -267,15 +275,15 @@ export const DdbOpeningHoursSlideType = {
    * Used to set the library section the default none selected state
    */
   displayNoLibraries() {
-    const libraryGrid = getLibraryGrid(this._ctx);
-    libraryGrid.innerHTML = "";
+    const librarySelect = this._domCtx.librarySelectEl;
 
-    this.setSelectAllVisibility(false);
+    librarySelect.innerHTML = "";
 
-    const selectLibrariesPlaceholderEl = getLibraryPlaceHolder(this._ctx);
-    selectLibrariesPlaceholderEl.textContent = gettext(
-      "Select a municipality to load libraries.",
+    const emptyOption = new Option(
+      gettext("Select a municipality to load libraries."),
+      "",
     );
+    librarySelect.options.add(emptyOption);
   },
 
   /**
@@ -284,153 +292,22 @@ export const DdbOpeningHoursSlideType = {
    * @param {MunicipalityData} municipalityData
    */
   displayLibraries(municipalityData) {
-    const selectLibrariesPlaceholderEl = getLibraryPlaceHolder(this._ctx);
-    selectLibrariesPlaceholderEl.textContent = "";
+    const librarySelectEl = this._domCtx.librarySelectEl;
 
-    const libraryGrid = getLibraryGrid(this._ctx);
-    libraryGrid.innerHTML = "";
+    // reset from previous state
+    librarySelectEl.innerHTML = "";
 
-    const LibraryFormElements = municipalityData.libraries.map((library, i) => {
-      const checkboxID = `ddb-opening-hours-library-${i}`;
+    const emptyOption = new Option(
+      gettext("Select a municipality to load libraries."),
+      "",
+    );
+    librarySelectEl.options.add(emptyOption);
 
-      const label = document.createElement("label");
-      label.className = "form-check-label";
-      label.setAttribute("for", checkboxID);
-      label.textContent = library.name;
+    municipalityData.libraries.forEach((library) => {
+      const option = new Option(library.label, library.name);
 
-      const normalizedValue = this.normalizeLibraryName(library.name);
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.className = "form-check-input";
-      checkbox.id = checkboxID;
-      checkbox.value = normalizedValue;
-      checkbox.dataset.label = library.name;
-      checkbox.checked = false;
-
-      checkbox.addEventListener("change", (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement)) {
-          return;
-        }
-
-        const libraryIndex = this._currentData.libraries.findIndex(
-          (library) => library.name === target.value,
-        );
-        this._currentData.libraries[libraryIndex].isSelected = target.checked;
-
-        const selectAllLibrariesEl = getSelectAllLibraries(this._ctx);
-        if (this._currentData.areAllSelected()) {
-          selectAllLibrariesEl.indeterminate = false;
-          selectAllLibrariesEl.checked = true;
-        } else if (this._currentData.areSomeSelected()) {
-          selectAllLibrariesEl.checked = false;
-          selectAllLibrariesEl.indeterminate = true;
-        } else {
-          selectAllLibrariesEl.checked = false;
-          selectAllLibrariesEl.indeterminate = false;
-        }
-      });
-
-      return { label, checkbox };
+      librarySelectEl.options.add(option);
     });
-    if (LibraryFormElements.length === 0) {
-      return;
-    }
-
-    this.setSelectAllVisibility(true);
-
-    LibraryFormElements.forEach(({ label, checkbox }) => {
-      const column = document.createElement("div");
-      column.className = "col mb-2";
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "form-check";
-      wrapper.append(checkbox);
-      wrapper.append(label);
-
-      column.append(wrapper);
-
-      libraryGrid.append(column);
-    });
-  },
-
-  /**
-   * @param {boolean} isVisible
-   */
-  setSelectAllVisibility(isVisible) {
-    const selectAllWrapper = getSelectAllLibrariesWrapper(this._ctx);
-    const selectAll = getSelectAllLibraries(this._ctx);
-
-    const eventType = "change";
-    /** @type {(event: Event) => void} */
-    const eventHandler = (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLInputElement)) return;
-
-      if (target.checked) {
-        this.setSelectionForAll(true);
-      } else {
-        this.setSelectionForAll(false);
-      }
-    };
-
-    const visibilityClass = "d-none";
-    if (isVisible) {
-      selectAll.addEventListener(eventType, eventHandler);
-      selectAllWrapper.classList.remove(visibilityClass);
-    } else {
-      selectAll.removeEventListener(eventType, eventHandler);
-      selectAllWrapper.classList.add(visibilityClass);
-    }
-  },
-
-  /**
-   * @description
-   * set the selection state by name
-   * @param {string} libraryName - Name of the library
-   * @param {boolean} selectionState - The selection state to set the library to
-   */
-  setSelectionByName(libraryName, selectionState) {
-    const libraryIndex = this._currentData.libraries.findIndex(
-      (library) => library.name === libraryName,
-    );
-    if (libraryIndex < 0) {
-      console.error(`Could not set state of ${libraryName}`);
-      return;
-    }
-
-    const libraryGrid = getLibraryGrid(this._ctx);
-    /** @type {HTMLInputElement} */
-    const libraryCheckbox = libraryGrid.querySelector(
-      `input[type="checkbox"][value=${libraryName}]`,
-    );
-    if (!libraryCheckbox) {
-      console.error(`Could not find checkbox with value of ${libraryName}`);
-      return;
-    }
-
-    this._currentData.libraries[libraryIndex].isSelected = selectionState;
-    libraryCheckbox.checked = selectionState;
-  },
-
-  /**
-   * @description
-   * set the selection state for all libraries
-   * @param {boolean} selectionState - the selection state to set the library
-   */
-  setSelectionForAll(selectionState) {
-    const libraryGrid = getLibraryGrid(this._ctx);
-    /** @type {NodeListOf<HTMLInputElement>} */
-    const libraryCheckboxes = libraryGrid.querySelectorAll(
-      "input[type='checkbox']",
-    );
-    libraryCheckboxes.forEach((checkbox) => {
-      checkbox.checked = selectionState;
-    });
-    this._currentData.libraries.forEach(
-      (library) => (library.isSelected = selectionState),
-    );
   },
 
   // Util functions
@@ -477,8 +354,17 @@ export const DdbOpeningHoursSlideType = {
         throw new Error(`Failed to fetch library data: ${response.statusText}`);
       }
 
-      this._municipalitiesData = await response.json();
-      return this._municipalitiesData;
+      /** @type {MunicipalitiesData} */
+      const municipalitiesData = await response.json();
+      Object.values(municipalitiesData.kommuner).forEach((kommune) => {
+        kommune.libraries = kommune.libraries.map((library) => ({
+          ...library,
+          label: library.name,
+          name: this.normalizeLibraryName(library.name),
+        }));
+      });
+
+      this._municipalitiesData = municipalitiesData;
     } catch (error) {
       console.error("Error fetching library data:", error);
       return {};

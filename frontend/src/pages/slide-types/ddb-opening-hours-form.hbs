@@ -19,24 +19,11 @@
             {{/section}}
 
             {{#> section}}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="form-label mb-0">{% trans "Choose libraries:" %}</span>
-                    <div id="ddb-opening-hours-library-select-all-wrapper" class="d-flex justify-content-end align-items-center d-none">
-                        <div class="form-check m-0">
-                            <input class="form-check-input" type="checkbox" id="ddb-opening-hours-library-select-all" data-select-all="true" />
-                            <label class="form-check-label small" for="ddb-opening-hours-library-select-all">{% trans "Select all" %}</label>
-                        </div>
-                    </div>
-                </div>
+                <label class="form-label mb-1">{% trans "Choose libraries:" %}</label>
 
-                <div id="ddb-opening-hours-library-checkbox-container" class="border border-gray rounded px-3 pb-1 bg-light">
-                    <div id="ddb-opening-hours-library-checkbox-placeholder" class="text-muted small">
-                        {% trans "Select a municipality to load libraries." %}
-                    </div>
-
-                    <div id="ddb-opening-hours-library-checkbox-grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 mt-2">
-                    </div>
-                </div>
+                <select required id="ddb-opening-hours-library-select" class="form-select border-gray">
+                    <option value="">{% trans "Select a municipality to load libraries." %}</option>
+                </select>
 
                 <small class="text-muted d-block mt-2">{% trans "Select one or more libraries to include in the slide." %}</small>
             {{/section}}
