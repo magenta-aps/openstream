@@ -2,14 +2,21 @@
 
 .opening-hour-date {
     font-size: 20px;
+    font-weight: 600;
 }
 
-#opening-hours-list .opening-hour-container:nth-child(2):not(:only-child) {
-    background-color: colors.$dark-gray;
+#opening-hours-list {
+    display: flex;
+    flex-direction: column;
+    row-gap: 2rem;
+
+    & .opening-hour-container:nth-child(2):not(:only-child) {
+        background-color: colors.$dark-gray;
+        color: colors.$white;
+    }
 }
 
 .opening-hour-container {
-    background-color: wheat;
     font-size: 18px;
     padding: 2px;
     display: flex;

@@ -1,12 +1,6 @@
 import "./style.scss";
-
-import { BASE_URL } from "../../utils/constants";
 import { gettext } from "../../utils/locales";
-import {
-  genericFetch,
-  queryParams,
-  shouldUseApiKeyInSlideTypeIframe,
-} from "../../utils/utils";
+import { queryParams } from "../../utils/utils";
 
 /**
  * @typedef {Object} Context
@@ -43,47 +37,38 @@ const domCtx = {
 };
 
 // dom initialization
-(function init() {
-  const openingHours = [
-    {
-      date: new Date(),
-      types: [
-        {
-          name: "selvbetjening",
-          startTime: "10:00",
-          endTime: "1700",
-        },
-        {
-          name: "betjening",
-          startTime: "10:00",
-          endTime: "1700",
-        },
-      ],
-    },
-  ];
+(async function init() {
+  const [openingHours, isOk] = await fetchOpeningHours();
+  if (!isOk) {
+    console.error("Failed retrieve opening hours");
+    return;
+  }
 
   const openingHoursListEl = domCtx.openingHoursList;
-  openingHours.forEach((openingHours) => {
-    const dateEl = document.createElement("span");
-    dateEl.classList.add("opening-hour-date");
-    dateEl.textContent = new Intl.DateTimeFormat("da-dk", {
+  openingHours.entries().forEach(([date, openingHours]) => {
+    // used to apply gap between dates
+    const dateWrapperEl = document.createElement("div");
+
+    const dateTitleEl = document.createElement("span");
+    dateTitleEl.classList.add("opening-hour-date");
+    dateTitleEl.textContent = new Intl.DateTimeFormat("da-dk", {
       weekday: "long",
       month: "2-digit",
       day: "2-digit",
-    }).format(openingHours.date);
+    }).format(new Date(date));
 
     const dividerEl = document.createElement("hr");
 
-    openingHoursListEl.appendChild(dateEl);
-    openingHoursListEl.appendChild(dividerEl);
+    dateWrapperEl.appendChild(dateTitleEl);
+    dateWrapperEl.appendChild(dividerEl);
 
     const openingHoursWrapper = document.createElement("div");
-    openingHours.types.forEach((openingHourType) => {
+    openingHours.forEach((openingHourType) => {
       const openingHourContainerEl = document.createElement("div");
       openingHourContainerEl.classList.add("opening-hour-container");
 
       const openingHourNameEl = document.createElement("span");
-      openingHourNameEl.textContent = openingHourType.name;
+      openingHourNameEl.textContent = openingHourType.categoryTitle;
 
       const openingHourFromToEl = document.createElement("span");
       openingHourFromToEl.textContent = `${openingHourType.startTime}-${openingHourType.endTime}`;
@@ -94,13 +79,64 @@ const domCtx = {
       openingHoursWrapper.appendChild(openingHourContainerEl);
     });
 
-    openingHoursListEl.appendChild(openingHoursWrapper);
+    dateWrapperEl.appendChild(openingHoursWrapper);
+    openingHoursListEl.appendChild(dateWrapperEl);
   });
 })();
 
-function fetchOpeningHours() {
-  const openingHours = genericFetch(
-    `${ctx.baseURL}/opening-hours?_format=json&branch_id=${ctx.branchID}&from_date=&to_date`,
-    "GET",
-  );
+/**
+ * @typedef {Map<string, {categoryTitle: string, startTime: string, endTime: string}[]>} OpeningHoursMap
+ */
+
+/**
+ *
+ * @returns {Promise<[OpeningHoursMap, boolean]>}
+ */
+async function fetchOpeningHours() {
+  const from = new Date();
+  from.setUTCHours(0, 0);
+  const to = new Date();
+  to.setDate(from.getDate() + Number(ctx.days) - 1); // subtract 1 as if days is set to one, we assume the user means just that one day
+  to.setUTCHours(23, 59);
+
+  try {
+    const response = await fetch(
+      new URL(
+        `${ctx.baseURL}/opening_hours?_format=json&branch_id=${ctx.branchID}&from_date=${from.toISOString()}&to_date=${to.toISOString()}`,
+      ),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    if (!response.ok) {
+      return [null, false];
+    }
+
+    // some data from the type has been omitted, due to not being relevant or inconsistent
+    /** @type {Array<{branch_id: number, category: { title: string, color: string}, date: string, start_time: string, end_time: string, id: number, }>} */
+    const data = await response.json();
+
+    /** @type {OpeningHoursMap} */
+    const openingHoursMap = new Map();
+    data.forEach((openingHour) => {
+      const date = openingHour.date;
+      if (!openingHoursMap.has(date)) {
+        openingHoursMap.set(date, []);
+      }
+
+      const openingHours = openingHoursMap.get(date);
+      openingHours.push({
+        categoryTitle: openingHour.category.title,
+        startTime: openingHour.start_time,
+        endTime: openingHour.end_time,
+      });
+    });
+
+    return [openingHoursMap, true];
+  } catch {
+    console.error("Failed to fetch opening hours");
+    return [null, false];
+  }
 }
