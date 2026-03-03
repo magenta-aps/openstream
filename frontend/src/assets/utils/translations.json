@@ -1937,6 +1937,12 @@
   "Clock Font Size (rem)": {
     "da": "Ur skrift størrelse (rem)"
   },
+  "Date font size": {
+    "da": "Dato skriftstørrelse"
+  },
+  "Opening hours font size": {
+    "da": "Åbningstider skriftstørrelse"
+  },
   "Weather Font Size (rem)": {
     "da": "Vejr skrift størrelse (rem)"
   },

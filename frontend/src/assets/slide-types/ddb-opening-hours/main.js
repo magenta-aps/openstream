@@ -6,35 +6,49 @@ import { queryParams } from "../../utils/utils";
  * @typedef {Object} Context
  * @property {string} baseURL
  * @property {string} branchID
- * @property {string} libraryName
  * @property {string} days
+ * @property {string} dateHeaderFontSize
+ * @property {string} listElementFontSize
  */
 
 /** @type {Context} */
 const ctx = {
   baseURL: queryParams.baseURL,
   branchID: queryParams.branchID,
-  libraryName: queryParams.libraryName,
   days: queryParams.days,
+  dateHeaderFontSize: queryParams.dateHeaderFontSize,
+  listElementFontSize: queryParams.listElementFontSize,
 };
 console.log(ctx);
 
 /**
- * @typedef {Object} ElementContext
- * @property {HTMLElement} ElementContext._openingHoursList
- * @property {HTMLElement} ElementContext.openingHoursList
+ * @typedef {Object} DomCtx
+ * @property {HTMLElement} DomCtx.openingHoursList
  */
 
-/** @type {ElementContext} */
-const domCtx = {
-  _openingHoursList: null,
-  get openingHoursList() {
-    if (!this._openingHoursList) {
-      this._openingHoursList = document.getElementById("opening-hours-list");
-    }
-    return this._openingHoursList;
-  },
-};
+/**
+ *
+ * @returns {DomCtx}
+ */
+function initDomCtx() {
+  /** @type {DomCtx} */
+  const domCtxPrimitive = {
+    openingHoursList: null,
+  };
+
+  return {
+    get openingHoursList() {
+      if (!domCtxPrimitive.openingHoursList) {
+        domCtxPrimitive.openingHoursList =
+          document.getElementById("opening-hours-list");
+      }
+
+      return domCtxPrimitive.openingHoursList;
+    },
+  };
+}
+/** @type {DomCtx} */
+const domCtx = initDomCtx();
 
 // dom initialization
 (async function init() {
@@ -50,6 +64,7 @@ const domCtx = {
     const dateWrapperEl = document.createElement("div");
 
     const dateTitleEl = document.createElement("span");
+    dateTitleEl.style.fontSize = `${ctx.dateHeaderFontSize}px`;
     dateTitleEl.classList.add("opening-hour-date");
     dateTitleEl.textContent = new Intl.DateTimeFormat("da-dk", {
       weekday: "long",
@@ -57,21 +72,24 @@ const domCtx = {
       day: "2-digit",
     }).format(new Date(date));
 
-    const dividerEl = document.createElement("hr");
+    const dividerEl = document.createElement("div");
+    dividerEl.classList.add("opening-hour-divider");
 
     dateWrapperEl.appendChild(dateTitleEl);
     dateWrapperEl.appendChild(dividerEl);
 
     const openingHoursWrapper = document.createElement("div");
-    openingHours.forEach((openingHourType) => {
+    openingHours.forEach((openingHourCategory) => {
       const openingHourContainerEl = document.createElement("div");
       openingHourContainerEl.classList.add("opening-hour-container");
 
       const openingHourNameEl = document.createElement("span");
-      openingHourNameEl.textContent = openingHourType.categoryTitle;
+      openingHourNameEl.style.fontSize = `${ctx.listElementFontSize}px`;
+      openingHourNameEl.textContent = openingHourCategory.categoryTitle;
 
       const openingHourFromToEl = document.createElement("span");
-      openingHourFromToEl.textContent = `${openingHourType.startTime}-${openingHourType.endTime}`;
+      openingHourFromToEl.style.fontSize = `${ctx.listElementFontSize}px`;
+      openingHourFromToEl.textContent = `${openingHourCategory.startTime}-${openingHourCategory.endTime}`;
 
       openingHourContainerEl.appendChild(openingHourNameEl);
       openingHourContainerEl.appendChild(openingHourFromToEl);

@@ -5,9 +5,11 @@ import { SlideTypeUtils } from "../slideTypeRegistry";
 
 /**
  * @typedef {Object} DomCtx
- * @property {HTMLSelectElement} context.municipalitySelectEl
- * @property {HTMLSelectElement} context.librarySelectEl
- * @property {HTMLInputElement} context.daysInputEl
+ * @property {HTMLSelectElement} DomCtx.municipalitySelectEl
+ * @property {HTMLSelectElement} DomCtx.librarySelectEl
+ * @property {HTMLInputElement} DomCtx.daysInputEl
+ * @property {HTMLSelectElement} DomCtx.dateHeaderFontSizeEl
+ * @property {HTMLSelectElement} DomCtx.listElementFontSizeEl
  */
 
 /**
@@ -25,12 +27,15 @@ function getElementByID(elementID) {
   return element;
 }
 
-/** @returns {DomCtx} */
+/** @returns {DomCtx & {resetCtx: () => void}} */
 function initDomCtx() {
+  /** @type {DomCtx} */
   const ctxPrimitive = {
     librarySelectEl: null,
     municipalitySelectEl: null,
     daysInputEl: null,
+    dateHeaderFontSizeEl: null,
+    listElementFontSizeEl: null,
   };
 
   return {
@@ -46,9 +51,9 @@ function initDomCtx() {
           return;
         }
 
-        ctxPrimitive.kommuneSelectEl = munincipalitySelectEl;
+        ctxPrimitive.municipalitySelectEl = munincipalitySelectEl;
       }
-      return ctxPrimitive.kommuneSelectEl;
+      return ctxPrimitive.municipalitySelectEl;
     },
 
     get librarySelectEl() {
@@ -85,6 +90,49 @@ function initDomCtx() {
 
       return ctxPrimitive.daysInputEl;
     },
+    get dateHeaderFontSizeEl() {
+      if (!ctxPrimitive.dateHeaderFontSizeEl) {
+        const dateHeaderFontSizeEl = getElementByID(
+          "ddb-opening-hours-date-header-font-size",
+        );
+        if (!(dateHeaderFontSizeEl instanceof HTMLSelectElement)) {
+          console.error(
+            "Could not find date header font size select element, or is not a select element",
+          );
+          return;
+        }
+
+        ctxPrimitive.dateHeaderFontSizeEl = dateHeaderFontSizeEl;
+      }
+
+      return ctxPrimitive.dateHeaderFontSizeEl;
+    },
+
+    get listElementFontSizeEl() {
+      if (!ctxPrimitive.listElementFontSizeEl) {
+        const listElementFontSizeEl = getElementByID(
+          "ddb-opening-hours-list-element-font-size",
+        );
+        if (!(listElementFontSizeEl instanceof HTMLSelectElement)) {
+          console.error(
+            "Could not find list element font size element, or is not a select element",
+          );
+          return;
+        }
+
+        ctxPrimitive.listElementFontSizeEl = listElementFontSizeEl;
+      }
+
+      return ctxPrimitive.listElementFontSizeEl;
+    },
+
+    resetCtx() {
+      ctxPrimitive.municipalitySelectEl = null;
+      ctxPrimitive.librarySelectEl = null;
+      ctxPrimitive.daysInputEl = null;
+      ctxPrimitive.dateHeaderFontSizeEl = null;
+      ctxPrimitive.listElementFontSizeEl = null;
+    },
   };
 }
 
@@ -104,19 +152,31 @@ function initDomCtx() {
  * @property {Record<string, MunicipalityData>} MunicipalityData.kommuner
  */
 
+/**
+ * @typedef {Object} CurrentData
+ * @property {string} CurrentData.selectedMunicipality
+ * @property {string} CurrentData.baseURL
+ * @property {MunicipalityLibrary} CurrentData.selectedLibrary
+ * @property {number} CurrentData.branchID
+ * @property {string} CurrentData.days
+ * @property {string} CurrentData.dateHeaderFontSize
+ * @property {string} CurrentData.listElementFontSize
+ */
+
 export const DdbOpeningHoursSlideType = {
-  /** @type {DomCtx} Used for handling element fetching from the dom */
   _domCtx: initDomCtx(),
   /** @type {MunicipalitiesData} */
   _municipalitiesData: null,
-  /** @type {string} */
-  _selectedMunicipality: null,
-  /** @type {{baseURL: string, selectedLibrary: MunicipalityLibrary, branchID: number, days: string}} */
+
+  /** @type {CurrentData} */
   _currentData: {
+    selectedMunicipality: null,
     baseURL: null,
     selectedLibrary: null,
     branchID: null,
     days: null,
+    dateHeaderFontSize: null,
+    listElementFontSize: null,
   },
   name: "DDB Opening Hours",
   description: "Display events from the Danish Digital Library",
@@ -126,23 +186,29 @@ export const DdbOpeningHoursSlideType = {
 
   // SlideTypeRegistry required functions
 
+  /**
+   * @param {FormConfig} [existingConfig=null]
+   */
   generateForm(existingConfig = null) {
     return SlideTypeUtils.loadFormTemplateWithCallback(
       "/slide-types/ddb-opening-hours-form",
       "DDB opening hours",
       () => {
         translateHTML();
-        this.initMunicipalitySelection();
+        this.initMunicipalitySelection(existingConfig);
       },
     );
   },
 
   /**
    * @typedef {Object} FormConfig
-   * @property {string} baseURL
-   * @property {string} libraryName
-   * @property {number} branchID
-   * @property {string} days
+   * @property {string} FormConfig.selectedMunicipality
+   * @property {string} FormConfig.baseURL
+   * @property {string} FormConfig.libraryName
+   * @property {number} FormConfig.branchID
+   * @property {string} FormConfig.days
+   * @property {string} FormConfig.dateHeaderFontSize
+   * @property {string} FormConfig.listElementFontSize
    */
 
   /**
@@ -151,10 +217,13 @@ export const DdbOpeningHoursSlideType = {
    */
   extractFormData() {
     return {
+      selectedMunicipality: this._currentData.selectedMunicipality,
       baseURL: this._currentData.baseURL,
-      libraryName: this._currentData.selectedLibrary.label,
+      libraryName: this._currentData.selectedLibrary.name,
       branchID: this._currentData.selectedLibrary.branch_id,
-      days: this._currentData.days,
+      days: Number(this._currentData.days) <= 0 ? "1" : this._currentData.days,
+      dateHeaderFontSize: this._currentData.dateHeaderFontSize,
+      listElementFontSize: this._currentData.listElementFontSize,
     };
   },
 
@@ -180,7 +249,11 @@ export const DdbOpeningHoursSlideType = {
 
   // Component functions
 
-  async initMunicipalitySelection() {
+  /**
+   * @param {FormConfig} [existingConfig=null]
+   */
+  async initMunicipalitySelection(existingConfig = null) {
+    this._domCtx.resetCtx();
     await this.fetchLibrariesData();
     if (!this._municipalitiesData) return;
 
@@ -210,6 +283,7 @@ export const DdbOpeningHoursSlideType = {
 
     // days init
     const daysInputEl = this._domCtx.daysInputEl;
+    this._currentData.days = daysInputEl.value;
     daysInputEl.addEventListener("change", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement)) {
@@ -219,6 +293,51 @@ export const DdbOpeningHoursSlideType = {
 
       this._currentData.days = target.value;
     });
+
+    // font size init
+    const dateHeaderFontSizeEl = this._domCtx.dateHeaderFontSizeEl;
+    this._currentData.dateHeaderFontSize = dateHeaderFontSizeEl.value;
+    dateHeaderFontSizeEl.addEventListener("change", (event) =>
+      this.setDateHeaderFontSize(event),
+    );
+
+    const listElementFontSizeEl = this._domCtx.listElementFontSizeEl;
+    this._currentData.listElementFontSize = listElementFontSizeEl.value;
+    listElementFontSizeEl.addEventListener("change", (event) =>
+      this.setListElementFontSize(event),
+    );
+
+    if (existingConfig) {
+      this.setInitialConfig(existingConfig);
+    }
+  },
+
+  /**
+   * @param {FormConfig} existingConfig
+   */
+  setInitialConfig(existingConfig) {
+    // set selected municipality
+    const selectedMunicipality = existingConfig.selectedMunicipality;
+    this._domCtx.municipalitySelectEl.value = selectedMunicipality;
+    this._currentData.baseURL =
+      this._municipalitiesData.kommuner[selectedMunicipality].base_url;
+
+    // set selected library
+    this._currentData.selectedLibrary = this._municipalitiesData.kommuner[
+      selectedMunicipality
+    ].libraries.find((library) => library.name === existingConfig.libraryName);
+
+    this.updateLibrarySelection(selectedMunicipality);
+    this._domCtx.librarySelectEl.value = this._currentData.selectedLibrary.name;
+
+    // set selected days
+    this._currentData.days = existingConfig.days;
+    this._domCtx.daysInputEl.value = existingConfig.days;
+
+    // set font size selection
+    this._domCtx.dateHeaderFontSizeEl.value = existingConfig.dateHeaderFontSize;
+    this._domCtx.listElementFontSizeEl.value =
+      existingConfig.listElementFontSize;
   },
 
   /**
@@ -236,7 +355,7 @@ export const DdbOpeningHoursSlideType = {
     }
 
     const selectedMunicipality =
-      this._municipalitiesData.kommuner[this._selectedMunicipality];
+      this._municipalitiesData.kommuner[this._currentData.selectedMunicipality];
     const selectedLibrary = selectedMunicipality.libraries.find(
       (library) => library.name === target.value,
     );
@@ -247,6 +366,32 @@ export const DdbOpeningHoursSlideType = {
     this._currentData.baseURL = selectedMunicipality.base_url;
     this._currentData.selectedLibrary = selectedLibrary;
     this._currentData.branchID = selectedLibrary.branch_id;
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setDateHeaderFontSize(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLSelectElement)) {
+      console.error("Expected select element");
+      return;
+    }
+
+    this._currentData.dateHeaderFontSize = target.value;
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setListElementFontSize(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLSelectElement)) {
+      console.error("Expected select element");
+      return;
+    }
+
+    this._currentData.listElementFontSize = target.value;
   },
 
   /**
@@ -261,10 +406,10 @@ export const DdbOpeningHoursSlideType = {
     const municipalityData =
       this._municipalitiesData.kommuner[selectedMunincipality];
     if (municipalityData) {
-      this._selectedMunicipality = selectedMunincipality;
+      this._currentData.selectedMunicipality = selectedMunincipality;
       this.displayLibraries(municipalityData);
     } else {
-      this._selectedMunicipality = null;
+      this._currentData.selectedMunicipality = null;
       this._currentData.selectedLibrary = null;
       this.displayNoLibraries();
     }

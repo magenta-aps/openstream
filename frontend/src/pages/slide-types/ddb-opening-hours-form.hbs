@@ -29,9 +29,37 @@
             {{/section}}
 
             {{#> section}}
-                <div id="ddb-opening-hoursautomatic-mode-fields">
+                <div id="ddb-opening-hours-nr-of-days-wrapper">
                     <label for="ddb-opening-hours-nr-of-days-input" class="form-label mb-1">{% trans "Number of days:" %}</label>
-                    <input required type="number" id="ddb-opening-hours-nr-of-days-input" class="form-control border-gray" min="0" placeholder='{% trans "Enter number of days" %}' />
+                    <input required type="number" id="ddb-opening-hours-nr-of-days-input" class="form-control border-gray" min="0" placeholder='{% trans "Enter number of days" %}' value="1" />
+                </div>
+            {{/section}}
+
+            {{#> section}}
+                <div id="ddb-opening-hours-font-size-wrapper" class="d-flex flex-column row-gap-2">
+                    <div>
+                        <label for="ddb-opening-hours-date-header-font-size" class="form-label mb-1">{% trans "Date font size" %}</label>
+
+                        <select id="ddb-opening-hours-date-header-font-size" class="form-select border-gray">
+                            <option value="44">44px</option>
+                            <option value="48">48px</option>
+                            <option value="54">54px</option>
+                            <option value="60">60px</option>
+                            <option value="66">66px</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="ddb-opening-hours-list-element-font-size" class="form-label mb-1">{% trans "Opening hours font size" %}</label>
+
+                        <select id="ddb-opening-hours-list-element-font-size" class="form-select border-gray">
+                            <option value="32">32px</option>
+                            <option value="36">36px</option>
+                            <option value="40">40px</option>
+                            <option value="42">42px</option>
+                            <option value="44">44px</option>
+                        </select>
+                    </div>
                 </div>
             {{/section}}
         </div>

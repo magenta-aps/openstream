@@ -1,24 +1,31 @@
-@use "../../scss/colors.scss";
+@use "../../scss/main.scss";
 
-.opening-hour-date {
-    font-size: 20px;
-    font-weight: 600;
+body {
+    background-color: #f6f5f0;
 }
 
+.opening-hour-date {
+    font-weight: 600;
+}
 #opening-hours-list {
     display: flex;
     flex-direction: column;
-    row-gap: 2rem;
+    row-gap: 28px;
+}
 
-    & .opening-hour-container:nth-child(2):not(:only-child) {
-        background-color: colors.$dark-gray;
-        color: colors.$white;
-    }
+.opening-hour-divider {
+    height: 2px;
+    width: 100%;
+    background-color: main.$black;
+}
+
+.opening-hour-container:nth-child(2):not(:only-child) {
+    background-color: #dbdbdb;
 }
 
 .opening-hour-container {
-    font-size: 18px;
     padding: 2px;
     display: flex;
     justify-content: space-between;
+    font-variant-numeric: tabular-nums;
 }
