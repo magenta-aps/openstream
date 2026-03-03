@@ -30,24 +30,34 @@ const DOCS_CONFIG = {
       order: 3,
     },
     {
-      slug: "04_Branch_Subpages",
-      title: "Branch Subpages",
+      slug: "04_Global_Settings",
+      title: "Global Settings",
       order: 4,
     },
     {
-      slug: "05_User_And_Organisation",
-      title: "User and Organisation",
+      slug: "05_Templates",
+      title: "Templates",
       order: 5,
     },
     {
-      slug: "06_Admin_Settings",
-      title: "Admin Settings",
+      slug: "06_Branch_Subpages",
+      title: "Branch Subpages",
       order: 6,
     },
     {
-      slug: "07_Downloads_And_Documentation",
+      slug: "07_Edit_Content",
+      title: "Edit Content",
+      order: 7
+    },
+    {
+      slug: "08_User_Settings",
+      title: "User Settings",
+      order: 8,
+    },
+    {
+      slug: "09_Downloads_And_Documentation",
       title: "Downloads and Documentation",
-      order: 7,
+      order: 9,
     },
   ],
 };

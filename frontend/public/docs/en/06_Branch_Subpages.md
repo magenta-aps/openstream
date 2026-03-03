@@ -32,7 +32,7 @@ You can search for content by name, mode *(slideshow or interactive)*, aspect ra
 To change metadata (eg name, category or tags) click the pencil icon next to the field you want to edit. The changes are saved when you confirm the edit.
 
 #### 4.3.2.2 Open content
-Click "Open" under Actions to open the content in the editor. The editor is explained in the section [Create Content](#433-create-content)
+Click "Open" under Actions to open the content in the editor. The editor is explained in the section [Edit Content.](#05_Edit_Content)
 
 #### 4.3.2.3 Duplicate Content
 Click "Duplicate" to make a copy. The new copy is given the same name as the original with "(Copy)" appended.
