@@ -72,12 +72,12 @@ Klik på "Opret indhold" når du er færdig. Efter oprettelsen får du mulighed 
 Denne side bruges til at oprette og administrere afspilningslister bestående af slideshows.
 Formålet er at samle flere slideshows i en rækkefølge, som derefter kan tildeles skærme eller planlægges i tidsplaner.
 
-Layout og hovedfunktioner
+**Layout og hovedfunktioner**
 - Venstre sidepanel viser alle oprettede afspilningslister i en liste. Knappen "Tilføj Playlist" øverst åbner en modal til oprettelse af en ny afspilningsliste.
 - Når en afspilningsliste er valgt, viser hovedområdet navnet på den valgte playlist og to handlinger: "Omdøb Afspilningsliste" og "Tilføj indhold til afspilningsliste".
-- Hvis ingen playlist er valgt, vises en vejledende tekst "Please select a Slideshow Playlist to edit" i hovedområdet.
+- Hvis ingen playlist er valgt, vises en vejledende tekst "Ingen Afspilningsliste valgt. Tilføj eller vælg en afspilningsliste" i hovedområdet.
 
-Redigeringssektion
+**Redigeringssektion**
 - Når en afspilningsliste er valgt, kan du se og redigere rækkefølgen af slideshows i tabelformat. Tabellen viser hver række med forløb (slideshow), position og en kolonne til handlinger (fx fjern eller flyt).
 - Rækkefølge kan ændres ved hjælp af træk-og-slip i tabellen — du kan dermed justere positionen af hvert slideshow i playlisten.
 
@@ -104,20 +104,20 @@ Tryk på **Tilføj skærmgruppe** for at oprette en ny skærmgruppe. I dialogen 
 #### 4.5.1.2 Registrer skærm
 Vælg **Registrer Skærm** for at åbne registreringsdialogen og kopiere enten registrerings-URL eller API-nøgle til eksterne værktøjer som OS2BorgerPC.
 
-![Tilføj Gruppe](/docs/docs_images/da/register_screen.png)
+![Tilføj skærm knap](/docs/docs_images/da/register_screen.png)
 
-![Add Screen](/docs/docs_images/da/screen_registration_dialog.png)
+![Tilføj skærm](/docs/docs_images/da/screen_registration_dialog.png)
 
 Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af den venstre sidemenu i "Inaktive Skærme". For at give skærmen noget indhold skal den bare trækkes op i en skærmgruppe som har indhold tilknyttet.
 
-![Inactive Screens](/docs/docs_images/da/inactive_screen.png)
+![Inaktive skærme](/docs/docs_images/da/inactive_screen.png)
 
 
 ### 4.5.2 Standardindhold for grupper
 - Hver gruppe har standardindhold, som afspilles når der ikke er planlagte afvigelser. Vælg mellem enkelt slideshows/interaktivt indhold eller en samlet slideshow-playlist.
 - Redigér standardindholdet for en gruppe ved at klikke på blyantsikonet ved siden af gruppen.
 
-![Inactive Screens](/docs/docs_images/da/edit_group.png)
+![Standard indhold](/docs/docs_images/da/edit_group.png)
 
 ### 4.5.3 Planlæg indhold i kalenderen
 - Kalenderen fylder hovedområdet og viser alle planlagte afspilninger for de valgte grupper.
