@@ -55,6 +55,7 @@ class DDBProxyAPIView(APIView, TokenOrAPIKeyMixin):
 
 DDB_KOMMUNER = DDB_EVENT_API_URLS["kommuner"]
 
+
 class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
     """Endpoint to return kommune options"""
 
@@ -83,9 +84,7 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
             )
 
         kommuner = (
-            [requested_kommune]
-            if requested_kommune
-            else list(DDB_KOMMUNER.keys())
+            [requested_kommune] if requested_kommune else list(DDB_KOMMUNER.keys())
         )
 
         response_payload = {}
@@ -120,7 +119,9 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
             response_kommuner[kommune_name] = kommune_data
 
         response_payload["kommuner"] = response_kommuner
-        response_payload["opening_hours_path"] = DDB_EVENT_API_URLS["opening_hours_path"]
+        response_payload["opening_hours_path"] = DDB_EVENT_API_URLS[
+            "opening_hours_path"
+        ]
         return Response(response_payload)
 
 
@@ -168,7 +169,9 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
             )
 
         available_libraries = {}
-        libraries = map(lambda library : library["name"], DDB_KOMMUNER[kommune].get("libraries", []))
+        libraries = map(
+            lambda library: library["name"], DDB_KOMMUNER[kommune].get("libraries", [])
+        )
         for library in list(libraries):
             normalized_library = _normalize_text(library)
             if normalized_library:
