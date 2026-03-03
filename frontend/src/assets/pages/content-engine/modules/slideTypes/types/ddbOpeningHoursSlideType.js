@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Magenta ApS <https: //magenta.dk>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { BASE_URL } from "../../../../../utils/constants";
 import { gettext, translateHTML } from "../../../../../utils/locales";
 import { shouldUseApiKeyInSlideTypeIframe } from "../../../../../utils/utils";
