@@ -1,6 +1,4 @@
-# x. Organisationsadministrator
-
-## x.x Globale Indstillinger
+# 7. Globale Indstillinger
 
 Som organisationsadministrator kan du tilgå siden "Globale indstillinger" for at konfigurere organisationens fælles udseende og ressourcer. Her kan du:
 
@@ -44,7 +42,7 @@ Alle skrifttyper og farver, du konfigurerer her, bliver tilgængelige i organisa
 
 Undgå helst at navngive skrifttyper med tal og specialtegn. De vil oftest virke men tegn som ! eller : kan godt forvirre browseren, og fortolke skrifttypen som en CSS regel ved en fejl.
 
-#### 3.3.2.2 Administrer kategorier og tags
+#### 3.3.2.2 Kategorier og tags
 
 På denne side kan organisationsadministratorer opsætte de tilgængelige kategorier og tags i systemet. Tags bruges eksempelvis i slideshows og uploadede billeder. Brugere i systemet kan kun vælge tags eller kategorier, der er defineret her. Hver ting har én kategori, men kan have flere tags.
 
@@ -60,3 +58,5 @@ Slideshows bliver så til sidst bygget udfra underorganisations skabelonerne. Sk
 
 
 ![Templates](/docs/docs_images/da/templates_da.png)
+
+#### 3.3.2.1 Globale mediefiler

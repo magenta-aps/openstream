@@ -33,7 +33,7 @@ Du kan søge efter indhold via navn, tilstand *(slideshow eller interaktiv)*, bi
 For at ændre metadata (f.eks. navn, kategori eller tags) klik på blyant-ikonet ved det felt, du vil redigere. Ændringerne gemmes, når du bekræfter redigeringen.
 
 #### 4.3.2.2 Åbn indhold
-Klik på "Åbn" under handlinger for at åbne indholdet i editoren. Editoren bliver forklaret i afsnittet [Opret Indhold](#433-opret-indhold)
+Klik på "Åbn" under handlinger for at åbne indholdet i editoren. Editoren bliver forklaret i afsnittet [Redigér Indhold.](#05_Edit_Content)
 
 #### 4.3.2.3 Dupliker indhold
 Klik på "Dupliker" for at lave en kopi. Den nye kopi får samme navn som originalen med "(Kopi)" tilføjet.
