@@ -239,6 +239,13 @@ function updateValuesDropdownState(elements) {
     if (selectAllValues.checked !== allSelected) {
       selectAllValues.checked = allSelected;
     }
+
+    // Handle indeterminate state on select all chechbox
+    if (selectedValues.length > 0 && !allSelected) {
+      selectAllValues.indeterminate = true;
+    } else {
+      selectAllValues.indeterminate = false;
+    }
   }
 
   // Update count element
