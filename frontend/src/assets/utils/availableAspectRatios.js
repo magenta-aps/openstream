@@ -67,7 +67,7 @@ const BASE_ASPECT_RATIOS = [
     value: "4:3",
     width: 1024,
     height: 768,
-    note: "Common on old monitors",
+    note: "",
     inUI: true,
     defaultCellSnap: 16,
   },

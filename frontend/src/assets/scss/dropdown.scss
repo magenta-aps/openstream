@@ -1,0 +1,29 @@
+/* SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> */
+
+/* SPDX-License-Identifier: AGPL-3.0-only */
+.multiSelectDropdownMenu {
+    max-height: 250px;
+    overflow-y: auto;
+
+    .hide {
+        display: none;
+    }
+
+    .show {
+        display: block;
+    }
+
+    .dropdownCheckboxesContainer {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+}
+
+.multiSelectDropdownToggle .selected-values-text {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 5px;
+    width: 100%;
+}

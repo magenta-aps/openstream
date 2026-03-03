@@ -338,6 +338,12 @@
   "Create new content": {
     "da": "Opret nyt indhold"
   },
+  "New content": {
+    "da": "Nyt indhold"
+  },
+  "Content title": {
+    "da":"Titel på indhold"
+  },
   "Go to content": {
     "da": "Gå til indhold"
   },
@@ -3867,7 +3873,7 @@
     "da": "Højre"
   },
   "Most Common": {
-    "da": "Mest Almindelig"
+    "da": "Mest brugt"
   },
   "Common on old monitors": {
     "da": "Almindelig på gamle skærme"
