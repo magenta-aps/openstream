@@ -1,6 +1,7 @@
-# 8. User and Organisation
+# 8. User Settings
+*Documentation is in progress*
 
-Managing users and organizational settings.
+<!-- Managing users and organizational settings.
 
 ## 8.x User Action Menu
 
@@ -12,4 +13,4 @@ In your user settings, you can:
 
 ## 8.2. Organisation and Sub-organisations
 
-If you are part of a larger organisation, you might have access to multiple sub-organisations. You can switch between them using the selector in the navigation bar.
+If you are part of a larger organisation, you might have access to multiple sub-organisations. You can switch between them using the selector in the navigation bar. -->
