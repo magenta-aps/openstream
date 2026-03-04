@@ -1,0 +1,42 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+
+{{#*inline "section"}}
+    <div class="mb-4">
+        {{> @partial-block}}
+    </div>
+{{/inline}}
+
+{{#> base/containers/html-container title="Date form" }}
+    <div>
+        <div class="card-body">
+            {{#> section}}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="form-label mb-0">{% trans "Choose date format:" %}</span>
+
+                    <div id="date-date-format-select-all-container" class="d-flex justify-content-end align-items-center d-none">
+                        <div class="form-check m-0">
+                            <input class="form-check-input" type="checkbox" id="date-format-select-all" data-select-all="true" />
+                            <label class="form-check-label small" for="date-format-select-all">{% trans "Select all" %}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="date-format-checkbox-container" class="border border-gray rounded px-3 pb-1 bg-light mb-2">
+                    <div id="date-format-checkbox-grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2 mt-2">
+                        <input id="date-format-checkbox-weekday" type="checkbox" class="form-check-input" />
+                        <input id="date-format-checkbox-day" type="checkbox" class="form-check-input" />
+                        <input id="date-format-checkbox-month" type="checkbox" class="form-check-input" />
+                    </div>
+                </div>
+
+                <div id="date-format-preview-container">
+                    <p id="date-format-preview"></p>
+                </div>
+            {{/section}}
+
+            {{#> section}}
+            {{/section}}
+        </div>
+    </div>
+{{/base/containers/html-container }}
