@@ -27,6 +27,6 @@ Har fulde rettigheder inden for en underorganisation. Denne rolle kan administre
 Har adgang til én eller flere specifikke afdelinger og kan arbejde med indhold, samt tildele skærme indhold i deres afdeling(er).
 
 ### 2.2.4 Fleksibel rollefordeling
-En bruger kan tildeles flere forskellige roller i den samme organisation. For eksempel kan en bruger være medarbejder i to forskellige afdelinger eller være underorganisationsadministrator i flere underorganisationer. De kan også være medarbejder i én afdeling og underorganisationsadministrator i en anden afdeling på sammen tid. Rollefordelingen er fleksibel og administreres af en organisationsadministrator fra oversigtssiden.
+En bruger kan tildeles flere forskellige roller i den samme organisation. For eksempel kan en bruger være medarbejder i to forskellige afdelinger eller være underorganisationsadministrator i flere underorganisationer. De kan også være medarbejder i én afdeling og underorganisationsadministrator i en anden afdeling på samme tid. Rollefordelingen er fleksibel og administreres af en organisationsadministrator fra oversigtssiden.
 
-I nogle tilfælde kan brugere være tilknyttet flere organisationer. Efter login kan brugeren vælge, hvilken organisation vedkommende ønsker at arbejde i, og de kan skifte organisation i handlingsmenuen. Læs mere om handlingsmenuen [her.](#05_User_And_Organisation#5x-handlingsmenu)
+I nogle tilfælde kan brugere være tilknyttet flere organisationer. Efter login kan brugeren vælge, hvilken organisation vedkommende ønsker at arbejde i, og de kan skifte organisation i handlingsmenuen. Læs mere om handlingsmenuen [her.](#08_User_Settings#5x-handlingsmenu)
