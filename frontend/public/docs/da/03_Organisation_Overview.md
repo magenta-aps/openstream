@@ -1,16 +1,16 @@
-# 3. Organisationsoverblik
+# Organisationsoverblik
 
 I dette kapitel vil organisationsoverblik-siden blive introduceret. Denne side bliver brugeren sendt til efter login, hvis de er organisations- eller underorganisationsadministrator, eller hvis de er tilknyttet mere end en afdeling som medarbejder.
 
 Organisationsoverblik-siden giver et samlet overblik over alle tilknyttede underorganisationer og afdelinger. Siden tilpasser sig dynamisk baseret på din brugerrolle og de tilhørende rettigheder.
 
-## 3.1 Medarbejdervisning
+## Medarbejdervisning
 
 Som **medarbejder** vises overblikket over de afdelinger, du er tilknyttet. For at tilgå en specifik afdeling skal du blot klikke på **Vælg**.
 
 ![Visning for en medarbejder med adgang til to afdelinger](/docs/docs_images/da/employee_da_select_sub_org.png)
 
-## 3.2 Underorganisationsadministrator visning
+## Underorganisationsadministrator visning
 
 Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation samt muligheden for at oprette underorganisations skabeloner. Dine administrative rettigheder omfatter:
 * Ændring af underorganisationens navn.
@@ -21,13 +21,13 @@ Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger i
 
 ![Visning for en underorganisationsadministrator](/docs/docs_images/da/suborg_admin_da_select_sub_org.png)
 
-## 3.3 Organisationsadministrator visning
+## Organisationsadministrator visning
 
 Som **organisationsadministrator** har du den højeste adgangsrettighed og kan se og administrere samtlige underorganisationer og afdelinger. Du besidder de samme rettigheder som en underorganisationsadministrator for alle underorganisationer og kan derudover oprette og slette selve underorganisationerne.
 
 ![Visning for en organisationsadministrator](/docs/docs_images/da/org_admin_da_select_sub_org.png)
 
-### 3.3.1 Brugeradministration
+### Brugeradministration
 
 En central funktion for organisationsadministratorer er muligheden for at administrere systemets brugere. Her introduceres hvilke muligheder, der er for bruger administration:
 
@@ -46,7 +46,7 @@ I dialogboksen, der vises, skal du tildele brugeren en rolle og de nødvendige t
 
 ![Dialogboks til oprettelse af bruger med forskellige roller](/docs/docs_images/da/add_user_modal_da.png) -->
 
-#### 3.3.1.1 Administrer Eksisterende Brugere
+#### Administrer Eksisterende Brugere
 
 For at redigere rettigheder for eksisterende brugere, klik på **Administrer Brugere** og vælg **Administrer Eksisterende Brugere**.
 

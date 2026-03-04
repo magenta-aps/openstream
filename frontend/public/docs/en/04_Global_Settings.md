@@ -1,4 +1,4 @@
-# 7. Global Settings
+# Global Settings
 *Documentation is in progress*
 <!-- This section is for administrators to configure system-wide settings. -->
 

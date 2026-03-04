@@ -1,4 +1,4 @@
-# 8. User Settings
+# User Settings
 *Documentation is in progress*
 
 <!-- Managing users and organizational settings.

@@ -1,4 +1,4 @@
-# 7. Globale Indstillinger
+# Globale Indstillinger
 
 Som organisationsadministrator kan du tilgå siden "Globale indstillinger" for at konfigurere organisationens fælles udseende og ressourcer. Her kan du:
 
@@ -22,7 +22,7 @@ Efter at have trykket på knappen, vil du se en ny navigationsmenu med mulighede
 Som standard lander du på siden "Skrifttyper og farver".
 
 
-## 7.1 Skrifttyper og farver
+## Skrifttyper og farver
 
 Siden **Skrifttyper og farver** lader dig administrere organisationens fælles skrifttyper og farveskema. Indholdet er opdelt i to sektioner: et til skrifttyper og et til farver. 
 
@@ -42,7 +42,7 @@ Alle skrifttyper og farver, du konfigurerer her, bliver tilgængelige i organisa
 
 Undgå helst at navngive skrifttyper med tal og specialtegn. De vil oftest virke men tegn som ! eller : kan godt forvirre browseren, og fortolke skrifttypen som en CSS regel ved en fejl.
 
-## 7.2 Kategorier og tags
+## Kategorier og tags
 
 På denne side kan organisationsadministratorer opsætte de tilgængelige kategorier og tags i systemet. Tags bruges eksempelvis i slideshows og uploadede billeder. Brugere i systemet kan kun vælge tags eller kategorier, der er defineret her. Hver ting har én kategori, men kan have flere tags.
 
@@ -51,7 +51,7 @@ For at tilføje en kategori, tryk på "+ Tilføj Kategori". Indtast navnet på k
 
 ![Kategorier og tags](/docs/docs_images/da/manage_tags_and_cats_da.png)
 
-## 7.3 Skabeloner
+## Skabeloner
 
 På skabelons siden kan organisationsadministratorer opsætte de tilgængelige skabeloner for organisationen. Disse skabeloner er dem som underorganisations skabeloner bliver bygget ud fra.
 Slideshows bliver så til sidst bygget udfra underorganisations skabelonerne. Skabelons editoren har næsten alle de samme features den normalle editor til at redigere slideshows og interaktivt indhold, så derfor vil dokumentationen for at oprette skabeloner i stedet være skrevet under afsnittet [Opret Indhold](#opret_indhold). 
@@ -59,5 +59,5 @@ Slideshows bliver så til sidst bygget udfra underorganisations skabelonerne. Sk
 
 ![Templates](/docs/docs_images/da/templates_da.png)
 
-## 7.4 Globale mediefiler
+## Globale mediefiler
 *Dokumentation er på vej*

@@ -1,4 +1,4 @@
-# 8. Brugerindstillinger
+# Brugerindstillinger
 *Dokumentation er på vej*
 <!-- Managing users and organizational settings.
 

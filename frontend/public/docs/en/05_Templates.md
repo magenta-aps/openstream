@@ -1,4 +1,4 @@
-# 5. Templates
+# Templates
 *Documentation is in progress*
 <!-- Dette kapitel...
 - templates strukturen: global -> sub_org templates -> content

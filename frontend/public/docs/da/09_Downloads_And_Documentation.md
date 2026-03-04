@@ -1,4 +1,4 @@
-# 9. Downloads og Dokumentation
+# Downloads og Dokumentation
 
 *Dokumentation er på vej*
 <!-- Additional resources.

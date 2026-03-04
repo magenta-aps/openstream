@@ -1,8 +1,8 @@
-# 4. Afdelingsundersider
+# Afdelingsundersider
 I dette kapitel vil alle undersiderne tilgængelige under en afdeling blive introduceret og forklaret. Hvis du kun er tilknyttet én afdeling, vil du automatisk blive sendt herhen når du logger ind. Hvis du har adgang til flere afdelinger, så kan du se hvordan du vælger en specifik afdeling her: [Medarbejdervisning](#03_Organisation_Overview#31-medarbejdervisning). 
 
 
-## 4.1 Navigationsmenu
+## Navigationsmenu
 Efter at have valgt en afdeling, vil navigations menuen ændre sig. Nu vil navigations menuen vise en knap til højre, hvor der står hvilken afdeling du har valgt. Denne knap kan trykkes på for at skifte afdeling. Udover det, så vil der stå følgende menupunkter:
 
 * **Dashboard:** En overbliks side over, hvad der foregår på afdelingen lige nu
@@ -13,35 +13,35 @@ Efter at have valgt en afdeling, vil navigations menuen ændre sig. Nu vil navig
 
 ![Afdelings Navigationsmenu](/docs/docs_images/da/branch_navbar_da.png)
 
-## 4.2 Dashboard
+## Dashboard
 Denne første side, der bliver vist efter man har åbnet en afdeling, er dashboardet. På denne side, kan man se de senest redigerede indhold og afspilningslister, og åbne dem hurtigt uden at skulle tilgå indholds siden og finde det frem manuelt. Samtidig med dette er der en oversigt over, hvilket indhold bliver afspillet på skærmene lige nu og hvad der er planlagt som det næste.
 
 ![Afdelings Navigationsmenu](/docs/docs_images/da/dashboard_da.png)
 
-## 4.3 Indhold
+## Indhold
 Denne side viser en oversigt over oprettet indhold og giver mulighed for at oprette, redigere, duplikere eller slette indhold.
 
-### 4.3.1 Find eksisterende indhold
+### Find eksisterende indhold
 Du kan søge efter indhold via navn, tilstand *(slideshow eller interaktiv)*, billedformat *(eks. 16:9 eller 4:3)*, tags eller kategori. Derudover kan du i venstre sidepanel filtrere på kategorier og tilstand. 
 
 ![Find Eksisterende Indhold](/docs/docs_images/da/find_existing_content_da.png)
 
-### 4.3.2 Rediger eksisterende indhold
+### Rediger eksisterende indhold
 ![Rediger Eksisterende Indhold](/docs/docs_images/da/edit_existing_content_da.png)
 
-#### 4.3.2.1 Rediger metadata
+#### Rediger metadata
 For at ændre metadata (f.eks. navn, kategori eller tags) klik på blyant-ikonet ved det felt, du vil redigere. Ændringerne gemmes, når du bekræfter redigeringen.
 
-#### 4.3.2.2 Åbn indhold
+#### Åbn indhold
 Klik på "Åbn" under handlinger for at åbne indholdet i editoren. Editoren bliver forklaret i afsnittet [Redigér Indhold.](#07_Edit_Content)
 
-#### 4.3.2.3 Dupliker indhold
+#### Dupliker indhold
 Klik på "Dupliker" for at lave en kopi. Den nye kopi får samme navn som originalen med "(Kopi)" tilføjet.
 
-#### 4.3.2.4 Slet indhold
+#### Slet indhold
 Klik på "Slet" under handlinger og bekræft for at fjerne indholdet. Bemærk: Hvis indholdet allerede er tildelt skærme, vil de blive tomme, når indholdet slettes.
 
-### 4.3.3 Opret indhold
+### Opret indhold
 Klik på "Tilføj indhold" øverst til venstre for at oprette nyt indhold.
 
 ![Tilføj indhold](/docs/docs_images/da/add_content_da.png)
@@ -66,7 +66,7 @@ Vælg det billedformat, indholdet skal vises i (fx 16:9 til bredformat eller 9:1
 ##### Gem
 Klik på "Opret indhold" når du er færdig. Efter oprettelsen får du mulighed for enten at gå direkte til editoren eller blive på oversigtssiden.
 
-## 4.4 Afspilningslister
+## Afspilningslister
 ![Tilføj indhold](/docs/docs_images/da/playlists_da.png)
 
 Denne side bruges til at oprette og administrere afspilningslister bestående af slideshows.
@@ -82,7 +82,7 @@ Formålet er at samle flere slideshows i en rækkefølge, som derefter kan tilde
 - Rækkefølge kan ændres ved hjælp af træk-og-slip i tabellen — du kan dermed justere positionen af hvert slideshow i playlisten.
 
 
-## 4.5 Håndter skærme
+## Håndter skærme
 
 ![Håndter Skærme](/docs/docs_images/da/manage_displays.png)
 
@@ -94,14 +94,14 @@ Siden "Håndter skærme" er opdelt i et sidepanel til venstre og en kalender til
 - En *skærm* er den fysiske klient, som registreres i OpenStream. Skærmen bliver tilknyttet med et bestemt størrelesforhold, og det er brugerens ansvar at indsætte det rigtige størrelsesforhold i OpenStream når skærmen bliver registreret.
 - Efter en skærm er blevet registreret, skal den tilknyttes en gruppe for at vise indhold.
 
-### 4.5.1 Sidepanel: grupper og skærme
-#### 4.5.1.1 Tilføj skærmgruppe
+### Sidepanel: grupper og skærme
+#### Tilføj skærmgruppe
 Tryk på **Tilføj skærmgruppe** for at oprette en ny skærmgruppe. I dialogen vælger du navn, billedformat (aspect ratio) og standardindhold. Når du klikker på blyantsknappen i listen af skærme, åbnes en dialogboks hvor det er muligt at omdøbe, ændre format eller justere standardindhold.
 
 ![Tilføj Gruppe](/docs/docs_images/da/add_group_btn.png)
 ![Tilføj Gruppe](/docs/docs_images/da/add_group.png)
 
-#### 4.5.1.2 Registrer skærm
+#### Registrer skærm
 Vælg **Registrer Skærm** for at åbne registreringsdialogen og kopiere enten registrerings-URL eller API-nøgle til eksterne værktøjer som OS2BorgerPC.
 
 ![Tilføj skærm knap](/docs/docs_images/da/register_screen.png)
@@ -113,13 +113,13 @@ Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af d
 ![Inaktive skærme](/docs/docs_images/da/inactive_screen.png)
 
 
-### 4.5.2 Standardindhold for grupper
+### Standardindhold for grupper
 - Hver gruppe har standardindhold, som afspilles når der ikke er planlagte afvigelser. Vælg mellem enkelt slideshows/interaktivt indhold eller en samlet slideshow-playlist.
 - Redigér standardindholdet for en gruppe ved at klikke på blyantsikonet ved siden af gruppen.
 
 ![Standard indhold](/docs/docs_images/da/edit_group.png)
 
-### 4.5.3 Planlæg indhold i kalenderen
+### Planlæg indhold i kalenderen
 - Kalenderen fylder hovedområdet og viser alle planlagte afspilninger for de valgte grupper.
 - Brug **Tilføj planlagt indhold** knappen eller træk musen hen over kalenderen til engangsbegivenheder på bestemte datoer og tidspunkter.Vælg om indholdet skal erstatte standardindholdet eller afspilles i kombination.
 ![Scheduled Content](/docs/docs_images/da/add_scheduled_content_btn.png)
@@ -132,7 +132,7 @@ Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af d
 ![Recurring Content](/docs/docs_images/da/recurring_content_modal.png)
 
 
-### 4.5.4 Vedligeholdelse af skærme
+### Vedligeholdelse af skærme
 - Eksisterende begivenheder kan redigeres eller slettes ved at trykke på dem i kalenderen.
 - Der skal vælges det samme billedformat på skærmen og i gruppen, ellers blokerer programmet for at tilføje en skærm til en skærmgruppe.
 - Hvis et display skal skifte billedformat, fjern det fra sin nuværende gruppe og tilføj den til tilbage til "Inaktive Skærme". Når skærmen er inaktiv kan du ændre dens størrelsesforhold.

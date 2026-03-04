@@ -1,4 +1,4 @@
-# 7. Edit Content
+# Edit Content
 *Documentation is in progress*
 <!-- I dette kapitel vil editoren for redigering af indhold blive forklaret. Denne editor-side kan tilgåes ved at åbne et stykke indhold (slideshow eller interaktiv) fra en afdelings Indhold-side, eller ved at åbne et stykke indhold direkte fra en afdelings Dashboard-side.
 
