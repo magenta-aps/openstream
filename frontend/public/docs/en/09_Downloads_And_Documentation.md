@@ -1,4 +1,4 @@
-# 9. Downloads and Documentation
+# Downloads and Documentation
 *Documentation is in progress*
 <!-- Additional resources.
 

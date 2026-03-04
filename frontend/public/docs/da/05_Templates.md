@@ -1,4 +1,4 @@
-# 5. Skabeloner
+# Skabeloner
 *Dokumentation er på vej*
 <!-- Dette kapitel...
 - templates strukturen: global -> sub_org templates -> content
