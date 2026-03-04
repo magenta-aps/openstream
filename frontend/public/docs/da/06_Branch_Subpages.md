@@ -33,7 +33,7 @@ Du kan søge efter indhold via navn, tilstand *(slideshow eller interaktiv)*, bi
 For at ændre metadata (f.eks. navn, kategori eller tags) klik på blyant-ikonet ved det felt, du vil redigere. Ændringerne gemmes, når du bekræfter redigeringen.
 
 #### 4.3.2.2 Åbn indhold
-Klik på "Åbn" under handlinger for at åbne indholdet i editoren. Editoren bliver forklaret i afsnittet [Redigér Indhold.](#05_Edit_Content)
+Klik på "Åbn" under handlinger for at åbne indholdet i editoren. Editoren bliver forklaret i afsnittet [Redigér Indhold.](#07_Edit_Content)
 
 #### 4.3.2.3 Dupliker indhold
 Klik på "Dupliker" for at lave en kopi. Den nye kopi får samme navn som originalen med "(Kopi)" tilføjet.
@@ -121,11 +121,11 @@ Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af d
 
 ### 4.5.3 Planlæg indhold i kalenderen
 - Kalenderen fylder hovedområdet og viser alle planlagte afspilninger for de valgte grupper.
-- Brug **Tilføj planlagt indhold** eller træk musen hen over kalenderen til engangsbegivenheder på bestemte datoer og tidspunkter.Vælg om indholdet skal erstatte standardindholdet eller afspilles i kombination.
+- Brug **Tilføj planlagt indhold** knappen eller træk musen hen over kalenderen til engangsbegivenheder på bestemte datoer og tidspunkter.Vælg om indholdet skal erstatte standardindholdet eller afspilles i kombination.
 ![Scheduled Content](/docs/docs_images/da/add_scheduled_content_btn.png)
 ![Scheduled Content](/docs/docs_images/da/add_scheduled_content_modal.png)
 
-- Brug **Tilføj tilbagevendene indhold** til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Eksisterende begivenheder kan redigeres eller slettes via de tilsvarende ved at trykke på dem i kalenderen. Tilbagevendene kan tilføjes i kombinations tilstand eller overskrivningstilstand.
+- Brug **Tilføj Tilbagevendene Indhold** knappen til tilbagevendende planlægning, f.eks. hver mandag kl. 10:00-12:00. Tilbagevendende kan tilføjes i kombinations tilstand eller overskrivningstilstand.
 - Det er muligt at kombinere flere ting i kalenderen på samme tid.
 
 ![Recurring Content](/docs/docs_images/da/recurring_content.png)
@@ -133,5 +133,6 @@ Efter en skærm er blevet registret, vil den automatisk blive vist i bunden af d
 
 
 ### 4.5.4 Vedligeholdelse af skærme
-- Vælg samme billedformat på skærmen og i gruppen, ellers blokerer programmet for handlingen.
+- Eksisterende begivenheder kan redigeres eller slettes ved at trykke på dem i kalenderen.
+- Der skal vælges det samme billedformat på skærmen og i gruppen, ellers blokerer programmet for at tilføje en skærm til en skærmgruppe.
 - Hvis et display skal skifte billedformat, fjern det fra sin nuværende gruppe og tilføj den til tilbage til "Inaktive Skærme". Når skærmen er inaktiv kan du ændre dens størrelsesforhold.
