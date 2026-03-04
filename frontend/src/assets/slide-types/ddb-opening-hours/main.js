@@ -21,7 +21,6 @@ const ctx = {
   dateHeaderFontSize: queryParams.dateHeaderFontSize,
   listElementFontSize: queryParams.listElementFontSize,
 };
-console.log(ctx);
 
 /**
  * @typedef {Object} DomCtx
@@ -68,11 +67,26 @@ const domCtx = initDomCtx();
     const dateTitleEl = document.createElement("span");
     dateTitleEl.style.fontSize = `${ctx.dateHeaderFontSize}px`;
     dateTitleEl.classList.add("opening-hour-date");
-    dateTitleEl.textContent = new Intl.DateTimeFormat("da-dk", {
+
+    const formattedDate = new Intl.DateTimeFormat("da-dk", {
       weekday: "long",
       month: "2-digit",
       day: "2-digit",
-    }).format(new Date(date));
+    })
+      .formatToParts(new Date(date))
+      .map((part) => {
+        let value = part.value;
+        // capitalize weekdays
+        if (part.type === "weekday") {
+          value = `${value[0].toUpperCase()}${value.substring(1)}:`;
+        } else if (part.type === "day") {
+          value = `d. ${value}`;
+        }
+
+        return value;
+      })
+      .join("");
+    dateTitleEl.textContent = formattedDate;
 
     const dividerEl = document.createElement("div");
     dividerEl.classList.add("opening-hour-divider");

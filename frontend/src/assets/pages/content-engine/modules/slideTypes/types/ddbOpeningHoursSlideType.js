@@ -167,6 +167,8 @@ function initDomCtx() {
  */
 
 export const DdbOpeningHoursSlideType = {
+  ...SlideTypeUtils.getDefaultSlideSettings(),
+
   _domCtx: initDomCtx(),
   /** @type {MunicipalitiesData} */
   _municipalitiesData: null,
@@ -184,8 +186,6 @@ export const DdbOpeningHoursSlideType = {
   name: "DDB Opening Hours",
   description: "Display events from the Danish Digital Library",
   categoryId: 1,
-
-  ...SlideTypeUtils.getDefaultSlideSettings(),
 
   // SlideTypeRegistry required functions
 
@@ -246,6 +246,8 @@ export const DdbOpeningHoursSlideType = {
 
     return {
       ...defaults,
+      gridHeight: 500,
+      gridWidth: 1000,
       integrationName: "Det Digitale Folkebibliotek åbningstider API",
     };
   },
