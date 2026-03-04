@@ -32,7 +32,7 @@ You can search for content by name, mode *(slideshow or interactive)*, aspect ra
 To change metadata (eg name, category or tags) click the pencil icon next to the field you want to edit. The changes are saved when you confirm the edit.
 
 #### 4.3.2.2 Open content
-Click "Open" under Actions to open the content in the editor. The editor is explained in the section [Edit Content.](#05_Edit_Content)
+Click "Open" under Actions to open the content in the editor. The editor is explained in the section [Edit Content.](#07_Edit_Content)
 
 #### 4.3.2.3 Duplicate Content
 Click "Duplicate" to make a copy. The new copy is given the same name as the original with "(Copy)" appended.
@@ -116,15 +116,16 @@ After a screen has been registered, it will automatically appear at the bottom o
 
 ### 4.5.3 Schedule content in the calendar
 - The calendar fills the main area and shows all scheduled playbacks for the selected groups.
-- Use **Add Scheduled Content** or drag your mouse over the calendar for one-time events on specific dates and times. Choose whether the content should replace the default content or play in combination.
+- Use **Add Scheduled Content** button or drag your mouse over the calendar for one-time events on specific dates and times. Choose whether the content should replace the default content or play in combination.
 ![Scheduled Content Button](/docs/docs_images/en/add_scheduled_content_btn_en.png)
 ![Scheduled Content](/docs/docs_images/en/add_scheduled_content_modal_en.png)
 
-- Use **Add Recurring Content** for recurring scheduling, e.g. every Monday 10:00-12:00. Existing events can be edited or deleted via the corresponding ones by clicking on them in the calendar. Recurring events can be added in combination mode or overwrite mode.
+- Use **Add Recurring Content** button for recurring scheduling, e.g. every Monday 10:00-12:00. Recurring events can be added in combination mode or overwrite mode.
 - It is possible to combine multiple items in the calendar at the same time.
 ![Recurring Content Button](/docs/docs_images/en/recurring_content_en.png)
 ![Recurring Content](/docs/docs_images/en/recurring_content_modal_en.png)
 
 ### 4.5.4 Maintaining Displays
+- Existing events can be edited or deleted by clicking on them in the calendar. 
 - Select the same aspect ratio on the display and in the group, otherwise the program will block the operation.
 - If a display needs to change aspect ratio, remove it from its current group and add it back to "Inactive Displays". When the display is inactive, you can change its aspect ratio.
