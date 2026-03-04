@@ -13,10 +13,11 @@ Som **medarbejder** vises overblikket over de afdelinger, du er tilknyttet. For 
 ## 3.2 Underorganisationsadministrator visning
 
 Som **underorganisationsadministrator** har du fuld adgang til alle afdelinger inden for din underorganisation samt muligheden for at oprette underorganisations skabeloner. Dine administrative rettigheder omfatter:
+* Ændring af underorganisationens navn.
 * Oprettelse af nye afdelinger.
 * Ændring af afdelingers navne.
 * Sletning af eksisterende afdelinger.
-* Oprettelse af underorganisations skabeloner
+* Oprettelse af underorganisations skabeloner.
 
 ![Visning for en underorganisationsadministrator](/docs/docs_images/da/suborg_admin_da_select_sub_org.png)
 

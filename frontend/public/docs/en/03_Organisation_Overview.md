@@ -13,10 +13,11 @@ As an **employee**, the overview of the branches you are associated with is disp
 ## 3.2 Sub-organization administrator view
 
 As a **sub-organization administrator**, you have full access to all branches within your sub-organization as well as the option to create sub-organization templates. Your administrative rights include:
+* Changing the name of the sub-organization.
 * Creation of new branches.
 * Changing the names of branches.
 * Deletion of existing branches.
-* Creation of sub-organization templates
+* Creation of sub-organization templates.
 
 ![View for an sub-organization administrator](/docs/docs_images/en/suborg_admin_en_select_sub_org.png)
 
