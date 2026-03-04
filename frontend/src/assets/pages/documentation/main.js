@@ -109,6 +109,7 @@ class DocumentationApp {
     if (!this.tocContent) return;
 
     const tocHTML = this.chapters
+      .sort((a, b) => a.order - b.order) // Sort chapters by order number
       .map((chapter) => {
         const displayTitle =
           chapter.localizedTitle || gettext(chapter.title) || chapter.title;
@@ -138,6 +139,47 @@ class DocumentationApp {
     });
   }
 
+  /**
+   * @description Creates an instance of the Renderer class from Marked and adds section numbering to headings, based on the chapters order number
+   * @param {DocumentationApp.chapters[]} chapters
+   * @param {string} slug 
+   * @returns New Renderer class to use when parsing the markdown content with Marked
+   */
+  async renderSectionNumbering(chapters, slug) {
+    const renderer = new marked.Renderer();
+
+    // Track the levels for a specific file
+    let h2Count = 0;
+    let h3Count = 0;
+    let h4Count = 0;
+
+    renderer.heading = function({ tokens, depth }) {
+      const text = this.parser.parseInline(tokens);
+      const chapterOrder = chapters.find((c) => c.slug === slug).order;
+
+      if (depth === 1) {
+        return `<h1>${chapterOrder}. ${text}</h1>`;
+      }
+      if (depth === 2) {
+        h2Count++;
+        h3Count = 0; // reset h3 when a new h2 starts
+        return `<h2>${chapterOrder}.${h2Count}. ${text}</h2>`;
+      }
+      if (depth === 3) {
+        h3Count++;
+        h4Count = 0;
+        return `<h3>${chapterOrder}.${h2Count}.${h3Count}. ${text}</h3>`;
+      }
+      if (depth === 4) {
+        h4Count++;
+        return `<h4>${chapterOrder}.${h2Count}.${h3Count}.${h4Count}. ${text}</h4>`
+      }
+      return `<h${depth}>${text}</h${depth}>`;
+    };
+
+    return renderer;
+  }
+
   async fetchChapterContent(slug) {
     if (this.loadedChapters[slug]) {
       return this.loadedChapters[slug];
@@ -154,7 +196,8 @@ class DocumentationApp {
         const response = await fetch(url);
         if (response.ok) {
           const markdownContent = await response.text();
-          const htmlContent = marked.parse(markdownContent);
+          const renderer = await this.renderSectionNumbering(this.chapters, slug);
+          const htmlContent = marked.parse(markdownContent, {renderer});
           this.loadedChapters[slug] = htmlContent;
 
           // Extract H1 from the fetched content to use as localized chapter title
