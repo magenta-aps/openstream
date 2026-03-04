@@ -1,8 +1,8 @@
 # 7. Global Settings
+*Documentation is in progress*
+<!-- This section is for administrators to configure system-wide settings. -->
 
-This section is for administrators to configure system-wide settings.
-
-## 7.1. Tags and Categories
+<!-- ## 7.1. Tags and Categories
 
 Manage tags and categories to organize your content effectively. This helps in searching and filtering slideshows.
 
@@ -12,4 +12,4 @@ Customize the look and feel of your slideshows by managing fonts and color schem
 
 ## 7.3. Global Media Files
 
-Upload and manage media files that can be used across all slideshows in your organisation.
+Upload and manage media files that can be used across all slideshows in your organisation. -->
