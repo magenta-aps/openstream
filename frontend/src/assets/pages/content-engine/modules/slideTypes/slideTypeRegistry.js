@@ -118,13 +118,13 @@ export const SlideTypeUtils = {
           <meta charset="UTF-8">
           <title>${slideTypeName} - Error</title>
           <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              display: flex; 
-              align-items: center; 
-              justify-content: center; 
-              height: 100vh; 
-              margin: 0; 
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
               background-color: #f8f9fa;
             }
             .error-container {
@@ -353,27 +353,23 @@ class SlideTypeRegistry {
   async loadSlideTypesFromFiles() {
     try {
       // Import DDB Events API slide type
-      const { DdbEventsApiSlideType } = await import(
-        "./types/ddbEventsApiSlideType.js"
-      );
+      const { DdbEventsApiSlideType } =
+        await import("./types/ddbEventsApiSlideType.js");
       this.registerSlideType(1, DdbEventsApiSlideType);
 
       // Import Newsfeed with Image slide type
-      const { NewsfeedWithImageSlideType } = await import(
-        "./types/newsfeedWithImageSlideType.js"
-      );
+      const { NewsfeedWithImageSlideType } =
+        await import("./types/newsfeedWithImageSlideType.js");
       this.registerSlideType(3, NewsfeedWithImageSlideType);
 
       // Import Dreambroker slide type
-      const { DreambrokerSlideType } = await import(
-        "./types/dreambrokerSlideType.js"
-      );
+      const { DreambrokerSlideType } =
+        await import("./types/dreambrokerSlideType.js");
       this.registerSlideType(4, DreambrokerSlideType);
 
       // Import Newsticker slide type
-      const { NewstickerSlideType } = await import(
-        "./types/newstickerSlideType.js"
-      );
+      const { NewstickerSlideType } =
+        await import("./types/newstickerSlideType.js");
       this.registerSlideType(5, NewstickerSlideType);
 
       // Import Clock slide type
@@ -381,9 +377,8 @@ class SlideTypeRegistry {
       this.registerSlideType(7, ClockSlideType);
 
       // Import DR Streams slide type
-      const { DrStreamsSlideType } = await import(
-        "./types/drStreamsSlideType.js"
-      );
+      const { DrStreamsSlideType } =
+        await import("./types/drStreamsSlideType.js");
       this.registerSlideType(8, DrStreamsSlideType);
 
       // Import WinKAS slide type
@@ -391,22 +386,23 @@ class SlideTypeRegistry {
       this.registerSlideType(11, WinkasSlideType);
 
       // Import KMD Foreningsportalen slide type
-      const { KmdForeningsportalenSlideType } = await import(
-        "./types/kmdForeningsportalenSlideType.js"
-      );
+      const { KmdForeningsportalenSlideType } =
+        await import("./types/kmdForeningsportalenSlideType.js");
       this.registerSlideType(9, KmdForeningsportalenSlideType);
 
       // Import Speed Admin slide type
-      const { SpeedAdminSlideType } = await import(
-        "./types/speedAdminSlideType.js"
-      );
+      const { SpeedAdminSlideType } =
+        await import("./types/speedAdminSlideType.js");
       this.registerSlideType(6, SpeedAdminSlideType);
 
       // Import Frontdesk LTK Borgerservice slide type
-      const { FrontdeskLtkBorgerserviceSlideType } = await import(
-        "./types/frontdeskLtkBorgerserviceSlideType.js"
-      );
+      const { FrontdeskLtkBorgerserviceSlideType } =
+        await import("./types/frontdeskLtkBorgerserviceSlideType.js");
       this.registerSlideType(10, FrontdeskLtkBorgerserviceSlideType);
+
+      // Import date slide type
+      const { DateSlideType } = await import("./types/dateSlideType.js");
+      this.registerSlideType(12, DateSlideType);
     } catch (error) {
       console.warn("Some slide types could not be loaded:", error);
     }
