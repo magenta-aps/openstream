@@ -69,13 +69,13 @@ class FrontendSlideTypeModal {
                       <!-- Category checkboxes will be populated here -->
                     </div>
                   </div>
-                  
+
                   <!-- Search and Table Column -->
                   <div class="col-md-9">
                     <div class="mb-3">
                       <input type="text" class="form-control" id="slideTypeSearchInput" placeholder="${gettext("Search slide types...")}">
                     </div>
-                    
+
                     <div class="table-responsive">
                       <table class="table table-hover" id="slideTypeTable">
                         <thead>
@@ -116,42 +116,42 @@ class FrontendSlideTypeModal {
           </div>
         </div>
       </div>
-      
+
       <style>
         .modal-xl .modal-body {
           min-height: 500px;
         }
-        
+
         .sortable-col:hover {
           background-color: #f8f9fa;
         }
-        
+
         .sort-asc:after {
           content: " ▲";
         }
-        
+
         .sort-desc:after {
           content: " ▼";
         }
-        
+
         #categoryCheckboxes .form-check {
           margin-bottom: 0.25rem;
         }
-        
+
         #slideTypeTable tbody tr:hover {
           background-color: #f8f9fa;
         }
-        
+
         .btn-sm {
           font-size: 0.8rem;
           padding: 0.25rem 0.5rem;
         }
-        
+
         .is-invalid {
           border-color: #dc3545 !important;
           box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
         }
-        
+
         .is-invalid:focus {
           border-color: #dc3545 !important;
           box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
@@ -671,9 +671,21 @@ class FrontendSlideTypeModal {
     }
 
     try {
-      // Validate required fields before proceeding
-      if (!this.validateRequiredFields()) {
-        return; // Validation failed, don't proceed
+      const slideTypeValidation = slideTypeRegistry.validateSlide(
+        this.currentSlideTypeId,
+      );
+      // if no slideType was found with the given id
+      if (!slideTypeValidation) {
+        return;
+      }
+
+      // handle validation, if internal it has already been processed
+      if (
+        (slideTypeValidation.validationType === "internal" &&
+          !slideTypeValidation.isSuccess) ||
+        !this.validateRequiredFields()
+      ) {
+        return;
       }
 
       // Extract form data
