@@ -287,9 +287,10 @@ class DocumentationApp {
       .map((heading) => {
         const id = this.generateSectionId(heading.textContent);
         heading.id = id; // Add ID to the heading for navigation
+        const headingStyle = "toc-" + heading.tagName.toLowerCase(); // Create classname based on heading type (h2, h3, h4)
 
         return `
-        <a href="#${id}" class="section-link" data-section="${id}">
+        <a href="#${id}" class="section-link ${headingStyle}" data-section="${id}">
           ${heading.textContent}
         </a>
       `;

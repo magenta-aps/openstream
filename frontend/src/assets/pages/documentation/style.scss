@@ -150,6 +150,15 @@ body {
           color: $primary;
           font-weight: 500;
         }
+        
+        &.toc-h3 {
+          padding-left: 1rem;
+        }
+
+        &.toc-h4 {
+          padding-left: 1.5rem;
+          font-style: italic;
+        }
       }
     }
   }
