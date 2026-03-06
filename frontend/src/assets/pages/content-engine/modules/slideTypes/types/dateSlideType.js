@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Magenta ApS <https: //magenta.dk>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * @typedef {Object} DomCtx
  * @property {HTMLSelectElement} weekdaySelectEl - the selection element for the weekday value
@@ -168,6 +171,7 @@ function initDomCtx() {
  * @property {DayValues} [CurrentData.day]
  * @property {MonthValues} [CurrentData.month]
  * @property {string} [CurrentData.color]
+ * @property {boolean} [CurrentData.isCustomColor]
  * @property {string} [CurrentData.fontSize]
  */
 
@@ -181,6 +185,7 @@ function initCurrentData() {
     day: undefined,
     month: undefined,
     color: undefined,
+    isCustomColor: false,
     fontSize: undefined,
   };
 
@@ -244,6 +249,30 @@ function initCurrentData() {
 
       currentDataPrimitive.month = value;
     },
+
+    get color() {
+      return currentDataPrimitive.color;
+    },
+
+    set color(value) {
+      currentDataPrimitive.color = value;
+    },
+
+    get isCustomColor() {
+      return currentDataPrimitive.isCustomColor;
+    },
+
+    set isCustomColor(value) {
+      currentDataPrimitive.isCustomColor = value;
+    },
+
+    get fontSize() {
+      return currentDataPrimitive.fontSize;
+    },
+
+    set fontSize(value) {
+      currentDataPrimitive.fontSize = value;
+    },
   };
 }
 
@@ -259,13 +288,29 @@ export const DateSlideType = {
 
   // Slidetype functions
 
+  /**
+   * @param {CurrentData} existingConfig
+   */
   async generateForm(existingConfig = null) {
     return await SlideTypeUtils.loadFormTemplateWithCallback(
       "/slide-types/date-form",
       "Date Form",
       () => {
         translateHTML();
-        this.initDateWidget();
+
+        // reset between forms
+        this._domCtx.resetCtx();
+
+        if (!existingConfig) {
+          this.initDateWidget();
+        } else {
+          this.useExistingConfig(existingConfig);
+        }
+
+        this.initEventListeners();
+
+        // initial render of preview
+        this.updatePreview();
       },
     );
   },
@@ -320,7 +365,7 @@ export const DateSlideType = {
   generateSlideData() {
     return {
       ...SlideTypeUtils.getDefaultSlideSettings(),
-      backgroundColor: "transparent",
+      gridWidth: 400,
     };
   },
 
@@ -342,40 +387,81 @@ export const DateSlideType = {
 
   // component functions
 
-  initDateWidget() {
-    // reset between inits
-    this._domCtx.resetCtx();
+  initDateWidget(existingConfig) {
     // date format
     const weekdaySelectEl = this._domCtx.weekdaySelectEl;
     // @ts-ignore-error - weekday select element value is a string, the value is checked in the .weekday select
     this._currentData.weekday = weekdaySelectEl.value;
-    weekdaySelectEl.addEventListener("change", setWeekday);
 
     const daySelectEl = this._domCtx.daySelectEl;
     // @ts-ignore-error - day select element value is a string, the value is checked in the .day select
     this._currentData.day = daySelectEl.value;
-    daySelectEl.addEventListener("change", setDay);
 
     const monthSelectEl = this._domCtx.monthSelectEl;
     // @ts-ignore-error - month select element value is a string, the value is checked in the .month select
     this._currentData.month = monthSelectEl.value;
-    monthSelectEl.addEventListener("change", setMonth);
 
     // color
     const colorSelectEl = this._domCtx.colorSelectEl;
     this._currentData.color = colorSelectEl.value;
-    colorSelectEl.addEventListener("change", setColorFromSelect);
-
-    const colorPickerEl = this._domCtx.colorPickerEl;
-    colorPickerEl.addEventListener("change", setColorFromPicker);
 
     // font size
     const fontSizeEl = this._domCtx.fontSizeSelectEl;
     this._currentData.fontSize = fontSizeEl.value;
-    fontSizeEl.addEventListener("change", setFontSize);
+  },
 
-    // initial render of preview
-    this.updatePreview();
+  /**
+   * @param {CurrentData} existingConfig
+   */
+  useExistingConfig(existingConfig) {
+    // date format
+    const weekdaySelectEl = this._domCtx.weekdaySelectEl;
+    if (existingConfig.weekday) {
+      this._currentData.weekday = existingConfig.weekday;
+      weekdaySelectEl.value = this._currentData.weekday;
+    }
+
+    const daySelectEl = this._domCtx.daySelectEl;
+    if (existingConfig.day) {
+      this._currentData.day = existingConfig.day;
+      daySelectEl.value = existingConfig.day;
+    }
+
+    const monthSelectEl = this._domCtx.monthSelectEl;
+    if (existingConfig.month) {
+      this._currentData.month = existingConfig.month;
+      monthSelectEl.value = existingConfig.month;
+    }
+
+    console.log(existingConfig.isCustomColor, existingConfig.color);
+    // color
+    this._currentData.color = existingConfig.color;
+    this._currentData.isCustomColor = existingConfig.isCustomColor;
+
+    const colorSelectEl = this._domCtx.colorSelectEl;
+    const colorPickerWrapperEl = this._domCtx.colorPickerWrapperEl;
+    const colorPickerEl = this._domCtx.colorPickerEl;
+    if (this._currentData.isCustomColor) {
+      colorSelectEl.value = "custom";
+
+      colorPickerEl.value = this._currentData.color;
+      colorPickerWrapperEl.classList.remove("d-none");
+    } else {
+      colorSelectEl.value = this._currentData.color;
+    }
+
+    // font size
+    this._currentData.fontSize = existingConfig.fontSize;
+    this._domCtx.fontSizeSelectEl.value = this._currentData.fontSize;
+  },
+
+  initEventListeners() {
+    this._domCtx.weekdaySelectEl.addEventListener("change", setWeekday);
+    this._domCtx.daySelectEl.addEventListener("change", setDay);
+    this._domCtx.monthSelectEl.addEventListener("change", setMonth);
+    this._domCtx.colorSelectEl.addEventListener("change", setColorFromSelect);
+    this._domCtx.colorPickerEl.addEventListener("change", setColorFromPicker);
+    this._domCtx.fontSizeSelectEl.addEventListener("change", setFontSize);
   },
 
   /**
@@ -419,10 +505,13 @@ export const DateSlideType = {
   setColorFromSelect(value) {
     const colorPickerWrapperEl = this._domCtx.colorPickerWrapperEl;
     if (value === "custom") {
-      colorPickerWrapperEl.classList.remove("d-none");
+      this._currentData.isCustomColor = true;
       this._currentData.color = this._domCtx.colorPickerEl.value;
+
+      colorPickerWrapperEl.classList.remove("d-none");
     } else {
-      // if picker was enabled ealier we remove it
+      // if picker was enabled ealier we remove it and set isCustomColor to false
+      this._currentData.isCustomColor = false;
       colorPickerWrapperEl.classList.add("d-none");
 
       this._currentData.color = value;
