@@ -1136,6 +1136,9 @@
   "Today": {
     "da": "I dag"
   },
+  "Day": {
+    "da": "dag"
+  },
   "Add a one-time scheduled event": {
     "da": "Tilføj en engangs planlagt begivenhed"
   },
@@ -1519,6 +1522,9 @@
   },
   "Edit Recurring Scheduled Content": {
     "da": "Rediger Tilbagevendende Planlagt Indhold"
+  },
+  "Month": {
+    "da": "Måned"
   },
   "Day of Week": {
     "da": "Ugedag"
@@ -4069,6 +4075,9 @@
   },
   "Choose Image": {
     "da": "Vælg billede"
+  },
+  "Choose date": {
+    "da": "Vælg dato format"
   },
   "Remove Thumbnail": {
     "da": "Fjern miniaturebillede"
