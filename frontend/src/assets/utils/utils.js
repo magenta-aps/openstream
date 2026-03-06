@@ -126,15 +126,18 @@ export function showToast(message, type = "Info") {
 
 export async function signOut() {
   // Fetch signout-tokens
-  const signout_params = new URLSearchParams({ "org": window.ORG_NAME })
-  const signout_api_resp = await fetch(`${BASE_URL}/auth/signout/api?${signout_params.toString()}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+  const signout_params = new URLSearchParams({ org: window.ORG_NAME });
+  const signout_api_resp = await fetch(
+    `${BASE_URL}/auth/signout/api?${signout_params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     },
-  });
+  );
 
-  const resp_data = await signout_api_resp.json()
+  const resp_data = await signout_api_resp.json();
 
   // Remove local storage
   localStorage.removeItem("accessToken");
@@ -151,10 +154,7 @@ export async function signOut() {
   localStorage.removeItem("selectedSubOrgName");
   localStorage.removeItem("username");
 
-  const redirectUrl = new URL(
-    resp_data.redirect_url,
-    window.location.origin,
-  );
+  const redirectUrl = new URL(resp_data.redirect_url, window.location.origin);
   window.location.href = redirectUrl.toString();
 }
 
@@ -877,7 +877,6 @@ export async function getBranchName(id) {
   }
 }
 
-
 export function initCollapseLeftSidebarBtn() {
   const collapseBtn = document.getElementById("collapse-left-sidebar-btn");
   const sidebar = document.getElementById("sidebar");
@@ -888,7 +887,7 @@ export function initCollapseLeftSidebarBtn() {
   if (collapseBtn && sidebar) {
     collapseBtn.addEventListener("click", () => {
       if (sidebar) {
-        sidebar?.classList.toggle("collapsed")
+        sidebar?.classList.toggle("collapsed");
       }
 
       if (pageTitle) {
@@ -953,7 +952,13 @@ export function initOrgUrlRouting() {
 
   const process = (a) => {
     // 1. Validation: Check existence, ignore attribute, same origin, http(s) only
-    if (!a.href || a.hasAttribute("noSlug") || a.origin !== location.origin || !a.protocol.startsWith("http")) return;
+    if (
+      !a.href ||
+      a.hasAttribute("noSlug") ||
+      a.origin !== location.origin ||
+      !a.protocol.startsWith("http")
+    )
+      return;
 
     const linksToHideInProd = [
       "/emergency-slideshows",
@@ -962,7 +967,9 @@ export function initOrgUrlRouting() {
     ];
     // Hide specific links in production environment only
     if (window.location.hostname === "openstream.dk") {
-      if (linksToHideInProd.some((hiddenPath) => a.pathname.includes(hiddenPath))) {
+      if (
+        linksToHideInProd.some((hiddenPath) => a.pathname.includes(hiddenPath))
+      ) {
         a.classList.add("d-none");
         return;
       }
@@ -972,42 +979,76 @@ export function initOrgUrlRouting() {
     const segments = path.split("/").filter(Boolean);
 
     // 2. Filter: Skip if starts with Org, @, assets, or static
-    if (!segments[0] || new RegExp(`^(${ORG}|@|assets|static)$`, "i").test(segments[0])) return;
+    if (
+      !segments[0] ||
+      new RegExp(`^(${ORG}|@|assets|static)$`, "i").test(segments[0])
+    )
+      return;
 
     // 3. Logic: Check dataset override -> fallback to global var + path check
     const shouldInclude = (key, globalVal, slug) => {
       const override = a.dataset[key];
       if (override === "false") return false;
       // If override is true, we just need the global val. Else check global val AND ensure slug isn't already in path
-      return !!globalVal && (override === "true" || !segments.some(s => s.toLowerCase() === slug));
+      return (
+        !!globalVal &&
+        (override === "true" || !segments.some((s) => s.toLowerCase() === slug))
+      );
     };
 
     // 4. Update HREF (Assuming createUrl is globally available per your original code)
-    a.href = createUrl(
-      path.replace(/^\/+/, "") + a.search,
-      shouldInclude("includeSuborg", SUB_ORG, "suborg"),
-      shouldInclude("includeBranch", BRANCH, "branch")
-    ) + a.hash;
+    a.href =
+      createUrl(
+        path.replace(/^\/+/, "") + a.search,
+        shouldInclude("includeSuborg", SUB_ORG, "suborg"),
+        shouldInclude("includeBranch", BRANCH, "branch"),
+      ) + a.hash;
   };
 
   // 5. Execution & Observation
-  const run = (node) => (node.nodeName === "A" ? [node] : node.querySelectorAll?.("a") || []).forEach(process);
+  const run = (node) =>
+    (node.nodeName === "A"
+      ? [node]
+      : node.querySelectorAll?.("a") || []
+    ).forEach(process);
 
   run(document); // Initial run
 
-  new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach(run)))
-    .observe(document.body, { childList: true, subtree: true });
+  new MutationObserver((muts) =>
+    muts.forEach((m) => m.addedNodes.forEach(run)),
+  ).observe(document.body, { childList: true, subtree: true });
 }
 
 export function shouldUseApiKeyInSlideTypeIframe() {
   const parentParams = new URLSearchParams(window.parent.location.search);
-  const mode = parentParams.get('mode');
-  if (mode === 'slideshow-player') {
+  const mode = parentParams.get("mode");
+  if (mode === "slideshow-player") {
     console.log("Using API key for slide type iframe in slideshowplayer mode");
     return true;
-  }
-  else {
+  } else {
     console.log("using token in editor mode");
     return false;
   }
+}
+
+/**
+ * @description
+ * A small interface for Intl.DateTimeFormat, replaces weekday with an capitalized version
+ * @param {Intl.DateTimeFormatOptions} [formatOptions]
+ * @param {Date} [date]
+ */
+export function createFormattedDate(formatOptions, date = new Date()) {
+  const lang = document.documentElement.lang;
+  return new Intl.DateTimeFormat(lang, formatOptions)
+    .formatToParts(date)
+    .map((part) => {
+      let value = part.value;
+
+      if (part.type === "weekday") {
+        value = `${value.at(0).toUpperCase()}${value.substring(1)}`;
+      }
+
+      return value;
+    })
+    .join("");
 }
