@@ -11,8 +11,7 @@ const ctx = {
   day: queryParams.day,
   month: queryParams.month,
   color: queryParams.color,
-  fontSize: 
-  color: queryParams.color,
+  fontSize: queryParams.fontSize,
 };
 
 const formattedDate = createFormattedDate({
@@ -20,6 +19,5 @@ const formattedDate = createFormattedDate({
 });
 
 displayEl.textContent = formattedDate;
-if (ctx.color) {
-  displayEl.style.color = ctx.color;
-}
+displayEl.style.color = ctx.color;
+displayEl.style.fontSize = `${ctx.fontSize}px`;
