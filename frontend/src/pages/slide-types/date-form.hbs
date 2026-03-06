@@ -63,6 +63,7 @@
                     <label for="date-color-picker" class="form-label ">
                         {% trans "Custom Color" %}
                     </label>
+
                     <div class="d-flex align-items-center gap-2">
                         <input type="color" id="date-color-picker" class="form-control form-control-color border-gray" value="#ffffff" title="Choose your custom color" />
                         <span class=" small">{% trans "Click to choose a custom color" %}</span>
@@ -71,10 +72,28 @@
             {{/section}}
 
             {{#> section}}
-                <div class="bg-gray">
-                    <p id="date-format-preview"></p>
+                <label for="date-font-size">{% trans "Date font size" %}</label>
+
+                <select id="date-font-size-select" class="form-select  border-gray">
+                    <option selected value="40">40px</option>
+                    <option value="42">42px</option>
+                    <option value="44">44px</option>
+                    <option value="48">48px</option>
+                    <option value="54">54px</option>
+                </select>
+            {{/section}}
+
+            {{#> section}}
+                <div id="date-format-preview-wrapper" class="bg-gray d-flex align-items-center justify-content-center">
+                    <span id="date-format-preview"></span>
                 </div>
             {{/section}}
         </div>
     </div>
 {{/base/containers/html-container }}
+
+<style>
+    #date-format-preview-wrapper {
+        height: 6rem;
+    }
+</style>
