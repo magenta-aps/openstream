@@ -6,6 +6,7 @@
  * @property {HTMLSelectElement} colorSelectEl - the selection element for the color value
  * @property {HTMLElement} colorPickerWrapperEl - the wrapper element for the custom color value
  * @property {HTMLInputElement} colorPickerEl - the input element for the color value
+ * @property {HTMLSelectElement} fontSizeSelectEl - the select element for the font size value
  * @property {HTMLElement} previewEl - the preview element
  * @property {() => void} resetCtx - used for reseting the contexct between form generation
  */
@@ -26,6 +27,7 @@ function initDomCtx() {
     colorSelectEl: undefined,
     colorPickerWrapperEl: undefined,
     colorPickerEl: undefined,
+    fontSizeSelectEl: undefined,
     previewEl: undefined,
     resetCtx() {
       this.weekdaySelectEl = undefined;
@@ -34,6 +36,7 @@ function initDomCtx() {
       this.colorSelectEl = undefined;
       this.colorPickerWrapperEl = undefined;
       this.colorPickerEl = undefined;
+      this.fontSizeSelectEl = undefined;
       this.previewEl = undefined;
     },
   };
@@ -124,6 +127,22 @@ function initDomCtx() {
       return domCtxPrimitive.colorPickerEl;
     },
 
+    get fontSizeSelectEl() {
+      if (!domCtxPrimitive.fontSizeSelectEl) {
+        const fontSizeSelectEl = document.getElementById(
+          "date-font-size-select",
+        );
+        if (!(fontSizeSelectEl instanceof HTMLSelectElement)) {
+          console.error("Expected select element");
+          return;
+        }
+
+        domCtxPrimitive.fontSizeSelectEl = fontSizeSelectEl;
+      }
+
+      return domCtxPrimitive.fontSizeSelectEl;
+    },
+
     get previewEl() {
       if (!domCtxPrimitive.previewEl) {
         domCtxPrimitive.previewEl = document.getElementById(
@@ -149,6 +168,7 @@ function initDomCtx() {
  * @property {DayValues} [CurrentData.day]
  * @property {MonthValues} [CurrentData.month]
  * @property {string} [CurrentData.color]
+ * @property {string} [CurrentData.fontSize]
  */
 
 /**
@@ -161,6 +181,7 @@ function initCurrentData() {
     day: undefined,
     month: undefined,
     color: undefined,
+    fontSize: undefined,
   };
 
   return {
@@ -270,7 +291,7 @@ export const DateSlideType = {
   },
 
   /**
-   * @param {*} config
+   * @param {CurrentData} config
    */
   generateSlide(config) {
     /** @type {CurrentData} */
@@ -343,6 +364,11 @@ export const DateSlideType = {
     const colorPickerEl = this._domCtx.colorPickerEl;
     colorPickerEl.addEventListener("change", setColorFromPicker);
 
+    // font size
+    const fontSizeEl = this._domCtx.fontSizeSelectEl;
+    this._currentData.fontSize = fontSizeEl.value;
+    fontSizeEl.addEventListener("change", setFontSize);
+
     // initial render of preview
     this.updatePreview();
   },
@@ -411,6 +437,16 @@ export const DateSlideType = {
     this.updatePreview();
   },
 
+  /**
+   * @description
+   * Will set the font size value, expected to be called by an event listener function
+   * @param {string} value
+   */
+  setFontSize(value) {
+    this._currentData.fontSize = value;
+    this.updatePreview();
+  },
+
   updatePreview() {
     const previewEl = this._domCtx.previewEl;
     let text = null;
@@ -431,6 +467,7 @@ export const DateSlideType = {
 
     previewEl.textContent = text;
     previewEl.style.color = this._currentData.color;
+    previewEl.style.fontSize = `${this._currentData.fontSize}px`;
   },
 };
 
@@ -484,4 +521,14 @@ function setColorFromPicker(event) {
   const target = /** @type {HTMLSelectElement} */ (event.target);
 
   DateSlideType.setColorFromPicker(target.value);
+}
+
+/**
+ * @param {Event} event
+ */
+function setFontSize(event) {
+  // expecting a select element
+  const target = /** @type {HTMLSelectElement} */ (event.target);
+
+  DateSlideType.setFontSize(target.value);
 }
