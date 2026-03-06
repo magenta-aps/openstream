@@ -1,6 +1,15 @@
 {{!-- SPDX-FileCopyrightText: 2026 Magenta ApS <https: //magenta.dk> --}}
 {{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
 
-{{#> base/containers/html-container title="Date widget" }}
+
+{{#> base/containers/html-container title="Date widget" script-src="/src/assets/slide-types/date/main.js" }}
     <p id="date-display"></p>
 {{/base/containers/html-container }}
+
+<style>
+    body {
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+    }
+</style>
