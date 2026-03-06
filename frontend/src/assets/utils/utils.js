@@ -957,7 +957,8 @@ export function initOrgUrlRouting() {
 
     const linksToHideInProd = [
       "/emergency-slideshows",
-      "/manage-wayfinding-systems"
+      "/manage-wayfinding-systems",
+      "/template-store"
     ];
     // Hide specific links in production environment only
     if (window.location.hostname === "openstream.dk") {
