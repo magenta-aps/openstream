@@ -317,7 +317,12 @@ export const DateSlideType = {
     );
   },
 
-  generateSlideData() {},
+  generateSlideData() {
+    return {
+      ...SlideTypeUtils.getDefaultSlideSettings(),
+      backgroundColor: "transparent",
+    };
+  },
 
   cleanupFormEventListeners() {
     // get elements
@@ -432,7 +437,6 @@ export const DateSlideType = {
    * @param {string} value
    */
   setColorFromPicker(value) {
-    console.log(value);
     this._currentData.color = value;
     this.updatePreview();
   },
