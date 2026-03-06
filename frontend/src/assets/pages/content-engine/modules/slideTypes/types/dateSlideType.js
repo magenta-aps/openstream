@@ -170,7 +170,7 @@ function initCurrentData() {
 
     set weekday(value) {
       // if the value is taken from a element value, then we need to check and cant depend on types
-      if (value.length === 0) {
+      if (value?.length === 0) {
         currentDataPrimitive.weekday = undefined;
         return;
       }
@@ -190,7 +190,7 @@ function initCurrentData() {
 
     set day(value) {
       // if the value is taken from a element value, then we need to check and cant depend on types
-      if (value.length === 0) {
+      if (value?.length === 0) {
         currentDataPrimitive.day = undefined;
         return;
       }
@@ -210,7 +210,7 @@ function initCurrentData() {
 
     set month(value) {
       // if the value is taken from a element value, then we need to check and cant depend on types
-      if (value.length === 0) {
+      if (value?.length === 0) {
         currentDataPrimitive.month = undefined;
         return;
       }
@@ -273,7 +273,21 @@ export const DateSlideType = {
    * @param {*} config
    */
   generateSlide(config) {
-    const params = config;
+    /** @type {CurrentData} */
+    const params = {
+      color: config.color,
+      fontSize: config.fontSize,
+    };
+
+    if (config.weekday) {
+      params.weekday = config.weekday;
+    }
+    if (config.day) {
+      params.day = config.day;
+    }
+    if (config.month) {
+      params.month = config.month;
+    }
 
     return SlideTypeUtils.generateSlideUrl(
       "/slide-types/date",
