@@ -15,7 +15,9 @@ const ctx = {
 };
 
 const formattedDate = createFormattedDate({
-  ...ctx,
+  weekday: ctx.weekday,
+  day: ctx.day,
+  month: ctx.month,
 });
 
 displayEl.textContent = formattedDate;
