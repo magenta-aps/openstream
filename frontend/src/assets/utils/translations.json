@@ -342,7 +342,7 @@
     "da": "Nyt indhold"
   },
   "Content title": {
-    "da":"Titel på indhold"
+    "da": "Titel på indhold"
   },
   "Go to content": {
     "da": "Gå til indhold"
@@ -4222,5 +4222,8 @@
   },
   "Month long": {
     "da": "Lang (januar.)"
+  },
+  "A demostration video of OpenStream will soon be shown here": {
+    "da": "En demonstrations video af OpenStream vil blive vist her snart"
   }
 }
