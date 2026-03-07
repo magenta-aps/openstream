@@ -14,7 +14,7 @@
  * @property {() => void} resetCtx - used for reseting the contexct between form generation
  */
 
-import { translateHTML } from "../../../../../utils/locales";
+import { gettext, translateHTML } from "../../../../../utils/locales";
 import { createFormattedDate } from "../../../../../utils/utils";
 import { SlideTypeUtils } from "../slideTypeRegistry";
 
@@ -325,9 +325,7 @@ export const DateSlideType = {
   validateSlide() {
     const data = this.extractFormData();
     if (!data.weekday && !data.day && !data.month) {
-      alert(
-        "Please select at least one value for either 'day of week', 'day' or 'month'.",
-      );
+      alert(gettext("At least one selected format option is required"));
 
       return false;
     }
@@ -549,7 +547,7 @@ export const DateSlideType = {
       !this._currentData.day &&
       !this._currentData.month
     ) {
-      text = "Please select a format for the date";
+      text = gettext("At least one selected format option is required");
     } else {
       text = createFormattedDate({
         weekday: this._currentData.weekday,

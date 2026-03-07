@@ -1526,7 +1526,7 @@
   "Month": {
     "da": "Måned"
   },
-  "Day of Week": {
+  "Day of week": {
     "da": "Ugedag"
   },
   "Monday": {
@@ -4180,5 +4180,47 @@
   },
   "A demostration video of OpenStream will soon be shown here": {
     "da": "En demonstrations video af OpenStream vil blive vist her snart"
+  },
+  "At least one selected format option is required": {
+    "da": "Mindst et dato format skal vælges"
+  },
+  "Select day of week format": {
+    "da": "Vælg ugedag format"
+  },
+  "Day of week narrow": {
+    "da": "Small (F)"
+  },
+  "Day of week short": {
+    "da": "Kort (Fre.)"
+  },
+  "Day of week long": {
+    "da": "Lang (Fredag)"
+  },
+  "Select day format": {
+    "da": "Vælg dag format"
+  },
+  "Day two digits": {
+    "da": "To decimaler (01)"
+  },
+  "Day numeric": {
+    "da": "Numerisk (1)"
+  },
+  "Select month format": {
+    "da": "Vælg måned format"
+  },
+  "Month two digits": {
+    "da": "To decimaler (01)"
+  },
+  "Month numeric": {
+    "da": "Numerisk (1)"
+  },
+  "Month narrow": {
+    "da": "Small (J)"
+  },
+  "Month short": {
+    "da": "Kort (jan)"
+  },
+  "Month long": {
+    "da": "Lang (januar.)"
   }
 }
