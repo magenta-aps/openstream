@@ -131,17 +131,10 @@ td i {
 
 /* Create slideshow aspect ratio selection */
 .create-resolution-option {
-  cursor: pointer;
   transition: all 0.2s ease;
-  border-radius: 4px;
   padding: 8px 12px;
   min-width: 48px;
   min-height: 48px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
   text-align: center;
 }
 
@@ -168,9 +161,9 @@ td i {
 }
 
 .create-resolution-option.active {
-  border: 2px solid $neutral-blue !important;
-  background-color: $lightest-gray !important;
-  color: $neutral-blue;
+  border: 2px solid $secondary-accent-hover !important;
+  background-color: $secondary-accent-lighter !important;
+  color: $darkest-gray;
 }
 
 .search-icon {

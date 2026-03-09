@@ -8,6 +8,7 @@ import {
   showToast,
   token,
   queryParams,
+  genericFetch,
 } from "../../../../utils/utils.js";
 import { fetchAllOrgTemplatesAndPopulateStore } from "../core/templateDataManager.js"; // Removed initTemplateEditor
 import { loadSlide, scaleAllSlides } from "../core/renderSlide.js";
@@ -27,6 +28,7 @@ import {
   getDefaultCellSnapForResolution,
 } from "../../../../utils/availableAspectRatios.js";
 import { refreshTemplateFilterOptions } from "../core/templateFilterControls.js";
+import { initializeMultiSelectDropdown } from "../../../../utils/multiSelectDropdownUtils.js";
 
 const modalEl = document.getElementById("saveAsTemplateModal");
 const modalTitleEl = document.getElementById("saveAsTemplateModalLabel");
@@ -96,14 +98,14 @@ function createTemplateAspectRatioOption(container, ratio) {
 
   if (ratio.note) {
     const note = document.createElement("div");
-    note.className = "template-resolution-option-note text-muted text-center";
+    note.className = "template-resolution-option-note text-darker-gray small text-center";
     note.textContent = ratio.note;
     wrapper.appendChild(note);
   }
 
   const option = document.createElement("div");
   option.className =
-    "template-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer";
+    "template-resolution-option d-flex justify-content-center align-items-center border border-gray rounded-1 bg-white fs-6";
   option.setAttribute("data-ratio", ratio.value);
   option.setAttribute("data-width", ratio.width);
   option.setAttribute("data-height", ratio.height);
@@ -244,11 +246,22 @@ function ensureTemplateAspectRatioOption(value) {
 }
 
 function updateTemplateAspectRatioActiveState(selectedValue) {
-  templateAspectRatioOptionMap.forEach(({ option }) => {
-    option.classList.toggle(
-      "active",
-      option.getAttribute("data-ratio") === selectedValue,
-    );
+  templateAspectRatioOptionMap.forEach(({ option }) => {  
+    if(option.getAttribute("data-ratio") === selectedValue) {
+      option.classList.add("active");
+      
+      // Create check icon if not already present
+      if (!option.querySelector("i")) {
+        const checkedIcon = document.createElement("i");
+        checkedIcon.className = "material-symbols-outlined me-1 fs-5";
+        checkedIcon.textContent = "check_circle";
+        option.insertBefore(checkedIcon, option.firstChild);
+      }
+    } else {
+      // Remove active state and icon
+      option.querySelector("i")?.remove();
+      option.classList.remove("active");
+    }
   });
 }
 
@@ -287,9 +300,10 @@ function renderTemplateAspectRatioOptions() {
       createTemplateAspectRatioOption(container, ratio);
     });
 
-    const card = container.closest(".card");
-    if (card) {
-      card.classList.toggle("d-none", ratios.length === 0);
+    // Hide the entire aspect ratio section if there are no ratios to display
+    const aspectRatioContainer = container.closest(".js-template-aspect-ratio-options");
+    if (aspectRatioContainer) {
+      aspectRatioContainer.classList.toggle("d-none", ratios.length === 0);
     }
   });
 
@@ -475,8 +489,8 @@ export function openSaveAsTemplateModal(index = null, isBlank = false) {
     confirmBtn.textContent = gettext("Save Template");
   }
 
-  fetchCategoriesForTemplate();
-  fetchTagsForTemplate();
+  fetchCategoriesForDropdown();
+  fetchTagsForDropdown("tagsDropdownToggle", "tagsDropdownMenu");
   // Reset aspect ratio to default when opening modal
   const allowAspectRatioChanges = !isAspectRatioLocked();
   const defaultAspectRatio = allowAspectRatioChanges
@@ -510,8 +524,8 @@ export function openEditTemplateMetadataModal(index) {
     confirmBtn.textContent = gettext("Save Changes");
   }
 
-  fetchCategoriesForTemplate(templateToEdit.categoryId);
-  fetchTagsForTemplate(templateToEdit.tagIds || []);
+  fetchCategoriesForDropdown(templateToEdit.categoryId);
+  fetchTagsForDropdown("tagsDropdownToggle", "tagsDropdownMenu", templateToEdit.tagIds || []);
   loadAspectRatio(templateToEdit.aspect_ratio || DEFAULT_ASPECT_RATIO);
 
   const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -523,19 +537,17 @@ function loadAspectRatio(aspectRatio = DEFAULT_ASPECT_RATIO) {
   applyAspectRatioSelectState(aspectRatio, isAspectRatioLocked());
 }
 
-async function fetchCategoriesForTemplate(selectedCategoryId = null) {
+/**
+ * @description Fetches categories for the organization and populates the category dropdown in the template modal. If a selectedCategoryId is provided, that category will be pre-selected in the dropdown.
+ * @param {number} selectedCategoryId 
+ */
+async function fetchCategoriesForDropdown(selectedCategoryId = null) {
   if (!templateCategorySelect) return;
+
   templateCategorySelect.innerHTML =
-    '<option value="">' + gettext("-- None --") + "</option>";
-  try {
-    const resp = await fetch(
-      `${BASE_URL}/api/categories/?organisation_id=${parentOrgID}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
-    if (!resp.ok) return;
-    const cats = await resp.json();
+    '<option value="">(' + gettext("Nothing selected") + ")</option>";
+  
+  await fetchCategories().then((cats) => {
     cats.forEach((cat) => {
       const opt = document.createElement("option");
       opt.value = cat.id;
@@ -545,163 +557,44 @@ async function fetchCategoriesForTemplate(selectedCategoryId = null) {
     if (selectedCategoryId) {
       templateCategorySelect.value = selectedCategoryId;
     }
-  } catch (err) {
-    console.error("Failed to fetch categories", err);
-  }
-}
-
-async function fetchTagsForTemplate(selectedTagIds = []) {
-  const tagCheckboxes = document.getElementById("tagCheckboxes");
-  const selectAllTags = document.getElementById("selectAllTags");
-  const tagsDropdownToggle = document.getElementById("tagsDropdownToggle");
-  const selectedTagsCount = tagsDropdownToggle.querySelector(
-    ".selected-tags-count",
-  );
-  const selectedTagsText = tagsDropdownToggle.querySelector(
-    ".selected-tags-text",
-  );
-
-  if (!tagCheckboxes) return;
-
-  // Convert selectedTagIds to strings for easier comparison
-  const selectedTagIdsStr = selectedTagIds.map((id) => String(id));
-
-  // Clear previous options
-  tagCheckboxes.innerHTML = "";
-
-  try {
-    const resp = await fetch(
-      `${BASE_URL}/api/tags/?organisation_id=${parentOrgID}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
-    if (!resp.ok) return;
-    const tags = await resp.json();
-
-    // Add tag checkboxes to the dropdown
-    tags.forEach((tag) => {
-      const isSelected = selectedTagIdsStr.includes(String(tag.id));
-
-      const checkboxDiv = document.createElement("div");
-      checkboxDiv.className = "form-check";
-
-      const checkbox = document.createElement("input");
-      checkbox.className = "form-check-input tag-checkbox";
-      checkbox.type = "checkbox";
-      checkbox.id = `tag-${tag.id}`;
-      checkbox.value = tag.id;
-      checkbox.checked = isSelected;
-
-      const label = document.createElement("label");
-      label.className = "form-check-label";
-      label.htmlFor = `tag-${tag.id}`;
-      label.textContent = tag.name;
-
-      checkboxDiv.appendChild(checkbox);
-      checkboxDiv.appendChild(label);
-      tagCheckboxes.appendChild(checkboxDiv);
-    });
-
-    // Setup event listeners for tags
-    setupTagsDropdownListeners();
-
-    // Update the visual state based on selections
-    updateTagsDropdownState();
-  } catch (err) {
-    console.error("Failed to fetch tags", err);
-  }
-}
-
-// Setup the event listeners for the tags dropdown
-function setupTagsDropdownListeners() {
-  const tagCheckboxes = document.querySelectorAll(".tag-checkbox");
-  const selectAllTags = document.getElementById("selectAllTags");
-  const tagsDropdownMenu = document.getElementById("tagsDropdownMenu");
-
-  // Prevent dropdown from closing when clicking inside
-  if (tagsDropdownMenu) {
-    tagsDropdownMenu.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-  }
-
-  // Setup select all checkbox
-  if (selectAllTags) {
-    // Remove any existing listeners to prevent duplicates
-    selectAllTags.replaceWith(selectAllTags.cloneNode(true));
-    const newSelectAllTags = document.getElementById("selectAllTags");
-
-    newSelectAllTags.addEventListener("change", (e) => {
-      const currentTagCheckboxes = document.querySelectorAll(".tag-checkbox");
-      currentTagCheckboxes.forEach((checkbox) => {
-        checkbox.checked = e.target.checked;
-      });
-      updateTagsDropdownState();
-    });
-  }
-
-  // Setup individual tag checkboxes
-  tagCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      updateTagsDropdownState();
-    });
   });
 }
 
-// Update the dropdown state based on selections
-function updateTagsDropdownState() {
-  const tagCheckboxes = document.querySelectorAll(".tag-checkbox");
-  const selectAllTags = document.getElementById("selectAllTags");
-  const tagsDropdownToggle = document.getElementById("tagsDropdownToggle");
-  const selectedTagsCount = tagsDropdownToggle?.querySelector(
-    ".selected-tags-count",
+/**
+ * @description Fetches tags and initializes the tags multi-select dropdown for the template modal. If selectedTagIds are provided, those tags will be pre-selected in the dropdown.
+ * @param {string} dropdownBtnId 
+ * @param {string} dropdownMenuId 
+ * @param {Array<number>} selectedTagIds 
+ */
+async function fetchTagsForDropdown(dropdownBtnId, dropdownMenuId, selectedTagIds = []) {
+  await fetchTags().then((tagsList) => {
+    // Initialize tags dropdown
+    initializeMultiSelectDropdown(tagsList, dropdownBtnId, dropdownMenuId, selectedTagIds);
+  });
+}
+
+/**
+ * @description Fetches tags for the organization.
+ * @returns list of tags
+ */
+async function fetchTags() {
+  const tagsList = await genericFetch(
+    `${BASE_URL}/api/tags/?organisation_id=${parentOrgID}`,
   );
-  const selectedTagsText = tagsDropdownToggle?.querySelector(
-    ".selected-tags-text",
+
+  return tagsList;
+}
+
+/**
+ * @description Fetches categories for the organization.
+ * @returns list of categories
+ */
+async function fetchCategories() {
+    const categoriesList = await genericFetch(
+    `${BASE_URL}/api/categories/?organisation_id=${parentOrgID}`,
   );
-  const templateTags = document.getElementById("templateTags");
 
-  // Get selected tags
-  const selectedTags = Array.from(tagCheckboxes).filter((cb) => cb.checked);
-
-  // Update select all checkbox - be more defensive about the check
-  if (selectAllTags) {
-    const allSelected =
-      tagCheckboxes.length > 0 && selectedTags.length === tagCheckboxes.length;
-    if (selectAllTags.checked !== allSelected) {
-      selectAllTags.checked = allSelected;
-    }
-  }
-
-  // Update counter and text
-  if (selectedTagsCount && selectedTagsText) {
-    const count = selectedTags.length;
-    selectedTagsCount.textContent = count;
-    selectedTagsCount.style.display = count > 0 ? "inline-block" : "none";
-
-    if (count === 0) {
-      selectedTagsText.textContent = gettext("Select tags...");
-    } else if (count <= 2) {
-      // Show tag names if 2 or fewer
-      const tagNames = selectedTags
-        .map((cb) => {
-          const label = document.querySelector(`label[for="${cb.id}"]`);
-          return label ? label.textContent : "";
-        })
-        .filter((name) => name); // Filter out empty names
-      selectedTagsText.textContent = tagNames.join(", ");
-    } else {
-      // Just show count if more than 2
-      selectedTagsText.textContent = gettext("Tags selected");
-    }
-  }
-
-  // Update hidden input value with selected tag ids
-  if (templateTags) {
-    const selectedIds = selectedTags.map((cb) => cb.value);
-    templateTags.value = selectedIds.join(",");
-  }
+  return categoriesList;
 }
 
 if (confirmBtn) {
@@ -714,9 +607,15 @@ if (confirmBtn) {
 
     const name = templateNameField.value.trim();
     const categoryId = templateCategorySelect.value;
-    const tagValues = document.getElementById("templateTags").value
-      ? document.getElementById("templateTags").value.split(",")
-      : [];
+    const tag_ids = [];
+    const tagCheckboxes = document.querySelectorAll(
+      ".dropdownCheckboxesContainer input[type='checkbox']",
+    );
+    tagCheckboxes.forEach((cb) => {
+      if (cb.checked) {
+        tag_ids.push(parseInt(cb.dataset.valueId, 10));
+      }
+    });
 
     const canEditAspectRatio = !isAspectRatioLocked();
     const contextSlideIndex =
@@ -774,7 +673,7 @@ if (confirmBtn) {
         apiEndpoint = `${BASE_URL}/api/global-templates/${store.editingTemplateId}/`;
       } else {
         payload.category_id = categoryId ? parseInt(categoryId) : null;
-        payload.tag_ids = tagValues.map((t) => parseInt(t));
+        payload.tag_ids = tag_ids;
         payload.organisation_id = parentOrgID;
         if (isSuborgTemplate) {
           apiEndpoint = `${BASE_URL}/api/suborg-templates/${store.editingTemplateId}/`;
@@ -874,7 +773,7 @@ if (confirmBtn) {
       const payload = {
         name: name,
         category_id: categoryId ? parseInt(categoryId) : null,
-        tag_ids: tagValues.map((t) => parseInt(t)),
+        tag_ids: tag_ids,
         aspect_ratio: aspectRatio,
         slide_data: slideData,
         // Prefer the resolution derived from the selected aspect ratio.

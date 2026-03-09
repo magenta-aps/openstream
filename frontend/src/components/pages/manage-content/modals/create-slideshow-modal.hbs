@@ -3,14 +3,14 @@
 <form id="createSlideshowForm">
     {{#> base/modal/modal id="createSlideshowModal" size="modal-xl" }}
         {{#*inline "header"}}
-            {{> base/modal/modal-title title="Create Slideshow"}}
+            {{> base/modal/modal-title title="Create new content"}}
             {{> base/modal/modal-header-close}}
     {{/inline}}
         
         {{#*inline "body"}}
             <!-- NAME -->
             <div class="mb-3">
-                {{> base/form/label for="createSlideshowName" text="Name"}}
+                {{> base/form/label for="createSlideshowName" text="Content title"}}
                 {{> base/form/input type="text" id="createSlideshowName" placeholder="Enter slideshow name..." required=true}}
             </div>
             <!-- MODE -->
@@ -32,58 +32,35 @@
                     <span class="fw-bold">{% trans "You are unable to change the selected mode after creation." %}</span>
                 </div>
             </div>
-            <!-- CATEGORY -->
-            <div class="mb-3">
-                {{> base/form/label for="createSlideshowCategory" text="Category"}}
-                <select class="form-select" id="createSlideshowCategory">
-                    <!-- We'll programmatically add (None) and categories here -->
-                </select>
-            </div>
-            <!-- TAGS -->
-            <div class="mb-3">
-                {{> base/form/label for="createSlideshowTags" text="Tags"}}
-                <div id="createSlideshowTagsContainer">
-                    <!-- Checkboxes for each tag will be inserted via JS -->
-                </div>
-            </div>
             <!-- ASPECT RATIO -->
             <div class="mb-3">
                 {{> base/form/label for="createSlideshowAspectRatio" text="Aspect Ratio"}}
-                <p class="text-muted small mb-3">
-                    {% trans "Choose the aspect ratio for your slideshow content. This determines the display dimensions." %}
-                </p>
-                <!-- Landscape section -->
-                <div class="card mb-2">
-                    <div class="card-header py-2">
-                        <h6 class="mb-0">{% trans "Landscape" %}</h6>
+                <div class="d-flex align-items-end gap-3 p-3 rounded-2 border border-gray bg-lightest-gray">
+                    <!-- Landscape section -->
+                    <div class="d-flex justify-content-start align-items-end flex-wrap gap-3 js-aspect-ratio-options" data-orientation="landscape">
+                        <!-- Aspect ratio options inserted dynamically -->
                     </div>
-                    <div class="card-body py-2">
-                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-aspect-ratio-options" data-orientation="landscape">
-                            <!-- Aspect ratio options inserted dynamically -->
-                        </div>
+                    <!-- Portrait section -->
+                    <div class="d-flex justify-content-start align-items-end flex-wrap gap-3 js-aspect-ratio-options" data-orientation="portrait">
+                        <!-- Aspect ratio options inserted dynamically -->
                     </div>
-                </div>
-                <!-- Portrait section -->
-                <div class="card">
-                    <div class="card-header py-2">
-                        <h6 class="mb-0">{% trans "Portrait" %}</h6>
-                    </div>
-                    <div class="card-body py-2">
-                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-aspect-ratio-options" data-orientation="portrait">
-                            <!-- Aspect ratio options inserted dynamically -->
-                        </div>
+                    <!-- Square section -->
+                    <div class="d-flex justify-content-start align-items-end flex-wrap gap-3 js-aspect-ratio-options" data-orientation="square">
+                        <!-- Aspect ratio options inserted dynamically -->
                     </div>
                 </div>
-                <!-- Square section -->
-                <div class="card mt-2">
-                    <div class="card-header py-2">
-                        <h6 class="mb-0">{% trans "Square" %}</h6>
-                    </div>
-                    <div class="card-body py-2">
-                        <div class="d-flex justify-content-start align-items-end flex-wrap gap-2 js-aspect-ratio-options" data-orientation="square">
-                            <!-- Aspect ratio options inserted dynamically -->
-                        </div>
-                    </div>
+            </div>
+            <div class="d-flex justify-content-between gap-4">
+                <!-- CATEGORY -->
+                <div class="mb-3 w-100">
+                    {{> base/form/label for="createSlideshowCategory" text="Category"}}
+                    <select class="form-select" id="createSlideshowCategory">
+                        <!-- We'll programmatically add (None) and categories here -->
+                    </select>
+                </div>
+                <!-- TAGS -->
+                <div class="mb-3 w-100">
+                    {{> base/form/multi-select-dropdown dropdownBtnId="tagsDropdownBtn" dropdownMenuId="tagsDropdownMenu" selectAllCheckboxId="selectAllTagsCheckbox" labelText="Tags"}}
                 </div>
             </div>
     {{/inline}}

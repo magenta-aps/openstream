@@ -1,0 +1,22 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+
+{{> base/form/label for=dropdownBtnId text=labelText }}
+<div class="position-relative">
+    <div class="btn border-gray bg-white p-2 text-start d-flex justify-content-between align-items-center multiSelectDropdownToggle"
+            type="button"
+            id="{{dropdownBtnId}}"
+            aria-expanded="false">
+        <span class="selected-values-text">({% trans "Nothing selected" %})</span>
+        <i class="material-symbols-outlined arrowIcon">expand_more</i>
+    </div>
+    <div class="dropdown-menu px-3 pt-3 pb-2 w-100 multiSelectDropdownMenu hide" id="{{dropdownMenuId}}">
+        <div class="dropdownCheckboxesContainer">
+            <!-- Checkboxes will be dynamically added here -->
+        </div>
+        <div class="d-flex justify-content-between mt-3 border-top pt-2">
+            <p class="values-count mb-0 text-darker-gray">0 {% trans "selected" %}</p>
+            {{> base/form/checkbox id=selectAllCheckboxId class="selectAllValues" text="Select All" value="selectAll" }}
+        </div>
+    </div>
+</div>
