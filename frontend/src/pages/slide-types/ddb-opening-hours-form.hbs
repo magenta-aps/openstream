@@ -7,6 +7,16 @@
     </div>
 {{/inline}}
 
+{{#*inline "size-options"}}
+    <option value="24">{% trans "Small"%}</option>
+    <option selected value="32">{% trans "Regular"%}</option>
+    <option value="48">{% trans "Medium"%}</option>
+    <option value="72">{% trans "Large"%}</option>
+    <option value="96">{% trans "XL"%}</option>
+    <option value="128">{% trans "2XL"%}</option>
+{{/inline}}
+
+
 {{#> base/containers/html-container title="Clock Widget Configuration" }}
     <div>
         <div class="card-body">
@@ -41,11 +51,7 @@
                         <label for="ddb-opening-hours-date-header-font-size" class="form-label mb-1">{% trans "Date font size" %}</label>
 
                         <select id="ddb-opening-hours-date-header-font-size" class="form-select border-gray">
-                            <option value="44">44px</option>
-                            <option value="48">48px</option>
-                            <option value="54">54px</option>
-                            <option value="60">60px</option>
-                            <option value="66">66px</option>
+                            {{> size-options}}
                         </select>
                     </div>
 
@@ -53,11 +59,7 @@
                         <label for="ddb-opening-hours-list-element-font-size" class="form-label mb-1">{% trans "Opening hours font size" %}</label>
 
                         <select id="ddb-opening-hours-list-element-font-size" class="form-select border-gray">
-                            <option value="32">32px</option>
-                            <option value="36">36px</option>
-                            <option value="40">40px</option>
-                            <option value="42">42px</option>
-                            <option value="44">44px</option>
+                            {{> size-options}}
                         </select>
                     </div>
                 </div>

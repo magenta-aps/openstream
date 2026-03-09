@@ -4159,5 +4159,20 @@
   },
   "Pixels": {
     "da": "Pixels"
+  },
+  "Small": {
+    "da": "Lille"
+  },
+  "Regular": {
+    "da": "Almindelig"
+  },
+  "Large": {
+    "da": "Stor"
+  },
+  "XL": {
+    "da": "XL"
+  },
+  "2XL": {
+    "da": "2XL"
   }
 }
