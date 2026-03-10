@@ -59,10 +59,21 @@ const domCtx = initDomCtx();
     return;
   }
 
+  // check font size in ddb-opening-hour-font
+  const isDateFontHigher = Number(ctx.dateHeaderFontSize) > 48;
+  const isListElementFontHigher = Number(ctx.listElementFontSize) > 48;
+
   const openingHoursListEl = domCtx.openingHoursList;
   openingHours.entries().forEach(([date, openingHours]) => {
     // used to apply gap between dates
     const dateWrapperEl = document.createElement("div");
+
+    const dateTitleWrapperEl = document.createElement("div");
+    if (isDateFontHigher) {
+      dateTitleWrapperEl.classList.add("font-higher");
+    } else {
+      dateTitleWrapperEl.classList.add("font-lower");
+    }
 
     const dateTitleEl = document.createElement("span");
     dateTitleEl.style.fontSize = `${ctx.dateHeaderFontSize}px`;
@@ -91,15 +102,24 @@ const domCtx = initDomCtx();
     const dividerEl = document.createElement("div");
     dividerEl.classList.add("opening-hour-divider");
 
-    dateWrapperEl.appendChild(dateTitleEl);
+    dateTitleWrapperEl.appendChild(dateTitleEl);
+
+    dateWrapperEl.appendChild(dateTitleWrapperEl);
     dateWrapperEl.appendChild(dividerEl);
 
     const openingHoursWrapper = document.createElement("div");
     openingHours.forEach((openingHourCategory) => {
       const openingHourContainerEl = document.createElement("div");
+      if (isListElementFontHigher) {
+        openingHourContainerEl.classList.add("font-higher");
+      } else {
+        openingHourContainerEl.classList.add("font-lower");
+      }
+
       openingHourContainerEl.classList.add("opening-hour-container");
 
       const openingHourNameEl = document.createElement("span");
+      openingHourNameEl.classList.add("opening-hour-name");
       openingHourNameEl.style.fontSize = `${ctx.listElementFontSize}px`;
       openingHourNameEl.textContent = openingHourCategory.categoryTitle;
 
