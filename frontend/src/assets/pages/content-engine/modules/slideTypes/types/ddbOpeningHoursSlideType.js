@@ -166,10 +166,27 @@ function initDomCtx() {
  * @property {string} CurrentData.listElementFontSize
  */
 
-export const DdbOpeningHoursSlideType = {
+/**
+ * @typedef {Object} EventListeners
+ * @property {(event: Event) => void} EventListeners.updateLibrarySelection
+ * @property {(event: Event) => void} EventListeners.setSelectedLibrary
+ * @property {(event: Event) => void} EventListeners.setDays
+ * @property {(event: Event) => void} EventListeners.setDateHeaderFontSize
+ * @property {(event: Event) => void} EventListeners.setListElementFontSize
+ */
+
+export const DDBOpeningHoursSlideType = {
   ...SlideTypeUtils.getDefaultSlideSettings(),
 
   _domCtx: initDomCtx(),
+  /** @type {EventListeners} */
+  _eventListeners: {
+    updateLibrarySelection: null,
+    setSelectedLibrary: null,
+    setDays: null,
+    setDateHeaderFontSize: null,
+    setListElementFontSize: null,
+  },
   /** @type {MunicipalitiesData} */
   _municipalitiesData: null,
 
@@ -196,9 +213,12 @@ export const DdbOpeningHoursSlideType = {
     return SlideTypeUtils.loadFormTemplateWithCallback(
       "/slide-types/ddb-opening-hours-form",
       "DDB opening hours",
-      () => {
+      async () => {
         translateHTML();
-        this.initMunicipalitySelection(existingConfig);
+
+        this._domCtx.resetCtx();
+        await this.initDDBOpeningHoursWidget(existingConfig);
+        this.initEventListeners();
       },
     );
   },
@@ -252,65 +272,59 @@ export const DdbOpeningHoursSlideType = {
     };
   },
 
+  cleanupFormEventListeners() {
+    this._domCtx.municipalitySelectEl.removeEventListener(
+      "change",
+      this._eventListeners.updateLibrarySelection,
+    );
+    this._domCtx.librarySelectEl.removeEventListener(
+      "change",
+      this._eventListeners.setSelectedLibrary,
+    );
+    this._domCtx.daysInputEl.removeEventListener(
+      "change",
+      this._eventListeners.setDays,
+    );
+    this._domCtx.dateHeaderFontSizeEl.removeEventListener(
+      "change",
+      this._eventListeners.setDateHeaderFontSize,
+    );
+    this._domCtx.listElementFontSizeEl.removeEventListener(
+      "change",
+      this._eventListeners.setListElementFontSize,
+    );
+  },
+
   // Component functions
 
   /**
    * @param {FormConfig} [existingConfig=null]
    */
-  async initMunicipalitySelection(existingConfig = null) {
-    this._domCtx.resetCtx();
+  async initDDBOpeningHoursWidget(existingConfig = null) {
     await this.fetchLibrariesData();
     if (!this._municipalitiesData) return;
 
     // municipality init
-    const munincipalitySelectEl = this._domCtx.municipalitySelectEl;
+    const municipalitySelectEl = this._domCtx.municipalitySelectEl;
 
     const emptyOption = new Option(gettext("Select municipality"), "");
-    munincipalitySelectEl.options.add(emptyOption);
+    municipalitySelectEl.options.add(emptyOption);
 
     Object.keys(this._municipalitiesData.kommuner).forEach((key) => {
       const option = new Option(key, key);
-      munincipalitySelectEl.options.add(option);
+      municipalitySelectEl.options.add(option);
     });
-
-    munincipalitySelectEl.addEventListener("change", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLSelectElement)) return;
-
-      this.updateLibrarySelection(target.value);
-    });
-
-    // library init
-    const librarySelectEl = this._domCtx.librarySelectEl;
-    librarySelectEl.addEventListener("change", (event) =>
-      this.setSelectedLibrary(event),
-    );
 
     // days init
     const daysInputEl = this._domCtx.daysInputEl;
     this._currentData.days = daysInputEl.value;
-    daysInputEl.addEventListener("change", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLInputElement)) {
-        console.error("Expected input element");
-        return;
-      }
-
-      this._currentData.days = target.value;
-    });
 
     // font size init
     const dateHeaderFontSizeEl = this._domCtx.dateHeaderFontSizeEl;
     this._currentData.dateHeaderFontSize = dateHeaderFontSizeEl.value;
-    dateHeaderFontSizeEl.addEventListener("change", (event) =>
-      this.setDateHeaderFontSize(event),
-    );
 
     const listElementFontSizeEl = this._domCtx.listElementFontSizeEl;
     this._currentData.listElementFontSize = listElementFontSizeEl.value;
-    listElementFontSizeEl.addEventListener("change", (event) =>
-      this.setListElementFontSize(event),
-    );
 
     if (existingConfig) {
       this.setInitialConfig(existingConfig);
@@ -332,7 +346,7 @@ export const DdbOpeningHoursSlideType = {
       selectedMunicipality
     ].libraries.find((library) => library.name === existingConfig.libraryName);
 
-    this.updateLibrarySelection(selectedMunicipality);
+    this._updateLibrarySelection(selectedMunicipality);
     this._domCtx.librarySelectEl.value = this._currentData.selectedLibrary.name;
 
     // set selected days
@@ -340,15 +354,61 @@ export const DdbOpeningHoursSlideType = {
     this._domCtx.daysInputEl.value = existingConfig.days;
 
     // set font size selection
+    this._currentData.dateHeaderFontSize = existingConfig.dateHeaderFontSize;
     this._domCtx.dateHeaderFontSizeEl.value = existingConfig.dateHeaderFontSize;
+
+    this._currentData.listElementFontSize = existingConfig.listElementFontSize;
     this._domCtx.listElementFontSizeEl.value =
       existingConfig.listElementFontSize;
+  },
+
+  initEventListeners() {
+    this._eventListeners.updateLibrarySelection = (event) => {
+      console.log(event);
+      this.updateLibrarySelection(event);
+    };
+    this._domCtx.municipalitySelectEl.addEventListener(
+      "change",
+      this._eventListeners.updateLibrarySelection,
+    );
+
+    this._eventListeners.setSelectedLibrary = (event) => {
+      this.setSelectedLibrary(event);
+    };
+    this._domCtx.librarySelectEl.addEventListener(
+      "change",
+      this._eventListeners.setSelectedLibrary,
+    );
+
+    this._eventListeners.setDays = (event) => {
+      this.setDays(event);
+    };
+    this._domCtx.daysInputEl.addEventListener(
+      "change",
+      this._eventListeners.setDays,
+    );
+
+    this._eventListeners.setDateHeaderFontSize = (event) => {
+      this.setDateHeaderFontSize(event);
+    };
+    this._domCtx.dateHeaderFontSizeEl.addEventListener(
+      "change",
+      this._eventListeners.setDateHeaderFontSize,
+    );
+
+    this._eventListeners.setListElementFontSize = (event) => {
+      this.setListElementFontSize(event);
+    };
+    this._domCtx.listElementFontSizeEl.addEventListener(
+      "change",
+      this._eventListeners.setListElementFontSize,
+    );
   },
 
   /**
    * @param {Event} event
    */
-  setSelectedLibrary(event) {
+  _setSelectedLibrary(event) {
     const target = event.target;
     if (!(target instanceof HTMLSelectElement)) {
       console.error("expected target to be of type select");
@@ -376,7 +436,7 @@ export const DdbOpeningHoursSlideType = {
   /**
    * @param {Event} event
    */
-  setDateHeaderFontSize(event) {
+  _setDateHeaderFontSize(event) {
     const target = event.target;
     if (!(target instanceof HTMLSelectElement)) {
       console.error("Expected select element");
@@ -389,7 +449,7 @@ export const DdbOpeningHoursSlideType = {
   /**
    * @param {Event} event
    */
-  setListElementFontSize(event) {
+  _setListElementFontSize(event) {
     const target = event.target;
     if (!(target instanceof HTMLSelectElement)) {
       console.error("Expected select element");
@@ -402,7 +462,7 @@ export const DdbOpeningHoursSlideType = {
   /**
    * @param {string} selectedMunincipality
    */
-  updateLibrarySelection(selectedMunincipality) {
+  _updateLibrarySelection(selectedMunincipality) {
     if (!this._municipalitiesData || !this._municipalitiesData.kommuner) {
       console.error("Could not find kommune data");
       return;
@@ -460,6 +520,51 @@ export const DdbOpeningHoursSlideType = {
     });
   },
 
+  // event event listeners
+
+  /**
+   * @param {Event} event
+   */
+  updateLibrarySelection(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLSelectElement)) return;
+
+    this._updateLibrarySelection(target.value);
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setSelectedLibrary(event) {
+    this._setSelectedLibrary(event);
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setDays(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) {
+      console.error("Expected input element");
+      return;
+    }
+
+    this._currentData.days = target.value;
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setDateHeaderFontSize(event) {
+    this._setDateHeaderFontSize(event);
+  },
+
+  /**
+   * @param {Event} event
+   */
+  setListElementFontSize(event) {
+    this._setListElementFontSize(event);
+  },
   // Util functions
 
   /**
