@@ -374,6 +374,7 @@ export const DateSlideType = {
     const monthSelectEl = this._domCtx.monthSelectEl;
     const colorSelectEl = this._domCtx.colorSelectEl;
     const colorPickerEl = this._domCtx.colorPickerEl;
+    const fontSizeEl = this._domCtx.fontSizeSelectEl;
 
     // remove listeners
     weekdaySelectEl.removeEventListener("change", setWeekday);
@@ -381,6 +382,7 @@ export const DateSlideType = {
     monthSelectEl.removeEventListener("change", setMonth);
     colorSelectEl.removeEventListener("change", setColorFromSelect);
     colorPickerEl.removeEventListener("change", setColorFromPicker);
+    fontSizeEl.removeEventListener("change", setFontSize);
   },
 
   // component functions
