@@ -315,7 +315,7 @@ class SlideTypeRegistry {
   }
 
   /**
-   * @returns {{validationType: "required"} | {validationType: "internal", isSuccess: boolean}} validationType will indicate if the slideType handled it itself or uses required fields
+   * @returns {{validationType: "required"} | {validationType: "internal", isSuccess: boolean}} validationType will indicate if the slideType handles validation itself (internal) or only uses required fields
    */
   validateSlide(slideTypeId) {
     const slideType = this.slideTypes.get(slideTypeId);
