@@ -278,7 +278,7 @@ function initCurrentData() {
 
 export const DateSlideType = {
   name: "Date",
-  description: "Date wiget with formatting functionality",
+  description: "Date widget with formatting functionality",
   categoryId: 4,
 
   /** @type {DomCtx} */
