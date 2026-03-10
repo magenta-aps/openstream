@@ -431,7 +431,6 @@ export const DateSlideType = {
       monthSelectEl.value = existingConfig.month;
     }
 
-    console.log(existingConfig.isCustomColor, existingConfig.color);
     // color
     this._currentData.color = existingConfig.color;
     this._currentData.isCustomColor = existingConfig.isCustomColor;
