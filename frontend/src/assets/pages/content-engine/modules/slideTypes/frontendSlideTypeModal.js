@@ -674,7 +674,7 @@ class FrontendSlideTypeModal {
       const slideTypeValidation = slideTypeRegistry.validateSlide(
         this.currentSlideTypeId,
       );
-      // if no slideType was found with the given id
+      // Check if slideType exist - validateSlide will return null if no slideType was found with the given id
       if (!slideTypeValidation) {
         return;
       }
