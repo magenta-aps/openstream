@@ -679,7 +679,7 @@ class FrontendSlideTypeModal {
         return;
       }
 
-      // handle validation, if internal it has already been processed
+      // Handle validation - Checks if internal validation failed (if validationType is internal) and checks for required fields
       if (
         (slideTypeValidation.validationType === "internal" &&
           !slideTypeValidation.isSuccess) ||
