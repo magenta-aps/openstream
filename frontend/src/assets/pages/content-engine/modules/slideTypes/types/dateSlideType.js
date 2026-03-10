@@ -387,7 +387,7 @@ export const DateSlideType = {
 
   // component functions
 
-  initDateWidget(existingConfig) {
+  initDateWidget() {
     // date format
     const weekdaySelectEl = this._domCtx.weekdaySelectEl;
     // @ts-ignore-error - weekday select element value is a string, the value is checked in the .weekday select
