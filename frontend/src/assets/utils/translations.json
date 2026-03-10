@@ -1127,6 +1127,9 @@
   "Select a playlist": {
     "da": "Vælg en afspilningsliste"
   },
+  "Default": {
+    "da": "Standard"
+  },
   "Default: ": {
     "da": "Standard: "
   },
@@ -4168,9 +4171,6 @@
   },
   "Small": {
     "da": "Lille"
-  },
-  "Regular": {
-    "da": "Almindelig"
   },
   "Large": {
     "da": "Stor"
