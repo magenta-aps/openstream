@@ -683,7 +683,8 @@ class FrontendSlideTypeModal {
       if (
         (slideTypeValidation.validationType === "internal" &&
           !slideTypeValidation.isSuccess) ||
-        !this.validateRequiredFields()
+        (slideTypeValidation.validationType === "required" &&
+          !this.validateRequiredFields())
       ) {
         return;
       }
