@@ -12,9 +12,11 @@ const ctx = {
   month: queryParams.month,
   color: queryParams.color,
   fontSize: queryParams.fontSize,
+  lang: queryParams.lang,
 };
+console.log(ctx);
 
-const formattedDate = createFormattedDate({
+const formattedDate = createFormattedDate(ctx.lang, {
   weekday: ctx.weekday,
   day: ctx.day,
   month: ctx.month,

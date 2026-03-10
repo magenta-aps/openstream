@@ -337,10 +337,13 @@ export const DateSlideType = {
    * @param {CurrentData} config
    */
   generateSlide(config) {
-    /** @type {CurrentData} */
+    const lang = document.documentElement.lang;
+
+    /** @type {CurrentData & {lang: string}} */
     const params = {
       color: config.color,
       fontSize: config.fontSize,
+      lang,
     };
 
     if (config.weekday) {
@@ -550,7 +553,8 @@ export const DateSlideType = {
     ) {
       text = gettext("At least one selected format option is required");
     } else {
-      text = createFormattedDate({
+      const lang = document.documentElement.lang;
+      text = createFormattedDate(lang, {
         weekday: this._currentData.weekday,
         day: this._currentData.day,
         month: this._currentData.month,

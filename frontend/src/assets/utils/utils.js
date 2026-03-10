@@ -963,7 +963,7 @@ export function initOrgUrlRouting() {
     const linksToHideInProd = [
       "/emergency-slideshows",
       "/manage-wayfinding-systems",
-      "/template-store"
+      "/template-store",
     ];
     // Hide specific links in production environment only
     if (window.location.hostname === "openstream.dk") {
@@ -1034,11 +1034,11 @@ export function shouldUseApiKeyInSlideTypeIframe() {
 /**
  * @description
  * A small interface for Intl.DateTimeFormat, replaces weekday with an capitalized version
+ * @param {string} lang
  * @param {Intl.DateTimeFormatOptions} [formatOptions]
  * @param {Date} [date]
  */
-export function createFormattedDate(formatOptions, date = new Date()) {
-  const lang = document.documentElement.lang;
+export function createFormattedDate(lang, formatOptions, date = new Date()) {
   return new Intl.DateTimeFormat(lang, formatOptions)
     .formatToParts(date)
     .map((part) => {
