@@ -41,6 +41,7 @@ function addImageElementToSlide(imageId) {
       )
         .then((resp) => resp.json())
         .then((data) => {
+          img.crossOrigin = "anonymous";
           img.src = data.file_url;
         })
         .catch((err) => console.error("Failed to load image:", err));
@@ -201,6 +202,7 @@ export function _renderImage(el, container) {
         .then((r) => r.json())
         .then((data) => {
           if (data.file_url) {
+            img.crossOrigin = "anonymous";
             img.src = data.file_url;
           } else {
             console.error("Thumb: Failed to get image URL:", data);
