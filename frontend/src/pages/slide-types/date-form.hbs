@@ -1,0 +1,103 @@
+{{!-- SPDX-FileCopyrightText: 2025 Magenta ApS <https: //magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+
+{{#*inline "section"}}
+    <div class="mb-4">
+        {{> @partial-block}}
+    </div>
+{{/inline}}
+
+{{#> base/containers/html-container title="Date form" }}
+    <div>
+        <div class="card-body">
+            {{#> section}}
+               <div class="mb-2">
+                   <label for="date-format-weekday-select" class="form-label">{% trans "Day of week" %}</label>
+
+                    <select id="date-format-weekday-select" class="form-select border-gray">
+                        <option value="">{% trans "Select day of week format" %}</option>
+                        <option value="narrow">{% trans "Day of week narrow" %}</option>
+                        <option value="short">{% trans "Day of week short" %}</option>
+                        <option selected value="long">{% trans "Day of week long"%}</option>
+                    </select>
+               </div>
+
+               <div class="mb-2">
+                    <label for="date-format-day-select" class="form-label">{% trans "Day" %}</label>
+
+                    <select id="date-format-day-select" class="form-select border-gray">
+                        <option value="">{% trans "Select day format" %}</option>
+                        <option value="2-digit">{% trans "Day two digits" %}</option>
+                        <option value="numeric">{% trans "Day numeric" %}</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                     <label for="date-format-month-select" class="form-label">{% trans "Month" %}</label>
+
+                     <select id="date-format-month-select" class="form-select border-gray">
+                         <option value="">{% trans "Select month format" %}</option>
+                         <option value="2-digit">{% trans "Month two digits" %}</option>
+                         <option value="numeric">{% trans "Month numeric" %}</option>
+                         <option value="narrow">{% trans "Month narrow" %}</option>
+                         <option value="short">{% trans "Month short" %}</option>
+                         <option value="long">{% trans "Month long"%}</option>
+                     </select>
+                 </div>
+            {{/section}}
+
+            {{#> section}}
+                <label for="date-color-select" class="form-label ">
+                    {% trans "Preset Colors" %}
+                </label>
+
+               <select id="date-color-select" class="form-select  border-gray">
+                    <option selected value="black">{% trans "Black" %}</option>
+                    <option value="red">{% trans "Red" %}</option>
+                    <option value="blue">{% trans "Blue" %}</option>
+                    <option value="green">{% trans "Green" %}</option>
+                    <option value="yellow">{% trans "Yellow" %}</option>
+                    <option value="orange">{% trans "Orange" %}</option>
+                    <option value="purple">{% trans "Purple" %}</option>
+                    <option value="white">{% trans "White" %}</option>
+                    <option value="custom">{% trans "Custom Color" %}</option>
+                </select>
+
+                <div id="date-color-picker-wrapper" class="pt-2 d-none">
+                    <label for="date-color-picker" class="form-label ">
+                        {% trans "Custom Color" %}
+                    </label>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="color" id="date-color-picker" class="form-control form-control-color border-gray" value="#ffffff" title="Choose your custom color" />
+                        <span class=" small">{% trans "Click to choose a custom color" %}</span>
+                    </div>
+                </div>
+            {{/section}}
+
+            {{#> section}}
+                <label for="date-font-size-select">{% trans "Date font size" %}</label>
+
+                <select id="date-font-size-select" class="form-select  border-gray">
+                    <option selected value="40">40px</option>
+                    <option value="42">42px</option>
+                    <option value="44">44px</option>
+                    <option value="48">48px</option>
+                    <option value="54">54px</option>
+                </select>
+            {{/section}}
+
+            {{#> section}}
+                <div id="date-format-preview-wrapper" class="bg-gray d-flex align-items-center justify-content-center">
+                    <span id="date-format-preview"></span>
+                </div>
+            {{/section}}
+        </div>
+    </div>
+{{/base/containers/html-container }}
+
+<style>
+    #date-format-preview-wrapper {
+        height: 6rem;
+    }
+</style>

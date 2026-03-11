@@ -2139,9 +2139,9 @@ span {
 }
 
 .template-resolution-option.active {
-    border: 2px solid $neutral-blue !important;
-    background-color: $lightest-gray !important;
-    color: $neutral-blue;
+    border: 2px solid $secondary-accent-hover !important;
+    background-color: $secondary-accent-lighter !important;
+    color: $darkest-gray;
 }
 
 .template-resolution-option-wrapper {
@@ -2158,7 +2158,6 @@ span {
     align-items: flex-end;
     justify-content: center;
     text-transform: none;
-    font-size: 0.75rem;
 }
 
 .element-toolbar-name {

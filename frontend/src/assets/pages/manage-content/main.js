@@ -40,6 +40,7 @@ import {
   getAspectRatiosByOrientation,
   getResolutionForAspectRatio,
 } from "../../utils/availableAspectRatios";
+import { initializeMultiSelectDropdown } from "../../utils/multiSelectDropdownUtils";
 
 // Initialize translations
 (async () => {
@@ -282,9 +283,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const createSlideshowCategory = document.getElementById(
     "createSlideshowCategory",
   );
-  const createSlideshowTagsContainer = document.getElementById(
-    "createSlideshowTagsContainer",
-  );
 
   // Initialize aspect ratio selection
   let selectedAspectRatio = null;
@@ -303,7 +301,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function openCreateSlideshowModal() {
     {
-      createSlideshowName.value = "";
+      createSlideshowName.value = gettext("New content") + ` ${allSlideshows.length + 1}`;
+      setTimeout(() => {
+        createSlideshowName.focus();
+      }, 500); // Focus on name input after modal opens
+
       createSlideshowMode.value = "slideshow";
 
       // Reset aspect ratio selection - default to configured default
@@ -313,6 +315,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       if (defaultOption) {
         defaultOption.classList.add("active");
+        // Add icon to indicate selection
+        const checkedIcon = document.createElement("i");
+        checkedIcon.className = "material-symbols-outlined me-1 fs-5";
+        checkedIcon.textContent = "check_circle";
+
+        defaultOption.insertBefore(checkedIcon, defaultOption.firstChild);
         selectedAspectRatio = {
           width: parseInt(defaultOption.getAttribute("data-width")),
           height: parseInt(defaultOption.getAttribute("data-height")),
@@ -330,7 +338,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       createSlideshowCategory.innerHTML = "";
       const noneOpt = document.createElement("option");
       noneOpt.value = "";
-      noneOpt.textContent = gettext("(No Category)");
+      noneOpt.textContent = "(" + gettext("Nothing selected") + ")";
+      noneOpt.className = "text-darker-gray";
       createSlideshowCategory.appendChild(noneOpt);
 
       categoriesList.forEach((cat) => {
@@ -340,26 +349,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         createSlideshowCategory.appendChild(opt);
       });
 
-      createSlideshowTagsContainer.innerHTML = "";
-      tagsList.forEach((tag) => {
-        const div = document.createElement("div");
-        div.className = "form-check mb-1";
-
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.className = "form-check-input";
-        input.id = `createTag_${tag.id}`;
-        input.value = tag.id;
-
-        const label = document.createElement("label");
-        label.className = "form-check-label ms-2";
-        label.htmlFor = input.id;
-        label.textContent = tag.name;
-
-        div.appendChild(input);
-        div.appendChild(label);
-        createSlideshowTagsContainer.appendChild(div);
-      });
+      // Initialize tags dropdown
+      initializeMultiSelectDropdown(tagsList, "tagsDropdownBtn", "tagsDropdownMenu");
 
       createSlideshowModal.show();
     }
@@ -395,14 +386,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (ratio.note) {
           const note = document.createElement("div");
-          note.className = "resolution-option-note text-muted small text-center";
+          note.className = "resolution-option-note text-darker-gray small text-center";
           note.textContent = ratio.note;
           wrapper.appendChild(note);
         }
 
         const option = document.createElement("div");
         option.className =
-          "create-resolution-option d-flex justify-content-center align-items-center border bg-light fw-bold cursor-pointer";
+          "create-resolution-option d-flex justify-content-center align-items-center border border-gray rounded-1 bg-white fs-6";
         option.setAttribute("data-width", ratio.width);
         option.setAttribute("data-height", ratio.height);
         option.setAttribute("data-ratio", ratio.value);
@@ -425,9 +416,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       });
 
-      const card = container.closest(".card");
-      if (card) {
-        card.classList.toggle("d-none", ratios.length === 0);
+      // Hide the entire aspect ratio section if there are no ratios to display
+      const aspectRatioContainer = container.closest(".js-aspect-ratio-options");
+      if (aspectRatioContainer) {
+        aspectRatioContainer.classList.toggle("d-none", ratios.length === 0);
       }
     });
   }
@@ -440,10 +432,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     aspectRatioOptions.forEach((option) => {
       option.addEventListener("click", () => {
         // Remove active class from all options
-        aspectRatioOptions.forEach((opt) => opt.classList.remove("active"));
+        aspectRatioOptions.forEach((opt) => {
+          opt.classList.remove("active");
+          opt.querySelector("i")?.remove(); 
+        });
 
         // Add active class to clicked option
         option.classList.add("active");
+        const checkedIcon = document.createElement("i");
+        checkedIcon.className = "material-symbols-outlined me-1 fs-5";
+        checkedIcon.textContent = "check_circle";
+        option.insertBefore(checkedIcon, option.firstChild);
 
         // Store selected aspect ratio
         selectedAspectRatio = {
@@ -458,6 +457,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function resetAspectRatioSelection() {
     document.querySelectorAll(".create-resolution-option").forEach((opt) => {
       opt.classList.remove("active");
+      opt.querySelector("i")?.remove();
     });
     selectedAspectRatio = null;
   }
@@ -485,12 +485,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const category_id = categoryValue ? parseInt(categoryValue, 10) : null;
 
     const tag_ids = [];
-    const tagCheckboxes = createSlideshowTagsContainer.querySelectorAll(
-      "input[type='checkbox']",
+    const tagCheckboxes = document.querySelectorAll(
+      ".dropdownCheckboxesContainer input[type='checkbox']",
     );
     tagCheckboxes.forEach((cb) => {
       if (cb.checked) {
-        tag_ids.push(parseInt(cb.value, 10));
+        tag_ids.push(parseInt(cb.dataset.valueId, 10));
       }
     });
 

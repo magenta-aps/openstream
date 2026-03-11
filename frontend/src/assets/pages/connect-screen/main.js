@@ -7,6 +7,7 @@ import {
   fetchUserLangugage,
   gettext,
 } from "../../utils/locales";
+import { queryParams } from "../../utils/utils";
 
 // Initialize translations
 (async () => {
@@ -27,7 +28,13 @@ const registrationState = document.getElementById("registration-state");
 const errorState = document.getElementById("error-state");
 const screenIdElement = document.getElementById("screen-id");
 const errorMessageElement = document.getElementById("error-message");
-
+// If a UID is provided, we want to prioritize that over any displayWebsiteId or screenId
+// This allows the "uid" flow to correctly resolve the screen ID from the backend
+let screenId = queryParams.displayWebsiteId || localStorage.getItem("screenId");
+if (uid) {
+  screenId = null;
+  localStorage.removeItem("screenId");
+}
 /**
  * Safely parse a Response as JSON. If response body is not JSON, return
  * an object containing the raw text under __rawText so callers can handle it.
@@ -140,13 +147,14 @@ async function checkForGroupAssignment(screenId) {
 
       if (data && data.groupId) {
         // Redirect to the open-screen URL when a group is assigned.
-        window.location.href = `/open-screen?displayWebsiteId=${screenId}&apiKey=${apiKey}&mode=slideshow-player`;
+        window.location.href = `/open-screen?displayWebsiteId=${screenId}&apiKey=${apiKey}&mode=slideshow-player${hostname ? `&hostname=${hostname}` : ''}${uid ? `&uid=${uid}` : ''}`;
         return true;
       }
       return false;
     } else if (response.status === 404) {
       // Screen not found, create a new one
       const newScreenId = await createScreen();
+      screenId = newScreenId;
       localStorage.setItem("screenId", newScreenId);
       showRegistration(newScreenId);
       return false;
@@ -178,8 +186,6 @@ async function initializeScreen() {
 
   try {
     // First, try to get existing screen data
-    let screenId = localStorage.getItem("screenId");
-
     if (screenId) {
       // Check if this screen still exists and is valid
       const isAssigned = await checkForGroupAssignment(screenId);
@@ -191,6 +197,8 @@ async function initializeScreen() {
       screenId = await createScreen();
       localStorage.setItem("screenId", screenId);
       showRegistration(screenId);
+      await checkForGroupAssignment(screenId);
+      
     }
   } catch (error) {
     console.error("Error initializing screen:", error);
@@ -204,7 +212,6 @@ async function initializeScreen() {
 
 
 function initLiveReload() {
-  const currentScreenId = localStorage.getItem("screenId");
   console.log("Initializing live reload via SSE");
   // 1. Point this to your Express route
   const eventSource = new EventSource(derivePollingServiceFromHostname());
@@ -220,7 +227,7 @@ function initLiveReload() {
 
     if (data.model == "DisplayWebsite") {
       console.log("DisplayWebsite change detected");
-      checkForGroupAssignment(currentScreenId);
+      checkForGroupAssignment(screenId);
     }
   });
 
@@ -233,16 +240,15 @@ function initLiveReload() {
 // Start the initialization process when the page loads
 document.addEventListener("DOMContentLoaded", async () => {
   await initializeScreen();
-  
-  const currentScreenId = localStorage.getItem("screenId");
-  if (currentScreenId) {
+
+  if (screenId) {
     // Set up SSE for real-time updates
     initLiveReload();
-    
+
     // Backup polling every minute in case SSE fails
     setInterval(() => {
       console.log("Backup polling check");
-      checkForGroupAssignment(currentScreenId);
+      checkForGroupAssignment(screenId);
     }, 60000);
   }
 });

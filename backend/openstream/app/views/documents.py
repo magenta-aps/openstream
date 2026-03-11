@@ -146,12 +146,16 @@ class DocumentAPIView(APIView):
         """Return metadata for a single document that belongs to the caller's organisation."""
 
         organisation = branch.suborganisation.organisation
-        doc = get_object_or_404(
-            Document,
-            id=document_id,
-            branch__suborganisation__organisation=organisation,
-        )
+        lookup = {
+            "id": document_id,
+            "branch__suborganisation__organisation": organisation,
+        }
 
+        if request.query_params.get("title_only") == "true":
+            doc = get_object_or_404(Document.objects.only("id", "title"), **lookup)
+            return Response({"id": doc.id, "title": doc.title}, status=200)
+
+        doc = get_object_or_404(Document, **lookup)
         serializer = DocumentSerializer(
             doc, context={"request": request, "branch": branch}
         )

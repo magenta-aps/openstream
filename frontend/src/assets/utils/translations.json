@@ -338,6 +338,12 @@
   "Create new content": {
     "da": "Opret nyt indhold"
   },
+  "New content": {
+    "da": "Nyt indhold"
+  },
+  "Content title": {
+    "da": "Titel på indhold"
+  },
   "Go to content": {
     "da": "Gå til indhold"
   },
@@ -965,11 +971,11 @@
   "Not editable": {
     "da": "Ikke redigerbar"
   },
-  "Update Media": {
-    "da": "Opdater Medie"
+  "Update media": {
+    "da": "Opdater medie"
   },
-  "Upload Media": {
-    "da": "Upload Medie"
+  "Upload media": {
+    "da": "Upload medie"
   },
   "Preview Media": {
     "da": "Forhåndsvisning af Medie"
@@ -1129,6 +1135,9 @@
   },
   "Today": {
     "da": "I dag"
+  },
+  "Day": {
+    "da": "dag"
   },
   "Add a one-time scheduled event": {
     "da": "Tilføj en engangs planlagt begivenhed"
@@ -1514,7 +1523,10 @@
   "Edit Recurring Scheduled Content": {
     "da": "Rediger Tilbagevendende Planlagt Indhold"
   },
-  "Day of Week": {
+  "Month": {
+    "da": "Måned"
+  },
+  "Day of week": {
     "da": "Ugedag"
   },
   "Monday": {
@@ -1936,6 +1948,9 @@
   },
   "Clock Font Size (rem)": {
     "da": "Ur skrift størrelse (rem)"
+  },
+  "Date font size": {
+    "da": "Dato skrift størrelse"
   },
   "Weather Font Size (rem)": {
     "da": "Vejr skrift størrelse (rem)"
@@ -2894,6 +2909,15 @@
   "Documentation": {
     "da": "Dokumentation"
   },
+  "Search documentation": {
+    "da": "Søg i dokumentation"
+  },
+  "Loading Documentation": {
+    "da": "Indlæser dokumentation"
+  },
+  "Next Chapter": {
+    "da": "Næste kapitel"
+  },
   "title": {
     "da": "titel"
   },
@@ -3160,6 +3184,9 @@
   },
   "Please enter a valid display name": {
     "da": "Indtast et gyldigt skærmnavn"
+  },
+  "Date": {
+    "da": "Dato"
   },
   "Date & Time": {
     "da": "Dato & Tid"
@@ -3496,9 +3523,6 @@
   },
   "Show Underline button": {
     "da": "Vis knap til understregning"
-  },
-  "Show Font Weight dropdown": {
-    "da": "Vis rulleliste for skrifttykkelse"
   },
   "HEX": {
     "da": "HEX"
@@ -3867,7 +3891,7 @@
     "da": "Højre"
   },
   "Most Common": {
-    "da": "Mest Almindelig"
+    "da": "Mest brugt"
   },
   "Common on old monitors": {
     "da": "Almindelig på gamle skærme"
@@ -4153,5 +4177,50 @@
   },
   "Pixels": {
     "da": "Pixels"
+  },
+  "At least one selected format option is required": {
+    "da": "Mindst et dato format skal vælges"
+  },
+  "Select day of week format": {
+    "da": "Vælg ugedag format"
+  },
+  "Day of week narrow": {
+    "da": "Small (F)"
+  },
+  "Day of week short": {
+    "da": "Kort (Fre.)"
+  },
+  "Day of week long": {
+    "da": "Lang (Fredag)"
+  },
+  "Select day format": {
+    "da": "Vælg dag format"
+  },
+  "Day two digits": {
+    "da": "To decimaler (01)"
+  },
+  "Day numeric": {
+    "da": "Numerisk (1)"
+  },
+  "Select month format": {
+    "da": "Vælg måned format"
+  },
+  "Month two digits": {
+    "da": "To decimaler (01)"
+  },
+  "Month numeric": {
+    "da": "Numerisk (1)"
+  },
+  "Month narrow": {
+    "da": "Small (J)"
+  },
+  "Month short": {
+    "da": "Kort (jan)"
+  },
+  "Month long": {
+    "da": "Lang (januar.)"
+  },
+  "A demostration video of OpenStream will soon be shown here": {
+    "da": "En demonstrations video af OpenStream vil blive vist her snart"
   }
 }

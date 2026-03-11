@@ -1163,7 +1163,6 @@ class TextFormattingSettings(models.Model):
     allow_bold = models.BooleanField(default=True)
     allow_italic = models.BooleanField(default=True)
     allow_underline = models.BooleanField(default=True)
-    allow_font_weight = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Text formatting settings for {self.organisation.name}"
@@ -1242,6 +1241,7 @@ class RegisteredSlideTypes(models.Model):
         KMD_FORENING = 9, "KMD Foreningsportalen"
         FRONTDESK = 10, "Frontdesk LTK Borgerservice"
         WINKAS = 11, "WinKAS"
+        DATE = 12, "Date"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="registered_slide_types"

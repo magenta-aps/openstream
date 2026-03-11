@@ -30,7 +30,7 @@ function showOpacityPopover(button, callback) {
   bgSlider.max = "1";
   bgSlider.step = "0.01";
   bgSlider.value =
-    window.selectedElementForUpdate.element.backgroundOpacity || "1";
+    window.selectedElementForUpdate.element.backgroundOpacity ?? "1";
   bgSlider.style.width = "100%";
   popover.appendChild(bgSlider);
 
@@ -46,7 +46,7 @@ function showOpacityPopover(button, callback) {
   elSlider.min = "0";
   elSlider.max = "1";
   elSlider.step = "0.01";
-  elSlider.value = window.selectedElementForUpdate.element.opacity || "1";
+  elSlider.value = window.selectedElementForUpdate.element.opacity ?? "1";
   elSlider.style.width = "100%";
   popover.appendChild(elSlider);
 

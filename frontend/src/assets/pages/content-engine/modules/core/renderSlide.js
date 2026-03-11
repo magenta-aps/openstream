@@ -5,7 +5,10 @@ import {
   selectedBranchID,
   token,
 } from "../../../../utils/utils.js";
-import { BASE_URL, derivePollingServiceFromHostname } from "../../../../utils/constants.js";
+import {
+  BASE_URL,
+  derivePollingServiceFromHostname,
+} from "../../../../utils/constants.js";
 import { _renderBackgroundColor } from "../element_formatting/backgroundColor.js";
 import { _renderBorder } from "../element_formatting/border.js";
 import { _renderBorderRadius } from "../element_formatting/borderRadius.js";
@@ -62,9 +65,6 @@ export function loadSlide(
   forceCompleteReload = false,
   options = {},
 ) {
-
-  
-
   const isPreviewMode = options.previewMode === true;
   // Use lastSlideIndex if available, otherwise use currentSlideIndex
   if (!isPreviewMode) {
@@ -79,8 +79,8 @@ export function loadSlide(
     let appliedSnapSettings = defaultSnapSettings;
 
     if (store.dragSnapSettings) {
-        // Keep current settings if they exist
-        appliedSnapSettings = store.dragSnapSettings;
+      // Keep current settings if they exist
+      appliedSnapSettings = store.dragSnapSettings;
     }
 
     store.dragSnapSettings = appliedSnapSettings;
@@ -102,10 +102,7 @@ export function loadSlide(
       }
     });
 
-    store.slideIdCounter = Math.max(
-      store.slideIdCounter || 1,
-      maxSlideId + 1,
-    );
+    store.slideIdCounter = Math.max(store.slideIdCounter || 1, maxSlideId + 1);
     store.elementIdCounter = Math.max(
       store.elementIdCounter || 1,
       maxElementId + 1,
@@ -448,8 +445,6 @@ export function updateSlideElement(elementData) {
 }
 
 export function scaleSlide(previewContainer) {
-
-
   const zoomInfo = getCurrentZoomInfo();
 
   if (zoomInfo.mode === "fit") {
@@ -474,8 +469,6 @@ export function scaleSlide(previewContainer) {
 }
 
 export function scaleAllSlides() {
-
-
   const zoomInfo = getCurrentZoomInfo();
 
   // Use the same selector pattern as zoom controller to get the correct preview containers
@@ -541,11 +534,9 @@ async function _startSlideshowPlayer() {
   const apiKey = queryParams.apiKey;
 
   // Re-fetch and ensure fonts are ready BEFORE loading any content
-  const { fetchAndInitializeFonts, waitForFontsReady } = await import(
-    "../utils/fontUtils.js"
-  );
+  const { fetchAndInitializeFonts, waitForFontsReady } =
+    await import("../utils/fontUtils.js");
   await fetchAndInitializeFonts();
-
 
   // Wait for browser font loading to complete
   try {
@@ -582,7 +573,11 @@ async function _startSlideshowPlayer() {
         console.error("Failed to fetch data", response.status);
         const data = await response.json();
         if (data.detail === "No display_website_group found.") {
-          window.location.href = `/connect-screen?apiKey=${queryParams.apiKey}`;
+          window.location.href =
+            `/connect-screen?apiKey=${queryParams.apiKey}` +
+            (queryParams.hostname ? `&hostname=${queryParams.hostname}` : "") +
+            (queryParams.uid ? `&uid=${queryParams.uid}` : "") +
+            (queryParams.displayWebsiteId ? `&displayWebsiteId=${queryParams.displayWebsiteId}` : "");
         }
         return;
       }
@@ -601,12 +596,11 @@ async function _startSlideshowPlayer() {
         org_id: data.org_id,
       };
 
-
       if (data.items && data.items.length > 0) {
         const firstSlideshow = data.items[0].slideshow;
 
         const showLegacy = firstSlideshow.is_legacy;
-          
+
         if (showLegacy) {
           store.activeSlideshowIsLegacy = showLegacy;
         }
@@ -717,7 +711,7 @@ async function _startSlideshowPlayer() {
   } else {
     // Not interactive mode: ensure any player-mode class is removed
     try {
-    } catch (e) { }
+    } catch (e) {}
 
     if (store.slides.length > 0) {
       await playSlideshow(false);
@@ -739,21 +733,22 @@ function initLiveReload() {
     clearTimeout(sseReconnectTimeout);
     sseReconnectTimeout = null;
   }
-  
+
   // 1. Point this to your Express route
   const eventSource = new EventSource(derivePollingServiceFromHostname());
   sseConnection = eventSource;
 
   // Check connection status
-  eventSource.onopen = () => {
-  };
+  eventSource.onopen = () => {};
 
   // 2. Listen for the "custom-event" sent by channel.broadcast()
-  eventSource.addEventListener('custom-event', (event) => {
+  eventSource.addEventListener("custom-event", (event) => {
     const data = JSON.parse(event.data);
     const metadata = store.slideshowPlayerMetaData || {};
 
-    const includesId = (collection, candidate) => Array.isArray(collection) && collection.some((id) => String(id) === String(candidate));
+    const includesId = (collection, candidate) =>
+      Array.isArray(collection) &&
+      collection.some((id) => String(id) === String(candidate));
 
     if (data.model == "Slideshow") {
       // Check if data.id is in slideshow_ids
@@ -789,18 +784,20 @@ function initLiveReload() {
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
 
-      const displayWebsiteId = urlParams.get('displayWebsiteId');
+      const displayWebsiteId = urlParams.get("displayWebsiteId");
 
       // Check if data.id matches displayWebsiteId
       if (String(data.id) === String(displayWebsiteId)) {
         window.location.reload();
       }
-
     }
     if (data.model == "EmergencySlideshow") {
       const currentGroupId = metadata.display_website_group_id;
-      const targetedGroupIds = Array.isArray(data.groupIds) ? data.groupIds : [];
-      const matchesDisplayGroup = currentGroupId && includesId(targetedGroupIds, currentGroupId);
+      const targetedGroupIds = Array.isArray(data.groupIds)
+        ? data.groupIds
+        : [];
+      const matchesDisplayGroup =
+        currentGroupId && includesId(targetedGroupIds, currentGroupId);
 
       if (matchesDisplayGroup) {
         window.location.reload();
@@ -810,15 +807,14 @@ function initLiveReload() {
 
   // Handle errors (like server going down)
   eventSource.onerror = (err) => {
-    console.error('[sse] error', err);
+    console.error("[sse] error", err);
     eventSource.close();
     sseReconnectTimeout = setTimeout(() => {
-      console.log('[sse] Reconnecting...');
+      console.log("[sse] Reconnecting...");
       initLiveReload();
     }, 10000);
   };
 }
-
 
 function _syncSlideBgColorIcon(backgroundColor) {
   const slideBgColorOption = document.querySelector(
@@ -832,7 +828,11 @@ function _syncSlideBgColorIcon(backgroundColor) {
   }
 }
 
-export async function _renderSlideElement(el, isInteractivePlayback, gridContainer) {
+export async function _renderSlideElement(
+  el,
+  isInteractivePlayback,
+  gridContainer,
+) {
   // Consider this an interactive playback render when we're not in the
   // editor or template editor modes. That covers slideshow and interactive
   // playback contexts where we shouldn't show editor-only indicators.
@@ -891,7 +891,7 @@ export async function _renderSlideElement(el, isInteractivePlayback, gridContain
     _renderScale(container, el);
   }
 
-  if (el.opacity) {
+  if (el.opacity != null) {
     _renderOpacity(container, el);
   }
   if (el.rounded || el.borderRadius) {
@@ -954,9 +954,10 @@ export async function _renderSlideElement(el, isInteractivePlayback, gridContain
   });
 
   container._resizeHandles = resizeHandles;
-  container._resizeHandle = resizeHandles.find((handle) => {
-    return handle.dataset.resizeDirection === "se";
-  }) || resizeHandles[0];
+  container._resizeHandle =
+    resizeHandles.find((handle) => {
+      return handle.dataset.resizeDirection === "se";
+    }) || resizeHandles[0];
 
   const dragIndicator = document.createElement("div");
   dragIndicator.classList.add("drag-indicator");
