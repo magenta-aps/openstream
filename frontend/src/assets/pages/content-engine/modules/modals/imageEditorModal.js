@@ -68,17 +68,19 @@ export async function openImageEditorForElement(elementContext) {
     setLoadingState(true, gettext("Preparing editor..."));
     bsModal.show();
 
-    const existingImg = currentElementContext.container?.querySelector("img");
-    if (!existingImg || !existingImg.complete || !existingImg.naturalWidth) {
-      throw new Error("Image not ready");
+    const [documentMeta, base64Result] = await Promise.all([
+      fetchDocumentMeta(contentId),
+      fetchDocumentBase64(contentId),
+    ]);
+
+    if (!base64Result?.base64) {
+      throw new Error("Failed to fetch image data");
     }
-    const documentMetaPromise = fetchDocumentMeta(contentId);
-    const base64Image = extractBase64FromImg(existingImg);
-    const documentMeta = await documentMetaPromise;
+
     currentDocumentMeta = documentMeta;
     const imageName = documentMeta?.title || `image-${contentId}`;
 
-    createEditorInstance(base64Image, imageName);
+    createEditorInstance(base64Result.base64, imageName);
 
     editorInstance.clearUndoStack();
     editorInstance.ui?.resizeEditor();
@@ -175,12 +177,11 @@ function createEditorInstance(base64Image, imageName) {
   });
 }
 
-function extractBase64FromImg(img) {
-  const canvas = document.createElement("canvas");
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  canvas.getContext("2d").drawImage(img, 0, 0);
-  return canvas.toDataURL("image/png");
+async function fetchDocumentBase64(documentId) {
+  return genericFetch(
+    `${BASE_URL}/api/documents/base64/${documentId}/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
+    "GET",
+  );
 }
 
 function destroyEditor() {
@@ -246,7 +247,6 @@ async function updateElementContent(newDocumentId) {
   try {
     const newUrl = await fetchImageFileUrl(newDocumentId);
     if (img) {
-      img.crossOrigin = "anonymous";
       img.src = newUrl;
     }
   } catch (error) {

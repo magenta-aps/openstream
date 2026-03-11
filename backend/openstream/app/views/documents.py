@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: AGPL-3.0-only
+import base64
 import logging
+import mimetypes
 from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -433,3 +435,53 @@ class DocumentFileTokenView(APIView):
             else:
                 file_url = request.build_absolute_uri(doc.file.url)
             return Response({"file_url": file_url}, status=200)
+
+
+ALLOWED_IMAGE_TYPES = {"png", "jpeg", "svg", "gif", "webp"}
+
+
+class DocumentBase64View(APIView):
+    """
+    Returns the raw file bytes of a document as a base64 data-URI.
+
+    This avoids browser CORS restrictions when loading images from S3 into
+    a canvas (e.g. the TUI image editor), because the fetch is performed
+    server-side by Django and the result is returned to the authenticated
+    caller as plain JSON.
+
+    Only image file types are permitted; PDFs, videos, etc. are rejected.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_branch_request
+    def get(self, request, branch, document_id):
+        organisation = branch.suborganisation.organisation
+        doc = get_object_or_404(
+            Document,
+            id=document_id,
+            branch__suborganisation__organisation=organisation,
+        )
+
+        if doc.file_type not in ALLOWED_IMAGE_TYPES:
+            return Response(
+                {"error": "Only image documents can be fetched as base64."},
+                status=400,
+            )
+
+        try:
+            with doc.file.open("rb") as f:
+                data = f.read()
+        except Exception as e:
+            logger.error(
+                f"Failed to read file for document {document_id}: {e}", exc_info=True
+            )
+            return Response({"error": "Could not read file."}, status=500)
+
+        mime_type, _ = mimetypes.guess_type(doc.file.name)
+        if not mime_type:
+            mime_type = "image/png"
+
+        b64 = base64.b64encode(data).decode("utf-8")
+        data_uri = f"data:{mime_type};base64,{b64}"
+        return Response({"base64": data_uri, "mime_type": mime_type}, status=200)
