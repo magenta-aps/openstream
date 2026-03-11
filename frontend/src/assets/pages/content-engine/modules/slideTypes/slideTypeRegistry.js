@@ -314,11 +314,17 @@ class SlideTypeRegistry {
     return slideType.extractFormData();
   }
 
+  /**
+   * @returns {{validationType: "required"} | {validationType: "internal", isSuccess: boolean}} validationType will indicate if the slideType handles validation itself (internal) or only uses required fields
+   */
   validateSlide(slideTypeId) {
     const slideType = this.slideTypes.get(slideTypeId);
-    if (!slideType) return false;
+    if (!slideType) return null;
+    if (!slideType.validateSlide) return { validationType: "required" };
 
-    return slideType.validateSlide();
+    const isSuccess = slideType.validateSlide();
+
+    return { validationType: "internal", isSuccess };
   }
 
   generateSlideData(slideTypeId) {
@@ -397,6 +403,9 @@ class SlideTypeRegistry {
       const { DDBOpeningHoursSlideType: DdbOpeningHoursSlideType } =
         await import("./types/ddbOpeningHoursSlideType.js");
       this.registerSlideType(12, DdbOpeningHoursSlideType);
+      // Import date slide type
+      const { DateSlideType } = await import("./types/dateSlideType.js");
+      this.registerSlideType(12, DateSlideType);
     } catch (error) {
       console.warn("Some slide types could not be loaded:", error);
     }

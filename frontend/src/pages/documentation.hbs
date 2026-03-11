@@ -10,7 +10,7 @@
                 <!-- Search -->
                 <div class="toc-search mt-1 position-relative w-100">
                     <span class="material-symbols-outlined search-icon">search</span>
-                    <input type="text" id="doc-search" placeholder="Search documentation..." class="search-input ps-5">
+                    <input type="text" id="doc-search" placeholder='{% trans "Search documentation" %}...' class="search-input ps-5">
                     <div id="search-results" class="search-results"></div>
                 </div>
 
@@ -31,7 +31,7 @@
                             <div class="spinner-border text-primary mb-3" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <div class="fw-bold">Loading Documentation...</div>
+                            <div class="fw-bold">{% trans "Loading Documentation" %}...</div>
                         </div>
                     </div>
 
@@ -42,8 +42,8 @@
 
                     <!-- Next Chapter Navigation -->
                     <div class="next-chapter-nav">
-                        <button id="next-chapter-btn" class="btn btn-primary" style="display: none;">
-                            Next Chapter: <span id="next-chapter-title"></span>
+                        <button id="next-chapter-btn" class="btn btn-primary gap-2 align-items-center" style="display: none;">
+                            {% trans "Next Chapter" %}:<span id="next-chapter-title"></span>
                             <span class="material-symbols-outlined">arrow_forward</span>
                         </button>
                     </div>

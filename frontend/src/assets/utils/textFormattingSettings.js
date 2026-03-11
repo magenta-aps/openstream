@@ -8,14 +8,12 @@ const defaultSettings = {
   bold: true,
   italic: true,
   underline: true,
-  fontWeight: true,
 };
 
 const FEATURE_TO_API_FIELD = {
   bold: "allow_bold",
   italic: "allow_italic",
   underline: "allow_underline",
-  fontWeight: "allow_font_weight",
 };
 
 let cachedSettings = { ...defaultSettings };
@@ -39,10 +37,6 @@ function mapResponseToSettings(response) {
       typeof response.allow_underline === "boolean"
         ? response.allow_underline
         : defaultSettings.underline,
-    fontWeight:
-      typeof response.allow_font_weight === "boolean"
-        ? response.allow_font_weight
-        : defaultSettings.fontWeight,
   };
 }
 
@@ -71,9 +65,6 @@ export function isTextFormattingFeatureEnabled(featureKey) {
       return !!cachedSettings.italic;
     case "underline":
       return !!cachedSettings.underline;
-    case "fontweight":
-    case "font_weight":
-      return !!cachedSettings.fontWeight;
     default:
       return true;
   }
@@ -144,5 +135,4 @@ export const TEXT_FORMATTING_FEATURES = Object.freeze({
   BOLD: "bold",
   ITALIC: "italic",
   UNDERLINE: "underline",
-  FONT_WEIGHT: "fontWeight",
 });

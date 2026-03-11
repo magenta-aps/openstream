@@ -857,6 +857,7 @@ export async function handleUploadSubmit(
     msg: gettext("Media successfully uploaded"),
   };
   if (rejectedUploadsAmount > 0) {
+    console.log(rejectedUploads)
     status.msg =
       rejectedUploads[0].reason["message"] ||
       `${gettext("Failed to upload files")}: ${rejectedUploadsAmount}`;

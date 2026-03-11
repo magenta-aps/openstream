@@ -74,9 +74,6 @@ const textOptionInputs = {
   [TEXT_FORMATTING_FEATURES.UNDERLINE]: document.getElementById(
     "tiptap-option-underline",
   ),
-  [TEXT_FORMATTING_FEATURES.FONT_WEIGHT]: document.getElementById(
-    "tiptap-option-font-weight",
-  ),
 };
 
 /**

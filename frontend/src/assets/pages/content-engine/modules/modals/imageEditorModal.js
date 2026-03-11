@@ -11,7 +11,6 @@ import {
   queryParams,
   selectedBranchID,
   showToast,
-  token,
 } from "../../../../utils/utils.js";
 import { gettext } from "../../../../utils/locales.js";
 import { pushCurrentSlideState } from "../core/undoRedo.js";
@@ -69,17 +68,15 @@ export async function openImageEditorForElement(elementContext) {
     setLoadingState(true, gettext("Preparing editor..."));
     bsModal.show();
 
-    const [imageUrl, documentMeta] = await Promise.all([
-      fetchImageFileUrl(contentId),
-      fetchDocumentMeta(contentId),
-    ]);
-
+    const existingImg = currentElementContext.container?.querySelector("img");
+    if (!existingImg || !existingImg.complete || !existingImg.naturalWidth) {
+      throw new Error("Image not ready");
+    }
+    const documentMetaPromise = fetchDocumentMeta(contentId);
+    const base64Image = extractBase64FromImg(existingImg);
+    const documentMeta = await documentMetaPromise;
     currentDocumentMeta = documentMeta;
     const imageName = documentMeta?.title || `image-${contentId}`;
-
-    // Fetch image and convert to base64 - this fixes the menu buttons not working
-    // when using loadImageFromURL with remote images (known issue #942)
-    const base64Image = await fetchImageAsBase64(imageUrl);
 
     createEditorInstance(base64Image, imageName);
 
@@ -178,6 +175,14 @@ function createEditorInstance(base64Image, imageName) {
   });
 }
 
+function extractBase64FromImg(img) {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext("2d").drawImage(img, 0, 0);
+  return canvas.toDataURL("image/png");
+}
+
 function destroyEditor() {
   if (editorInstance) {
     editorInstance.destroy();
@@ -191,7 +196,7 @@ function destroyEditor() {
 async function fetchDocumentMeta(documentId) {
   try {
     return await genericFetch(
-      `${BASE_URL}/api/documents/${documentId}/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}`,
+      `${BASE_URL}/api/documents/${documentId}/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}&title_only=true`,
       "GET",
     );
   } catch (error) {
@@ -203,33 +208,6 @@ async function fetchDocumentMeta(documentId) {
   }
 }
 
-async function fetchImageFileUrl(documentId) {
-  const headers = buildAuthHeaders();
-  const url = `${BASE_URL}/api/documents/file-token/${documentId}/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}&id=${queryParams.displayWebsiteId || ""}`;
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch file token (${response.status})`);
-  }
-  const data = await response.json();
-  if (!data?.file_url) {
-    throw new Error("No file_url returned for document");
-  }
-  return data.file_url;
-}
-
-async function fetchImageAsBase64(imageUrl) {
-  const response = await fetch(imageUrl, { mode: "cors" });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image (${response.status})`);
-  }
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-    reader.readAsDataURL(blob);
-  });
-}
 
 async function uploadEditedImage(blob) {
   const titleBase = sanitizeTitle(currentDocumentMeta?.title);
@@ -251,6 +229,14 @@ async function uploadEditedImage(blob) {
   );
 }
 
+async function fetchImageFileUrl(documentId) {
+  const data = await genericFetch(
+    `${BASE_URL}/api/documents/file-token/${documentId}/?branch_id=${selectedBranchID}&organisation_id=${parentOrgID}&id=${queryParams.displayWebsiteId || ""}`,
+    "GET",
+  );
+  return data?.file_url;
+}
+
 async function updateElementContent(newDocumentId) {
   if (!currentElementContext) {
     return;
@@ -260,6 +246,7 @@ async function updateElementContent(newDocumentId) {
   try {
     const newUrl = await fetchImageFileUrl(newDocumentId);
     if (img) {
+      img.crossOrigin = "anonymous";
       img.src = newUrl;
     }
   } catch (error) {
@@ -303,12 +290,3 @@ function sanitizeTitle(rawTitle) {
   return cleaned || fallback;
 }
 
-function buildAuthHeaders() {
-  const headers = { "Content-Type": "application/json" };
-  if (queryParams.apiKey) {
-    headers["X-API-KEY"] = queryParams.apiKey;
-  } else if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-}

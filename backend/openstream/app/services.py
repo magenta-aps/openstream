@@ -338,6 +338,16 @@ DDB_EVENT_API_URLS = {
             ],
         },
     },
+    "Fredericia": {
+        "url": "https://fredericiabib.dk/api/v1/events",
+        "libraries": [
+            "Fredericia Bibliotek",
+            "Taulov Bibliotek",
+            "Bredstrup-Pjedsted Hallen",
+            "Brugsen Egeskov",
+            "Erritsø Idrætscenter",
+        ],
+    },
 }
 
 
