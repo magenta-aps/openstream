@@ -3815,6 +3815,9 @@
   "DDB Events API": {
     "da": "Det Digitale Folkebibliotek begivenheds API"
   },
+  "DDB Opening Hours": {
+    "da": "Det Digitale Folkebibliotek åbningstider"
+  },
   "Newsfeed": {
     "da": "Nyhedsfeed"
   },
@@ -4195,6 +4198,7 @@
   },
   "2XL": {
     "da": "2XL"
+  },
   "At least one selected format option is required": {
     "da": "Mindst et dato format skal vælges"
   },
