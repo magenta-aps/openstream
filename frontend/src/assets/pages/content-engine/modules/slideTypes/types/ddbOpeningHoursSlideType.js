@@ -364,7 +364,6 @@ export const DDBOpeningHoursSlideType = {
 
   initEventListeners() {
     this._eventListeners.updateLibrarySelection = (event) => {
-      console.log(event);
       this.updateLibrarySelection(event);
     };
     this._domCtx.municipalitySelectEl.addEventListener(
