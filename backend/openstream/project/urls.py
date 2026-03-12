@@ -45,6 +45,7 @@ from app.views.content import (
 )
 from app.views.documents import (
     DocumentAPIView,
+    DocumentBase64View,
     DocumentFileTokenView,
     DocumentFileView,
     DocumentListView,
@@ -272,6 +273,11 @@ urlpatterns = [
         name="document-api",
     ),
     path("api/documents/images/", DocumentAPIView.as_view(), name="document-images"),
+    path(
+        "api/documents/base64/<int:document_id>/",
+        DocumentBase64View.as_view(),
+        name="document-base64",
+    ),
     path(
         "api/documents/file-token/<int:document_id>/",
         DocumentFileTokenView.as_view(),
