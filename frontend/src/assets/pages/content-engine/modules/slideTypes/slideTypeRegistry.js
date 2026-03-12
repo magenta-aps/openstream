@@ -400,12 +400,14 @@ class SlideTypeRegistry {
         await import("./types/frontdeskLtkBorgerserviceSlideType.js");
       this.registerSlideType(10, FrontdeskLtkBorgerserviceSlideType);
 
-      const { DDBOpeningHoursSlideType: DdbOpeningHoursSlideType } =
-        await import("./types/ddbOpeningHoursSlideType.js");
-      this.registerSlideType(12, DdbOpeningHoursSlideType);
       // Import date slide type
       const { DateSlideType } = await import("./types/dateSlideType.js");
       this.registerSlideType(12, DateSlideType);
+
+      // Import DDB opening hours slide type
+      const { DDBOpeningHoursSlideType: DdbOpeningHoursSlideType } =
+        await import("./types/ddbOpeningHoursSlideType.js");
+      this.registerSlideType(13, DdbOpeningHoursSlideType);
     } catch (error) {
       console.warn("Some slide types could not be loaded:", error);
     }
