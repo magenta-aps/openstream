@@ -26,7 +26,6 @@ class Migration(migrations.Migration):
                     (9, "KMD Foreningsportalen"),
                     (10, "Frontdesk LTK Borgerservice"),
                     (11, "WinKAS"),
-                    (12, "DDB Opening hours"),
                     (12, "Date"),
                 ],
                 help_text="Slide type that matches the frontend slide type system",
