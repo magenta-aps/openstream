@@ -30,7 +30,12 @@ function getElementByID(elementID) {
   return element;
 }
 
-/** @returns {DomCtx & {resetCtx: () => void}} */
+/**
+ * @description
+ * Initiates the dom context, an object which retrieval of the relevant dom elements.
+ * If an element is used often it should be added to the dom context so as to avoid too many querySelectors
+ * @returns {DomCtx & {resetCtx: () => void}}
+ */
 function initDomCtx() {
   /** @type {DomCtx} */
   const ctxPrimitive = {
