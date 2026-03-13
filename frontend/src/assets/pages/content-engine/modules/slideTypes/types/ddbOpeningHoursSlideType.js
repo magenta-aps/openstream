@@ -332,14 +332,16 @@ export const DDBOpeningHoursSlideType = {
     this._currentData.listElementFontSize = listElementFontSizeEl.value;
 
     if (existingConfig) {
-      this.setInitialConfig(existingConfig);
+      this.useExistingConfig(existingConfig);
     }
   },
 
   /**
+   * @description
+   * Will use an existing config to set the values in the form
    * @param {FormConfig} existingConfig
    */
-  setInitialConfig(existingConfig) {
+  useExistingConfig(existingConfig) {
     // set selected municipality
     const selectedMunicipality = existingConfig.selectedMunicipality;
     this._domCtx.municipalitySelectEl.value = selectedMunicipality;
