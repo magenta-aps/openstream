@@ -1,26 +1,28 @@
 ## SPDX-FileCopyrightText: 2025 Magenta ApS <https://magenta.dk>
 ## SPDX-License-Identifier: AGPL-3.0-only
 
-from datetime import datetime, timedelta
-from django.db.models import Q
-from django.core.exceptions import ValidationError
-from django.apps import apps
-from django.core.cache import cache
-from django.conf import settings
-from rest_framework import status
 import json
-import requests
 import logging
 import re
-import pandas as pd
-import pytz
-import feedparser
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+import feedparser
+import pandas as pd
+import pytz
+import requests
+from django.apps import apps
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+from rest_framework import status
+
 from .utils import (
-    make_aware_if_needed,
-    _normalize_text,
     CacheHandler,
+    _normalize_text,
+    make_aware_if_needed,
 )
 
 logger = logging.getLogger(__name__)
@@ -337,16 +339,6 @@ DDB_EVENT_API_URLS = {
                 {"name": "Erritsø Idrætscenter", "branch_id": 36},
             ],
         },
-    },
-    "Fredericia": {
-        "url": "https://fredericiabib.dk/api/v1/events",
-        "libraries": [
-            "Fredericia Bibliotek",
-            "Taulov Bibliotek",
-            "Bredstrup-Pjedsted Hallen",
-            "Brugsen Egeskov",
-            "Erritsø Idrætscenter",
-        ],
     },
 }
 
