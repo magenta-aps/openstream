@@ -31,14 +31,11 @@ body {
     align-items: center;
     justify-content: space-between;
     font-variant-numeric: tabular-nums;
+    padding: 2px 15px;
 }
 
-.font-lower {
-    padding: 2px 10px;
-}
-
-.font-higher {
-    padding: 2px 20px;
+.opening-hour-title-wrapper {
+    padding-left: 15px;
 }
 
 .opening-hour-name {
