@@ -1952,11 +1952,11 @@
   "Clock Font Size (rem)": {
     "da": "Ur skrift størrelse (rem)"
   },
-  "Date font size": {
-    "da": "Dato skriftstørrelse"
+  "Font size of the date header:": {
+    "da": "Skriftstørrelse for dato overskriften"
   },
-  "Opening hours font size": {
-    "da": "Åbningstider skriftstørrelse"
+  "Font size of the opening hours (shown in the tabel):": {
+    "da": "Skriftstørrelsen for åbningstiderne (vist i tabellen):"
   },
   "Weather Font Size (rem)": {
     "da": "Vejr skrift størrelse (rem)"
