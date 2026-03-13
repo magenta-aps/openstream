@@ -22,7 +22,7 @@ body {
     background-color: main.$black;
 }
 
-.opening-hour-container:nth-child(2):not(:only-child) {
+.opening-hour-container:nth-child(even) {
     background-color: #dbdbdb;
 }
 
