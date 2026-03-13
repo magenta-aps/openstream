@@ -569,6 +569,7 @@ export const DDBOpeningHoursSlideType = {
   setListElementFontSize(event) {
     this._setListElementFontSize(event);
   },
+
   // Util functions
 
   /**
