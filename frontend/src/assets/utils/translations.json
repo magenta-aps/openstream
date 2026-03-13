@@ -1799,8 +1799,8 @@
   "Search title, description, or location within the current filters.": {
     "da": "Søg i titel, beskrivelse eller lokation inden for de valgte filtre."
   },
-  "Number of days:": {
-    "da": "Antal dage:"
+  "Number of days to display (From today):": {
+    "da": "Antal dage vist (Fra og med i dag):"
   },
   "Enter number of days": {
     "da": "Indtast antal dage"
