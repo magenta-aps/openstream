@@ -37,6 +37,10 @@ app.get('/trigger-refresh', (req, res) => {
     payload.branchId = req.query.branch_id;
   }
 
+  if (req.query.display_website_group_id) {
+    payload.displayWebsiteGroupId = req.query.display_website_group_id;
+  }
+
   channel.broadcast(payload, "custom-event");
   res.send('Content change logged');
 });

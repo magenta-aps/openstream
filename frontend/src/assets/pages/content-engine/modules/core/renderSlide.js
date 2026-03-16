@@ -763,14 +763,24 @@ function initLiveReload() {
       }
     }
     if (data.model == "ScheduledContent") {
-      // Check if data.id is in scheduled_content_ids
-      if (includesId(metadata.scheduled_content_ids, data.id)) {
+      // Check if data.id is in scheduled_content_ids, or if the group matches (handles newly added content)
+      if (
+        includesId(metadata.scheduled_content_ids, data.id) ||
+        (data.displayWebsiteGroupId &&
+          String(data.displayWebsiteGroupId) ===
+            String(metadata.display_website_group_id))
+      ) {
         window.location.reload();
       }
     }
     if (data.model == "RecurringScheduledContent") {
-      // Check if data.id is in recurring_scheduled_content_ids
-      if (includesId(metadata.recurring_scheduled_content_ids, data.id)) {
+      // Check if data.id is in recurring_scheduled_content_ids, or if the group matches (handles newly added content)
+      if (
+        includesId(metadata.recurring_scheduled_content_ids, data.id) ||
+        (data.displayWebsiteGroupId &&
+          String(data.displayWebsiteGroupId) ===
+            String(metadata.display_website_group_id))
+      ) {
         window.location.reload();
       }
     }
