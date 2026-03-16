@@ -73,7 +73,9 @@ def cache_emergency_slideshow_groups(sender, instance, **kwargs):
 @receiver(post_save, sender=Slideshow)
 @receiver(post_save, sender=SlideshowPlaylist)
 @receiver(post_save, sender=ScheduledContent)
+@receiver(post_delete, sender=ScheduledContent)
 @receiver(post_save, sender=RecurringScheduledContent)
+@receiver(post_delete, sender=RecurringScheduledContent)
 @receiver(post_save, sender=DisplayWebsiteGroup)
 @receiver(post_save, sender=DisplayWebsite)
 @receiver(post_save, sender=EmergencySlideshow)
@@ -96,6 +98,10 @@ def notify_express_of_change(sender, instance, **kwargs):
             )
         if group_ids:
             params["group_ids"] = ",".join(str(group_id) for group_id in group_ids)
+
+    if sender is ScheduledContent or sender is RecurringScheduledContent:
+        if instance.display_website_group_id:
+            params["display_website_group_id"] = instance.display_website_group_id
 
     if sender is DisplayWebsite:
         params["displaywebsite_id"] = instance.pk
