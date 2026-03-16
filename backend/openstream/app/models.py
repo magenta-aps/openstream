@@ -1242,6 +1242,7 @@ class RegisteredSlideTypes(models.Model):
         FRONTDESK = 10, "Frontdesk LTK Borgerservice"
         WINKAS = 11, "WinKAS"
         DATE = 12, "Date"
+        DDB_OPENING_HOURS = 13, "DDB Opening hours"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, related_name="registered_slide_types"

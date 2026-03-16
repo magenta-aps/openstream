@@ -569,7 +569,7 @@ class FrontendSlideTypeModal {
       "#frontendSlideTypeModalLabel",
     );
     if (slideType && titleElement) {
-      titleElement.textContent = slideType.name;
+      titleElement.textContent = gettext(slideType.name);
     }
 
     try {

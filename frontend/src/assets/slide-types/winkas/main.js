@@ -138,7 +138,6 @@ function filterSkippedEvents(bookings) {
       .map((name) => name.trim().toLowerCase())
       .filter((name) => name.length > 0),
   );
-  console.log(skippedListTitle, skippedListBookedBy);
 
   /**
    *
@@ -186,7 +185,6 @@ async function fetchAndDisplayBookings() {
     }
 
     const data = await response.json();
-    console.log(data);
     // Filter data before displaying
     if (data && data.bookings) {
       data.bookings = filterSkippedEvents(data.bookings);

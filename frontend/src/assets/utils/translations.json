@@ -1127,6 +1127,9 @@
   "Select a playlist": {
     "da": "Vælg en afspilningsliste"
   },
+  "Default": {
+    "da": "Standard"
+  },
   "Default: ": {
     "da": "Standard: "
   },
@@ -1796,8 +1799,8 @@
   "Search title, description, or location within the current filters.": {
     "da": "Søg i titel, beskrivelse eller lokation inden for de valgte filtre."
   },
-  "Number of days:": {
-    "da": "Antal dage:"
+  "Number of days to display (From today):": {
+    "da": "Antal dage vist (Fra og med i dag):"
   },
   "Enter number of days": {
     "da": "Indtast antal dage"
@@ -1949,8 +1952,11 @@
   "Clock Font Size (rem)": {
     "da": "Ur skrift størrelse (rem)"
   },
-  "Date font size": {
-    "da": "Dato skrift størrelse"
+  "Font size of the date header:": {
+    "da": "Skriftstørrelse for dato overskriften"
+  },
+  "Font size of the opening hours (shown in the tabel):": {
+    "da": "Skriftstørrelsen for åbningstiderne (vist i tabellen):"
   },
   "Weather Font Size (rem)": {
     "da": "Vejr skrift størrelse (rem)"
@@ -3809,6 +3815,9 @@
   "DDB Events API": {
     "da": "Det Digitale Folkebibliotek begivenheds API"
   },
+  "DDB Opening Hours": {
+    "da": "Det Digitale Folkebibliotek åbningstider"
+  },
   "Newsfeed": {
     "da": "Nyhedsfeed"
   },
@@ -4177,6 +4186,18 @@
   },
   "Pixels": {
     "da": "Pixels"
+  },
+  "Small": {
+    "da": "Lille"
+  },
+  "Large": {
+    "da": "Stor"
+  },
+  "XL": {
+    "da": "XL"
+  },
+  "2XL": {
+    "da": "2XL"
   },
   "At least one selected format option is required": {
     "da": "Mindst et dato format skal vælges"

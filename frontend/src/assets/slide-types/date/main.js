@@ -14,7 +14,6 @@ const ctx = {
   fontSize: queryParams.fontSize,
   lang: queryParams.lang,
 };
-console.log(ctx);
 
 const formattedDate = createFormattedDate(ctx.lang, {
   weekday: ctx.weekday,

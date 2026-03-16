@@ -53,6 +53,9 @@ class DDBProxyAPIView(APIView, TokenOrAPIKeyMixin):
         return Response({"message": "Hello from DDB Proxy endpoint!"})
 
 
+DDB_KOMMUNER = DDB_EVENT_API_URLS["kommuner"]
+
+
 class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
     """Endpoint to return kommune options"""
 
@@ -70,26 +73,25 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
 
         requested_kommune = request.query_params.get("kommune")
 
-        if requested_kommune and requested_kommune not in DDB_EVENT_API_URLS:
-            valid_keys = ", ".join(DDB_EVENT_API_URLS.keys())
+        if requested_kommune and requested_kommune not in DDB_KOMMUNER:
+            valid_keys = ", ".join(DDB_KOMMUNER.keys())
             return Response(
                 {
                     "error": f"{requested_kommune} is an invalid kommune. Supported kommuner are: {valid_keys}",
-                    "validKommuner": list(DDB_EVENT_API_URLS.keys()),
+                    "validKommuner": list(DDB_KOMMUNER.keys()),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         kommuner = (
-            [requested_kommune]
-            if requested_kommune
-            else list(DDB_EVENT_API_URLS.keys())
+            [requested_kommune] if requested_kommune else list(DDB_KOMMUNER.keys())
         )
 
         response_payload = {}
 
+        response_kommuner = {}
         for kommune_name in kommuner:
-            kommune_data = copy.deepcopy(DDB_EVENT_API_URLS[kommune_name])
+            kommune_data = copy.deepcopy(DDB_KOMMUNER[kommune_name])
 
             if include_categories:
                 categories = []
@@ -105,7 +107,7 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
                         return Response(
                             {
                                 "error": str(error),
-                                "validKommuner": list(DDB_EVENT_API_URLS.keys()),
+                                "validKommuner": list(DDB_KOMMUNER.keys()),
                             },
                             status=error.status_code,
                         )
@@ -114,8 +116,12 @@ class DDBEventOptionsAPIView(APIView, TokenOrAPIKeyMixin):
 
                 kommune_data["categories"] = categories
 
-            response_payload[kommune_name] = kommune_data
+            response_kommuner[kommune_name] = kommune_data
 
+        response_payload["kommuner"] = response_kommuner
+        response_payload["opening_hours_path"] = DDB_EVENT_API_URLS[
+            "opening_hours_path"
+        ]
         return Response(response_payload)
 
 
@@ -153,8 +159,8 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
             )
 
         # Check if the provided kommune is supported.
-        if kommune not in DDB_EVENT_API_URLS:
-            valid_keys = ", ".join(DDB_EVENT_API_URLS.keys())
+        if kommune not in DDB_KOMMUNER:
+            valid_keys = ", ".join(DDB_KOMMUNER.keys())
             return Response(
                 {
                     "error": f"{kommune} is an invalid kommune. Supported kommuner are: {valid_keys}"
@@ -163,7 +169,10 @@ class DDBEventAPIView(APIView, TokenOrAPIKeyMixin):
             )
 
         available_libraries = {}
-        for library in DDB_EVENT_API_URLS[kommune].get("libraries", []):
+        libraries = map(
+            lambda library: library["name"], DDB_KOMMUNER[kommune].get("libraries", [])
+        )
+        for library in list(libraries):
             normalized_library = _normalize_text(library)
             if normalized_library:
                 available_libraries[normalized_library] = library

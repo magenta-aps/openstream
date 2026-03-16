@@ -1,0 +1,63 @@
+{{!-- SPDX-FileCopyrightText: 2026 Magenta ApS <https: //magenta.dk> --}}
+{{!-- SPDX-License-Identifier: AGPL-3.0-only --}}
+
+{{#*inline "section"}}
+    <div class="mb-4">
+        {{> @partial-block}}
+    </div>
+{{/inline}}
+
+{{#*inline "size-options"}}
+    <option value="24">{% trans "Small"%}</option>
+    <option selected value="32">{% trans "Default"%}</option>
+    <option value="48">{% trans "Medium"%}</option>
+    <option value="72">{% trans "Large"%}</option>
+    <option value="96">{% trans "XL"%}</option>
+    <option value="128">{% trans "2XL"%}</option>
+{{/inline}}
+
+
+{{#> base/containers/html-container title="DDB Opening Hours Configuration Form" }}
+    <div>
+        <div class="card-body">
+            {{#> section}}
+                <label for="ddb-opening-hours-kommune-select" class="form-label mb-1">{% trans "Choose a municipality:" %}</label>
+
+                <select required id="ddb-opening-hours-kommune-select" class="form-select border-gray">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            {{/section}}
+
+            {{#> section}}
+                <label for="ddb-opening-hours-library-select" class="form-label mb-1">{% trans "Select library" %}:</label>
+
+                <select required id="ddb-opening-hours-library-select" class="form-select border-gray">
+                    <option value="">{% trans "Select a municipality to load libraries." %}</option>
+                </select>
+            {{/section}}
+
+            {{#> section}}
+                <div id="ddb-opening-hours-nr-of-days-wrapper">
+                    <label for="ddb-opening-hours-nr-of-days-input" class="form-label mb-1">{% trans "Number of days to display (From today):" %}</label>
+                    <input required type="number" id="ddb-opening-hours-nr-of-days-input" class="form-control border-gray" min="1" placeholder='{% trans "Enter number of days" %}' value="1" />
+                </div>
+            {{/section}}
+
+            {{#> section}}
+                <label for="ddb-opening-hours-date-header-font-size" class="form-label mb-1">{% trans "Font size of the date header:" %}</label>
+
+                <select id="ddb-opening-hours-date-header-font-size" class="form-select border-gray">
+                    {{> size-options}}
+                </select>
+            {{/section}}
+
+            {{#> section}}
+                <label for="ddb-opening-hours-list-element-font-size" class="form-label mb-1">{% trans "Font size of the opening hours (shown in the tabel):" %}</label>
+
+                <select id="ddb-opening-hours-list-element-font-size" class="form-select border-gray">
+                    {{> size-options}}
+                </select>
+            {{/section}}
+        </div>
+    </div>
+{{/ base/containers/html-container }}
