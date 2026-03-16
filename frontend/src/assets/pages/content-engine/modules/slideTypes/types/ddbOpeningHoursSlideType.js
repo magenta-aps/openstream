@@ -206,7 +206,7 @@ export const DDBOpeningHoursSlideType = {
     listElementFontSize: null,
   },
   name: "DDB Opening Hours",
-  description: "Display events from the Danish Digital Library",
+  description: "Display opening hours from the Danish Digital Library",
   categoryId: 1,
 
   // SlideTypeRegistry required functions
