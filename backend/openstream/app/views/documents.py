@@ -437,7 +437,7 @@ class DocumentFileTokenView(APIView):
             return Response({"file_url": file_url}, status=200)
 
 
-ALLOWED_IMAGE_TYPES = {"png", "jpeg", "svg", "gif", "webp"}
+ALLOWED_IMAGE_TYPES = {"png", "jpeg", "svg", "gif", "WebP"}
 
 
 class DocumentBase64View(APIView):
